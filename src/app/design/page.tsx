@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Sparkles } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
@@ -270,19 +271,41 @@ export default function DesignPage() {
                     <RotateCcw className="h-5 w-5" />
                 </Button>
             </div>
-            <div className="space-y-1 flex-shrink-0">
-                <Label htmlFor="bg-color" className="text-xs">Background</Label>
-                <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="p-1 h-10 w-16" />
-            </div>
-            <div className="space-y-1 flex-shrink-0">
-                <Label htmlFor="emoji-color" className="text-xs">Emoji</Label>
-                <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="p-1 h-10 w-16" />
-            </div>
-             <div className="space-y-1 flex-shrink-0 w-32">
-                <Label htmlFor="filter-select" className="text-xs">Filter</Label>
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="relative w-10 h-10">
+                            <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
+                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Background Color</p>
+                    </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div className="relative w-10 h-10">
+                            <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
+                            <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Emoji Color</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+
+             <div className="w-32">
                 <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger id="filter-select" className="h-10">
-                        <SelectValue placeholder="Select..." />
+                    <SelectTrigger className="h-10">
+                        <SelectValue asChild>
+                           <div className="flex items-center gap-2">
+                             <Sparkles className="h-5 w-5" />
+                             <span className="sr-only md:not-sr-only">Filter</span>
+                           </div>
+                        </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="none">None</SelectItem>
@@ -299,5 +322,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
