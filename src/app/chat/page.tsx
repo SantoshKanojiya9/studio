@@ -23,17 +23,15 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (scrollAreaViewportRef.current) {
-        setTimeout(() => {
-            scrollAreaViewportRef.current!.scrollTo({
-                top: scrollAreaViewportRef.current!.scrollHeight,
-                behavior: 'smooth'
-            });
-        }, 100);
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [messages]);
 
@@ -71,7 +69,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-full">
        <ChatHeader />
        <div className="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
-            <ScrollArea className="flex-1" viewportRef={scrollAreaViewportRef}>
+            <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                 <div className="space-y-6 pr-4">
                 {messages.map((message, index) => (
                     <div
