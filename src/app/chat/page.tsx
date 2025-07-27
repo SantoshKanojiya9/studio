@@ -5,7 +5,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +24,6 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wordCount, setWordCount] = useState(0);
@@ -37,7 +35,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isLoading]);
 
@@ -101,48 +99,46 @@ export default function ChatPage() {
           <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
         </Button>
        </ChatHeader>
-       <div className="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
-            <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
-                <div className="space-y-6 pr-4">
-                {messages.map((message) => (
-                    <div
-                    key={message.id}
-                    className={cn(
-                        'flex flex-col gap-2',
-                        message.role === 'user' ? 'items-end' : 'items-start'
-                    )}
-                    >
-                    
-                    {message.role === 'assistant' && (
-                        <div className="font-bold text-primary">{message.name}</div>
-                    )}
-                     <div
-                        className={cn(
-                        'rounded-lg px-4 py-2 flex items-center gap-2 max-w-full',
-                         message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-secondary text-secondary-foreground'
-                        )}
-                    >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    </div>
-
-                    </div>
-                ))}
-                {isLoading && (
-                    <div className="flex items-start gap-3 justify-start">
-                     <div className="font-bold text-primary">Edena</div>
-                    <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground">
-                        <div className="flex items-center justify-center gap-2 h-5">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                    </div>
-                    </div>
+       <div className="flex-1 flex flex-col p-4 space-y-4">
+            <div className="space-y-6 pr-4 flex-1">
+            {messages.map((message) => (
+                <div
+                key={message.id}
+                className={cn(
+                    'flex flex-col gap-2',
+                    message.role === 'user' ? 'items-end' : 'items-start'
                 )}
-                <div ref={messagesEndRef} />
+                >
+                
+                {message.role === 'assistant' && (
+                    <div className="font-bold text-primary">{message.name}</div>
+                )}
+                 <div
+                    className={cn(
+                    'rounded-lg px-4 py-2 flex items-center gap-2 max-w-full',
+                     message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground'
+                    )}
+                >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 </div>
-            </ScrollArea>
-            <div className="border-t-0 pt-2">
+
+                </div>
+            ))}
+            {isLoading && (
+                <div className="flex items-start gap-3 justify-start">
+                 <div className="font-bold text-primary">Edena</div>
+                <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground">
+                    <div className="flex items-center justify-center gap-2 h-5">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                </div>
+                </div>
+            )}
+            <div ref={messagesEndRef} />
+            </div>
+            <div className="border-t-0 pt-2 sticky bottom-16 bg-background">
                 <form onSubmit={handleSubmit} className="flex items-center gap-2">
                     <div className="relative flex-1">
                         <Input
