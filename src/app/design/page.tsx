@@ -5,34 +5,41 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-type Expression = 'neutral' | 'happy' | 'angry';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
 
 const Face = ({ expression }: { expression: Expression }) => {
   const eyeVariants = {
     neutral: { y: 0 },
     happy: { y: 4, scaleY: 0.8 },
     angry: { y: -2 },
+    sad: { y: 6 },
+    surprised: { y: -3, scaleY: 1.1 },
   };
 
   const mouthVariants = {
     neutral: {
       d: "M 30 50 Q 50 50 70 50", // Straight line
-      strokeWidth: 5,
     },
     happy: {
       d: "M 30 50 Q 50 70 70 50", // Smile
-      strokeWidth: 5,
     },
     angry: {
       d: "M 30 60 Q 50 40 70 60", // Frown
-      strokeWidth: 5,
     },
+    sad: {
+        d: "M 30 60 Q 50 50 70 60", // Sad mouth
+    },
+    surprised: {
+        d: "M 40 55 Q 50 70 60 55 A 5 5 0 0 1 40 55", // Open mouth
+    }
   };
   
   const eyebrowVariants = {
     neutral: { y: 0, rotate: 0 },
     happy: { y: -4, rotate: -5 },
     angry: { y: 2, rotate: 10 },
+    sad: { y: 2, rotate: -10 },
+    surprised: { y: -6, rotate: 5 },
   }
 
   const eyeLidVariants = {
@@ -44,6 +51,8 @@ const Face = ({ expression }: { expression: Expression }) => {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
     angry: { opacity: 0, scale: 0.8 },
+    sad: { opacity: 0, scale: 0.8 },
+    surprised: { opacity: 0.4, scale: 0.9 },
   }
 
   return (
@@ -133,11 +142,12 @@ const Face = ({ expression }: { expression: Expression }) => {
             </motion.div>
           </div>
            {/* Mouth */}
-           <div className="absolute bottom-16">
+           <div className="absolute bottom-12">
             <svg width="100" height="40" viewBox="0 0 100 80">
                 <motion.path
                     fill="transparent"
                     stroke="black"
+                    strokeWidth={5}
                     strokeLinecap="round"
                     variants={mouthVariants}
                     animate={expression}
@@ -155,7 +165,7 @@ const Face = ({ expression }: { expression: Expression }) => {
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [isInteracting, setIsInteracting] = useState(false);
-  const expressions: Expression[] = ['neutral', 'happy', 'angry'];
+  const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   useEffect(() => {
     if (isInteracting) return;
@@ -168,7 +178,7 @@ export default function DesignPage() {
     }, 3000);
 
     return () => clearInterval(intervalId);
-  }, [isInteracting]);
+  }, [isInteracting, expressions]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsInteracting(true);
@@ -182,6 +192,7 @@ export default function DesignPage() {
   };
 
   const handlePointerUp = () => {
+    // Return to a neutral state, and let the automatic cycle resume.
     setExpression('neutral');
     setIsInteracting(false);
   };
