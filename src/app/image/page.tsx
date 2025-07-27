@@ -10,8 +10,11 @@ import NextImage from 'next/image';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
 
+const MAX_WORDS = 100;
+
 export default function ImageGeneratorPage() {
   const [prompt, setPrompt] = useState('');
+  const [wordCount, setWordCount] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -45,6 +48,15 @@ export default function ImageGeneratorPage() {
     }
   };
 
+  const handlePromptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length <= MAX_WORDS) {
+        setPrompt(text);
+        setWordCount(words.length);
+    }
+  };
+
   const fileToBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -55,10 +67,10 @@ export default function ImageGeneratorPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() && !file) {
+    if ((!prompt.trim() && !file) || wordCount > MAX_WORDS) {
       toast({
         title: "Prompt or image is required",
-        description: "Please enter a prompt or upload an image.",
+        description: "Please enter a prompt (under 100 words) or upload an image.",
         variant: "destructive",
       })
       return;
@@ -98,21 +110,26 @@ export default function ImageGeneratorPage() {
         </header>
         
         <form onSubmit={handleSubmit} className="relative mb-6">
-            <Input
-                id="prompt"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder={ file ? "Convert this image" : "An impressionist oil painting of a sunflower in a purple vase..."}
-                className="pr-24 h-12 text-base"
-                disabled={isLoading}
-            />
+             <div className="relative">
+                <Input
+                    id="prompt"
+                    value={prompt}
+                    onChange={handlePromptChange}
+                    placeholder={ file ? "Describe how to edit the image..." : "An impressionist oil painting of a sunflower in a purple vase..."}
+                    className="pr-32 h-12 text-base"
+                    disabled={isLoading}
+                />
+                <div className={cn("absolute right-24 top-1/2 -translate-y-1/2 text-xs", wordCount > MAX_WORDS ? "text-destructive" : "text-muted-foreground")}>
+                    {wordCount}/{MAX_WORDS}
+                </div>
+            </div>
              <Input ref={fileInputRef} id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading} className="hidden" />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <Button type="button" size="icon" variant="ghost" onClick={triggerFileSelect} disabled={isLoading} className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                     <ImageUp className="h-5 w-5" />
                     <span className="sr-only">Upload Image</span>
                 </Button>
-                <Button type="submit" size="icon" variant="ghost" disabled={isLoading || (!prompt.trim() && !file) } className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                <Button type="submit" size="icon" variant="ghost" disabled={isLoading || (!prompt.trim() && !file) || wordCount > MAX_WORDS } className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                     <Send className="h-5 w-5" />
                     <span className="sr-only">Generate</span>
                 </Button>
