@@ -43,6 +43,10 @@ export default function PlanPage() {
                 <Check className="h-5 w-5 text-zinc-400 mr-3" />
                 <span>Limited daily usage</span>
               </li>
+              <li className="flex items-center">
+                <Check className="h-5 w-5 text-zinc-400 mr-3" />
+                <span>Silver Tick verification</span>
+              </li>
             </ul>
           </CardContent>
           <CardFooter className="p-6 mt-auto">
