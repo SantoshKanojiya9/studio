@@ -43,6 +43,9 @@ export function ChatHeader() {
       <div className="flex items-center gap-2">
         <EdengramLogo />
         <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
+        {plan === 'Silver' && (
+            <BadgeCheck className="h-5 w-5 text-zinc-400" />
+        )}
         {plan === 'Gold' && (
             <BadgeCheck className="h-5 w-5 text-amber-400" />
         )}
