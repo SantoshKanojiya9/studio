@@ -67,7 +67,7 @@ export default function PlanPage() {
           <CardHeader className="p-6 text-center">
             <h3 className="text-2xl font-semibold text-amber-300">Gold</h3>
             <p className="mt-2 text-4xl font-bold text-foreground">
-              ₹332<span className="text-lg font-medium text-muted-foreground">/month</span>
+              ₹432<span className="text-lg font-medium text-muted-foreground">/month</span>
             </p>
             <CardDescription className="mt-2 text-md text-amber-400/90">Unlock all premium features for the best experience.</CardDescription>
           </CardHeader>
