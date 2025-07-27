@@ -133,7 +133,6 @@ export default function ChatPage() {
                             : 'bg-secondary text-secondary-foreground'
                         )}
                     >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         {message.role === 'assistant' && (
                             <Button
                                 size="icon"
@@ -149,6 +148,7 @@ export default function ChatPage() {
                                 )}
                             </Button>
                         )}
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
 
                     </div>
