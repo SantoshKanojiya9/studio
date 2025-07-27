@@ -201,7 +201,7 @@ const Face = ({
             </div>
 
             {/* Accessories */}
-            <motion.div 
+             <motion.div 
                 className="absolute"
                 style={{ top: '108px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 initial={{ opacity: 0, y: -20 }}
@@ -246,7 +246,6 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
 
@@ -270,6 +269,46 @@ export default function DesignPage() {
   const springConfig = { stiffness: 300, damping: 20 };
   const smoothRotateX = useSpring(rotateX, springConfig);
   const smoothRotateY = useSpring(rotateY, springConfig);
+
+  useEffect(() => {
+    let animationInterval: NodeJS.Timeout;
+    let phaseTimeout: NodeJS.Timeout;
+    
+    // Phase 1: Initial subtle animations (first 15 seconds)
+    const initialExpressions: Expression[] = ['happy', 'surprised', 'neutral'];
+    let initialIndex = 0;
+
+    const runInitialAnimation = () => {
+      setExpression(initialExpressions[initialIndex % initialExpressions.length]);
+      initialIndex++;
+    };
+    
+    // Start initial animation cycle
+    runInitialAnimation();
+    animationInterval = setInterval(runInitialAnimation, 3000);
+
+    // Phase 2: Switch to full expressions after 15 seconds
+    phaseTimeout = setTimeout(() => {
+      clearInterval(animationInterval); // Stop the initial animation cycle
+      
+      const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+      let fullIndex = 0;
+
+      const runFullAnimation = () => {
+        setExpression(fullExpressions[fullIndex % fullExpressions.length]);
+        fullIndex++;
+      }
+      
+      runFullAnimation();
+      animationInterval = setInterval(runFullAnimation, 3000);
+    }, 15000); // 15 seconds
+
+    // Cleanup function to clear timers when the component unmounts
+    return () => {
+      clearInterval(animationInterval);
+      clearTimeout(phaseTimeout);
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -521,3 +560,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
