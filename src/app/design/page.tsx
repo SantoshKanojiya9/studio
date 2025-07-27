@@ -175,12 +175,14 @@ export default function DesignPage() {
       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
         <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden">
           {canvasImage ? (
-             <Image 
-                src={canvasImage} 
-                alt="Uploaded design" 
-                layout="fill"
-                objectFit="contain"
-             />
+            <div className="relative w-full h-full">
+                <Image
+                    src={canvasImage}
+                    alt="Uploaded design"
+                    layout="fill"
+                    objectFit="contain"
+                />
+            </div>
           ) : (
             <p className="text-zinc-400 text-lg">Your Canvas</p>
           )}
@@ -196,7 +198,7 @@ export default function DesignPage() {
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-0">
+          <CarouselContent className="ml-0">
              {activeTool !== 'main' && (
               <CarouselItem className="pl-2 basis-auto">
                 <EditorButton
