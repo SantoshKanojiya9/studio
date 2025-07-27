@@ -721,41 +721,6 @@ export default function DesignPage() {
         style={{ backgroundColor }}
     >
       <div className="flex-1 flex flex-col items-center justify-start pt-12 p-4">
-        <div className="text-center mb-4">
-          <h1 className="text-3xl font-bold flex items-center gap-2">Interactive Apple Emoji <Apple className="h-8 w-8 text-red-500" /></h1>
-           <div className="relative h-12">
-                <AnimatePresence>
-                {isInitialPhase ? (
-                    <motion.div
-                        key="intro-text"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute inset-0 flex flex-col items-center justify-center"
-                    >
-                        <p className="text-muted-foreground">Waking up...</p>
-                        <p className="text-xs text-muted-foreground">(It's looking around!)</p>
-                         <Button onClick={skipInitialAnimation} variant="outline" size="sm" className="mt-2">
-                            <SkipForward className="mr-2 h-4 w-4" />
-                            Skip Intro
-                        </Button>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="interactive-text"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                         className="absolute inset-0 flex flex-col items-center justify-center"
-                    >
-                        <p className="text-muted-foreground">Click the emoji to see it change expression!</p>
-                        <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
-                    </motion.div>
-                )}
-                </AnimatePresence>
-            </div>
-        </div>
-
         <motion.div
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
