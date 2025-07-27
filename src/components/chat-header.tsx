@@ -1,45 +1,46 @@
 
 'use client';
 
-import { Menu, Volume2, VolumeX } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
-const TesseractLogo = ({ className }: { className?: string }) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("h-6 w-6", className)}
+const EdenechoLogo = ({ className }: { className?: string }) => (
+    <svg 
+        viewBox="0 0 100 100" 
+        className={cn("h-8 w-8", className)}
+        xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M5 5h14v14H5z" />
-      <path d="M9 9h6v6H9z" />
-      <path d="M5 12h14" />
-      <path d="M12 5v14" />
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor: '#D8B4FE', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor: '#A855F7', stopOpacity:1}} />
+            </linearGradient>
+        </defs>
+        <path 
+            d="M 20 20 L 80 20 L 80 80 L 20 80 Z" 
+            stroke="url(#grad1)" 
+            strokeWidth="8"
+            fill="none"
+        />
+         <path 
+            d="M 35 35 L 65 35 L 65 65 L 35 65 Z" 
+            stroke="url(#grad1)" 
+            strokeWidth="6"
+            fill="none"
+        />
     </svg>
   );
   
 
-interface ChatHeaderProps {
-  isMuted: boolean;
-  onToggleMute: () => void;
-}
-
-export function ChatHeader({ isMuted, onToggleMute }: ChatHeaderProps) {
+export function ChatHeader() {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
-      <div className="flex items-center gap-2">
-        <TesseractLogo />
-        <h1 className="text-xl font-bold">Edengram</h1>
+    <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
+      <div className="flex items-center gap-3">
+        <EdenechoLogo />
+        <h1 className="text-2xl font-semibold">Edenecho</h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button onClick={onToggleMute} variant="ghost" size="icon" aria-label={isMuted ? 'Unmute' : 'Mute'}>
-            {isMuted ? <VolumeX /> : <Volume2 />}
-        </Button>
         <Button variant="ghost" size="icon">
           <Menu />
           <span className="sr-only">Open menu</span>

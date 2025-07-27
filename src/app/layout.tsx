@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Edengram',
+  title: 'Edenecho',
   description: 'AI Chat and Image Generation',
 };
 
@@ -19,11 +19,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <div className="relative flex flex-col h-screen">
-          <main className="flex-1 flex flex-col pb-16 overflow-hidden">{children}</main>
+          <main className="flex-1 flex flex-col overflow-hidden pb-16">{children}</main>
           <BottomBar />
         </div>
         <Toaster />

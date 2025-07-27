@@ -3,15 +3,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { Image as ImageIcon, MessageSquare, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const PlanIcon = () => (
+    <div className="relative h-6 w-6 flex items-center justify-center">
+        <Briefcase className="h-6 w-6"/>
+        <span className="absolute text-xs font-bold text-background bg-foreground rounded-full h-4 w-4 flex items-center justify-center top-[-2px] right-[-2px]">
+            N
+        </span>
+    </div>
+)
+
 
 export function BottomBar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/chat', label: 'Chat', icon: MessageSquare },
-    { href: '/image', label: 'Image', icon: ImageIcon },
+    { href: '/chat', label: 'AI Chat', icon: MessageSquare },
+    { href: '/image', label: 'Generate Image', icon: ImageIcon },
+    { href: '/plan', label: 'Plan', icon: PlanIcon },
   ];
 
   return (
@@ -22,13 +33,13 @@ export function BottomBar() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 p-2 rounded-md transition-colors',
+              'flex flex-col items-center justify-center gap-1 p-2 rounded-md transition-colors w-28',
               pathname.startsWith(item.href)
                 ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
+                : 'text-muted-foreground hover:text-primary'
             )}
           >
-            <item.icon className="h-6 w-6" />
+            <item.icon />
             <span className="text-xs font-medium">{item.label}</span>
           </Link>
         ))}
