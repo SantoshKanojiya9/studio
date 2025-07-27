@@ -13,14 +13,14 @@ const EdengramLogo = ({ className }: { className?: string }) => (
     >
         <defs>
             <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{stopColor: '#833ab4', stopOpacity:1}} />
-                <stop offset="50%" style={{stopColor: '#fd1d1d', stopOpacity:1}} />
-                <stop offset="100%" style={{stopColor: '#fcb045', stopOpacity:1}} />
+                <stop offset="0%" style={{stopColor: '#673AB7', stopOpacity:1}} />
+                <stop offset="50%" style={{stopColor: '#E91E63', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor: '#00BCD4', stopOpacity:1}} />
             </linearGradient>
             <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{stopColor: '#a64aff', stopOpacity:1}} />
-                <stop offset="50%" style={{stopColor: '#ff4b4b', stopOpacity:1}} />
-                <stop offset="100%" style={{stopColor: '#ffa51d', stopOpacity:1}} />
+                <stop offset="0%" style={{stopColor: '#8A2BE2', stopOpacity:1}} />
+                <stop offset="50%" style={{stopColor: '#FF1493', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor: '#00BFFF', stopOpacity:1}} />
             </linearGradient>
         </defs>
         <path 
@@ -44,7 +44,7 @@ export function ChatHeader() {
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
       <div className="flex items-center gap-3">
         <EdengramLogo />
-        <h1 className="text-3xl font-headline">Edengram</h1>
+        <h1 className="text-2xl font-semibold">Edengram</h1>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-muted-foreground">
