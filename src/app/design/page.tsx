@@ -202,15 +202,14 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute w-full h-full flex justify-center"
-                style={{ transformStyle: 'preserve-3d', top: '108px' }}
+                className="absolute"
+                style={{ top: '108px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div 
-                    className="absolute"
-                    style={{ transform: 'translateZ(30px)' }}
+                    className="relative"
                 >
                     {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-[180px] h-[45px]">
@@ -220,8 +219,7 @@ const Face = ({
                     </div>
                 </div>
             </motion.div>
-
-            <motion.div
+             <motion.div
                 className="absolute w-full flex justify-center"
                 style={{ top: '175px', transform: 'translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
@@ -232,7 +230,6 @@ const Face = ({
                     <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
                 </svg>
             </motion.div>
-            
         </div>
       </div>
     </motion.div>
@@ -401,28 +398,22 @@ export default function DesignPage() {
                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <TooltipProvider>
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="relative w-10 h-10 flex items-center justify-center">
-                                    <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
-                                    <BgColorIcon />
-                                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Background Color</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="relative w-10 h-10 flex items-center justify-center">
-                                    <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
-                                    <EmojiColorIcon/>
-                                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Emoji Color</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8 flex items-center justify-center">
+                            <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
+                            <BgColorIcon />
+                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                        </div>
+                        <span className="text-sm text-muted-foreground">Background</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <div className="relative w-8 h-8 flex items-center justify-center">
+                            <Label htmlFor="emoji-color" className="sr-only">Face Color</Label>
+                            <EmojiColorIcon/>
+                            <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                        </div>
+                        <span className="text-sm text-muted-foreground">Face</span>
+                    </div>
                 </motion.div>
             );
         case 'effects':
