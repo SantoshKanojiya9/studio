@@ -7,38 +7,107 @@ import { cn } from '@/lib/utils';
 
 type Expression = 'neutral' | 'happy' | 'angry';
 
-const NeutralFace = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="8" y1="15" x2="16" y2="15" />
-    <line x1="9" y1="9" x2="9.01" y2="9" />
-    <line x1="15" y1="9" x2="15.01" y2="9" />
-  </svg>
-);
+const Face = ({ expression }: { expression: Expression }) => {
+  const eyeVariants = {
+    neutral: { y: 0, height: '20px' },
+    happy: { y: 0, height: '10px' },
+    angry: { y: 0, height: '15px' },
+  };
 
-const HappyFace = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-    <line x1="9" y1="9" x2="9.01" y2="9" />
-    <line x1="15" y1="9" x2="15.01" y2="9" />
-  </svg>
-);
+  const mouthVariants = {
+    neutral: {
+      d: "M 20 50 Q 50 50 80 50", // Straight line
+      strokeWidth: 8,
+    },
+    happy: {
+      d: "M 20 55 Q 50 80 80 55", // Smile
+      strokeWidth: 8,
+    },
+    angry: {
+      d: "M 20 60 Q 50 30 80 60", // Frown
+      strokeWidth: 8,
+    },
+  };
+  
+  const eyebrowVariants = {
+    neutral: { rotate: 0, y: 0, opacity: 0 },
+    happy: { rotate: 0, y: 0, opacity: 0 },
+    angry: { rotate: 0, y: -5, opacity: 1 },
+  }
 
-const AngryFace = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M16 16s-1.5-2-4-2-4 2-4 2" />
-    <path d="M7.5 8.5L10.5 11" />
-    <path d="M16.5 8.5L13.5 11" />
-  </svg>
-);
-
-const expressionMap = {
-  neutral: { component: NeutralFace, color: 'text-gray-400' },
-  happy: { component: HappyFace, color: 'text-green-500' },
-  angry: { component: AngryFace, color: 'text-red-500' },
+  return (
+    <div className="relative w-64 h-64">
+      {/* 3D Base */}
+      <div className="w-full h-full rounded-full bg-yellow-400 shadow-[inset_0_-15px_20px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)]">
+        <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center relative">
+          {/* Eyes */}
+          <div className="flex gap-12 absolute top-20">
+            {/* Left Eye */}
+            <div className="relative">
+               <motion.div 
+                className="w-10 h-10 bg-black rounded-full"
+                animate={eyeVariants[expression]}
+                transition={{ duration: 0.2 }}
+              >
+                  <div className="absolute top-2 right-2 w-3 h-3 bg-white rounded-full opacity-80" />
+              </motion.div>
+               <motion.div 
+                className="absolute -top-4 -left-1 w-12 h-6 bg-black rounded-t-full"
+                style={{transformOrigin: '50% 100%'}}
+                variants={eyebrowVariants}
+                animate={expression}
+                transition={{ duration: 0.2 }}
+              >
+                  <motion.div 
+                    className="absolute w-full h-full"
+                    animate={{rotate: expression === 'angry' ? -15 : 0}}
+                    transition={{ duration: 0.2 }}
+                  />
+              </motion.div>
+            </div>
+            {/* Right Eye */}
+             <div className="relative">
+               <motion.div 
+                className="w-10 h-10 bg-black rounded-full"
+                animate={eyeVariants[expression]}
+                transition={{ duration: 0.2 }}
+              >
+                  <div className="absolute top-2 left-2 w-3 h-3 bg-white rounded-full opacity-80" />
+              </motion.div>
+               <motion.div 
+                className="absolute -top-4 -right-1 w-12 h-6 bg-black rounded-t-full"
+                style={{transformOrigin: '50% 100%'}}
+                variants={eyebrowVariants}
+                animate={expression}
+                transition={{ duration: 0.2 }}
+              >
+                  <motion.div 
+                    className="absolute w-full h-full"
+                    animate={{rotate: expression === 'angry' ? 15 : 0}}
+                    transition={{ duration: 0.2 }}
+                  />
+              </motion.div>
+            </div>
+          </div>
+           {/* Mouth */}
+           <div className="absolute bottom-12">
+            <svg width="100" height="40" viewBox="0 0 100 80">
+                <motion.path
+                    fill="transparent"
+                    stroke="black"
+                    strokeLinecap="round"
+                    variants={mouthVariants}
+                    animate={expression}
+                    transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
+                />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
+
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
@@ -57,32 +126,29 @@ export default function DesignPage() {
     setExpression('neutral');
   };
 
-  const CurrentFace = expressionMap[expression].component;
-
   return (
     <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Interactive Emoji</h1>
+        <h1 className="text-3xl font-bold">Interactive 3D Emoji</h1>
         <p className="text-muted-foreground">Press on the emoji. A harder press makes it angry!</p>
         <p className="text-xs text-muted-foreground">(Requires a pressure-sensitive screen for best results)</p>
       </div>
 
       <div
-        className="w-64 h-64 rounded-full flex items-center justify-center cursor-pointer select-none"
+        className="w-64 h-64 flex items-center justify-center cursor-pointer select-none"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp} // Reset if the pointer leaves the area
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={expression}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <CurrentFace className={cn('w-60 h-60 transition-colors duration-200', expressionMap[expression].color)} />
-          </motion.div>
+        <AnimatePresence>
+            <motion.div
+              key={expression}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+                <Face expression={expression} />
+            </motion.div>
         </AnimatePresence>
       </div>
     </div>
