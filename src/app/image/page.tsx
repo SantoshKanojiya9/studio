@@ -2,17 +2,20 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { ImageIcon, Send, Loader2, ImageUp } from 'lucide-react';
+import Link from 'next/link';
+import { ImageIcon, Send, Loader2, ImageUp, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { generateImage, type GenerateImageInput } from '@/ai/flows/generate-image';
 import NextImage from 'next/image';
 import { useToast } from "@/hooks/use-toast"
 import { cn } from '@/lib/utils';
+import { usePlan } from '@/context/PlanContext';
 
 const MAX_CHARS = 300;
 
 export default function ImageGeneratorPage() {
+  const { plan } = usePlan();
   const [prompt, setPrompt] = useState('');
   const [charCount, setCharCount] = useState(0);
   const [file, setFile] = useState<File | null>(null);
@@ -22,6 +25,7 @@ export default function ImageGeneratorPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const isLocked = plan === 'Silver';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -66,6 +70,7 @@ export default function ImageGeneratorPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) return;
     if ((!prompt.trim() && !file) || charCount > MAX_CHARS) {
       toast({
         title: "Prompt or image is required",
@@ -114,21 +119,21 @@ export default function ImageGeneratorPage() {
                     id="prompt"
                     value={prompt}
                     onChange={handlePromptChange}
-                    placeholder={ file ? "Describe how to edit the image..." : "An impressionist oil painting of a sunflower in a purple vase..."}
+                    placeholder={ isLocked ? "Upgrade to Gold to generate images" : file ? "Describe how to edit the image..." : "An impressionist oil painting of a sunflower in a purple vase..."}
                     className="pr-32 h-12 text-base"
-                    disabled={isLoading}
+                    disabled={isLoading || isLocked}
                 />
                 <div className={cn("absolute right-24 top-1/2 -translate-y-1/2 text-xs", charCount > MAX_CHARS ? "text-destructive" : "text-muted-foreground")}>
                     {charCount}/{MAX_CHARS}
                 </div>
             </div>
-             <Input ref={fileInputRef} id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading} className="hidden" />
+             <Input ref={fileInputRef} id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading || isLocked} className="hidden" />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                <Button type="button" size="icon" variant="ghost" onClick={triggerFileSelect} disabled={isLoading} className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                <Button type="button" size="icon" variant="ghost" onClick={triggerFileSelect} disabled={isLoading || isLocked} className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                     <ImageUp className="h-5 w-5" />
                     <span className="sr-only">Upload Image</span>
                 </Button>
-                <Button type="submit" size="icon" variant="ghost" disabled={isLoading || (!prompt.trim() && !file) || charCount > MAX_CHARS } className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                <Button type="submit" size="icon" variant="ghost" disabled={isLoading || isLocked || (!prompt.trim() && !file) || charCount > MAX_CHARS } className="text-muted-foreground hover:text-primary hover:bg-primary/10">
                     <Send className="h-5 w-5" />
                     <span className="sr-only">Generate</span>
                 </Button>
@@ -141,6 +146,14 @@ export default function ImageGeneratorPage() {
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-background/50">
                     <Loader2 className="h-8 w-8 animate-spin" />
                     <p>Generating your masterpiece...</p>
+                </div>
+              ) : isLocked ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-center text-muted-foreground">
+                    <Lock size={48} />
+                    <p>You need to upgrade to the Gold plan to generate images.</p>
+                     <Button asChild>
+                        <Link href="/plan">Upgrade Plan</Link>
+                    </Button>
                 </div>
               ) : generatedImage ? (
                 <NextImage

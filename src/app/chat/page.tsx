@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
+import Link from 'next/link';
+import { Send, Loader2, Volume2, VolumeX, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
@@ -10,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/chat-header';
 import { AssistantMessage } from '@/components/assistant-message';
+import { usePlan } from '@/context/PlanContext';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -21,6 +23,7 @@ type Message = {
 const MAX_CHARS = 300;
 
 export default function ChatPage() {
+  const { plan } = usePlan();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -129,6 +132,8 @@ export default function ChatPage() {
     }
   };
 
+  const isLocked = plan === 'Silver';
+
   return (
     <div className="flex flex-col h-full">
        <div className="sticky top-0 z-10 bg-background">
@@ -186,26 +191,36 @@ export default function ChatPage() {
             </div>
         </div>
         <div className="border-t p-4 sticky bottom-16 bg-background">
-            <div className="max-w-4xl mx-auto">
-                <form onSubmit={handleSubmit} className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                        <Input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder="Ask me anything..."
-                        disabled={isLoading}
-                        className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary pr-16"
-                        aria-label="Chat input"
-                        />
-                            <div className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-xs", charCount > MAX_CHARS ? "text-destructive" : "text-muted-foreground")}>
-                            {charCount}/{MAX_CHARS}
-                        </div>
-                    </div>
-                    <Button type="submit" size="icon" disabled={isLoading || !input.trim() || charCount > MAX_CHARS} aria-label="Send message">
-                    <Send className="h-4 w-4" />
+            {isLocked ? (
+                 <div className="max-w-4xl mx-auto flex flex-col items-center justify-center text-center gap-3">
+                    <Lock className="h-6 w-6 text-muted-foreground" />
+                    <p className="text-muted-foreground">You need to upgrade to the Gold plan to use the chat.</p>
+                    <Button asChild>
+                        <Link href="/plan">Upgrade Plan</Link>
                     </Button>
-                </form>
-            </div>
+                </div>
+            ) : (
+                <div className="max-w-4xl mx-auto">
+                    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                            <Input
+                            value={input}
+                            onChange={handleInputChange}
+                            placeholder="Ask me anything..."
+                            disabled={isLoading}
+                            className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary pr-16"
+                            aria-label="Chat input"
+                            />
+                                <div className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-xs", charCount > MAX_CHARS ? "text-destructive" : "text-muted-foreground")}>
+                                {charCount}/{MAX_CHARS}
+                            </div>
+                        </div>
+                        <Button type="submit" size="icon" disabled={isLoading || !input.trim() || charCount > MAX_CHARS} aria-label="Send message">
+                        <Send className="h-4 w-4" />
+                        </Button>
+                    </form>
+                </div>
+            )}
         </div>
     </div>
   );
