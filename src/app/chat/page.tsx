@@ -93,14 +93,16 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full">
-       <ChatHeader>
-        <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:bg-transparent hover:text-primary">
-          {isMuted ? <VolumeX /> : <Volume2 />}
-          <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
-        </Button>
-       </ChatHeader>
-       <div className="flex-1 flex flex-col p-4 space-y-4">
-            <div className="space-y-6 pr-4 flex-1">
+       <div className="sticky top-0 z-10 bg-background">
+        <ChatHeader>
+            <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:bg-transparent hover:text-primary">
+            {isMuted ? <VolumeX /> : <Volume2 />}
+            <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
+            </Button>
+        </ChatHeader>
+       </div>
+       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="space-y-6 pr-4">
             {messages.map((message) => (
                 <div
                 key={message.id}
@@ -138,27 +140,27 @@ export default function ChatPage() {
             )}
             <div ref={messagesEndRef} />
             </div>
-            <div className="border-t-0 pt-2 sticky bottom-16 bg-background">
-                <form onSubmit={handleSubmit} className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                        <Input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder="Ask me anything..."
-                        disabled={isLoading}
-                        className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary pr-16"
-                        aria-label="Chat input"
-                        />
-                         <div className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-xs", wordCount > MAX_WORDS ? "text-destructive" : "text-muted-foreground")}>
-                            {wordCount}/{MAX_WORDS}
-                        </div>
+        </div>
+        <div className="border-t p-4 sticky bottom-16 bg-background">
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+                <div className="relative flex-1">
+                    <Input
+                    value={input}
+                    onChange={handleInputChange}
+                    placeholder="Ask me anything..."
+                    disabled={isLoading}
+                    className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary pr-16"
+                    aria-label="Chat input"
+                    />
+                        <div className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-xs", wordCount > MAX_WORDS ? "text-destructive" : "text-muted-foreground")}>
+                        {wordCount}/{MAX_WORDS}
                     </div>
-                    <Button type="submit" size="icon" disabled={isLoading || !input.trim() || wordCount > MAX_WORDS} aria-label="Send message">
-                    <Send className="h-4 w-4" />
-                    </Button>
-                </form>
-            </div>
-      </div>
+                </div>
+                <Button type="submit" size="icon" disabled={isLoading || !input.trim() || wordCount > MAX_WORDS} aria-label="Send message">
+                <Send className="h-4 w-4" />
+                </Button>
+            </form>
+        </div>
     </div>
   );
 }
