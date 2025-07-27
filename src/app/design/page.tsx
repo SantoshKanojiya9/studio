@@ -26,6 +26,7 @@ import {
   Heading2,
   CaseSensitive,
 } from 'lucide-react';
+import Image from 'next/image';
 
 const EditorButton = ({
   icon: Icon,
@@ -113,10 +114,22 @@ type ToolId = keyof typeof toolConfig;
 
 export default function DesignPage() {
   const [activeTool, setActiveTool] = useState<ToolId>('main');
+  const [canvasImage, setCanvasImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCanvasImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
   
   const handleToolClick = (toolId: string) => {
@@ -142,7 +155,7 @@ export default function DesignPage() {
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
-        onChange={(e) => console.log(e.target.files)} // Placeholder for file handling
+        onChange={handleFileChange}
       />
       {/* Top Bar */}
       <header className="flex items-center justify-between p-2 bg-zinc-950">
@@ -160,9 +173,17 @@ export default function DesignPage() {
 
       {/* Main Content - Canvas */}
       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
-        <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center">
-          {/* Placeholder for canvas content */}
-          <p className="text-zinc-400 text-lg">Your Canvas</p>
+        <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden">
+          {canvasImage ? (
+             <Image 
+                src={canvasImage} 
+                alt="Uploaded design" 
+                layout="fill"
+                objectFit="contain"
+             />
+          ) : (
+            <p className="text-zinc-400 text-lg">Your Canvas</p>
+          )}
         </div>
       </main>
 
