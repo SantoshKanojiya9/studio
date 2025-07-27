@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, BadgeCheck } from 'lucide-react';
+import { Menu, BadgeCheck, Briefcase } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
@@ -11,12 +11,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
 import { LogIn, LogOut } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Link from 'next/link';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -93,6 +94,13 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuItem asChild>
+                   <Link href="/plan">
+                     <Briefcase className="mr-2 h-4 w-4" />
+                     <span>Plan</span>
+                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 {user ? (
                      <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />
