@@ -230,45 +230,42 @@ export default function DesignPage() {
   
   return (
     <div 
-        className="flex flex-col items-center justify-center min-h-full w-full touch-none overflow-hidden p-4 transition-colors duration-300"
+        className="relative flex flex-col min-h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="text-center mb-4">
-        <h1 className="text-3xl font-bold">Interactive Emoji</h1>
-        <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
-        <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
+      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-32">
+        <div className="text-center mb-4">
+          <h1 className="text-3xl font-bold">Interactive Emoji</h1>
+          <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
+          <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
+        </div>
+
+        <motion.div
+          className="w-80 h-64 flex items-center justify-center cursor-pointer select-none mb-4"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp} 
+          style={{ filter: filter !== 'none' ? filter : undefined }}
+        >
+          <Face expression={expression} color={emojiColor} />
+        </motion.div>
       </div>
 
-      <motion.div
-        className="w-80 h-64 flex items-center justify-center cursor-pointer select-none mb-4"
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp} 
-        style={{ filter: filter !== 'none' ? filter : undefined }}
-      >
-        <Face expression={expression} color={emojiColor} />
-      </motion.div>
-
-      <Card className="w-full max-w-md bg-background/50 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle>Tools</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="bg-color">Background Color</Label>
-                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="p-1 h-10" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="emoji-color">Emoji Color</Label>
-                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="p-1 h-10" />
-                </div>
+      <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
+         <div className="flex items-center gap-4 overflow-x-auto p-4 whitespace-nowrap">
+            <div className="space-y-1 flex-shrink-0">
+                <Label htmlFor="bg-color" className="text-xs">Background</Label>
+                <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="p-1 h-10 w-16" />
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="filter-select">Filter</Label>
+            <div className="space-y-1 flex-shrink-0">
+                <Label htmlFor="emoji-color" className="text-xs">Emoji</Label>
+                <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="p-1 h-10 w-16" />
+            </div>
+             <div className="space-y-1 flex-shrink-0 w-32">
+                <Label htmlFor="filter-select" className="text-xs">Filter</Label>
                 <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger id="filter-select">
-                        <SelectValue placeholder="Select a filter" />
+                    <SelectTrigger id="filter-select" className="h-10">
+                        <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="none">None</SelectItem>
@@ -280,10 +277,8 @@ export default function DesignPage() {
                     </SelectContent>
                 </Select>
             </div>
-        </CardContent>
-      </Card>
+         </div>
+      </div>
     </div>
   );
 }
-
-    
