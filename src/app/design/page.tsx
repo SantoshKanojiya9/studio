@@ -9,13 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
-type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'winking' | 'playful-tongue';
+type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories' | 'moods';
+type Mood = 'default' | 'sleepy' | 'playful';
 
 const Face = ({ 
     expression, 
@@ -40,6 +41,9 @@ const Face = ({
     angry: { y: -2, scaleY: 1 },
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
+    sleepy: { y: 8, scaleY: 0.4 },
+    winking: { y: 0, scaleY: 1 },
+    'playful-tongue': { y: 0, scaleY: 1 },
   };
 
   const mouthVariants = {
@@ -50,13 +54,22 @@ const Face = ({
       d: "M 30 50 Q 50 70 70 50", // Smile
     },
     angry: {
-      d: "M 30 60 Q 50 40 70 60", // Frown
+        d: "M 30 60 Q 50 30 70 60", // Angry
     },
     sad: {
         d: "M 30 60 Q 50 50 70 60", // Sad mouth
     },
     surprised: {
         d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", // Open mouth
+    },
+    sleepy: {
+        d: "M 40 60 Q 50 75 60 60 A 15 15 0 0 1 40 60", // Yawn
+    },
+    winking: {
+      d: "M 30 50 Q 50 70 70 50", // Smile
+    },
+    'playful-tongue': {
+      d: "M 30 50 Q 50 65 70 50", // Open smile
     }
   };
   
@@ -66,19 +79,30 @@ const Face = ({
     angry: { y: 2, rotate: 10 },
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
+    sleepy: { y: 4, rotate: 0 },
+    winking: { y: -4, rotate: -5 },
+    'playful-tongue': { y: -4, rotate: -5 },
   }
 
   const eyeLidVariants = {
       closed: { scaleY: 0, y: 5 },
       open: { scaleY: 1, y: 0 },
   }
+  
+  const leftEyeLidWinkVariants = {
+    closed: { scaleY: 0.1, y: 5 },
+    open: { scaleY: 1, y: 0 }
+  };
 
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
-    angry: { opacity: 0, scale: 0.8 },
+    angry: { opacity: 0.8, scale: 1.1 },
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
+    sleepy: { opacity: 0.2, scale: 0.9 },
+    winking: { opacity: 0.7, scale: 1 },
+    'playful-tongue': { opacity: 0.7, scale: 1 },
   }
   
   const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
@@ -150,15 +174,15 @@ const Face = ({
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
                         style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                     >
-                        <motion.div 
+                         <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={['open', 'closed']}
-                            variants={eyeLidVariants}
+                            animate={expression === 'winking' ? 'closed' : ['open', 'closed']}
+                            variants={expression === 'winking' ? leftEyeLidWinkVariants : eyeLidVariants}
                             transition={{
                                 duration: 0.1,
-                                repeat: Infinity,
+                                repeat: expression === 'winking' ? 1 : Infinity,
                                 repeatType: "mirror",
-                                repeatDelay: 3.5,
+                                repeatDelay: expression === 'winking' ? 0.2 : 3.5,
                                 ease: "easeOut"
                             }}
                         />
@@ -214,6 +238,15 @@ const Face = ({
                         animate={expression}
                         transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                     />
+                     { expression === 'playful-tongue' && (
+                        <motion.path
+                            d="M 45 55 C 50 70, 50 70, 55 55 Z"
+                            fill="#ff8a80"
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                        />
+                    )}
                 </svg>
             </div>
 
@@ -271,6 +304,7 @@ export default function DesignPage() {
   const [isInitialPhase, setIsInitialPhase] = useState(true);
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
+  const [mood, setMood] = useState<Mood>('default');
 
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
@@ -300,19 +334,25 @@ export default function DesignPage() {
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const resumeFullExpressionAnimation = () => {
+  const animationSequences: Record<Mood, Expression[]> = {
+    default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
+    sleepy: ['neutral', 'sleepy', 'neutral', 'sleepy'],
+    playful: ['happy', 'winking', 'happy', 'playful-tongue'],
+  };
+
+  const resumeExpressionAnimation = () => {
     if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
 
-    const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
-    let fullIndex = 0;
+    const expressions = animationSequences[mood];
+    let index = 0;
 
-    const runFullAnimation = () => {
-        setExpression(fullExpressions[fullIndex % fullExpressions.length]);
-        fullIndex++;
+    const runAnimation = () => {
+        setExpression(expressions[index % expressions.length]);
+        index++;
     };
     
-    runFullAnimation();
-    animationIntervalRef.current = setInterval(runFullAnimation, 3000);
+    runAnimation();
+    animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
   const startAnimation = () => {
@@ -323,7 +363,7 @@ export default function DesignPage() {
     const initialAnimations = [
         { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
         { expression: 'surprised', pupils: { x: 1, y: 0.5 } },   // right
-        { expression: 'neutral', pupils: { x: 0.5, y: 0 } },   // up
+        { expression: 'neutral', pupils: { x: 0, y: 0.5 } },   // up
         { expression: 'happy', pupils: { x: 0.5, y: 1 } },   // down
         { expression: 'neutral', pupils: { x: 0.5, y: 0.5 } }, // center
     ];
@@ -345,7 +385,7 @@ export default function DesignPage() {
       setIsInitialPhase(false); 
       pointerX.set(0.5);
       pointerY.set(0.5);
-      resumeFullExpressionAnimation();
+      resumeExpressionAnimation();
     }, 15000); // 15 seconds
 
     return () => {
@@ -353,6 +393,16 @@ export default function DesignPage() {
       clearTimeout(phaseTimeout);
     };
   };
+
+  useEffect(() => {
+    // When mood changes, restart the animation cycle
+    resumeExpressionAnimation();
+
+    return () => {
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    }
+  }, [mood]);
+
 
   useEffect(() => {
     const cleanup = startAnimation();
@@ -408,7 +458,7 @@ export default function DesignPage() {
         setExpression('neutral');
         setEmojiColor(defaultEmojiColor);
         angerTimeout.current = null;
-        resumeFullExpressionAnimation(); // Resume full expressions
+        resumeExpressionAnimation(); // Resume expressions
       }, 2000);
     } else {
       setExpression('happy');
@@ -436,6 +486,7 @@ export default function DesignPage() {
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
+    setMood('default');
   };
   
   const MustacheIcon = () => (
@@ -458,9 +509,9 @@ export default function DesignPage() {
   );
 
   const menuVariants = {
-    hidden: { x: '100%', opacity: 0 },
-    visible: { x: '0%', opacity: 1 },
-    exit: { x: '-100%', opacity: 0 },
+    hidden: { x: '100%', opacity: 0, position: 'absolute' },
+    visible: { x: '0%', opacity: 1, position: 'relative' },
+    exit: { x: '-100%', opacity: 0, position: 'absolute' },
   };
   
   const renderMenu = () => {
@@ -488,6 +539,10 @@ export default function DesignPage() {
                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('accessories')}>
                         <SmilePlus className="h-5 w-5" />
                         <span className="text-sm">Accessories</span>
+                    </Button>
+                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('moods')}>
+                        <Drama className="h-5 w-5" />
+                        <span className="text-sm">Moods</span>
                     </Button>
                 </motion.div>
             );
@@ -596,6 +651,45 @@ export default function DesignPage() {
                     </TooltipProvider>
                 </motion.div>
             );
+        case 'moods':
+            return (
+                <motion.div 
+                    key="moods"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('default')} className={cn(mood === 'default' && 'bg-accent text-accent-foreground')}>
+                                    <SmilePlus className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Default Mood</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('sleepy')} className={cn(mood === 'sleepy' && 'bg-accent text-accent-foreground')}>
+                                    <Moon className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Sleepy Mood</p></TooltipContent>
+                        </Tooltip>
+                         <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('playful')} className={cn(mood === 'playful' && 'bg-accent text-accent-foreground')}>
+                                    <ToyBrick className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Playful Mood</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
         default:
             return null;
     }
@@ -652,7 +746,7 @@ export default function DesignPage() {
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
-         <div className="flex items-center gap-4 overflow-x-auto p-4">
+         <div className="flex items-center justify-center gap-4 overflow-x-auto p-4 relative h-20">
              <AnimatePresence mode="wait">
                  {renderMenu()}
             </AnimatePresence>
@@ -661,3 +755,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
