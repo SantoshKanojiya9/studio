@@ -54,7 +54,7 @@ const toolConfig = {
       { id: 'text', icon: Type, label: 'Text' },
       { id: 'elements', icon: Component, label: 'Elements' },
       { id: 'uploads', icon: ImageUp, label: 'Uploads' },
-      { id: 'layers', icon: Layers, label: 'Layers' },
+      { id: 'layers', icon: Layers, label: 'Overlap' },
       { id: 'photos', icon: ImageIcon, label: 'Photos' },
       { id: 'ai', icon: Sparkles, label: 'AI' },
       { id: 'draw', icon: PenTool, label: 'Draw' },
@@ -87,7 +87,7 @@ const toolConfig = {
     tools: [{ id: 'u-1', icon: ImageUp, label: 'Upload File' }],
   },
   layers: {
-    label: 'Layers',
+    label: 'Overlap',
     tools: [{ id: 'l-1', icon: Layers, label: 'Layer 1' }],
   },
   photos: {
@@ -170,7 +170,7 @@ export default function DesignPage() {
               </CarouselItem>
             )}
             {currentTools.map((tool) => (
-              <CarouselItem key={tool.id} className="pl-2 basis-1/4 sm:basis-1/5 md:basis-auto">
+              <CarouselItem key={tool.id} className="pl-2 basis-auto">
                 <EditorButton
                   icon={tool.icon}
                   label={tool.label}
