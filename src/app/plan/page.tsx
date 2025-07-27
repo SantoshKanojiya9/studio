@@ -16,8 +16,8 @@ export default function PlanPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
         {/* Silver Plan */}
-        <Card className="border-0 bg-zinc-900/50 text-white flex flex-col backdrop-blur-sm">
-          <div className="p-1 rounded-t-lg bg-gradient-to-r from-slate-300 to-slate-500"></div>
+        <Card className="border-0 bg-slate-900/30 text-white flex flex-col backdrop-blur-sm">
+          <div className="p-1 rounded-t-lg bg-gradient-to-r from-slate-400 to-slate-300"></div>
           <CardHeader className="p-6 text-center">
             <h3 className="text-2xl font-semibold text-slate-200">Silver</h3>
             <p className="mt-2 text-4xl font-bold text-foreground">Free</p>
@@ -29,7 +29,7 @@ export default function PlanPage() {
             </div>
           </CardContent>
           <CardFooter className="p-6 mt-auto">
-            <Button variant="outline" className="w-full text-lg py-6 border-slate-500 hover:bg-slate-700 hover:border-slate-400">
+            <Button variant="outline" className="w-full text-lg py-6 border-slate-400 bg-transparent hover:bg-slate-800/50 hover:text-white hover:border-slate-300 transition-colors duration-300">
               Choose Plan
             </Button>
           </CardFooter>
