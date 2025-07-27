@@ -31,7 +31,9 @@ export function BottomBar() {
                     : 'text-muted-foreground hover:text-primary'
                 )}
               >
-                <Icon className="h-6 w-6" />
+                <div className="h-6 w-6">
+                  <Icon className="h-full w-full" />
+                </div>
                 <span className="text-xs font-medium">{item.label}</span>
               </Link>
             )
