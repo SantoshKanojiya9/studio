@@ -112,8 +112,8 @@ type ToolId = keyof typeof toolConfig;
 
 export default function DesignPage() {
   const [activeTool, setActiveTool] = useState<ToolId>('main');
-  const [canvasImage, setCanvasImage] = useState<string | null>(null);
-  const [canvasImageHint, setCanvasImageHint] = useState<string>('canvas');
+  const [templateImage, setTemplateImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const triggerFileSelect = () => {
@@ -125,8 +125,10 @@ export default function DesignPage() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCanvasImage(e.target?.result as string);
-        setCanvasImageHint('uploaded image');
+        setUploadedImage(e.target?.result as string);
+        if (!templateImage) {
+            setTemplateImage('https://placehold.co/600x400.png'); // Default template
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -141,12 +143,10 @@ export default function DesignPage() {
     if (toolId in toolConfig) {
       setActiveTool(toolId as ToolId);
     } else {
-      // It's a sub-tool, find it and set the image
       const parentToolKey = activeTool as keyof typeof toolConfig;
       const subTool = toolConfig[parentToolKey]?.tools.find(t => t.id === toolId);
       if (subTool && subTool.image) {
-        setCanvasImage(subTool.image);
-        setCanvasImageHint(subTool.hint || 'design element');
+        setTemplateImage(subTool.image);
       }
     }
   };
@@ -182,19 +182,30 @@ export default function DesignPage() {
 
       {/* Main Content - Canvas */}
       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
-        <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden">
-          {canvasImage ? (
-            <div className="relative w-full h-full">
-                <Image
-                    src={canvasImage}
-                    alt="Canvas content"
-                    layout="fill"
-                    objectFit="contain"
-                    data-ai-hint={canvasImageHint}
-                />
-            </div>
+        <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative">
+          {templateImage ? (
+             <Image
+                src={templateImage}
+                alt="Template background"
+                layout="fill"
+                objectFit="cover"
+                data-ai-hint="template background"
+            />
           ) : (
-            <p className="text-zinc-400 text-lg">Your Canvas</p>
+             !uploadedImage && <p className="text-zinc-400 text-lg">Your Canvas</p>
+          )}
+          {uploadedImage && (
+            <div className="absolute inset-0 p-8">
+                 <div className="relative w-full h-full">
+                    <Image
+                        src={uploadedImage}
+                        alt="Uploaded content"
+                        layout="fill"
+                        objectFit="contain"
+                        data-ai-hint="uploaded image"
+                    />
+                </div>
+            </div>
           )}
         </div>
       </main>
@@ -224,7 +235,7 @@ export default function DesignPage() {
                   icon={tool.icon}
                   label={tool.label}
                   onClick={() => handleToolClick(tool.id)}
-                  disabled={tool.id === 'overlap' && !canvasImage}
+                  disabled={tool.id === 'overlap' && !uploadedImage}
                 />
               </CarouselItem>
             ))}
