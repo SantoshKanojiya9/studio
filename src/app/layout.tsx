@@ -7,6 +7,7 @@ import { BottomBar } from '@/components/bottom-bar';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 import { Inter, Kalam } from 'next/font/google'
+import { PlanProvider } from '@/context/PlanContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-kalam' })
@@ -30,11 +31,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased bg-background")}>
-        <div className="relative flex flex-col h-screen">
-          <main className={cn("flex-1 flex flex-col", !isHomePage && "pb-16")}>{children}</main>
-          {!isHomePage && <BottomBar />}
-        </div>
-        <Toaster />
+        <PlanProvider>
+          <div className="relative flex flex-col h-screen">
+            <main className={cn("flex-1 flex flex-col", !isHomePage && "pb-16")}>{children}</main>
+            {!isHomePage && <BottomBar />}
+          </div>
+          <Toaster />
+        </PlanProvider>
       </body>
     </html>
   );

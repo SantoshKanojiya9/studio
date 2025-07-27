@@ -1,9 +1,10 @@
 
 'use client';
 
-import { Menu } from 'lucide-react';
+import { Menu, BadgeCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { usePlan } from '@/context/PlanContext';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -35,11 +36,16 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader() {
+  const { plan } = usePlan();
+
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
       <div className="flex items-center gap-2">
         <EdengramLogo />
         <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
+        {plan === 'Gold' && (
+            <BadgeCheck className="h-5 w-5 text-amber-400" />
+        )}
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">

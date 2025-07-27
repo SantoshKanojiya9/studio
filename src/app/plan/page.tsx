@@ -4,9 +4,19 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check } from 'lucide-react';
+import { usePlan } from '@/context/PlanContext';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export default function PlanPage() {
+  const { setPlan } = usePlan();
+  const router = useRouter();
+
+  const handleChoosePlan = (plan: 'Silver' | 'Gold') => {
+    setPlan(plan);
+    router.push('/chat');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-full p-4 md:p-6 bg-background overflow-auto">
       <header className="my-10 text-center">
@@ -24,12 +34,19 @@ export default function PlanPage() {
             <CardDescription className="mt-2 text-md text-zinc-400">Get started with our basic features.</CardDescription>
           </CardHeader>
           <CardContent className="p-6 flex-1">
-            <div className="space-y-4">
-              {/* Features will be added here in the future */}
-            </div>
+            <ul className="space-y-4 text-left">
+              <li className="flex items-center">
+                <Check className="h-5 w-5 text-zinc-400 mr-3" />
+                <span>Standard AI model</span>
+              </li>
+               <li className="flex items-center">
+                <Check className="h-5 w-5 text-zinc-400 mr-3" />
+                <span>Limited daily usage</span>
+              </li>
+            </ul>
           </CardContent>
           <CardFooter className="p-6 mt-auto">
-            <Button variant="outline" className="w-full text-lg py-6 border-zinc-400 bg-transparent hover:bg-zinc-700/50 hover:text-white hover:border-zinc-300 transition-colors duration-300">
+            <Button variant="outline" className="w-full text-lg py-6 border-zinc-400 bg-transparent hover:bg-zinc-700/50 hover:text-white hover:border-zinc-300 transition-colors duration-300" onClick={() => handleChoosePlan('Silver')}>
               Choose Plan
             </Button>
           </CardFooter>
@@ -60,10 +77,14 @@ export default function PlanPage() {
                 <Check className="h-5 w-5 text-amber-500 mr-3" />
                 <span>Priority Support</span>
               </li>
+              <li className="flex items-center">
+                <Check className="h-5 w-5 text-amber-500 mr-3" />
+                <span>Gold Tick verification</span>
+              </li>
             </ul>
           </CardContent>
           <CardFooter className="p-6 mt-auto">
-            <Button className="w-full text-lg py-6 bg-gradient-to-r from-amber-500 to-yellow-600 hover:opacity-90 text-white shadow-lg">
+            <Button className="w-full text-lg py-6 bg-gradient-to-r from-amber-500 to-yellow-600 hover:opacity-90 text-white shadow-lg" onClick={() => handleChoosePlan('Gold')}>
               Upgrade to Gold
             </Button>
           </CardFooter>
