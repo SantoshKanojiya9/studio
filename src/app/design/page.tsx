@@ -204,19 +204,17 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute top-[100px] left-1/2 -translate-x-1/2 w-[160px] h-[45px]"
+                className="absolute top-[100px] left-1/2 -translate-x-1/2 w-[160px] h-[45px] flex justify-between items-center"
                 style={{ transform: 'translateZ(30px)' }}
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: showSunglasses ? 0 : -60, opacity: showSunglasses ? 1 : 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 {/* Lenses */}
-                <div className="w-full h-full flex justify-between items-center">
-                    <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                    <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                </div>
+                <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                 {/* Bridge */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-2 border-b-4 border-x-4 border-gray-700 rounded-b-md"></div>
+                <div className="h-2 w-4 border-b-4 border-x-4 border-gray-700 rounded-b-md self-center"></div>
+                <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
             </motion.div>
 
             <motion.div
@@ -251,7 +249,7 @@ const Face = ({
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [isInteracting, setIsInteracting] = useState(false);
-  const expressions: Expression[] = ['neutral', 'happy', 'angry' | 'sad' | 'surprised'];
+  const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
 
@@ -568,5 +566,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
