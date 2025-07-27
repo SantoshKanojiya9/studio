@@ -32,15 +32,18 @@ const EditorButton = ({
   icon: Icon,
   label,
   onClick,
+  disabled,
 }: {
   icon: React.ElementType;
   label: string;
   onClick?: () => void;
+  disabled?: boolean;
 }) => (
   <Button
     variant="ghost"
-    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground p-2 w-full hover:bg-transparent hover:text-primary"
+    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground p-2 w-full hover:bg-transparent hover:text-primary disabled:opacity-50 disabled:pointer-events-none"
     onClick={onClick}
+    disabled={disabled}
   >
     <Icon className="h-6 w-6 mb-1" />
     <span>{label}</span>
@@ -214,6 +217,7 @@ export default function DesignPage() {
                   icon={tool.icon}
                   label={tool.label}
                   onClick={() => handleToolClick(tool.id)}
+                  disabled={tool.id === 'layers' && !canvasImage}
                 />
               </CarouselItem>
             ))}
