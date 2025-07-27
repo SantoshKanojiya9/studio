@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
-import { generateSpeech, type GenerateSpeechInput } from '@/ai/flows/generate-speech';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/chat-header';
@@ -30,7 +29,6 @@ export default function ChatPage() {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wordCount, setWordCount] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
    useEffect(() => {
     // Start with a welcome message
@@ -43,10 +41,10 @@ export default function ChatPage() {
     }
   }, [messages, isLoading]);
 
-  const playAudio = (audioDataUri: string) => {
-    if (audioRef.current) {
-      audioRef.current.src = audioDataUri;
-      audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+  const speak = (text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -68,18 +66,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       if (!isMuted) {
-        try {
-          const speechInput: GenerateSpeechInput = { text: response };
-          const { audioDataUri } = await generateSpeech(speechInput);
-          playAudio(audioDataUri);
-        } catch (speechError) {
-          console.error('Error generating speech:', speechError);
-          toast({
-            title: "Speech Generation Failed",
-            description: "Could not generate audio for the response.",
-            variant: "destructive",
-          });
-        }
+        speak(response);
       }
 
     } catch (error)
@@ -176,7 +163,6 @@ export default function ChatPage() {
                 </form>
             </div>
       </div>
-      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }
