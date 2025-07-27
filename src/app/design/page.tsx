@@ -25,6 +25,10 @@ import {
   Heading1,
   Heading2,
   CaseSensitive,
+  Square,
+  Search,
+  Paintbrush,
+  Palette,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -58,7 +62,7 @@ const toolConfig = {
       { id: 'text', icon: Type, label: 'Text' },
       { id: 'elements', icon: Component, label: 'Elements' },
       { id: 'uploads', icon: ImageUp, label: 'Uploads' },
-      { id: 'layers', icon: Layers, label: 'Overlap' },
+      { id: 'overlap', icon: Layers, label: 'Overlap' },
       { id: 'photos', icon: ImageIcon, label: 'Photos' },
       { id: 'ai', icon: Sparkles, label: 'AI' },
       { id: 'draw', icon: PenTool, label: 'Draw' },
@@ -68,47 +72,47 @@ const toolConfig = {
   templates: {
     label: 'Templates',
     tools: [
-      { id: 't-1', icon: LayoutTemplate, label: 'Template 1' },
-      { id: 't-2', icon: LayoutTemplate, label: 'Template 2' },
-      { id: 't-3', icon: LayoutTemplate, label: 'Template 3' },
+      { id: 't-1', icon: LayoutTemplate, label: 'Template 1', image: 'https://placehold.co/600x400.png', hint: 'template design' },
+      { id: 't-2', icon: LayoutTemplate, label: 'Template 2', image: 'https://placehold.co/400x600.png', hint: 'template design' },
+      { id: 't-3', icon: LayoutTemplate, label: 'Template 3', image: 'https://placehold.co/600x600.png', hint: 'template design' },
     ],
   },
   text: {
     label: 'Text',
     tools: [
-      { id: 'heading', icon: Heading1, label: 'Heading' },
-      { id: 'subheading', icon: Heading2, label: 'Subheading' },
-      { id: 'body', icon: Type, label: 'Body Text' },
-      { id: 'textbox', icon: CaseSensitive, label: 'Textbox' },
+      { id: 'heading', icon: Heading1, label: 'Heading', image: 'https://placehold.co/600x400.png', hint: 'text heading' },
+      { id: 'subheading', icon: Heading2, label: 'Subheading', image: 'https://placehold.co/600x400.png', hint: 'text subheading' },
+      { id: 'body', icon: Type, label: 'Body Text', image: 'https://placehold.co/600x400.png', hint: 'body text' },
+      { id: 'textbox', icon: CaseSensitive, label: 'Textbox', image: 'https://placehold.co/600x400.png', hint: 'text box' },
     ],
   },
   elements: {
     label: 'Elements',
-    tools: [{ id: 'e-1', icon: Component, label: 'Shape' }],
+    tools: [{ id: 'shape', icon: Square, label: 'Shape', image: 'https://placehold.co/200x200.png', hint: 'geometric shape' }],
   },
   uploads: {
     label: 'Uploads',
     tools: [],
   },
-  layers: {
+  overlap: {
     label: 'Overlap',
     tools: [{ id: 'l-1', icon: Layers, label: 'Layer 1' }],
   },
   photos: {
     label: 'Photos',
-    tools: [{ id: 'p-1', icon: ImageIcon, label: 'Search Photos' }],
+    tools: [{ id: 'search-photos', icon: Search, label: 'Search Photos', image: 'https://placehold.co/600x400.png', hint: 'landscape photo' }],
   },
   ai: {
     label: 'AI',
-    tools: [{ id: 'a-1', icon: Sparkles, label: 'Generate' }],
+    tools: [{ id: 'ai-generate', icon: Sparkles, label: 'Generate', image: 'https://placehold.co/600x400.png', hint: 'abstract art' }],
   },
   draw: {
     label: 'Draw',
-    tools: [{ id: 'd-1', icon: PenTool, label: 'Pen' }],
+    tools: [{ id: 'pen-tool', icon: Paintbrush, label: 'Pen', image: 'https://placehold.co/600x400.png', hint: 'drawing tools' }],
   },
   background: {
     label: 'Background',
-    tools: [{ id: 'b-1', icon: FlipVertical, label: 'Color' }],
+    tools: [{ id: 'bg-color', icon: Palette, label: 'Color', image: 'https://placehold.co/600x400.png', hint: 'color palette' }],
   },
 };
 
@@ -118,6 +122,7 @@ type ToolId = keyof typeof toolConfig;
 export default function DesignPage() {
   const [activeTool, setActiveTool] = useState<ToolId>('main');
   const [canvasImage, setCanvasImage] = useState<string | null>(null);
+  const [canvasImageHint, setCanvasImageHint] = useState<string>('canvas');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const triggerFileSelect = () => {
@@ -130,6 +135,7 @@ export default function DesignPage() {
       const reader = new FileReader();
       reader.onload = (e) => {
         setCanvasImage(e.target?.result as string);
+        setCanvasImageHint('uploaded image');
       };
       reader.readAsDataURL(file);
     }
@@ -140,8 +146,17 @@ export default function DesignPage() {
       triggerFileSelect();
       return;
     }
+
     if (toolId in toolConfig) {
       setActiveTool(toolId as ToolId);
+    } else {
+      // It's a sub-tool, find it and set the image
+      const parentToolKey = activeTool as keyof typeof toolConfig;
+      const subTool = toolConfig[parentToolKey]?.tools.find(t => t.id === toolId);
+      if (subTool && subTool.image) {
+        setCanvasImage(subTool.image);
+        setCanvasImageHint(subTool.hint || 'design element');
+      }
     }
   };
 
@@ -181,9 +196,10 @@ export default function DesignPage() {
             <div className="relative w-full h-full">
                 <Image
                     src={canvasImage}
-                    alt="Uploaded design"
+                    alt="Canvas content"
                     layout="fill"
                     objectFit="contain"
+                    data-ai-hint={canvasImageHint}
                 />
             </div>
           ) : (
@@ -217,7 +233,7 @@ export default function DesignPage() {
                   icon={tool.icon}
                   label={tool.label}
                   onClick={() => handleToolClick(tool.id)}
-                  disabled={tool.id === 'layers' && !canvasImage}
+                  disabled={tool.id === 'overlap' && !canvasImage}
                 />
               </CarouselItem>
             ))}
