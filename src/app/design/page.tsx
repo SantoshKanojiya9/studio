@@ -300,8 +300,22 @@ export default function DesignPage() {
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const resumeFullExpressionAnimation = () => {
+    if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+
+    const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+    let fullIndex = 0;
+
+    const runFullAnimation = () => {
+        setExpression(fullExpressions[fullIndex % fullExpressions.length]);
+        fullIndex++;
+    };
+    
+    runFullAnimation();
+    animationIntervalRef.current = setInterval(runFullAnimation, 3000);
+  };
+  
   const startAnimation = () => {
-    let animationInterval: NodeJS.Timeout;
     let phaseTimeout: NodeJS.Timeout;
     
     setIsInitialPhase(true);
@@ -324,32 +338,19 @@ export default function DesignPage() {
     };
     
     runInitialAnimation();
-    animationInterval = setInterval(runInitialAnimation, 3000);
-    animationIntervalRef.current = animationInterval;
+    animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
 
     phaseTimeout = setTimeout(() => {
-      clearInterval(animationInterval); 
+      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
       setIsInitialPhase(false); 
       pointerX.set(0.5);
       pointerY.set(0.5);
-      
-      const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
-      let fullIndex = 0;
-
-      const runFullAnimation = () => {
-        setExpression(fullExpressions[fullIndex % fullExpressions.length]);
-        fullIndex++;
-      }
-      
-      runFullAnimation();
-      animationInterval = setInterval(runFullAnimation, 3000);
-      animationIntervalRef.current = animationInterval;
+      resumeFullExpressionAnimation();
     }, 15000); // 15 seconds
 
     return () => {
-      clearInterval(animationInterval);
-      clearTimeout(phaseTimeout);
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+      clearTimeout(phaseTimeout);
     };
   };
 
@@ -407,7 +408,7 @@ export default function DesignPage() {
         setExpression('neutral');
         setEmojiColor(defaultEmojiColor);
         angerTimeout.current = null;
-        startAnimation(); // Resume animations
+        resumeFullExpressionAnimation(); // Resume full expressions
       }, 2000);
     } else {
       setExpression('happy');
