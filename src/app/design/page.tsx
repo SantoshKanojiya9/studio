@@ -210,7 +210,7 @@ const Face = ({
             >
                 <div 
                     className="absolute"
-                    style={{ top: '105px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
+                    style={{ top: '108px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 >
                     {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-[180px] h-[45px]">
@@ -223,7 +223,7 @@ const Face = ({
 
             <motion.div
                 className="absolute"
-                style={{ top: '165px', left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
+                style={{ top: '175px', left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
