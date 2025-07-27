@@ -161,7 +161,7 @@ export default function DesignPage() {
         >
           <CarouselContent className="-ml-0">
              {activeTool !== 'main' && (
-              <CarouselItem className="basis-1/5 pl-2 first:pl-0">
+              <CarouselItem className="pl-2 basis-auto">
                 <EditorButton
                   icon={ArrowLeft}
                   label="Back"
@@ -170,7 +170,7 @@ export default function DesignPage() {
               </CarouselItem>
             )}
             {currentTools.map((tool) => (
-              <CarouselItem key={tool.id} className="basis-1/5 pl-2 first:pl-0">
+              <CarouselItem key={tool.id} className="pl-2 basis-1/4 sm:basis-1/5 md:basis-auto">
                 <EditorButton
                   icon={tool.icon}
                   label={tool.label}
