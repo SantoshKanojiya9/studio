@@ -190,35 +190,40 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto">
+       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-hidden">
             <div 
-                className="max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
-                style={{ aspectRatio: canvasAspectRatio }}
+                className="w-full h-full flex items-center justify-center"
             >
-              {templateImage ? (
-                 <Image
-                    src={templateImage}
-                    alt="Template background"
-                    layout="fill"
-                    objectFit="cover"
-                    data-ai-hint="template background"
-                />
-              ) : (
-                 !uploadedImage && <p className="text-zinc-400 text-lg">Your Canvas</p>
-              )}
-              {uploadedImage && (
-                <div className="absolute inset-0 p-8">
-                     <div className="relative w-full h-full">
-                        <Image
-                            src={uploadedImage}
-                            alt="Uploaded content"
-                            layout="fill"
-                            objectFit="contain"
-                            data-ai-hint="uploaded image"
-                        />
-                    </div>
-                </div>
-              )}
+              <div 
+                className="relative bg-white rounded-md shadow-lg"
+                style={{ aspectRatio: canvasAspectRatio, maxWidth: '100%', maxHeight: '100%' }}
+              >
+                {templateImage ? (
+                  <Image
+                      src={templateImage}
+                      alt="Template background"
+                      layout="fill"
+                      objectFit="cover"
+                      className="rounded-md"
+                      data-ai-hint="template background"
+                  />
+                ) : (
+                  !uploadedImage && <div className="w-full h-full flex items-center justify-center"><p className="text-zinc-400 text-lg">Your Canvas</p></div>
+                )}
+                {uploadedImage && (
+                  <div className="absolute inset-0 p-2 sm:p-4 md:p-8">
+                      <div className="relative w-full h-full">
+                          <Image
+                              src={uploadedImage}
+                              alt="Uploaded content"
+                              layout="fill"
+                              objectFit="contain"
+                              data-ai-hint="uploaded image"
+                          />
+                      </div>
+                  </div>
+                )}
+              </div>
             </div>
       </main>
 
@@ -257,3 +262,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
