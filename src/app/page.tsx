@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -35,19 +34,6 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 );
 
 export default function Home() {
-  const [show, setShow] = useState(false);
-
-  useEffect(() => {
-    // This is to prevent a flash of the old content before the redirect was removed.
-    // It's a bit of a hack, but it works for now.
-    const timer = setTimeout(() => setShow(true), 10);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!show) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
       <div className="flex flex-col items-center justify-center gap-4">
