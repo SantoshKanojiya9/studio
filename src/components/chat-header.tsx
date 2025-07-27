@@ -37,9 +37,9 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function ChatHeader() {
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <EdengramLogo />
-        <h1 className="text-xl font-logo">Edengram</h1>
+        <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
