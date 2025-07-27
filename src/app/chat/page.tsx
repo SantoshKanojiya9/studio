@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [currentlySpeaking, setCurrentlySpeaking] = useState<{ messageId: string; sentenceIndex: number } | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wordCount, setWordCount] = useState(0);
@@ -39,10 +40,39 @@ export default function ChatPage() {
     }
   }, [messages, isLoading]);
 
-  const speak = (text: string) => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      window.speechSynthesis.speak(utterance);
+  useEffect(() => {
+    return () => {
+      // Cleanup speech synthesis on component unmount
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const speak = (messageId: string, text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis && !isMuted) {
+      window.speechSynthesis.cancel(); // Stop any previous speech
+
+      const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+      let sentenceIndex = 0;
+
+      const speakNextSentence = () => {
+        if (sentenceIndex < sentences.length) {
+          const utterance = new SpeechSynthesisUtterance(sentences[sentenceIndex].trim());
+          utterance.onstart = () => {
+            setCurrentlySpeaking({ messageId, sentenceIndex });
+          };
+          utterance.onend = () => {
+            sentenceIndex++;
+            speakNextSentence();
+          };
+          window.speechSynthesis.speak(utterance);
+        } else {
+          setCurrentlySpeaking(null); // All sentences have been spoken
+        }
+      };
+
+      speakNextSentence();
     }
   };
 
@@ -64,7 +94,7 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       if (!isMuted) {
-        speak(response);
+        speak(assistantMessage.id, response);
       }
 
     } catch (error)
@@ -89,13 +119,43 @@ export default function ChatPage() {
       setWordCount(words.length);
     }
   };
+  
+  const toggleMute = () => {
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    if (newMutedState && typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        setCurrentlySpeaking(null);
+    }
+  };
+
+  const AssistantMessage = ({ message }: { message: Message }) => {
+    const sentences = message.content.match(/[^.!?]+[.!?]+/g) || [message.content];
+
+    return (
+      <div className="space-y-1">
+        {sentences.map((sentence, index) => {
+           const isSpeaking = currentlySpeaking?.messageId === message.id && currentlySpeaking?.sentenceIndex === index;
+           return (
+            <div key={index} className="flex items-center gap-2">
+                 <div className={cn(
+                    "w-2 h-2 rounded-full transition-all duration-300",
+                    isSpeaking ? "bg-gradient-to-br from-blue-400 to-purple-500 scale-125 shadow-lg" : "bg-transparent"
+                 )} />
+                 <p className="text-sm whitespace-pre-wrap">{sentence.trim()}</p>
+            </div>
+           )
+        })}
+      </div>
+    )
+  }
 
 
   return (
     <div className="flex flex-col h-full">
        <div className="sticky top-0 z-10 bg-background">
         <ChatHeader>
-            <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:bg-transparent hover:text-primary">
+            <Button variant="ghost" size="icon" onClick={toggleMute} className="text-muted-foreground hover:bg-transparent hover:text-primary">
             {isMuted ? <VolumeX /> : <Volume2 />}
             <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
             </Button>
@@ -123,7 +183,11 @@ export default function ChatPage() {
                         : 'bg-secondary text-secondary-foreground'
                     )}
                 >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.role === 'assistant' ? (
+                       <AssistantMessage message={message} />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
                 </div>
 
                 </div>
@@ -164,3 +228,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
+    
