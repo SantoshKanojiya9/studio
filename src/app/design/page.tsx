@@ -27,15 +27,33 @@ export default function DesignPage() {
   const [filters, setFilters] = useState<Filters>(defaultFilters);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mainContentRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (image && canvasRef.current) {
+    if (image && canvasRef.current && mainContentRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
+      const container = mainContentRef.current;
+
       if (ctx) {
-        // Set canvas dimensions to the image dimensions
-        canvas.width = image.naturalWidth;
-        canvas.height = image.naturalHeight;
+        // Calculate the best fit for the canvas within the container
+        const containerWidth = container.clientWidth - 32; // subtract padding
+        const containerHeight = container.clientHeight - 32; // subtract padding
+        const imageAspectRatio = image.naturalWidth / image.naturalHeight;
+        const containerAspectRatio = containerWidth / containerHeight;
+
+        let canvasWidth, canvasHeight;
+
+        if (imageAspectRatio > containerAspectRatio) {
+          canvasWidth = containerWidth;
+          canvasHeight = containerWidth / imageAspectRatio;
+        } else {
+          canvasHeight = containerHeight;
+          canvasWidth = containerHeight * imageAspectRatio;
+        }
+
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
         // Apply CSS filters
         ctx.filter = `
@@ -45,7 +63,7 @@ export default function DesignPage() {
           blur(${filters.blur}px)
         `;
         
-        // Draw the image
+        // Draw the image scaled to fit the canvas
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
       }
     }
@@ -59,6 +77,7 @@ export default function DesignPage() {
         const img = new Image();
         img.onload = () => {
           setImage(img);
+          setFilters(defaultFilters); // Reset filters for new image
         };
         img.src = event.target?.result as string;
       };
@@ -79,10 +98,25 @@ export default function DesignPage() {
   const downloadImage = () => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
-      const link = document.createElement('a');
-      link.download = 'enhanced-image.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // Create a temporary canvas to draw the image at its natural resolution
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      if (tempCtx && image) {
+        tempCanvas.width = image.naturalWidth;
+        tempCanvas.height = image.naturalHeight;
+        tempCtx.filter = `
+          brightness(${filters.brightness}%) 
+          contrast(${filters.contrast}%) 
+          saturate(${filters.saturate}%) 
+          blur(${filters.blur}px)
+        `;
+        tempCtx.drawImage(image, 0, 0);
+
+        const link = document.createElement('a');
+        link.download = 'enhanced-image.png';
+        link.href = tempCanvas.toDataURL('image/png');
+        link.click();
+      }
     }
   };
 
@@ -99,7 +133,7 @@ export default function DesignPage() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-white">
-      <header className="flex items-center justify-between p-4 border-b border-zinc-700">
+      <header className="flex items-center justify-between p-4 border-b border-zinc-700 flex-shrink-0">
         <h1 className="text-xl font-semibold">Image Enhancer</h1>
         <div className="flex items-center gap-2">
             <Button onClick={triggerFileUpload} variant="outline" className="bg-zinc-800 hover:bg-zinc-700 border-zinc-600">
@@ -122,15 +156,15 @@ export default function DesignPage() {
       
       <div className="flex-1 flex overflow-hidden">
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center p-4 overflow-auto bg-zinc-800">
-            <div className="max-w-full max-h-full">
+        <main ref={mainContentRef} className="flex-1 flex items-center justify-center p-4 overflow-hidden bg-zinc-800">
+            <div className="max-w-full max-h-full flex items-center justify-center">
                 {image ? (
-                    <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" />
+                    <canvas ref={canvasRef} className="max-w-full max-h-full" />
                 ) : (
-                    <div className="flex flex-col items-center justify-center text-zinc-400 border-2 border-dashed border-zinc-600 p-12 rounded-lg">
+                    <div className="flex flex-col items-center justify-center text-zinc-400 border-2 border-dashed border-zinc-600 p-12 rounded-lg text-center">
                         <Upload className="h-16 w-16 mb-4" />
                         <h2 className="text-2xl font-semibold">Upload an image to start</h2>
-                        <p>Your images are processed locally in your browser.</p>
+                        <p className="mt-2">Your images are processed locally in your browser.</p>
                     </div>
                 )}
             </div>
@@ -138,7 +172,7 @@ export default function DesignPage() {
 
         {/* Sidebar */}
         <aside className={cn(
-            "w-80 bg-zinc-900 border-l border-zinc-700 p-6 flex flex-col gap-6 overflow-y-auto transition-all duration-300",
+            "w-80 bg-zinc-900 border-l border-zinc-700 p-6 flex flex-col gap-6 overflow-y-auto transition-opacity duration-300",
             !image && "opacity-50 pointer-events-none"
         )}>
            <div className="flex justify-between items-center">
