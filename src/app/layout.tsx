@@ -22,8 +22,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased bg-background")}>
-        <div className="relative flex min-h-screen flex-col">
-          <main className="flex-1 flex flex-col pb-16 md:pb-0">{children}</main>
+        <div className="relative flex flex-col h-screen">
+          <main className="flex-1 flex flex-col pb-16 overflow-hidden">{children}</main>
           <BottomBar />
         </div>
         <Toaster />

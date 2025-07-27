@@ -22,14 +22,14 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
+    if (scrollAreaViewportRef.current) {
         setTimeout(() => {
-            scrollAreaRef.current!.scrollTo({
-                top: scrollAreaRef.current!.scrollHeight,
+            scrollAreaViewportRef.current!.scrollTo({
+                top: scrollAreaViewportRef.current!.scrollHeight,
                 behavior: 'smooth'
             });
         }, 100);
@@ -87,11 +87,11 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
        <ChatHeader isMuted={isMuted} onToggleMute={toggleMute} />
        <div className="flex-1 flex flex-col overflow-hidden">
-            <ScrollArea className="flex-1">
-                <div ref={scrollAreaRef} className="space-y-6 p-4 container">
+            <ScrollArea className="flex-1" viewportRef={scrollAreaViewportRef}>
+                <div className="space-y-6 p-4 container">
                 {messages.map((message, index) => (
                     <div
                     key={index}
