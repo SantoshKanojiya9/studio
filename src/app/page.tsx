@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { ArrowRight } from 'lucide-react';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -43,10 +42,9 @@ export default function Home() {
           <h1 className="text-5xl font-logo font-normal">Edengram</h1>
         </div>
         <div>
-          <Button asChild size="lg" className="bg-primary/80 hover:bg-primary text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
+          <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
             <Link href="/chat">
               Get Started
-              <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
         </div>
