@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, BadgeCheck, Briefcase } from 'lucide-react';
+import { Menu, BadgeCheck, CreditCard } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
@@ -96,7 +96,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuItem asChild>
                    <Link href="/plan">
-                     <Briefcase className="mr-2 h-4 w-4" />
+                     <CreditCard className="mr-2 h-4 w-4" />
                      <span>Plan</span>
                    </Link>
                 </DropdownMenuItem>

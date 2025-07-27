@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Image as ImageIcon, MessageSquare, Briefcase } from 'lucide-react';
+import { Image as ImageIcon, MessageSquare, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomBar() {
@@ -12,7 +12,7 @@ export function BottomBar() {
   const navItems = [
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
     { href: '/image', label: 'Generate Image', icon: ImageIcon },
-    { href: '/plan', label: 'Plan', icon: Briefcase },
+    { href: '/plan', label: 'Plan', icon: CreditCard },
   ];
 
   return (
