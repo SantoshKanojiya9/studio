@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2 } from 'lucide-react';
+import { Bot, Send, User, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
+import { generateTts, type GenerateTtsInput } from '@/ai/flows/generate-tts';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,7 +21,9 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const scrollAreaViewport = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -28,6 +31,25 @@ export default function ChatPage() {
       scrollAreaViewport.current.scrollTop = scrollAreaViewport.current.scrollHeight;
     }
   }, [messages]);
+  
+  const handleAudio = async (text: string) => {
+    if (isMuted) return;
+
+    try {
+      const { audioUrl } = await generateTts({ text });
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.play().catch(e => console.error("Audio playback failed", e));
+      }
+    } catch (error) {
+       console.error('Error generating audio:', error);
+       toast({
+        title: "Could not play audio",
+        description: "Failed to generate speech for the AI response.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +66,7 @@ export default function ChatPage() {
       const { response } = await generateChatResponse(chatInput);
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages((prev) => [...prev, assistantMessage]);
+      handleAudio(response);
     } catch (error) {
       console.error('Error generating chat response:', error);
       toast({
@@ -51,21 +74,39 @@ export default function ChatPage() {
         description: "Failed to get a response from the AI. Please try again.",
         variant: "destructive",
       });
-      setMessages((prev) => prev.slice(0, -1)); // Remove user message on error
+      // Revert the user message if the API call fails
+      setMessages((prev) => prev.filter((msg) => msg !== userMessage));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const toggleMute = () => {
+    setIsMuted((prev) => {
+      const isCurrentlyMuted = !prev;
+      if (isCurrentlyMuted && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      return isCurrentlyMuted;
+    });
+  };
+
   return (
     <div className="container mx-auto max-w-4xl py-8">
+      <audio ref={audioRef} className="hidden" />
       <Card className="h-[calc(100vh-12rem)] w-full flex flex-col shadow-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot />
-            AI Chat
-          </CardTitle>
-          <CardDescription>Start a conversation with our AI assistant.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div className='space-y-1.5'>
+                <CardTitle className="flex items-center gap-2">
+                <Bot />
+                AI Chat
+                </CardTitle>
+                <CardDescription>Start a conversation with our AI assistant.</CardDescription>
+            </div>
+            <Button onClick={toggleMute} variant="ghost" size="icon" aria-label={isMuted ? 'Unmute' : 'Mute'}>
+                {isMuted ? <VolumeX /> : <Volume2 />}
+            </Button>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
           <ScrollArea className="flex-1 pr-4 -mr-4" >
