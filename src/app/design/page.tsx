@@ -190,7 +190,7 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto pb-24">
+       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto">
             <div
                 className="relative bg-white rounded-md shadow-lg max-w-full max-h-full"
                 style={{ aspectRatio: canvasAspectRatio }}
