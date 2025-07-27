@@ -75,7 +75,7 @@ export default function PlanPage() {
             <ul className="space-y-4 text-left">
               <li className="flex items-center">
                 <Check className="h-5 w-5 text-amber-500 mr-3" />
-                <span>4,000 AI Chat Responses</span>
+                <span>2500 AI Chat Responses</span>
               </li>
                <li className="flex items-center">
                 <Check className="h-5 w-5 text-amber-500 mr-3" />
