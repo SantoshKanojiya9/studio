@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
-type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories';
+type ActiveMenu = 'main' | 'effects' | 'accessories';
 
 const Face = ({ 
     expression, 
@@ -355,46 +355,7 @@ export default function DesignPage() {
                         <RotateCcw className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}>
-                                    <Palette className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Colors</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}>
-                                    <Wand2 className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Effects</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}>
-                                    <SmilePlus className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Accessories</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </motion.div>
-            );
-        case 'colors':
-            return (
-                 <motion.div 
-                    key="colors"
-                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
-                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="flex items-center gap-4 whitespace-nowrap"
-                >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                    <TooltipProvider>
-                        <Tooltip>
+                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className="relative w-10 h-10">
                                     <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
@@ -411,6 +372,22 @@ export default function DesignPage() {
                                 </div>
                             </TooltipTrigger>
                             <TooltipContent><p>Emoji Color</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}>
+                                    <Wand2 className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Effects</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}>
+                                    <SmilePlus className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Accessories</p></TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </motion.div>
