@@ -11,7 +11,7 @@ import {
 import {
   X,
   ChevronDown,
-  Upload,
+  Save,
   LayoutTemplate,
   Type,
   Component,
@@ -154,7 +154,7 @@ export default function DesignPage() {
           <ChevronDown className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="icon">
-          <Upload className="h-5 w-5" />
+          <Save className="h-5 w-5" />
         </Button>
       </header>
 
