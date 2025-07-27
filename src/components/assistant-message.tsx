@@ -24,10 +24,11 @@ export function AssistantMessage({ message, currentlySpeaking }: AssistantMessag
          const isSpeaking = currentlySpeaking?.messageId === message.id && currentlySpeaking?.sentenceIndex === index;
          return (
           <div key={index} className="flex items-center gap-2">
-               <div className={cn(
-                  "w-2 h-2 rounded-full transition-all duration-300",
-                  isSpeaking ? "bg-gradient-to-br from-blue-400 to-purple-500 scale-125 shadow-lg" : "bg-gradient-to-br from-blue-400 to-purple-500"
-               )} />
+               {isSpeaking ? (
+                 <div className="w-2 h-2 rounded-full transition-all duration-300 bg-gradient-to-br from-blue-400 to-purple-500 scale-125 shadow-lg" />
+               ) : (
+                <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+               )}
                <p className="text-sm whitespace-pre-wrap">{sentence.trim()}</p>
           </div>
          )
