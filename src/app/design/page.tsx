@@ -58,8 +58,8 @@ const Face = ({ expression }: { expression: Expression }) => {
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
 
-  const pupilX = useTransform(pointerX, [0, 1], [-8, 8]);
-  const pupilY = useTransform(pointerY, [0, 1], [-6, 6]);
+  const pupilX = useTransform(pointerX, [0, 1], [-12, 12]);
+  const pupilY = useTransform(pointerY, [0, 1], [-8, 8]);
 
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
