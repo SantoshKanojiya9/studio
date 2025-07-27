@@ -538,23 +538,23 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={handleReset} aria-label="Reset to defaults">
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
                         <RotateCcw className="h-5 w-5" />
                         <span className="text-sm">Reset</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('colors')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('colors')}>
                         <Palette className="h-5 w-5" />
                         <span className="text-sm">Colors</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('effects')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('effects')}>
                         <Wand2 className="h-5 w-5" />
                         <span className="text-sm">Effects</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('accessories')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('accessories')}>
                         <SmilePlus className="h-5 w-5" />
                         <span className="text-sm">Accessories</span>
                     </Button>
-                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('moods')}>
+                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('moods')}>
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
@@ -568,7 +568,7 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div className="flex items-center gap-2">
@@ -597,7 +597,7 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div className="w-32">
@@ -642,13 +642,13 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
+                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
                                     <Glasses className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -656,7 +656,7 @@ export default function DesignPage() {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
+                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
                                 <MustacheIcon />
                                 </Button>
                             </TooltipTrigger>
@@ -673,13 +673,13 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('default')} className={cn(mood === 'default' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('default')} className={cn(mood === 'default' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
                                     <SmilePlus className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -687,7 +687,7 @@ export default function DesignPage() {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('sleepy')} className={cn(mood === 'sleepy' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('sleepy')} className={cn(mood === 'sleepy' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
                                     <Moon className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -695,7 +695,7 @@ export default function DesignPage() {
                         </Tooltip>
                          <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('playful')} className={cn(mood === 'playful' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('playful')} className={cn(mood === 'playful' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
                                     <ToyBrick className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
