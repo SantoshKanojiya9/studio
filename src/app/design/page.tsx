@@ -204,22 +204,27 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute top-[100px] left-1/2 -translate-x-1/2 w-[160px] h-[45px] flex justify-between items-center"
-                style={{ transform: 'translate(-50%, 0) translateZ(30px)' }}
-                initial={{ y: -60, opacity: 0 }}
-                animate={{ y: showSunglasses ? 0 : -60, opacity: showSunglasses ? 1 : 0 }}
+                className="absolute top-0 left-0 w-full h-full"
+                style={{ transformStyle: 'preserve-3d' }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
-                {/* Lenses */}
-                <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                {/* Bridge */}
-                <div className="h-2 w-4 border-b-4 border-x-4 border-gray-700 rounded-b-md self-center"></div>
-                <div className="w-[70px] h-[45px] bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                <div 
+                    className="absolute w-[180px] h-[45px] top-[100px] left-1/2 flex justify-between items-center"
+                    style={{ transform: 'translateX(-50%) translateZ(30px)' }}
+                >
+                    {/* Lenses */}
+                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                    {/* Bridge */}
+                    <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                </div>
             </motion.div>
 
             <motion.div
-                className="absolute top-[165px] left-1/2 -translate-x-1/2"
-                style={{ transform: 'translate(-50%, 0) translateZ(25px)' }}
+                className="absolute top-[165px] left-1/2"
+                style={{ transform: 'translateX(-50%) translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
@@ -230,8 +235,8 @@ const Face = ({
             </motion.div>
             
             <motion.div
-                className="absolute top-[-30px] left-1/2 -translate-x-1/2"
-                style={{ transform: 'translate(-50%, 0) translateZ(5px)' }}
+                className="absolute top-[-30px] left-1/2"
+                style={{ transform: 'translateX(-50%) translateZ(5px)' }}
                 initial={{ opacity: 0, y: -20, rotate: -15 }}
                 animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? -10 : -15 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 15 }}
