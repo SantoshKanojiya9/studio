@@ -9,9 +9,9 @@ type Expression = 'neutral' | 'happy' | 'angry';
 
 const Face = ({ expression }: { expression: Expression }) => {
   const eyeVariants = {
-    neutral: { y: 0, height: '20px' },
-    happy: { y: 0, height: '10px' },
-    angry: { y: 0, height: '15px' },
+    neutral: { scaleY: 1 },
+    happy: { scaleY: 0.4, y: 5 },
+    angry: { height: '15px' },
   };
 
   const mouthVariants = {
@@ -30,22 +30,19 @@ const Face = ({ expression }: { expression: Expression }) => {
   };
   
   const eyebrowVariants = {
-    neutral: { rotate: 0, y: 0, opacity: 0 },
-    happy: { rotate: 0, y: 0, opacity: 0 },
-    angry: { rotate: 0, y: -5, opacity: 1 },
+    neutral: { y: 0, opacity: 0 },
+    happy: { y: 0, opacity: 0 },
+    angry: { y: -5, opacity: 1 },
+  }
+
+  const eyeLidVariants = {
+      closed: { scaleY: 0 },
+      open: { scaleY: 1 },
   }
 
   return (
     <motion.div 
       className="relative w-64 h-64"
-      animate={{
-        rotateY: [0, 360],
-      }}
-      transition={{
-        duration: 20,
-        repeat: Infinity,
-        ease: "linear"
-      }}
     >
       {/* 3D Base */}
       <div className="w-full h-full rounded-full bg-yellow-400 shadow-[inset_0_-15px_20px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)]">
@@ -55,11 +52,25 @@ const Face = ({ expression }: { expression: Expression }) => {
             {/* Left Eye */}
             <div className="relative">
                <motion.div 
-                className="w-10 h-10 bg-black rounded-full"
-                animate={eyeVariants[expression]}
+                className="w-10 h-10 bg-black rounded-full origin-bottom"
+                animate={expression === 'angry' ? 'angry' : eyeVariants[expression]}
+                variants={{...eyeVariants, angry: {}}} // Pass variants to prevent error, but angry is handled by eyebrows
                 transition={{ duration: 0.2 }}
               >
-                  <div className="absolute top-2 right-2 w-3 h-3 bg-white rounded-full opacity-80" />
+                  <motion.div 
+                    className="w-full h-full bg-black rounded-full origin-bottom"
+                    animate={['open', 'closed']}
+                    variants={eyeLidVariants}
+                    transition={{
+                        duration: 0.1,
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        repeatDelay: 3,
+                        ease: "easeOut"
+                    }}
+                  >
+                    <div className="absolute top-2 right-2 w-3 h-3 bg-white rounded-full opacity-80" />
+                  </motion.div>
               </motion.div>
                <motion.div 
                 className="absolute -top-4 -left-1 w-12 h-6 bg-black rounded-t-full"
@@ -78,11 +89,25 @@ const Face = ({ expression }: { expression: Expression }) => {
             {/* Right Eye */}
              <div className="relative">
                <motion.div 
-                className="w-10 h-10 bg-black rounded-full"
-                animate={eyeVariants[expression]}
+                className="w-10 h-10 bg-black rounded-full origin-bottom"
+                animate={expression === 'angry' ? 'angry' : eyeVariants[expression]}
+                variants={{...eyeVariants, angry: {}}}
                 transition={{ duration: 0.2 }}
               >
-                  <div className="absolute top-2 left-2 w-3 h-3 bg-white rounded-full opacity-80" />
+                 <motion.div 
+                    className="w-full h-full bg-black rounded-full origin-bottom"
+                    animate={['open', 'closed']}
+                    variants={eyeLidVariants}
+                    transition={{
+                        duration: 0.1,
+                        repeat: Infinity,
+                        repeatType: "mirror",
+                        repeatDelay: 3,
+                        ease: "easeOut"
+                    }}
+                  >
+                    <div className="absolute top-2 left-2 w-3 h-3 bg-white rounded-full opacity-80" />
+                  </motion.div>
               </motion.div>
                <motion.div 
                 className="absolute -top-4 -right-1 w-12 h-6 bg-black rounded-t-full"
