@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles, Move3d, Glasses, PartyPopper, Palette, Wand2, SmilePlus, ArrowLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
@@ -21,14 +21,12 @@ const Face = ({
     expression, 
     color, 
     showSunglasses, 
-    showMustache, 
-    showPartyHat
+    showMustache
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
-    showMustache: boolean,
-    showPartyHat: boolean,
+    showMustache: boolean
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -235,16 +233,6 @@ const Face = ({
                 </svg>
             </motion.div>
             
-            <motion.div
-                className="absolute"
-                style={{ top: '-30px', left: '120px', transform: 'translateZ(5px)' }}
-                initial={{ opacity: 0, y: -20, rotate: -15 }}
-                animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? -10 : -15 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            >
-                <div className="relative w-0 h-0" style={{ borderLeft: '40px solid transparent', borderRight: '40px solid transparent', borderBottom: '80px solid #4CAF50'}}></div>
-                <div className="absolute -top-4 left-[28px] w-6 h-6 bg-red-500 rounded-full"></div>
-            </motion.div>
         </div>
       </div>
     </motion.div>
@@ -265,7 +253,6 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
-  const [showPartyHat, setShowPartyHat] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -335,7 +322,6 @@ export default function DesignPage() {
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
-    setShowPartyHat(false);
   };
   
   const MustacheIcon = () => (
@@ -502,14 +488,6 @@ export default function DesignPage() {
                             </TooltipTrigger>
                             <TooltipContent><p>Toggle Mustache</p></TooltipContent>
                         </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowPartyHat(prev => !prev)} className={cn(showPartyHat && 'bg-accent text-accent-foreground')}>
-                                    <PartyPopper className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Toggle Party Hat</p></TooltipContent>
-                        </Tooltip>
                     </TooltipProvider>
                 </motion.div>
             );
@@ -556,7 +534,6 @@ export default function DesignPage() {
                 color={emojiColor} 
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
-                showPartyHat={showPartyHat}
             />
           </motion.div>
         </motion.div>
