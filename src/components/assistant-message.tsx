@@ -27,7 +27,7 @@ export function AssistantMessage({ message, currentlySpeaking }: AssistantMessag
                {isSpeaking ? (
                  <div className="w-2 h-2 rounded-full transition-all duration-300 bg-gradient-to-br from-blue-400 to-purple-500 scale-125 shadow-lg" />
                ) : (
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                <div className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 opacity-50" />
                )}
                <p className="text-sm whitespace-pre-wrap">{sentence.trim()}</p>
           </div>
