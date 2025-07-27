@@ -39,10 +39,10 @@ export function ChatHeader() {
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
       <div className="flex items-center gap-3">
         <EdengramLogo />
-        <h1 className="text-3xl font-logo font-bold">Edengram</h1>
+        <h1 className="text-2xl font-logo">Edengram</h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-muted-foreground">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary hover:bg-transparent">
           <Menu />
           <span className="sr-only">Open menu</span>
         </Button>
