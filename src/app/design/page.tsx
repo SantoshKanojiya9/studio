@@ -70,6 +70,10 @@ const toolConfig = {
       { id: 't-1', icon: LayoutTemplate, label: 'Template 1', image: 'https://placehold.co/600x400.png', hint: 'template design' },
       { id: 't-2', icon: LayoutTemplate, label: 'Template 2', image: 'https://placehold.co/400x600.png', hint: 'template design' },
       { id: 't-3', icon: LayoutTemplate, label: 'Template 3', image: 'https://placehold.co/600x600.png', hint: 'template design' },
+      { id: 't-4', icon: LayoutTemplate, label: 'Template 4', image: 'https://placehold.co/800x400.png', hint: 'template design' },
+      { id: 't-5', icon: LayoutTemplate, label: 'Template 5', image: 'https://placehold.co/400x800.png', hint: 'template design' },
+      { id: 't-6', icon: LayoutTemplate, label: 'Template 6', image: 'https://placehold.co/800x800.png', hint: 'template design' },
+      { id: 't-7', icon: LayoutTemplate, label: 'Template 7', image: 'https://placehold.co/1080x1920.png', hint: 'template story' },
     ],
   },
   text: {
@@ -204,7 +208,7 @@ export default function DesignPage() {
           }}
           className="w-full"
         >
-          <CarouselContent className="ml-0">
+          <CarouselContent>
              {activeTool !== 'main' && (
               <CarouselItem className="pl-2 basis-auto">
                 <EditorButton
