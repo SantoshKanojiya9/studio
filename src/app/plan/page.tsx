@@ -79,7 +79,7 @@ export default function PlanPage() {
               </li>
                <li className="flex items-center">
                 <Check className="h-5 w-5 text-amber-500 mr-3" />
-                <span>135+ AI Images</span>
+                <span>85+ AI Images</span>
               </li>
               <li className="flex items-center">
                 <Check className="h-5 w-5 text-amber-500 mr-3" />
