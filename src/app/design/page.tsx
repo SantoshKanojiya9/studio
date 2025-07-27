@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Apple } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
@@ -715,7 +715,7 @@ export default function DesignPage() {
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col items-center justify-end p-4 pb-12">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
            <div className="relative h-12">
@@ -762,7 +762,7 @@ export default function DesignPage() {
           }}
         >
           <motion.div
-            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none mb-4"
+            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp} 
