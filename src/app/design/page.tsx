@@ -167,7 +167,7 @@ export default function DesignPage() {
   const currentTools = toolConfig[activeTool].tools;
 
   return (
-    <div className="flex flex-col h-screen bg-zinc-900 text-white">
+    <div className="flex flex-col h-full bg-zinc-900 text-white">
       <input
         type="file"
         ref={fileInputRef}
@@ -190,13 +190,13 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-hidden">
+       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto pb-24">
             <div 
                 className="w-full h-full flex items-center justify-center"
             >
               <div 
-                className="relative bg-white rounded-md shadow-lg"
-                style={{ aspectRatio: canvasAspectRatio, maxWidth: '100%', maxHeight: '100%' }}
+                className="relative bg-white rounded-md shadow-lg max-w-full max-h-full"
+                style={{ aspectRatio: canvasAspectRatio }}
               >
                 {templateImage ? (
                   <Image
@@ -228,7 +228,7 @@ export default function DesignPage() {
       </main>
 
       {/* Bottom Toolbar */}
-      <footer className="flex-shrink-0 bg-zinc-950 border-t border-zinc-800 p-2">
+      <div className="fixed bottom-16 left-0 w-full flex-shrink-0 bg-zinc-950 border-t border-zinc-800 p-2">
         <Carousel
           opts={{
             align: 'start',
@@ -258,9 +258,7 @@ export default function DesignPage() {
             ))}
           </CarouselContent>
         </Carousel>
-      </footer>
+      </div>
     </div>
   );
 }
-
-    
