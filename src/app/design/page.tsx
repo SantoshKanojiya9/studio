@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 type Expression = 'neutral' | 'happy' | 'angry';
@@ -49,6 +49,9 @@ const Face = ({ expression }: { expression: Expression }) => {
   return (
     <motion.div 
       className="relative w-80 h-64"
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
     >
       {/* 3D Base */}
       <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-orange-400 shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
@@ -75,7 +78,7 @@ const Face = ({ expression }: { expression: Expression }) => {
           {/* Eyes */}
           <div className="flex gap-20 absolute top-28">
             {/* Left Eye */}
-            <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.2}}>
+            <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
               <div className="w-12 h-10 bg-fuchsia-200 rounded-full" />
                <motion.div 
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-black rounded-full origin-bottom"
@@ -98,11 +101,11 @@ const Face = ({ expression }: { expression: Expression }) => {
                 style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
                 variants={eyebrowVariants}
                 animate={expression}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
               />
             </motion.div>
             {/* Right Eye */}
-             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.2}}>
+             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
               <div className="w-12 h-10 bg-fuchsia-200 rounded-full" />
               <motion.div 
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-black rounded-full origin-bottom"
@@ -125,7 +128,7 @@ const Face = ({ expression }: { expression: Expression }) => {
                 style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
                 variants={eyebrowVariants}
                 animate={expression}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
               />
             </motion.div>
           </div>
@@ -197,16 +200,7 @@ export default function DesignPage() {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp} // Reset if the pointer leaves the area
       >
-        <AnimatePresence>
-            <motion.div
-              key={expression}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-                <Face expression={expression} />
-            </motion.div>
-        </AnimatePresence>
+        <Face expression={expression} />
       </motion.div>
     </div>
   );
