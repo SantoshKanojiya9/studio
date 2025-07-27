@@ -5,6 +5,7 @@ import { Menu, BadgeCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
+import { AuthButton } from './auth-button';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -52,6 +53,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       </div>
       <div className="flex items-center gap-2">
         {children}
+        <AuthButton />
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
           <Menu />
           <span className="sr-only">Open menu</span>
