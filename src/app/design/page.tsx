@@ -191,34 +191,36 @@ export default function DesignPage() {
 
       {/* Main Content - Canvas */}
        <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-hidden">
-        <div 
-            className="w-full h-full max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
-            style={{ aspectRatio: canvasAspectRatio }}
-        >
-          {templateImage ? (
-             <Image
-                src={templateImage}
-                alt="Template background"
-                layout="fill"
-                objectFit="cover"
-                data-ai-hint="template background"
-            />
-          ) : (
-             !uploadedImage && <p className="text-zinc-400 text-lg">Your Canvas</p>
-          )}
-          {uploadedImage && (
-            <div className="absolute inset-0 p-8">
-                 <div className="relative w-full h-full">
-                    <Image
-                        src={uploadedImage}
-                        alt="Uploaded content"
-                        layout="fill"
-                        objectFit="contain"
-                        data-ai-hint="uploaded image"
-                    />
+        <div className="w-full h-full flex items-center justify-center">
+            <div 
+                className="max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
+                style={{ aspectRatio: canvasAspectRatio }}
+            >
+              {templateImage ? (
+                 <Image
+                    src={templateImage}
+                    alt="Template background"
+                    layout="fill"
+                    objectFit="cover"
+                    data-ai-hint="template background"
+                />
+              ) : (
+                 !uploadedImage && <p className="text-zinc-400 text-lg">Your Canvas</p>
+              )}
+              {uploadedImage && (
+                <div className="absolute inset-0 p-8">
+                     <div className="relative w-full h-full">
+                        <Image
+                            src={uploadedImage}
+                            alt="Uploaded content"
+                            layout="fill"
+                            objectFit="contain"
+                            data-ai-hint="uploaded image"
+                        />
+                    </div>
                 </div>
+              )}
             </div>
-          )}
         </div>
       </main>
 
