@@ -9,6 +9,7 @@ import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-r
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/chat-header';
+import { AssistantMessage } from '@/components/assistant-message';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -129,28 +130,6 @@ export default function ChatPage() {
     }
   };
 
-  const AssistantMessage = ({ message }: { message: Message }) => {
-    const sentences = message.content.match(/[^.!?]+[.!?]+/g) || [message.content];
-
-    return (
-      <div className="space-y-1">
-        {sentences.map((sentence, index) => {
-           const isSpeaking = currentlySpeaking?.messageId === message.id && currentlySpeaking?.sentenceIndex === index;
-           return (
-            <div key={index} className="flex items-center gap-2">
-                 <div className={cn(
-                    "w-2 h-2 rounded-full transition-all duration-300",
-                    isSpeaking ? "bg-gradient-to-br from-blue-400 to-purple-500 scale-125 shadow-lg" : "bg-transparent"
-                 )} />
-                 <p className="text-sm whitespace-pre-wrap">{sentence.trim()}</p>
-            </div>
-           )
-        })}
-      </div>
-    )
-  }
-
-
   return (
     <div className="flex flex-col h-full">
        <div className="sticky top-0 z-10 bg-background">
@@ -184,7 +163,7 @@ export default function ChatPage() {
                     )}
                 >
                     {message.role === 'assistant' ? (
-                       <AssistantMessage message={message} />
+                       <AssistantMessage message={message} currentlySpeaking={currentlySpeaking} />
                     ) : (
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     )}
@@ -197,7 +176,9 @@ export default function ChatPage() {
                  <div className="font-bold text-primary">Edena</div>
                 <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground">
                     <div className="flex items-center justify-center gap-2 h-5">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.1s]" />
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.2s]" />
+                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.3s]" />
                     </div>
                 </div>
                 </div>
@@ -228,5 +209,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    
