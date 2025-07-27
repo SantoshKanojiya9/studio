@@ -32,7 +32,7 @@ export default function ChatPage() {
 
    useEffect(() => {
     // Start with a welcome message
-    setMessages([{ role: 'assistant', name: 'Edena', content: "Welcome! I'm Edena, your AI assistant. Ask me anything.", id: 'initial' }]);
+    setMessages([{ role: 'assistant', name: 'Edena', content: "Welcome! I'm Edena, your AI assistant.", id: 'initial' }]);
   }, []);
 
   useEffect(() => {
