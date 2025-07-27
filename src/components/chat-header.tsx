@@ -5,7 +5,7 @@ import { Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
-const EdenechoLogo = ({ className }: { className?: string }) => (
+const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
         viewBox="0 0 100 100" 
         className={cn("h-8 w-8", className)}
@@ -37,11 +37,11 @@ export function ChatHeader() {
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
       <div className="flex items-center gap-3">
-        <EdenechoLogo />
-        <h1 className="text-2xl font-semibold">Edenecho</h1>
+        <EdengramLogo />
+        <h1 className="text-2xl font-semibold">Edengram</h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="hover:bg-transparent hover:text-muted-foreground">
           <Menu />
           <span className="sr-only">Open menu</span>
         </Button>
