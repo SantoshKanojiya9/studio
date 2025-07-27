@@ -205,7 +205,9 @@ export default function DesignPage() {
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsInteracting(true);
-    if (e.pressure > 0.5) {
+    // Use optional chaining for pressure to avoid errors on devices that don't support it.
+    const pressure = e.pressure ?? 0;
+    if (pressure > 0.5) {
       setExpression('angry');
     } else {
       setExpression('happy');
