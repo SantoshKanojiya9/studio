@@ -31,7 +31,7 @@ export default function DesignPage() {
   return (
     <div className="flex flex-col h-full p-4 md:p-6">
       <header className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Graphic Design Tools</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Graphic Design Editor</h1>
         <p className="text-muted-foreground mt-1 text-sm md:text-base">
           A collection of free tools to help with your creative projects.
         </p>

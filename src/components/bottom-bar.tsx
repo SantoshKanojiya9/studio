@@ -10,7 +10,7 @@ export function BottomBar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/design', label: 'Design Tools', icon: Palette },
+    { href: '/design', label: 'Design Editor', icon: Palette },
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
     { href: '/image', label: 'Generate Image', icon: ImageIcon },
   ];
