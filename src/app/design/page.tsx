@@ -1,57 +1,125 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Palette, Type, Smile, Images } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  X,
+  ChevronDown,
+  Upload,
+  Maximize,
+  Play,
+  Undo,
+  Redo,
+  VolumeX,
+  FileImage,
+  Plus,
+  Scissors,
+  Music,
+  Type,
+  Layers,
+  Sparkles,
+  AspectRatio,
+} from 'lucide-react';
 
-const tools = [
-  {
-    title: 'Color Palette Generator',
-    description: 'Create beautiful color schemes for your projects.',
-    icon: Palette,
-  },
-  {
-    title: 'Font Finder',
-    description: 'Discover the perfect font for your brand.',
-    icon: Type,
-  },
-  {
-    title: 'Icon Library',
-    description: 'Access a vast library of free-to-use icons.',
-    icon: Smile,
-  },
-  {
-    title: 'Mockup Creator',
-    description: 'Generate stunning mockups for your designs.',
-    icon: Images,
-  },
-];
+const EditorButton = ({
+  icon: Icon,
+  label,
+}: {
+  icon: React.ElementType;
+  label: string;
+}) => (
+  <Button
+    variant="ghost"
+    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground hover:text-primary p-2"
+  >
+    <Icon className="h-6 w-6 mb-1" />
+    <span>{label}</span>
+  </Button>
+);
 
 export default function DesignPage() {
   return (
-    <div className="flex flex-col h-full p-4 md:p-6">
-      <header className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Graphic Design Editor</h1>
-        <p className="text-muted-foreground mt-1 text-sm md:text-base">
-          A collection of free tools to help with your creative projects.
-        </p>
+    <div className="flex flex-col h-full bg-black text-white">
+      {/* Top Bar */}
+      <header className="flex items-center justify-between p-4 bg-zinc-900/80">
+        <Button variant="ghost" size="icon">
+          <X className="h-6 w-6" />
+        </Button>
+        <Button variant="ghost" className="flex items-center gap-1">
+          <span className="text-sm font-medium">1080P</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon">
+          <Upload className="h-6 w-6" />
+        </Button>
       </header>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-16">
-        {tools.map((tool) => {
-          const Icon = tool.icon;
-          return (
-            <Card key={tool.title} className="hover:bg-secondary/50 transition-colors">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-lg font-medium">{tool.title}</CardTitle>
-                <Icon className="h-6 w-6 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{tool.description}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+
+      {/* Main Content - Video Preview */}
+      <main className="flex-1 flex items-center justify-center p-4 bg-black">
+        <div className="w-full aspect-video bg-zinc-900 flex items-center justify-center rounded-md">
+            {/* Placeholder for video player */}
+        </div>
+      </main>
+
+      {/* Timeline Controls */}
+      <div className="p-4 space-y-4 bg-zinc-900/80">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon">
+              <Maximize className="h-5 w-5" />
+            </Button>
+            <div className="text-xs font-mono">00:00 / 00:10</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon">
+              <Play className="h-7 w-7" />
+            </Button>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon">
+              <Undo className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Redo className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div className="relative h-20 w-full flex items-center">
+            <div className="absolute w-0.5 h-full bg-white left-1/2 -translate-x-1/2 z-10"></div>
+            <div className="w-full h-14 bg-zinc-800 rounded-lg flex items-center px-4 gap-2">
+                <div className="flex flex-col gap-1 items-center">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <VolumeX className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs">Mute</span>
+                </div>
+                 <div className="flex flex-col gap-1 items-center">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <FileImage className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xs">Cover</span>
+                </div>
+                <div className="flex-1 h-full flex items-center text-sm text-muted-foreground pl-4">
+                    <Plus className="h-4 w-4 mr-2" /> Add audio
+                </div>
+                <Button size="icon" className="bg-white text-black hover:bg-zinc-200">
+                    <Plus className="h-5 w-5" />
+                </Button>
+            </div>
+        </div>
       </div>
+
+      {/* Bottom Toolbar */}
+      <footer className="flex items-center justify-around p-2 bg-zinc-900/80 border-t border-zinc-800">
+        <EditorButton icon={Scissors} label="Edit" />
+        <EditorButton icon={Music} label="Audio" />
+        <EditorButton icon={Type} label="Text" />
+        <EditorButton icon={Layers} label="Overlay" />
+        <EditorButton icon={Sparkles} label="Effects" />
+        <EditorButton icon={AspectRatio} label="Ratio" />
+      </footer>
     </div>
   );
 }
