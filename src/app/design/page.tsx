@@ -203,7 +203,7 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute top-24 left-1/2 -translate-x-1/2 w-[160px] h-[45px]"
+                className="absolute top-[100px] left-1/2 -translate-x-1/2 w-[160px] h-[45px]"
                 style={{ transform: 'translateZ(30px)' }}
                 initial={{ y: -60, opacity: 0 }}
                 animate={{ y: showSunglasses ? 0 : -60, opacity: showSunglasses ? 1 : 0 }}
@@ -219,7 +219,7 @@ const Face = ({
             </motion.div>
 
             <motion.div
-                className="absolute top-44 left-1/2 -translate-x-1/2"
+                className="absolute top-[165px] left-1/2 -translate-x-1/2"
                 style={{ transform: 'translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
@@ -231,7 +231,7 @@ const Face = ({
             </motion.div>
             
             <motion.div
-                className="absolute -top-10 left-1/2 -translate-x-1/2"
+                className="absolute top-[-30px] left-1/2 -translate-x-1/2"
                 style={{ transform: 'translateZ(5px)' }}
                 initial={{ opacity: 0, y: -20, rotate: -15 }}
                 animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? 0 : -15 }}
