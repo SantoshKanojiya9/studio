@@ -2,19 +2,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles, Move3d, Glasses, PartyPopper } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, PartyPopper, Palette, Wand2, SmilePlus, ArrowLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories';
 
 const Face = ({ 
     expression, 
@@ -250,7 +251,9 @@ const Face = ({
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [isInteracting, setIsInteracting] = useState(false);
-  const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+  const expressions: Expression[] = ['neutral', 'happy', 'angry' | 'sad' | 'surprised'];
+  
+  const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
 
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
@@ -342,6 +345,176 @@ export default function DesignPage() {
       </svg>
     );
 
+  const menuVariants = {
+    hidden: { x: '100%', opacity: 0 },
+    visible: { x: '0%', opacity: 1 },
+    exit: { x: '-100%', opacity: 0 },
+  };
+  
+  const renderMenu = () => {
+    switch(activeMenu) {
+        case 'main':
+             return (
+                <motion.div 
+                    key="main"
+                    variants={menuVariants} initial="visible" exit="exit" animate="visible"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
+                        <RotateCcw className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}>
+                                    <Palette className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Colors</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}>
+                                    <Wand2 className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Effects</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}>
+                                    <SmilePlus className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Accessories</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
+        case 'colors':
+            return (
+                 <motion.div 
+                    key="colors"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="relative w-10 h-10">
+                                    <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
+                                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Background Color</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="relative w-10 h-10">
+                                    <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
+                                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Emoji Color</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
+        case 'effects':
+             return (
+                 <motion.div 
+                    key="effects"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="w-32">
+                        <Select value={filter} onValueChange={setFilter}>
+                            <SelectTrigger className="h-10">
+                                <SelectValue asChild>
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="h-5 w-5" />
+                                    <span className="sr-only md:not-sr-only">Filter</span>
+                                </div>
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
+                                <SelectItem value="sepia(100%)">Sepia</SelectItem>
+                                <SelectItem value="invert(100%)">Invert</SelectItem>
+                                <SelectItem value="blur(4px)">Blur</SelectItem>
+                                <SelectItem value="saturate(2)">Saturate</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                    <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} />
+                                    <Label htmlFor="tilt-switch" className="sr-only">3D Tilt Effect</Label>
+                                    <Move3d className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Toggle 3D Tilt Effect</p></TooltipContent>
+                        </Tooltip>
+                     </TooltipProvider>
+                </motion.div>
+            );
+        case 'accessories':
+            return (
+                <motion.div 
+                    key="accessories"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses && 'bg-accent text-accent-foreground')}>
+                                    <Glasses className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache && 'bg-accent text-accent-foreground')}>
+                                <MustacheIcon />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Toggle Mustache</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => setShowPartyHat(prev => !prev)} className={cn(showPartyHat && 'bg-accent text-accent-foreground')}>
+                                    <PartyPopper className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Toggle Party Hat</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
+        default:
+            return null;
+    }
+  };
+
+
   return (
     <div 
         className="relative flex flex-col min-h-full w-full touch-none overflow-hidden transition-colors duration-300"
@@ -386,108 +559,14 @@ export default function DesignPage() {
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
-         <div className="flex items-center gap-4 overflow-x-auto p-4 whitespace-nowrap">
-            <div className="flex items-end h-10">
-                 <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
-                    <RotateCcw className="h-5 w-5" />
-                </Button>
-            </div>
-             <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="relative w-10 h-10">
-                            <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
-                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Background Color</p>
-                    </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="relative w-10 h-10">
-                            <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
-                            <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Emoji Color</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-
-             <div className="w-32">
-                <Select value={filter} onValueChange={setFilter}>
-                    <SelectTrigger className="h-10">
-                        <SelectValue asChild>
-                           <div className="flex items-center gap-2">
-                             <Sparkles className="h-5 w-5" />
-                             <span className="sr-only md:not-sr-only">Filter</span>
-                           </div>
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
-                        <SelectItem value="sepia(100%)">Sepia</SelectItem>
-                        <SelectItem value="invert(100%)">Invert</SelectItem>
-                        <SelectItem value="blur(4px)">Blur</SelectItem>
-                        <SelectItem value="saturate(2)">Saturate</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-             <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                         <div className="flex items-center gap-2">
-                             <Switch
-                                id="tilt-switch"
-                                checked={tiltEnabled}
-                                onCheckedChange={setTiltEnabled}
-                            />
-                            <Label htmlFor="tilt-switch" className="sr-only">3D Tilt Effect</Label>
-                             <Move3d className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Toggle 3D Tilt Effect</p>
-                    </TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses && 'bg-accent text-accent-foreground')}>
-                            <Glasses className="h-5 w-5" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Toggle Sunglasses</p>
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache && 'bg-accent text-accent-foreground')}>
-                           <MustacheIcon />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Toggle Mustache</p>
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={() => setShowPartyHat(prev => !prev)} className={cn(showPartyHat && 'bg-accent text-accent-foreground')}>
-                            <PartyPopper className="h-5 w-5" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Toggle Party Hat</p>
-                    </TooltipContent>
-                </Tooltip>
-             </TooltipProvider>
+         <div className="flex items-center gap-4 overflow-x-auto p-4">
+             <AnimatePresence mode="wait">
+                 {renderMenu()}
+            </AnimatePresence>
          </div>
       </div>
     </div>
   );
 }
+
+    
