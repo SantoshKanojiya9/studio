@@ -202,15 +202,15 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute w-full h-full"
-                style={{ transformStyle: 'preserve-3d' }}
+                className="absolute w-full h-full flex justify-center"
+                style={{ transformStyle: 'preserve-3d', top: '108px' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div 
                     className="absolute"
-                    style={{ top: '108px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
+                    style={{ transform: 'translateZ(30px)' }}
                 >
                     {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-[180px] h-[45px]">
@@ -222,8 +222,8 @@ const Face = ({
             </motion.div>
 
             <motion.div
-                className="absolute"
-                style={{ top: '175px', left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
+                className="absolute w-full flex justify-center"
+                style={{ top: '175px', transform: 'translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
@@ -549,5 +549,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
