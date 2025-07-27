@@ -2,15 +2,16 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Loader2, Volume2, VolumeX } from 'lucide-react';
+import { Bot, Send, User, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { ChatHeader } from '@/components/chat-header';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -22,12 +23,17 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const scrollAreaViewport = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (scrollAreaViewport.current) {
-      scrollAreaViewport.current.scrollTop = scrollAreaViewport.current.scrollHeight;
+    if (scrollAreaRef.current) {
+        setTimeout(() => {
+            scrollAreaRef.current!.scrollTo({
+                top: scrollAreaRef.current!.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
     }
   }, [messages]);
 
@@ -35,10 +41,6 @@ export default function ChatPage() {
     if (isMuted || !window.speechSynthesis) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
-    // You can customize voice, pitch, rate here if desired
-    // For example:
-    // const voices = window.speechSynthesis.getVoices();
-    // utterance.voice = voices.find(v => v.name === 'Google US English'); // Example voice
     utterance.pitch = 1;
     utterance.rate = 1;
     utterance.volume = 1;
@@ -69,7 +71,6 @@ export default function ChatPage() {
         description: "Failed to get a response from the AI. Please try again.",
         variant: "destructive",
       });
-      // Revert the user message if the API call fails
       setMessages((prev) => prev.filter((msg) => msg !== userMessage));
     } finally {
       setIsLoading(false);
@@ -87,88 +88,79 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl py-8">
-      <Card className="h-[calc(100vh-12rem)] w-full flex flex-col shadow-2xl">
-        <CardHeader className="flex flex-row items-center justify-between">
-            <div className='space-y-1.5'>
-                <CardTitle className="flex items-center gap-2">
-                <Bot />
-                AI Chat
-                </CardTitle>
-                <CardDescription>Start a conversation with our AI assistant.</CardDescription>
-            </div>
-            <Button onClick={toggleMute} variant="ghost" size="icon" aria-label={isMuted ? 'Unmute' : 'Mute'}>
-                {isMuted ? <VolumeX /> : <Volume2 />}
-            </Button>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-          <ScrollArea className="flex-1 pr-4 -mr-4" >
-            <div className="space-y-6" ref={scrollAreaViewport}>
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    'flex items-start gap-3',
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
-                  {message.role === 'assistant' && (
-                    <Avatar className="h-8 w-8 border">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot size={18}/>
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
+    <div className="flex flex-col h-screen">
+       <ChatHeader isMuted={isMuted} onToggleMute={toggleMute} />
+       <div className="flex-1 flex flex-col overflow-hidden container py-4">
+        <Card className="flex-1 w-full flex flex-col shadow-lg overflow-hidden">
+            <CardContent className="flex-1 flex flex-col gap-4 p-4 md:p-6 overflow-hidden">
+            <ScrollArea className="flex-1 -mx-4 -mt-4" >
+                <div ref={scrollAreaRef} className="space-y-6 p-4">
+                {messages.map((message, index) => (
+                    <div
+                    key={index}
                     className={cn(
-                      'rounded-lg px-4 py-2 max-w-[80%] shadow-md',
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-secondary-foreground'
+                        'flex items-start gap-3',
+                        message.role === 'user' ? 'justify-end' : 'justify-start'
                     )}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                  {message.role === 'user' && (
-                    <Avatar className="h-8 w-8 border">
-                      <AvatarFallback>
-                        <User size={18}/>
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex items-start gap-3 justify-start">
-                  <Avatar className="h-8 w-8 border">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                       <Bot size={18}/>
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground shadow-md">
-                    <div className="flex items-center justify-center gap-2 h-5">
-                       <Loader2 className="h-4 w-4 animate-spin" />
+                    >
+                    {message.role === 'assistant' && (
+                        <Avatar className="h-8 w-8 border">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                            <Bot size={18}/>
+                        </AvatarFallback>
+                        </Avatar>
+                    )}
+                    <div
+                        className={cn(
+                        'rounded-lg px-4 py-2 max-w-[80%] shadow-md',
+                        message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-secondary text-secondary-foreground'
+                        )}
+                    >
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
-                  </div>
+                    {message.role === 'user' && (
+                        <Avatar className="h-8 w-8 border">
+                        <AvatarFallback>
+                            <User size={18}/>
+                        </AvatarFallback>
+                        </Avatar>
+                    )}
+                    </div>
+                ))}
+                {isLoading && (
+                    <div className="flex items-start gap-3 justify-start">
+                    <Avatar className="h-8 w-8 border">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Bot size={18}/>
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground shadow-md">
+                        <div className="flex items-center justify-center gap-2 h-5">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                    </div>
+                    </div>
+                )}
                 </div>
-              )}
-            </div>
-          </ScrollArea>
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 pt-4 border-t">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading}
-              className="flex-1"
-              aria-label="Chat input"
-            />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} aria-label="Send message">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            </ScrollArea>
+            <form onSubmit={handleSubmit} className="flex items-center gap-2 pt-4 border-t">
+                <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                disabled={isLoading}
+                className="flex-1"
+                aria-label="Chat input"
+                />
+                <Button type="submit" size="icon" disabled={isLoading || !input.trim()} aria-label="Send message">
+                <Send className="h-4 w-4" />
+                </Button>
+            </form>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

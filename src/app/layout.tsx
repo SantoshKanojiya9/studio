@@ -21,10 +21,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn("font-body antialiased min-h-screen bg-background")}>
-        <div className="relative flex min-h-screen flex-col pb-16">
-          <main className="flex-1">{children}</main>
-          <BottomBar />
+      <body className={cn("font-body antialiased bg-background")}>
+        <div className="relative flex min-h-screen flex-col">
+          <main className="flex-1 flex flex-col">{children}</main>
+          <div className="pb-16 md:pb-0">
+             <BottomBar />
+          </div>
         </div>
         <Toaster />
       </body>
