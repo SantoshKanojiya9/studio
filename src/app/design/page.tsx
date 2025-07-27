@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Video, Smile, Frown, Surprised, Meh } from 'lucide-react';
+import { Video, Smile, Frown, AlertCircle, Meh } from 'lucide-react';
 
 type Expression = 'happy' | 'sad' | 'surprised' | 'neutral';
 
@@ -96,7 +96,7 @@ export default function FaceMojiPage() {
                              <Frown className="mr-2"/> Sad
                          </Button>
                          <Button onClick={() => setExpression('surprised')} variant={expression === 'surprised' ? 'default' : 'outline'} size="lg">
-                            <Surprised className="mr-2"/> Surprised
+                            <AlertCircle className="mr-2"/> Surprised
                          </Button>
                          <Button onClick={() => setExpression('neutral')} variant={expression === 'neutral' ? 'default' : 'outline'} size="lg">
                             <Meh className="mr-2"/> Neutral
