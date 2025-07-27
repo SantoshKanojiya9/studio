@@ -1,12 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
-import { ImageIcon, Upload, Wand2, Loader2 } from 'lucide-react';
+import { ImageIcon, Send, Loader2, ImageUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { generateImage, type GenerateImageInput } from '@/ai/flows/generate-image';
 import NextImage from 'next/image';
 import { useToast } from "@/hooks/use-toast"
@@ -19,6 +17,8 @@ export default function ImageGeneratorPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useState<HTMLInputElement>(null);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -55,10 +55,10 @@ export default function ImageGeneratorPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim()) {
+    if (!prompt.trim() && !file) {
       toast({
-        title: "Prompt is required",
-        description: "Please enter a prompt to generate an image.",
+        title: "Prompt or image is required",
+        description: "Please enter a prompt or upload an image.",
         variant: "destructive",
       })
       return;
@@ -68,7 +68,7 @@ export default function ImageGeneratorPage() {
     setGeneratedImage(null);
 
     try {
-      const input: GenerateImageInput = { prompt };
+      const input: GenerateImageInput = { prompt: prompt || 'Convert this image' };
       if (file) {
         input.photoDataUri = await fileToBase64(file);
       }
@@ -86,81 +86,64 @@ export default function ImageGeneratorPage() {
     }
   };
 
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  }
+
   return (
-    <div className="container mx-auto py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <Card className="shadow-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wand2 />
-              Image Generator
-            </CardTitle>
-            <CardDescription>
-              Describe the image you want to create. You can also upload a reference image.
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="prompt">Prompt</Label>
-                <Textarea
-                  id="prompt"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="e.g., A purple cat astronaut on the moon, digital art"
-                  rows={4}
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="image-upload">Reference Image (Optional)</Label>
-                <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading} className="file:text-primary-foreground" />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  'Generate Image'
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
+    <div className="flex flex-col h-full p-4 md:p-6">
+        <header className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">AI Image Generation</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">Enter a prompt to generate or edit an image with AI.</p>
+        </header>
         
-        <Card className="flex flex-col items-center justify-center min-h-[460px] lg:min-h-full aspect-square shadow-2xl">
-          <CardContent className="p-2 w-full h-full flex items-center justify-center">
-            <div className="w-full h-full aspect-square relative flex items-center justify-center rounded-lg border-dashed border-2 bg-secondary/50">
-              {isLoading ? (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <p>Generating your masterpiece...</p>
+        <form onSubmit={handleSubmit} className="relative mb-6">
+            <Input
+                id="prompt"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={ file ? "Convert this image" : "An impressionist oil painting of a sunflower in a purple vase..."}
+                className="pr-24 h-12 text-base"
+                disabled={isLoading}
+            />
+             <Input ref={fileInputRef} id="image-upload" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading} className="hidden" />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <Button type="button" size="icon" variant="ghost" onClick={triggerFileSelect} disabled={isLoading} className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                    <ImageUp className="h-5 w-5" />
+                    <span className="sr-only">Upload Image</span>
+                </Button>
+                <Button type="submit" size="icon" variant="ghost" disabled={isLoading || (!prompt.trim() && !file) } className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+                    <Send className="h-5 w-5" />
+                    <span className="sr-only">Generate</span>
+                </Button>
+            </div>
+        </form>
+
+        <div className="flex-1 flex items-center justify-center bg-secondary/30 rounded-lg border-2 border-dashed border-border/50 overflow-hidden">
+            <div className="relative w-full h-full">
+            {isLoading ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground bg-background/50">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p>Generating your masterpiece...</p>
                 </div>
               ) : generatedImage ? (
                 <NextImage
                   src={generatedImage}
                   alt={prompt}
                   fill
-                  className="object-contain rounded-md"
+                  className="object-contain"
                   data-ai-hint="generated image"
                 />
               ) : preview ? (
-                  <NextImage src={preview} alt="Image preview" fill className="object-contain rounded-md" data-ai-hint="upload preview" />
+                  <NextImage src={preview} alt="Image preview" fill className="object-contain" data-ai-hint="upload preview" />
               ) : (
-                <div className="text-center text-muted-foreground flex flex-col items-center gap-4 p-4">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 text-center text-muted-foreground">
                   <ImageIcon size={48} />
                   <p>Your generated image will appear here.</p>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+        </div>
     </div>
   );
 }
