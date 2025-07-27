@@ -11,6 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
+        logo: ['Kalam', 'cursive'],
         code: ['monospace'],
       },
       colors: {
