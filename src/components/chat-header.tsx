@@ -6,6 +6,18 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
 import { AuthButton } from './auth-button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/AuthContext';
+import { LogIn, LogOut } from 'lucide-react';
+import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -38,6 +50,25 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const { plan } = usePlan();
+  const { user } = useAuth();
+
+  const handleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
@@ -54,10 +85,27 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       <div className="flex items-center gap-2">
         {children}
         <AuthButton />
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
-          <Menu />
-          <span className="sr-only">Open menu</span>
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                    <Menu />
+                    <span className="sr-only">Open menu</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                {user ? (
+                     <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                     </DropdownMenuItem>
+                ) : (
+                    <DropdownMenuItem onClick={handleSignIn}>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        <span>Sign In</span>
+                    </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
