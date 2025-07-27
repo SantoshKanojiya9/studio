@@ -36,9 +36,9 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
-      <div className="flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-row items-center justify-center gap-4">
         <EdengramLogo />
-        <h1 className="text-5xl font-logo font-normal -mb-1">Edengram</h1>
+        <h1 className="text-5xl font-logo font-normal">Edengram</h1>
       </div>
       <div className="mt-12">
         <Button asChild size="lg">
