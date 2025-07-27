@@ -2,13 +2,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Apple } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -534,7 +535,7 @@ export default function DesignPage() {
                     key="main"
                     variants={menuVariants} initial="visible" exit="exit" animate="visible"
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="flex items-center justify-evenly flex-wrap gap-2 md:gap-4 whitespace-nowrap w-full"
+                    className="flex items-center justify-start gap-2 md:gap-4 whitespace-nowrap"
                 >
                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
                         <RotateCcw className="h-5 w-5" />
