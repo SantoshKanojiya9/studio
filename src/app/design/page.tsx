@@ -298,8 +298,9 @@ export default function DesignPage() {
   const clickCount = useRef(0);
   const clickTimer = useRef<NodeJS.Timeout | null>(null);
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const startAnimation = () => {
     let animationInterval: NodeJS.Timeout;
     let phaseTimeout: NodeJS.Timeout;
     
@@ -324,6 +325,7 @@ export default function DesignPage() {
     
     runInitialAnimation();
     animationInterval = setInterval(runInitialAnimation, 3000);
+    animationIntervalRef.current = animationInterval;
 
     phaseTimeout = setTimeout(() => {
       clearInterval(animationInterval); 
@@ -341,11 +343,20 @@ export default function DesignPage() {
       
       runFullAnimation();
       animationInterval = setInterval(runFullAnimation, 3000);
+      animationIntervalRef.current = animationInterval;
     }, 15000); // 15 seconds
 
     return () => {
       clearInterval(animationInterval);
       clearTimeout(phaseTimeout);
+      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    };
+  };
+
+  useEffect(() => {
+    const cleanup = startAnimation();
+    return () => {
+      cleanup();
       if (clickTimer.current) clearTimeout(clickTimer.current);
       if (angerTimeout.current) clearTimeout(angerTimeout.current);
     };
@@ -384,6 +395,10 @@ export default function DesignPage() {
     clickCount.current += 1;
 
     if (clickCount.current >= 4) {
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+        animationIntervalRef.current = null;
+      }
       setExpression('angry');
       setEmojiColor('orangered');
       clickCount.current = 0;
@@ -391,6 +406,8 @@ export default function DesignPage() {
       angerTimeout.current = setTimeout(() => {
         setExpression('neutral');
         setEmojiColor(defaultEmojiColor);
+        angerTimeout.current = null;
+        startAnimation(); // Resume animations
       }, 2000);
     } else {
       setExpression('happy');
