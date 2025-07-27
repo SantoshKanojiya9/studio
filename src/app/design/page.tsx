@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -291,6 +291,10 @@ export default function DesignPage() {
   const smoothRotateX = useSpring(rotateX, springConfig);
   const smoothRotateY = useSpring(rotateY, springConfig);
 
+  const clickCount = useRef(0);
+  const clickTimer = useRef<NodeJS.Timeout | null>(null);
+  const angerTimeout = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     let animationInterval: NodeJS.Timeout;
     let phaseTimeout: NodeJS.Timeout;
@@ -338,6 +342,8 @@ export default function DesignPage() {
     return () => {
       clearInterval(animationInterval);
       clearTimeout(phaseTimeout);
+      if (clickTimer.current) clearTimeout(clickTimer.current);
+      if (angerTimeout.current) clearTimeout(angerTimeout.current);
     };
   }, []);
 
@@ -359,11 +365,39 @@ export default function DesignPage() {
   };
 
   const handlePointerDown = () => {
-    if (!isInitialPhase) setExpression('happy');
+    if (isInitialPhase) return;
+    
+    if (angerTimeout.current) {
+        clearTimeout(angerTimeout.current);
+        angerTimeout.current = null;
+    }
+
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+    }
+    
+    clickCount.current += 1;
+
+    if (clickCount.current >= 4) {
+      setExpression('angry');
+      clickCount.current = 0;
+      
+      angerTimeout.current = setTimeout(() => {
+        setExpression('neutral');
+        angerTimeout.current = null;
+      }, 2000);
+    } else {
+      setExpression('happy');
+    }
+
+    clickTimer.current = setTimeout(() => {
+      clickCount.current = 0;
+    }, 800);
   };
 
   const handlePointerUp = () => {
-    if (!isInitialPhase) setExpression('neutral');
+    if (isInitialPhase || expression === 'angry') return;
+    setExpression('neutral');
   };
   
   const handleReset = () => {
@@ -548,7 +582,7 @@ export default function DesignPage() {
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
           <p className="text-muted-foreground">
-            {isInitialPhase ? "Waking up..." : "Press the emoji to see it change expression!"}
+            {isInitialPhase ? "Waking up..." : "Click the emoji to see it change expression!"}
           </p>
            <p className="text-xs text-muted-foreground">
             {isInitialPhase ? "(It's looking around!)" : "(Its eyes will follow you, too!)"}
@@ -598,6 +632,8 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
 
     
 
