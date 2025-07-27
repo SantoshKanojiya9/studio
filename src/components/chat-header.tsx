@@ -2,7 +2,7 @@
 'use client';
 
 import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
 import { useAuth } from '@/context/AuthContext';
