@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Bot } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -24,23 +24,14 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [wordCount, setWordCount] = useState(0);
 
    useEffect(() => {
     // Start with a welcome message
     setMessages([{ role: 'assistant', name: 'Edena', content: "Welcome! I'm Edena, your AI assistant. Ask me anything.", id: 'initial' }]);
-    
-    // Clean up speech synthesis on component unmount
-    return () => {
-      if (speechSynthesis.speaking) {
-        speechSynthesis.cancel();
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -48,37 +39,6 @@ export default function ChatPage() {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [messages, isLoading]);
-
-  const handlePlayAudio = (message: Message) => {
-    if (playingMessageId === message.id) {
-        speechSynthesis.cancel();
-        setPlayingMessageId(null);
-        return;
-    }
-
-    setPlayingMessageId(message.id);
-    
-    const utterance = new SpeechSynthesisUtterance(message.content);
-    utteranceRef.current = utterance;
-
-    utterance.onend = () => {
-        setPlayingMessageId(null);
-        utteranceRef.current = null;
-    };
-
-    utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event.error);
-      toast({
-          title: "Speech generation failed",
-          description: "Could not play audio. Please try again.",
-          variant: "destructive",
-      });
-      setPlayingMessageId(null);
-    };
-    
-    speechSynthesis.speak(utterance);
-  };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,21 +106,6 @@ export default function ChatPage() {
                             : 'bg-secondary text-secondary-foreground'
                         )}
                     >
-                        {message.role === 'assistant' && (
-                            <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 shrink-0"
-                                onClick={() => handlePlayAudio(message)}
-                                disabled={playingMessageId !== null && playingMessageId !== message.id}
-                                >
-                                {playingMessageId === message.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <span role="img" aria-label="speak" className="text-lg">🗣️</span>
-                                )}
-                            </Button>
-                        )}
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
 
