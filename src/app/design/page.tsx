@@ -220,7 +220,7 @@ const Face = ({
                 </div>
             </motion.div>
             <motion.div
-                className="absolute w-full flex justify-center"
+                className="absolute flex justify-center w-full"
                 style={{ top: '175px', transform: 'translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
@@ -246,7 +246,6 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [isInteracting, setIsInteracting] = useState(false);
   const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
@@ -289,34 +288,12 @@ export default function DesignPage() {
     y.set(0);
   };
 
-
-  useEffect(() => {
-    if (isInteracting) return;
-
-    const intervalId = setInterval(() => {
-        setExpression(prev => {
-            const nextIndex = (expressions.indexOf(prev) + 1) % expressions.length;
-            return expressions[nextIndex];
-        });
-    }, 3000);
-
-    return () => clearInterval(intervalId);
-  }, [isInteracting]);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    setIsInteracting(true);
-    // Use optional chaining for pressure to avoid errors on devices that don't support it.
-    const pressure = e.pressure ?? 0;
-    if (pressure > 0.5) {
-      setExpression('angry');
-    } else {
-      setExpression('happy');
-    }
+  const handlePointerDown = () => {
+    setExpression('happy');
   };
 
   const handlePointerUp = () => {
     setExpression('neutral');
-    setIsInteracting(false);
   };
   
   const handleReset = () => {
@@ -500,7 +477,7 @@ export default function DesignPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 pb-32">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
-          <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
+          <p className="text-muted-foreground">Press the emoji to see it change expression!</p>
           <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
         </div>
 
