@@ -154,20 +154,18 @@ export default function DesignPage() {
         </div>
       </header>
       
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
-        <main ref={mainContentRef} className="flex-1 flex items-center justify-center p-4 overflow-hidden bg-zinc-800">
-            <div className="max-w-full max-h-full flex items-center justify-center">
-                {image ? (
-                    <canvas ref={canvasRef} className="max-w-full max-h-full" />
-                ) : (
-                    <div className="flex flex-col items-center justify-center text-zinc-400 border-2 border-dashed border-zinc-600 p-12 rounded-lg text-center">
-                        <Upload className="h-16 w-16 mb-4" />
-                        <h2 className="text-2xl font-semibold">Upload an image to start</h2>
-                        <p className="mt-2">Your images are processed locally in your browser.</p>
-                    </div>
-                )}
+        <main ref={mainContentRef} className="flex-1 flex items-center justify-center p-4 overflow-auto bg-zinc-800">
+          {image ? (
+            <canvas ref={canvasRef} />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-zinc-400 border-2 border-dashed border-zinc-600 p-12 rounded-lg text-center">
+              <Upload className="h-16 w-16 mb-4" />
+              <h2 className="text-2xl font-semibold">Upload an image to start</h2>
+              <p className="mt-2">Your images are processed locally in your browser.</p>
             </div>
+          )}
         </main>
 
         {/* Sidebar */}
