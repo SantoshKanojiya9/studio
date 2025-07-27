@@ -28,6 +28,7 @@ import {
   Palette,
 } from 'lucide-react';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const EditorButton = ({
   icon: Icon,
@@ -115,6 +116,7 @@ export default function DesignPage() {
   const [templateImage, setTemplateImage] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [canvasAspectRatio, setCanvasAspectRatio] = useState<number>(1);
 
   const triggerFileSelect = () => {
     fileInputRef.current?.click();
@@ -127,7 +129,8 @@ export default function DesignPage() {
       reader.onload = (e) => {
         setUploadedImage(e.target?.result as string);
         if (!templateImage) {
-            setTemplateImage('https://placehold.co/600x400.png'); // Default template
+            setTemplateImage('https://placehold.co/600x400.png'); 
+             setCanvasAspectRatio(600/400);
         }
       };
       reader.readAsDataURL(file);
@@ -147,6 +150,12 @@ export default function DesignPage() {
       const subTool = toolConfig[parentToolKey]?.tools.find(t => t.id === toolId);
       if (subTool && subTool.image) {
         setTemplateImage(subTool.image);
+        const match = subTool.image.match(/placehold\.co\/(\d+)x(\d+)/);
+        if (match) {
+            const width = parseInt(match[1], 10);
+            const height = parseInt(match[2], 10);
+            setCanvasAspectRatio(width / height);
+        }
       }
     }
   };
@@ -181,8 +190,11 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-      <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
-        <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative">
+       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
+        <div 
+            className="w-full h-full max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
+            style={{ aspectRatio: canvasAspectRatio }}
+        >
           {templateImage ? (
              <Image
                 src={templateImage}
