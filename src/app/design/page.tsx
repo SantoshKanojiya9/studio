@@ -2,17 +2,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
 
 const Face = ({ expression }: { expression: Expression }) => {
   const eyeVariants = {
-    neutral: { y: 0 },
+    neutral: { y: 0, scaleY: 1 },
     happy: { y: 4, scaleY: 0.8 },
-    angry: { y: -2 },
-    sad: { y: 6 },
+    angry: { y: -2, scaleY: 1 },
+    sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
   };
 
@@ -30,7 +30,7 @@ const Face = ({ expression }: { expression: Expression }) => {
         d: "M 30 60 Q 50 50 70 60", // Sad mouth
     },
     surprised: {
-        d: "M 40 55 Q 50 70 60 55 A 5 5 0 0 1 40 55", // Open mouth
+        d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", // Open mouth
     }
   };
   
@@ -43,24 +43,43 @@ const Face = ({ expression }: { expression: Expression }) => {
   }
 
   const eyeLidVariants = {
-      closed: { scaleY: 0 },
-      open: { scaleY: 1 },
+      closed: { scaleY: 0, y: 5 },
+      open: { scaleY: 1, y: 0 },
   }
 
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
     angry: { opacity: 0, scale: 0.8 },
-    sad: { opacity: 0, scale: 0.8 },
+    sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
   }
+
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+
+  const pupilX = useTransform(pointerX, [0, 1], [-8, 8]);
+  const pupilY = useTransform(pointerY, [0, 1], [-6, 6]);
+
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        pointerX.set(x);
+        pointerY.set(y);
+    }
+  };
 
   return (
     <motion.div 
       className="relative w-80 h-64"
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => {
+        pointerX.set(0.5);
+        pointerY.set(0.5);
+      }}
     >
       {/* 3D Base */}
       <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-orange-400 shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
@@ -88,23 +107,25 @@ const Face = ({ expression }: { expression: Expression }) => {
           <div className="flex gap-20 absolute top-28">
             {/* Left Eye */}
             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-              <div className="w-12 h-10 bg-fuchsia-200 rounded-full" />
-               <motion.div 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-black rounded-full origin-bottom"
-              >
-                  <motion.div 
-                    className="w-full h-full bg-black rounded-full origin-bottom"
-                    animate={['open', 'closed']}
-                    variants={eyeLidVariants}
-                    transition={{
-                        duration: 0.1,
-                        repeat: Infinity,
-                        repeatType: "mirror",
-                        repeatDelay: 3.5,
-                        ease: "easeOut"
-                    }}
-                  />
-              </motion.div>
+              <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
+                 <motion.div 
+                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                  >
+                      <motion.div 
+                        className="w-full h-full bg-black rounded-full origin-bottom"
+                        animate={['open', 'closed']}
+                        variants={eyeLidVariants}
+                        transition={{
+                            duration: 0.1,
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                            repeatDelay: 3.5,
+                            ease: "easeOut"
+                        }}
+                      />
+                  </motion.div>
+              </div>
               <motion.div 
                 className="absolute -top-3 left-0 w-12 h-4 bg-black"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
@@ -115,23 +136,25 @@ const Face = ({ expression }: { expression: Expression }) => {
             </motion.div>
             {/* Right Eye */}
              <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-              <div className="w-12 h-10 bg-fuchsia-200 rounded-full" />
-              <motion.div 
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-black rounded-full origin-bottom"
-              >
-                  <motion.div 
-                    className="w-full h-full bg-black rounded-full origin-bottom"
-                    animate={['open', 'closed']}
-                    variants={eyeLidVariants}
-                    transition={{
-                        duration: 0.1,
-                        repeat: Infinity,
-                        repeatType: "mirror",
-                        repeatDelay: 3,
-                        ease: "easeOut"
-                    }}
-                  />
-              </motion.div>
+              <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+                <motion.div 
+                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                  >
+                      <motion.div 
+                        className="w-full h-full bg-black rounded-full origin-bottom"
+                        animate={['open', 'closed']}
+                        variants={eyeLidVariants}
+                        transition={{
+                            duration: 0.1,
+                            repeat: Infinity,
+                            repeatType: "mirror",
+                            repeatDelay: 3,
+                            ease: "easeOut"
+                        }}
+                      />
+                  </motion.div>
+              </div>
                <motion.div 
                 className="absolute -top-3 left-0 w-12 h-4 bg-black"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
@@ -178,12 +201,10 @@ export default function DesignPage() {
     }, 3000);
 
     return () => clearInterval(intervalId);
-  }, [isInteracting, expressions]);
+  }, [isInteracting]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     setIsInteracting(true);
-    // A standard mouse click will have pressure 0.5.
-    // Pressure-sensitive devices can provide a range from 0 to 1.
     if (e.pressure > 0.5) {
       setExpression('angry');
     } else {
@@ -192,24 +213,23 @@ export default function DesignPage() {
   };
 
   const handlePointerUp = () => {
-    // Return to a neutral state, and let the automatic cycle resume.
     setExpression('neutral');
     setIsInteracting(false);
   };
-
+  
   return (
     <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none overflow-hidden">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold">Interactive Emoji</h1>
         <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
-        <p className="text-xs text-muted-foreground">(Harder presses make it angry on supported devices)</p>
+        <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
       </div>
 
       <motion.div
         className="w-80 h-64 flex items-center justify-center cursor-pointer select-none"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp} // Reset if the pointer leaves the area
+        onPointerLeave={handlePointerUp} 
       >
         <Face expression={expression} />
       </motion.div>
