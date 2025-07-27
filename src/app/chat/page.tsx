@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
-import { generateSpeech, type GenerateSpeechInput } from '@/ai/flows/generate-speech';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/chat-header';
@@ -25,13 +24,20 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
    useEffect(() => {
     // Start with a welcome message
     setMessages([{ role: 'assistant', name: 'Edena', content: "Welcome! I'm Edena, your AI assistant. Ask me anything.", id: 'initial' }]);
+    
+    // Clean up speech synthesis on component unmount
+    return () => {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -40,29 +46,34 @@ export default function ChatPage() {
     }
   }, [messages, isLoading]);
 
-  const handlePlayAudio = async (message: Message) => {
+  const handlePlayAudio = (message: Message) => {
     if (playingMessageId === message.id) {
-        audioRef.current?.pause();
+        speechSynthesis.cancel();
         setPlayingMessageId(null);
         return;
     }
+
     setPlayingMessageId(message.id);
-    try {
-        const { audioUrl } = await generateSpeech({ text: message.content });
-        if (audioRef.current) {
-            audioRef.current.src = audioUrl;
-            audioRef.current.play();
-            audioRef.current.onended = () => setPlayingMessageId(null);
-        }
-    } catch (error) {
-        console.error('Error generating speech:', error);
-        toast({
-            title: "Speech generation failed",
-            description: "Could not play audio. Please try again.",
-            variant: "destructive",
-        });
+    
+    const utterance = new SpeechSynthesisUtterance(message.content);
+    utteranceRef.current = utterance;
+
+    utterance.onend = () => {
         setPlayingMessageId(null);
-    }
+        utteranceRef.current = null;
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event.error);
+      toast({
+          title: "Speech generation failed",
+          description: "Could not play audio. Please try again.",
+          variant: "destructive",
+      });
+      setPlayingMessageId(null);
+    };
+    
+    speechSynthesis.speak(utterance);
   };
 
 
@@ -129,7 +140,7 @@ export default function ChatPage() {
                                 variant="ghost"
                                 className="h-6 w-6 shrink-0"
                                 onClick={() => handlePlayAudio(message)}
-                                disabled={playingMessageId === message.id && playingMessageId !== null}
+                                disabled={playingMessageId !== null && playingMessageId !== message.id}
                                 >
                                 {playingMessageId === message.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -171,7 +182,6 @@ export default function ChatPage() {
                 </form>
             </div>
       </div>
-      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }
