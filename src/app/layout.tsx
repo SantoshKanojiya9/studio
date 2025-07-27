@@ -31,7 +31,7 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <div className="relative flex flex-col h-screen">
-          <main className={cn("flex-1 flex flex-col overflow-hidden", !isHomePage && "pb-16")}>{children}</main>
+          <main className={cn("flex-1 flex flex-col", !isHomePage && "pb-16")}>{children}</main>
           {!isHomePage && <BottomBar />}
         </div>
         <Toaster />
