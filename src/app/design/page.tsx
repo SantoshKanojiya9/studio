@@ -84,9 +84,9 @@ export default function DesignPage() {
           }}
           className="w-full"
         >
-          <CarouselContent>
+          <CarouselContent className="-ml-0">
             {editorTools.map((tool, index) => (
-              <CarouselItem key={index} className="basis-1/5">
+              <CarouselItem key={index} className="basis-1/5 pl-2 first:pl-0">
                 <EditorButton icon={tool.icon} label={tool.label} />
               </CarouselItem>
             ))}
