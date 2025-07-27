@@ -712,10 +712,10 @@ export default function DesignPage() {
 
   return (
     <div 
-        className="relative flex flex-col min-h-full w-full touch-none overflow-hidden transition-colors duration-300"
+        className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-32">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
           <p className="text-muted-foreground">
