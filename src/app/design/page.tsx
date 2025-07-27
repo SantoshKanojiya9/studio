@@ -21,7 +21,7 @@ const Face = ({
     expression, 
     color, 
     showSunglasses, 
-    showMustache,
+    showMustache, 
     showPartyHat
 }: { 
     expression: Expression, 
@@ -211,8 +211,8 @@ const Face = ({
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div 
-                    className="absolute w-[180px] h-[45px] top-[100px]"
-                    style={{ left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
+                    className="absolute w-[180px] h-[45px] top-[100px] left-[70px]"
+                    style={{ transform: 'translateZ(30px)' }}
                 >
                     {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-full h-full">
@@ -225,7 +225,7 @@ const Face = ({
 
             <motion.div
                 className="absolute"
-                style={{ top: '165px', left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
+                style={{ top: '165px', left: '110px', transform: 'translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
@@ -237,13 +237,13 @@ const Face = ({
             
             <motion.div
                 className="absolute"
-                style={{ top: '-30px', left: '50%', transform: 'translateX(-50%) translateZ(5px)' }}
+                style={{ top: '-30px', left: '120px', transform: 'translateZ(5px)' }}
                 initial={{ opacity: 0, y: -20, rotate: -15 }}
                 animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? -10 : -15 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
                 <div className="relative w-0 h-0" style={{ borderLeft: '40px solid transparent', borderRight: '40px solid transparent', borderBottom: '80px solid #4CAF50'}}></div>
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-6 h-6 bg-red-500 rounded-full"></div>
+                <div className="absolute -top-4 left-[28px] w-6 h-6 bg-red-500 rounded-full"></div>
             </motion.div>
         </div>
       </div>
