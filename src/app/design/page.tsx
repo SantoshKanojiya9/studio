@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -84,7 +84,7 @@ const toolConfig = {
   },
   uploads: {
     label: 'Uploads',
-    tools: [{ id: 'u-1', icon: ImageUp, label: 'Upload File' }],
+    tools: [],
   },
   layers: {
     label: 'Overlap',
@@ -113,8 +113,17 @@ type ToolId = keyof typeof toolConfig;
 
 export default function DesignPage() {
   const [activeTool, setActiveTool] = useState<ToolId>('main');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+  
   const handleToolClick = (toolId: string) => {
+    if (toolId === 'uploads') {
+      triggerFileSelect();
+      return;
+    }
     if (toolId in toolConfig) {
       setActiveTool(toolId as ToolId);
     }
@@ -128,6 +137,13 @@ export default function DesignPage() {
 
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-white">
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => console.log(e.target.files)} // Placeholder for file handling
+      />
       {/* Top Bar */}
       <header className="flex items-center justify-between p-2 bg-zinc-950">
         <Button variant="ghost" size="icon">
