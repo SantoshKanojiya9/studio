@@ -13,8 +13,9 @@ const EdengramLogo = ({ className }: { className?: string }) => (
     >
         <defs>
             <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{stopColor: '#D8B4FE', stopOpacity:1}} />
-                <stop offset="100%" style={{stopColor: '#A855F7', stopOpacity:1}} />
+                <stop offset="0%" style={{stopColor: '#feda75', stopOpacity:1}} />
+                <stop offset="50%" style={{stopColor: '#fa7e1e', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor: '#d62976', stopOpacity:1}} />
             </linearGradient>
         </defs>
         <path 
@@ -41,7 +42,7 @@ export function ChatHeader() {
         <h1 className="text-2xl font-semibold">Edengram</h1>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="hover:bg-transparent hover:text-muted-foreground">
+        <Button variant="ghost" size="icon" className="hover:bg-transparent text-muted-foreground hover:text-muted-foreground">
           <Menu />
           <span className="sr-only">Open menu</span>
         </Button>
