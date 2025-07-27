@@ -356,35 +356,22 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={handleReset} aria-label="Reset to defaults">
                         <RotateCcw className="h-5 w-5" />
+                        <span className="text-sm">Reset</span>
                     </Button>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}>
-                                    <Palette className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Colors</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}>
-                                    <Wand2 className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Effects</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}>
-                                    <SmilePlus className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Accessories</p></TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('colors')}>
+                        <Palette className="h-5 w-5" />
+                        <span className="text-sm">Colors</span>
+                    </Button>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('effects')}>
+                        <Wand2 className="h-5 w-5" />
+                        <span className="text-sm">Effects</span>
+                    </Button>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('accessories')}>
+                        <SmilePlus className="h-5 w-5" />
+                        <span className="text-sm">Accessories</span>
+                    </Button>
                 </motion.div>
             );
         case 'colors':
