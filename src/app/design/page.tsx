@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
@@ -333,6 +333,7 @@ export default function DesignPage() {
   const clickTimer = useRef<NodeJS.Timeout | null>(null);
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const phaseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -356,8 +357,6 @@ export default function DesignPage() {
   };
   
   const startAnimation = () => {
-    let phaseTimeout: NodeJS.Timeout;
-    
     setIsInitialPhase(true);
 
     const initialAnimations = [
@@ -380,7 +379,7 @@ export default function DesignPage() {
     runInitialAnimation();
     animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
 
-    phaseTimeout = setTimeout(() => {
+    phaseTimeoutRef.current = setTimeout(() => {
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
       setIsInitialPhase(false); 
       pointerX.set(0.5);
@@ -390,8 +389,23 @@ export default function DesignPage() {
 
     return () => {
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-      clearTimeout(phaseTimeout);
+      if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
     };
+  };
+
+  const skipInitialAnimation = () => {
+    if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+        animationIntervalRef.current = null;
+    }
+    if (phaseTimeoutRef.current) {
+        clearTimeout(phaseTimeoutRef.current);
+        phaseTimeoutRef.current = null;
+    }
+    setIsInitialPhase(false);
+    pointerX.set(0.5);
+    pointerY.set(0.5);
+    resumeExpressionAnimation();
   };
 
   useEffect(() => {
@@ -475,7 +489,7 @@ export default function DesignPage() {
     
     // Only revert to neutral if the anger timeout is not active
     if (!angerTimeout.current) {
-        setExpression('neutral');
+        resumeExpressionAnimation();
     }
   };
   
@@ -710,6 +724,12 @@ export default function DesignPage() {
            <p className="text-xs text-muted-foreground">
             {isInitialPhase ? "(It's looking around!)" : "(Its eyes will follow you, too!)"}
           </p>
+          {isInitialPhase && (
+            <Button onClick={skipInitialAnimation} variant="outline" size="sm" className="mt-2">
+                <SkipForward className="mr-2 h-4 w-4" />
+                Skip Intro
+            </Button>
+           )}
         </div>
 
         <motion.div
@@ -755,5 +775,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
