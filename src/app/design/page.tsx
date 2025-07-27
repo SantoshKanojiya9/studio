@@ -3,6 +3,11 @@
 
 import { Button } from '@/components/ui/button';
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
+import {
   X,
   ChevronDown,
   Upload,
@@ -11,6 +16,10 @@ import {
   Component,
   ImageUp,
   Layers,
+  Image as ImageIcon,
+  Sparkles,
+  PenTool,
+  FlipVertical,
 } from 'lucide-react';
 
 const EditorButton = ({
@@ -22,12 +31,24 @@ const EditorButton = ({
 }) => (
   <Button
     variant="ghost"
-    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground hover:text-primary p-2"
+    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground hover:text-primary p-2 w-full"
   >
     <Icon className="h-6 w-6 mb-1" />
     <span>{label}</span>
   </Button>
 );
+
+const editorTools = [
+  { icon: LayoutTemplate, label: 'Templates' },
+  { icon: Type, label: 'Text' },
+  { icon: Component, label: 'Elements' },
+  { icon: ImageUp, label: 'Uploads' },
+  { icon: Layers, label: 'Layers' },
+  { icon: ImageIcon, label: 'Photos' },
+  { icon: Sparkles, label: 'AI' },
+  { icon: PenTool, label: 'Draw' },
+  { icon: FlipVertical, label: 'Background' },
+];
 
 export default function DesignPage() {
   return (
@@ -49,18 +70,28 @@ export default function DesignPage() {
       {/* Main Content - Canvas */}
       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
         <div className="w-full h-full max-w-full max-h-full aspect-square bg-white rounded-md shadow-lg flex items-center justify-center">
-            {/* Placeholder for canvas content */}
-             <p className="text-zinc-400 text-lg">Your Canvas</p>
+          {/* Placeholder for canvas content */}
+          <p className="text-zinc-400 text-lg">Your Canvas</p>
         </div>
       </main>
 
       {/* Bottom Toolbar */}
-      <footer className="flex items-center justify-around p-2 bg-zinc-950 border-t border-zinc-800">
-        <EditorButton icon={LayoutTemplate} label="Templates" />
-        <EditorButton icon={Type} label="Text" />
-        <EditorButton icon={Component} label="Elements" />
-        <EditorButton icon={ImageUp} label="Uploads" />
-        <EditorButton icon={Layers} label="Layers" />
+      <footer className="bg-zinc-950 border-t border-zinc-800 p-2">
+        <Carousel
+          opts={{
+            align: 'start',
+            dragFree: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {editorTools.map((tool, index) => (
+              <CarouselItem key={index} className="basis-1/5">
+                <EditorButton icon={tool.icon} label={tool.label} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
       </footer>
     </div>
   );
