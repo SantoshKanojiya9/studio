@@ -1,23 +1,24 @@
 
 'use client';
 
-import { Menu, BadgeCheck, CreditCard } from 'lucide-react';
+import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
-import { AuthButton } from './auth-button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
-import { LogIn, LogOut } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose
+} from '@/components/ui/sheet';
+import { Separator } from './ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -85,35 +86,59 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       </div>
       <div className="flex items-center gap-2">
         {children}
-        <AuthButton />
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+        <Sheet>
+            <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
                     <Menu />
                     <span className="sr-only">Open menu</span>
                 </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem asChild>
-                   <Link href="/plan">
-                     <CreditCard className="mr-2 h-4 w-4" />
-                     <span>Plan</span>
-                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {user ? (
-                     <DropdownMenuItem onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                     </DropdownMenuItem>
-                ) : (
-                    <DropdownMenuItem onClick={handleSignIn}>
-                        <LogIn className="mr-2 h-4 w-4" />
-                        <span>Sign In</span>
-                    </DropdownMenuItem>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-sm">
+                <SheetHeader className="text-left">
+                    <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4 flex flex-col h-full">
+                    {user && (
+                        <>
+                            <div className="flex items-center gap-3 mb-4">
+                                <Avatar>
+                                    <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
+                                    <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{user.displayName}</p>
+                                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                            </div>
+                            <Separator className="mb-4" />
+                        </>
+                    )}
+                    <nav className="flex flex-col gap-2 flex-1">
+                        <SheetClose asChild>
+                            <Link href="/plan" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
+                                <CreditCard className="mr-3 h-5 w-5" />
+                                <span>Plan</span>
+                            </Link>
+                        </SheetClose>
+                    </nav>
+
+                    <div className="mt-auto">
+                        <Separator className="my-4" />
+                        {user ? (
+                             <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignOut}>
+                                <LogOut className="mr-3 h-5 w-5" />
+                                <span>Log out</span>
+                             </Button>
+                        ) : (
+                            <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignIn}>
+                                <LogIn className="mr-3 h-5 w-5" />
+                                <span>Sign In</span>
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </SheetContent>
+        </Sheet>
       </div>
     </header>
   );
