@@ -127,7 +127,7 @@ export default function ChatPage() {
                     )}
                      <div
                         className={cn(
-                        'rounded-lg px-4 py-2 max-w-[80%] flex items-center gap-2',
+                        'rounded-lg px-4 py-2 flex items-center gap-2',
                          message.role === 'user'
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-secondary text-secondary-foreground'
