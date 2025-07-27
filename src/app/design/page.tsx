@@ -4,10 +4,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
 
-const Face = ({ expression }: { expression: Expression }) => {
+const Face = ({ expression, color }: { expression: Expression, color: string }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
     happy: { y: 4, scaleY: 0.8 },
@@ -82,8 +87,8 @@ const Face = ({ expression }: { expression: Expression }) => {
       }}
     >
       {/* 3D Base */}
-      <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-orange-400 shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden">
-        <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center relative">
+      <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden" style={{ backgroundColor: color }}>
+        <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative">
          {/* Noise Texture Overlay */}
          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C%2Fsvg%3E')] opacity-10"></div>
           
@@ -190,6 +195,10 @@ export default function DesignPage() {
   const [isInteracting, setIsInteracting] = useState(false);
   const expressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
+  const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
+  const [emojiColor, setEmojiColor] = useState('#ffb300');
+  const [filter, setFilter] = useState('none');
+
   useEffect(() => {
     if (isInteracting) return;
 
@@ -220,21 +229,61 @@ export default function DesignPage() {
   };
   
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none overflow-hidden">
-      <div className="text-center mb-8">
+    <div 
+        className="flex flex-col items-center justify-center min-h-full w-full touch-none overflow-hidden p-4 transition-colors duration-300"
+        style={{ backgroundColor }}
+    >
+      <div className="text-center mb-4">
         <h1 className="text-3xl font-bold">Interactive Emoji</h1>
         <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
         <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
       </div>
 
       <motion.div
-        className="w-80 h-64 flex items-center justify-center cursor-pointer select-none"
+        className="w-80 h-64 flex items-center justify-center cursor-pointer select-none mb-4"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp} 
+        style={{ filter: filter !== 'none' ? filter : undefined }}
       >
-        <Face expression={expression} />
+        <Face expression={expression} color={emojiColor} />
       </motion.div>
+
+      <Card className="w-full max-w-md bg-background/50 backdrop-blur-sm">
+        <CardHeader>
+            <CardTitle>Tools</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="bg-color">Background Color</Label>
+                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="p-1 h-10" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="emoji-color">Emoji Color</Label>
+                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="p-1 h-10" />
+                </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="filter-select">Filter</Label>
+                <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger id="filter-select">
+                        <SelectValue placeholder="Select a filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
+                        <SelectItem value="sepia(100%)">Sepia</SelectItem>
+                        <SelectItem value="invert(100%)">Invert</SelectItem>
+                        <SelectItem value="blur(4px)">Blur</SelectItem>
+                        <SelectItem value="saturate(2)">Saturate</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+    
