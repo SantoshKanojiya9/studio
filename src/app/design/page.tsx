@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
-type ActiveMenu = 'main' | 'effects' | 'accessories';
+type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories';
 
 const Face = ({ 
     expression, 
@@ -334,6 +334,14 @@ export default function DesignPage() {
         <path d="M7.40039 12.8799C8.36839 11.9119 10.0244 10.9999 12.0004 10.9999C13.9764 10.9999 15.6324 11.9119 16.6004 12.8799C16.8434 13.1229 17.2424 13.1229 17.4854 12.8799C17.7284 12.6369 17.7284 12.2379 17.4854 11.9949C16.2994 10.8089 14.3984 9.99991 12.0004 9.99991C9.60239 9.99991 7.70139 10.8089 6.51539 11.9949C6.27239 12.2379 6.27239 12.6369 6.51539 12.8799C6.75839 13.1229 7.15739 13.1229 7.40039 12.8799Z" />
       </svg>
     );
+    
+  const BgColorIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+  );
+
+  const EmojiColorIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18.5c.8 0 1.5-.7 1.5-1.5s-.7-1.5-1.5-1.5-1.5.7-1.5 1.5.7 1.5 1.5 1.5z"/><path d="M8.5 14.5c.8 0 1.5-.7 1.5-1.5S9.3 11.5 8.5 11.5 7 12.2 7 13s.7 1.5 1.5 1.5z"/><path d="M15.5 14.5c.8 0 1.5-.7 1.5-1.5s-.7-1.5-1.5-1.5-1.5.7-1.5 1.5.7 1.5 1.5 1.5z"/></svg>
+  );
 
   const menuVariants = {
     hidden: { x: '100%', opacity: 0 },
@@ -355,23 +363,13 @@ export default function DesignPage() {
                         <RotateCcw className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="relative w-10 h-10">
-                                    <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
-                                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Background Color</p></TooltipContent>
-                        </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className="relative w-10 h-10">
-                                    <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
-                                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="w-full h-full p-1 cursor-pointer" />
-                                </div>
+                                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}>
+                                    <Palette className="h-5 w-5" />
+                                </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Emoji Color</p></TooltipContent>
+                            <TooltipContent><p>Colors</p></TooltipContent>
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -388,6 +386,41 @@ export default function DesignPage() {
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent><p>Accessories</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
+        case 'colors':
+            return (
+                <motion.div 
+                    key="colors"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                         <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="relative w-10 h-10 flex items-center justify-center">
+                                    <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
+                                    <BgColorIcon />
+                                    <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Background Color</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="relative w-10 h-10 flex items-center justify-center">
+                                    <Label htmlFor="emoji-color" className="sr-only">Emoji Color</Label>
+                                    <EmojiColorIcon/>
+                                    <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Emoji Color</p></TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </motion.div>
