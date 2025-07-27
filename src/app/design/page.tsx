@@ -2,15 +2,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Sparkles } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
@@ -88,6 +89,7 @@ const Face = ({ expression, color }: { expression: Expression, color: string }) 
         pointerX.set(0.5);
         pointerY.set(0.5);
       }}
+      style={{ transformStyle: 'preserve-3d' }}
     >
       {/* 3D Base */}
       <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden" style={{ backgroundColor: color }}>
@@ -112,7 +114,7 @@ const Face = ({ expression, color }: { expression: Expression, color: string }) 
             </div>
           
           {/* Eyes */}
-          <div className="flex gap-20 absolute top-28">
+          <div className="flex gap-20 absolute top-28" style={{ transform: 'translateZ(20px)' }}>
             {/* Left Eye */}
             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
               <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
@@ -173,7 +175,7 @@ const Face = ({ expression, color }: { expression: Expression, color: string }) 
             </motion.div>
           </div>
            {/* Mouth */}
-           <div className="absolute bottom-12">
+           <div className="absolute bottom-12" style={{ transform: 'translateZ(10px)' }}>
             <svg width="100" height="40" viewBox="0 0 100 80">
                 <motion.path
                     fill="transparent"
@@ -201,10 +203,39 @@ export default function DesignPage() {
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
   const [filter, setFilter] = useState('none');
+  const [tiltEnabled, setTiltEnabled] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
   const defaultFilter = 'none';
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useTransform(y, [-1, 1], [15, -15]);
+  const rotateY = useTransform(x, [-1, 1], [-15, 15]);
+  
+  const springConfig = { stiffness: 300, damping: 20 };
+  const smoothRotateX = useSpring(rotateX, springConfig);
+  const smoothRotateY = useSpring(rotateY, springConfig);
+
+  const handleMouseMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!tiltEnabled) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    x.set((mouseX / width) * 2 - 1);
+    y.set((mouseY / height) * 2 - 1);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
 
   useEffect(() => {
     if (isInteracting) return;
@@ -239,6 +270,7 @@ export default function DesignPage() {
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
     setFilter(defaultFilter);
+    setTiltEnabled(false);
   };
 
   return (
@@ -254,13 +286,27 @@ export default function DesignPage() {
         </div>
 
         <motion.div
-          className="w-80 h-64 flex items-center justify-center cursor-pointer select-none mb-4"
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp} 
-          style={{ filter: filter !== 'none' ? filter : undefined }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{
+            transformStyle: 'preserve-3d',
+            perspective: '1000px',
+            rotateX: tiltEnabled ? smoothRotateX : 0,
+            rotateY: tiltEnabled ? smoothRotateY : 0,
+          }}
         >
-          <Face expression={expression} color={emojiColor} />
+          <motion.div
+            className="w-80 h-64 flex items-center justify-center cursor-pointer select-none mb-4"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp} 
+            style={{ 
+              filter: filter !== 'none' ? filter : undefined,
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            <Face expression={expression} color={emojiColor} />
+          </motion.div>
         </motion.div>
       </div>
 
@@ -317,6 +363,24 @@ export default function DesignPage() {
                     </SelectContent>
                 </Select>
             </div>
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                         <div className="flex items-center gap-2">
+                             <Switch
+                                id="tilt-switch"
+                                checked={tiltEnabled}
+                                onCheckedChange={setTiltEnabled}
+                            />
+                            <Label htmlFor="tilt-switch" className="sr-only">3D Tilt Effect</Label>
+                             <Move3d className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Toggle 3D Tilt Effect</p>
+                    </TooltipContent>
+                </Tooltip>
+             </TooltipProvider>
          </div>
       </div>
     </div>
