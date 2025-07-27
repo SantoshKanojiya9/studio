@@ -81,8 +81,11 @@ const Face = ({
     surprised: { opacity: 0.4, scale: 0.9 },
   }
   
-  const pupilX = useTransform(pointerX, [0, 1], [-12, 12]);
-  const pupilY = useTransform(pointerY, [0, 1], [-8, 8]);
+  const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
+  const smoothPointerY = useSpring(pointerY, { stiffness: 300, damping: 20, mass: 0.5 });
+  
+  const pupilX = useTransform(smoothPointerX, [0, 1], [-12, 12]);
+  const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isInitialPhase) return; // Disable pointer tracking during initial animation
@@ -107,7 +110,12 @@ const Face = ({
       }}
       style={{ transformStyle: 'preserve-3d' }}
     >
-      <div className="absolute top-10 w-full h-64 z-10">
+      <motion.div 
+        className="absolute top-10 w-full h-64 z-10"
+        initial={{ y: 20, scale: 0.95, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
         <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative overflow-hidden" style={{ backgroundColor: color }}>
             <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative">
             {/* Noise Texture Overlay */}
@@ -119,13 +127,13 @@ const Face = ({
                         className="w-12 h-6 bg-pink-400 rounded-full"
                         variants={blushVariants}
                         animate={expression}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.3, type: "spring" }}
                     />
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
                         variants={blushVariants}
                         animate={expression}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.3, type: "spring" }}
                     />
                 </div>
             
@@ -237,13 +245,18 @@ const Face = ({
             </motion.div>
             </div>
         </div>
-      </div>
+      </motion.div>
        {/* 3D Base */}
-       <div className="absolute bottom-0 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}>
+       <motion.div 
+         className="absolute bottom-0 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
+         initial={{ y: 50, opacity: 0 }}
+         animate={{ y: 0, opacity: 1 }}
+         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+        >
           <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
            <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
            <div className="absolute bottom-[-10px] left-1/2 w-full h-10 bg-gradient-to-t from-black/50 to-transparent" style={{ transform: 'translateX(-50%)' }}></div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
@@ -585,5 +598,7 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
 
     
