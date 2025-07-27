@@ -366,7 +366,7 @@ export default function DesignPage() {
 
   const handlePointerDown = () => {
     if (isInitialPhase) return;
-    
+
     if (angerTimeout.current) {
         clearTimeout(angerTimeout.current);
         angerTimeout.current = null;
@@ -374,6 +374,7 @@ export default function DesignPage() {
 
     if (clickTimer.current) {
       clearTimeout(clickTimer.current);
+      clickTimer.current = null;
     }
     
     clickCount.current += 1;
@@ -384,20 +385,24 @@ export default function DesignPage() {
       
       angerTimeout.current = setTimeout(() => {
         setExpression('neutral');
-        angerTimeout.current = null;
       }, 2000);
     } else {
       setExpression('happy');
+      clickTimer.current = setTimeout(() => {
+        clickCount.current = 0;
+      }, 800);
     }
-
-    clickTimer.current = setTimeout(() => {
-      clickCount.current = 0;
-    }, 800);
   };
 
   const handlePointerUp = () => {
-    if (isInitialPhase || expression === 'angry') return;
-    setExpression('neutral');
+    if (isInitialPhase) return;
+    // Don't change the expression if it's angry, let the timeout handle it.
+    if (expression === 'angry') return;
+    
+    // Only revert to neutral if the anger timeout is not active
+    if (!angerTimeout.current) {
+        setExpression('neutral');
+    }
   };
   
   const handleReset = () => {
