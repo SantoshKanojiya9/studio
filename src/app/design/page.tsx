@@ -167,7 +167,7 @@ export default function DesignPage() {
   const currentTools = toolConfig[activeTool].tools;
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 text-white">
+    <div className="flex flex-col h-screen bg-zinc-900 text-white">
       <input
         type="file"
         ref={fileInputRef}
@@ -176,7 +176,7 @@ export default function DesignPage() {
         onChange={handleFileChange}
       />
       {/* Top Bar */}
-      <header className="flex items-center justify-between p-2 bg-zinc-950">
+      <header className="flex-shrink-0 flex items-center justify-between p-2 bg-zinc-950">
         <Button variant="ghost" size="icon">
           <X className="h-5 w-5" />
         </Button>
@@ -190,7 +190,10 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800">
+       <main 
+        className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto"
+        style={{ height: 'calc(100vh - 64px - 88px)' }} // 100vh - header - footer
+       >
         <div 
             className="w-full h-full max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
             style={{ aspectRatio: canvasAspectRatio }}
@@ -223,7 +226,7 @@ export default function DesignPage() {
       </main>
 
       {/* Bottom Toolbar */}
-      <footer className="bg-zinc-950 border-t border-zinc-800 p-2">
+      <footer className="flex-shrink-0 bg-zinc-950 border-t border-zinc-800 p-2">
         <Carousel
           opts={{
             align: 'start',
@@ -257,3 +260,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
