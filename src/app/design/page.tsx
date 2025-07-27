@@ -190,10 +190,7 @@ export default function DesignPage() {
       </header>
 
       {/* Main Content - Canvas */}
-       <main 
-        className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-auto"
-        style={{ height: 'calc(100vh - 64px - 88px)' }} // 100vh - header - footer
-       >
+       <main className="flex-1 flex items-center justify-center p-4 bg-zinc-800 overflow-hidden">
         <div 
             className="w-full h-full max-w-full max-h-full bg-white rounded-md shadow-lg flex items-center justify-center overflow-hidden relative"
             style={{ aspectRatio: canvasAspectRatio }}
@@ -260,5 +257,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
