@@ -29,7 +29,8 @@ export function AssistantMessage({ message, currentlySpeaking }: AssistantMessag
                     <div className="w-full h-full rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
                  </div>
               ) : (
-                <div className="w-2 h-2 shrink-0" />
+                // Only show the placeholder if any other sentence is being spoken in the same message
+                currentlySpeaking?.messageId === message.id && <div className="w-2 h-2 shrink-0" />
               )}
                <p className="text-sm whitespace-pre-wrap flex-1">{sentence.trim()}</p>
           </div>

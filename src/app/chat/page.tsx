@@ -172,15 +172,15 @@ export default function ChatPage() {
                 </div>
             ))}
             {isLoading && (
-                <div className="flex items-start gap-3 justify-start">
-                 <div className="font-bold text-primary">Edena</div>
-                <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground">
-                    <div className="flex items-center justify-center gap-2 h-5">
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.1s]" />
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.2s]" />
-                    <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.3s]" />
+                <div className="flex flex-col gap-2 items-start">
+                    <div className="font-bold text-primary">Edena</div>
+                    <div className="rounded-lg px-4 py-2 bg-secondary text-secondary-foreground">
+                        <div className="flex items-center justify-center gap-2 h-5">
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.1s]" />
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.2s]" />
+                        <div className="h-2 w-2 bg-muted-foreground rounded-full animate-[bounce_1s_infinite_0.3s]" />
+                        </div>
                     </div>
-                </div>
                 </div>
             )}
             <div ref={messagesEndRef} />
