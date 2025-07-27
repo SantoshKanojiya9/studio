@@ -195,7 +195,7 @@ export default function DesignPage() {
                 className="relative bg-white rounded-md shadow-lg max-w-full max-h-full"
                 style={{ aspectRatio: canvasAspectRatio }}
             >
-            {templateImage ? (
+            {templateImage && (
                 <Image
                     src={templateImage}
                     alt="Template background"
@@ -204,10 +204,8 @@ export default function DesignPage() {
                     className="rounded-md"
                     data-ai-hint="template background"
                 />
-            ) : (
-                !uploadedImage && <div className="w-full h-full flex items-center justify-center"><p className="text-zinc-400 text-lg">Your Canvas</p></div>
             )}
-            {uploadedImage && (
+            {uploadedImage ? (
                 <div className="absolute inset-0 p-2 sm:p-4 md:p-8">
                     <div className="relative w-full h-full">
                         <Image
@@ -219,6 +217,8 @@ export default function DesignPage() {
                         />
                     </div>
                 </div>
+            ) : (
+                !templateImage && <div className="w-full h-full flex items-center justify-center"><p className="text-zinc-400 text-lg">Your Canvas</p></div>
             )}
             </div>
       </main>
