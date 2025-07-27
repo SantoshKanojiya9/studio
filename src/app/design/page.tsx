@@ -36,7 +36,17 @@ const Face = ({ expression }: { expression: Expression }) => {
   }
 
   return (
-    <div className="relative w-64 h-64">
+    <motion.div 
+      className="relative w-64 h-64"
+      animate={{
+        rotateY: [0, 360],
+      }}
+      transition={{
+        duration: 20,
+        repeat: Infinity,
+        ease: "linear"
+      }}
+    >
       {/* 3D Base */}
       <div className="w-full h-full rounded-full bg-yellow-400 shadow-[inset_0_-15px_20px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)]">
         <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center relative">
@@ -104,7 +114,7 @@ const Face = ({ expression }: { expression: Expression }) => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -127,18 +137,28 @@ export default function DesignPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none">
+    <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none overflow-hidden">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold">Interactive 3D Emoji</h1>
         <p className="text-muted-foreground">Press on the emoji. A harder press makes it angry!</p>
         <p className="text-xs text-muted-foreground">(Requires a pressure-sensitive screen for best results)</p>
       </div>
 
-      <div
+      <motion.div
         className="w-64 h-64 flex items-center justify-center cursor-pointer select-none"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp} // Reset if the pointer leaves the area
+        animate={{
+          x: [-20, 20, -20],
+          y: [10, -10, 10],
+        }}
+        transition={{
+            duration: 8,
+            repeat: Infinity,
+            repeatType: 'mirror',
+            ease: "easeInOut"
+        }}
       >
         <AnimatePresence>
             <motion.div
@@ -150,7 +170,7 @@ export default function DesignPage() {
                 <Face expression={expression} />
             </motion.div>
         </AnimatePresence>
-      </div>
+      </motion.div>
     </div>
   );
 }
