@@ -97,7 +97,7 @@ const Face = ({
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
-    angry: { opacity: 0.8, scale: 1.1 },
+    angry: { opacity: 0, scale: 1.1 },
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
     sleepy: { opacity: 0.2, scale: 0.9 },
@@ -253,7 +253,7 @@ const Face = ({
             {/* Accessories */}
              <motion.div 
                 className="absolute"
-                style={{ top: '108px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
+                style={{ top: '100px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
