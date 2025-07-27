@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { BrainCircuit, Image as ImageIcon, MessageSquare, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ export function Header() {
   const navItems = [
     { href: '/chat', label: 'Chat', icon: MessageSquare },
     { href: '/image', label: 'Image', icon: ImageIcon },
+    { href: '/voice', label: 'Voice', icon: Mic },
   ];
 
   return (
