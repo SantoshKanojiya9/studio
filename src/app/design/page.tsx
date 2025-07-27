@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
@@ -199,6 +201,10 @@ export default function DesignPage() {
   const [emojiColor, setEmojiColor] = useState('#ffb300');
   const [filter, setFilter] = useState('none');
 
+  const defaultBackgroundColor = '#0a0a0a';
+  const defaultEmojiColor = '#ffb300';
+  const defaultFilter = 'none';
+
   useEffect(() => {
     if (isInteracting) return;
 
@@ -228,6 +234,12 @@ export default function DesignPage() {
     setIsInteracting(false);
   };
   
+  const handleReset = () => {
+    setBackgroundColor(defaultBackgroundColor);
+    setEmojiColor(defaultEmojiColor);
+    setFilter(defaultFilter);
+  };
+
   return (
     <div 
         className="relative flex flex-col min-h-full w-full touch-none overflow-hidden transition-colors duration-300"
@@ -276,6 +288,11 @@ export default function DesignPage() {
                         <SelectItem value="saturate(2)">Saturate</SelectItem>
                     </SelectContent>
                 </Select>
+            </div>
+            <div className="flex items-end h-10">
+                 <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
+                    <RotateCcw className="h-5 w-5" />
+                </Button>
             </div>
          </div>
       </div>
