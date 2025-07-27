@@ -22,13 +22,17 @@ const Face = ({
     color, 
     showSunglasses, 
     showMustache,
-    isInitialPhase
+    isInitialPhase,
+    pointerX,
+    pointerY
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
-    isInitialPhase: boolean
+    isInitialPhase: boolean,
+    pointerX: any,
+    pointerY: any
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -76,46 +80,9 @@ const Face = ({
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
   }
-
-  const pointerX = useMotionValue(0.5);
-  const pointerY = useMotionValue(0.5);
-
+  
   const pupilX = useTransform(pointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(pointerY, [0, 1], [-8, 8]);
-
-  useEffect(() => {
-    let eyeAnimationInterval: NodeJS.Timeout | null = null;
-    if (isInitialPhase) {
-      const eyePositions = [
-        { x: 0.5, y: 0.5 }, // center
-        { x: 0, y: 0.5 },   // left
-        { x: 1, y: 0.5 },   // right
-        { x: 0.5, y: 0.5 }, // center
-        { x: 0.5, y: 0 },   // up
-        { x: 0.5, y: 1 },   // down
-        { x: 0.5, y: 0.5 }, // center
-      ];
-      let eyeIndex = 0;
-
-      const animateEyes = () => {
-        const { x, y } = eyePositions[eyeIndex % eyePositions.length];
-        pointerX.set(x);
-        pointerY.set(y);
-        eyeIndex++;
-      };
-
-      eyeAnimationInterval = setInterval(animateEyes, 1000);
-    }
-    return () => {
-      if (eyeAnimationInterval) {
-        clearInterval(eyeAnimationInterval);
-      }
-      // Reset to center when phase changes or component unmounts
-      pointerX.set(0.5);
-      pointerY.set(0.5);
-    };
-  }, [isInitialPhase, pointerX, pointerY]);
-
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isInitialPhase) return; // Disable pointer tracking during initial animation
@@ -301,6 +268,8 @@ export default function DesignPage() {
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
 
   const rotateX = useTransform(y, [-1, 1], [15, -15]);
   const rotateY = useTransform(x, [-1, 1], [-15, 15]);
@@ -313,24 +282,33 @@ export default function DesignPage() {
     let animationInterval: NodeJS.Timeout;
     let phaseTimeout: NodeJS.Timeout;
     
-    // Phase 1: Initial subtle animations (first 15 seconds)
     setIsInitialPhase(true);
-    const initialExpressions: Expression[] = ['happy', 'surprised', 'neutral'];
+
+    const initialAnimations = [
+        { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
+        { expression: 'surprised', pupils: { x: 1, y: 0.5 } },   // right
+        { expression: 'neutral', pupils: { x: 0.5, y: 0 } },   // up
+        { expression: 'happy', pupils: { x: 0.5, y: 1 } },   // down
+        { expression: 'neutral', pupils: { x: 0.5, y: 0.5 } }, // center
+    ];
     let initialIndex = 0;
 
     const runInitialAnimation = () => {
-      setExpression(initialExpressions[initialIndex % initialExpressions.length]);
-      initialIndex++;
+        const currentAnimation = initialAnimations[initialIndex % initialAnimations.length];
+        setExpression(currentAnimation.expression);
+        pointerX.set(currentAnimation.pupils.x);
+        pointerY.set(currentAnimation.pupils.y);
+        initialIndex++;
     };
     
-    // Start initial animation cycle
     runInitialAnimation();
     animationInterval = setInterval(runInitialAnimation, 3000);
 
-    // Phase 2: Switch to full expressions after 15 seconds
     phaseTimeout = setTimeout(() => {
-      clearInterval(animationInterval); // Stop the initial animation cycle
-      setIsInitialPhase(false); // End initial phase
+      clearInterval(animationInterval); 
+      setIsInitialPhase(false); 
+      pointerX.set(0.5);
+      pointerY.set(0.5);
       
       const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
       let fullIndex = 0;
@@ -344,23 +322,22 @@ export default function DesignPage() {
       animationInterval = setInterval(runFullAnimation, 3000);
     }, 15000); // 15 seconds
 
-    // Cleanup function to clear timers when the component unmounts
     return () => {
       clearInterval(animationInterval);
       clearTimeout(phaseTimeout);
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
-    const pointerX = e.clientX - rect.left;
-    const pointerY = e.clientY - rect.top;
+    const pointerXVal = e.clientX - rect.left;
+    const pointerYVal = e.clientY - rect.top;
 
-    x.set((pointerX / width) * 2 - 1);
-    y.set((pointerY / height) * 2 - 1);
+    x.set((pointerXVal / width) * 2 - 1);
+    y.set((pointerYVal / height) * 2 - 1);
   };
 
   const handlePointerLeave = () => {
@@ -591,6 +568,8 @@ export default function DesignPage() {
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
                 isInitialPhase={isInitialPhase}
+                pointerX={pointerX}
+                pointerY={pointerY}
             />
           </motion.div>
         </motion.div>
@@ -608,4 +587,3 @@ export default function DesignPage() {
 }
 
     
-
