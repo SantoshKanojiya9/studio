@@ -18,7 +18,7 @@ import {
   Type,
   Layers,
   Sparkles,
-  AspectRatio,
+  Crop,
 } from 'lucide-react';
 
 const EditorButton = ({
@@ -118,7 +118,7 @@ export default function DesignPage() {
         <EditorButton icon={Type} label="Text" />
         <EditorButton icon={Layers} label="Overlay" />
         <EditorButton icon={Sparkles} label="Effects" />
-        <EditorButton icon={AspectRatio} label="Ratio" />
+        <EditorButton icon={Crop} label="Ratio" />
       </footer>
     </div>
   );
