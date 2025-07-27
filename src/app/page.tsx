@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
         viewBox="0 0 100 100" 
-        className={cn("h-24 w-24", className)}
+        className={cn("h-16 w-16", className)}
         xmlns="http://www.w3.org/2000/svg"
     >
         <defs>
@@ -36,11 +36,11 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
-      <div className="flex flex-row items-center justify-center gap-4">
+      <div className="flex flex-row items-center justify-center gap-4 mb-8">
         <EdengramLogo />
-        <h1 className="text-5xl font-logo font-normal">Edengram</h1>
+        <h1 className="text-6xl font-logo font-normal">Edengram</h1>
       </div>
-      <div className="mt-12">
+      <div>
         <Button asChild size="lg">
           <Link href="/chat">Get Started</Link>
         </Button>
