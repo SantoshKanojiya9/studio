@@ -538,23 +538,23 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={handleReset} aria-label="Reset to defaults">
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={handleReset} aria-label="Reset to defaults">
                         <RotateCcw className="h-5 w-5" />
                         <span className="text-sm">Reset</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('colors')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('colors')}>
                         <Palette className="h-5 w-5" />
                         <span className="text-sm">Colors</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('effects')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('effects')}>
                         <Wand2 className="h-5 w-5" />
                         <span className="text-sm">Effects</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('accessories')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('accessories')}>
                         <SmilePlus className="h-5 w-5" />
                         <span className="text-sm">Accessories</span>
                     </Button>
-                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10" onClick={() => setActiveMenu('moods')}>
+                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-transparent" onClick={() => setActiveMenu('moods')}>
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
@@ -568,7 +568,7 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div className="flex items-center gap-2">
@@ -597,7 +597,7 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div className="w-32">
@@ -642,13 +642,13 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses && 'bg-accent text-accent-foreground')}>
+                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
                                     <Glasses className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -656,7 +656,7 @@ export default function DesignPage() {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache && 'bg-accent text-accent-foreground')}>
+                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
                                 <MustacheIcon />
                                 </Button>
                             </TooltipTrigger>
@@ -673,13 +673,13 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-transparent">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('default')} className={cn(mood === 'default' && 'bg-accent text-accent-foreground')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('default')} className={cn(mood === 'default' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
                                     <SmilePlus className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -687,7 +687,7 @@ export default function DesignPage() {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('sleepy')} className={cn(mood === 'sleepy' && 'bg-accent text-accent-foreground')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('sleepy')} className={cn(mood === 'sleepy' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
                                     <Moon className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -695,7 +695,7 @@ export default function DesignPage() {
                         </Tooltip>
                          <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setMood('playful')} className={cn(mood === 'playful' && 'bg-accent text-accent-foreground')}>
+                                <Button variant="ghost" size="icon" onClick={() => setMood('playful')} className={cn(mood === 'playful' && 'bg-accent text-accent-foreground', 'hover:bg-transparent')}>
                                     <ToyBrick className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
@@ -758,7 +758,7 @@ export default function DesignPage() {
       </div>
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
-         <div className="flex items-center justify-center gap-4 overflow-x-auto p-4 relative h-20">
+         <div className="flex items-center justify-center gap-4 overflow-x-auto p-4 relative h-16">
              <AnimatePresence mode="wait">
                  {renderMenu()}
             </AnimatePresence>
