@@ -715,7 +715,15 @@ export default function DesignPage() {
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="flex-1 flex flex-col items-center justify-end p-4 pb-12">
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
+          {isInitialPhase && (
+             <div className="absolute top-4 right-4 z-20">
+                <Button size="sm" variant="outline" onClick={skipInitialAnimation}>
+                    <SkipForward className="mr-2 h-4 w-4" />
+                    Skip Intro
+                </Button>
+            </div>
+          )}
         <motion.div
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
