@@ -93,14 +93,14 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                     <span className="sr-only">Open menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-sm">
+            <SheetContent side="right" className="w-full max-w-sm flex flex-col">
                 <SheetHeader className="text-left">
                     <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
-                <div className="mt-4 flex flex-col h-full">
+                <div className="flex-1">
                     {user && (
                         <>
-                            <div className="flex items-center gap-3 mb-4">
+                            <div className="flex items-center gap-3 my-4">
                                 <Avatar>
                                     <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
                                     <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
@@ -110,10 +110,10 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                                     <p className="text-sm text-muted-foreground">{user.email}</p>
                                 </div>
                             </div>
-                            <Separator className="mb-4" />
+                            <Separator/>
                         </>
                     )}
-                    <nav className="flex flex-col gap-2 flex-1">
+                    <nav className="flex flex-col gap-2 mt-4">
                         <SheetClose asChild>
                             <Link href="/plan" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
                                 <CreditCard className="mr-3 h-5 w-5" />
@@ -121,21 +121,21 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                             </Link>
                         </SheetClose>
                     </nav>
+                </div>
 
-                    <div className="mt-auto">
-                        <Separator className="my-4" />
-                        {user ? (
-                             <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignOut}>
-                                <LogOut className="mr-3 h-5 w-5" />
-                                <span>Log out</span>
-                             </Button>
-                        ) : (
-                            <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignIn}>
-                                <LogIn className="mr-3 h-5 w-5" />
-                                <span>Sign In</span>
-                            </Button>
-                        )}
-                    </div>
+                <div className="mt-auto">
+                    <Separator className="my-4" />
+                    {user ? (
+                         <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignOut}>
+                            <LogOut className="mr-3 h-5 w-5" />
+                            <span>Log out</span>
+                         </Button>
+                    ) : (
+                        <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignIn}>
+                            <LogIn className="mr-3 h-5 w-5" />
+                            <span>Sign In</span>
+                        </Button>
+                    )}
                 </div>
             </SheetContent>
         </Sheet>
