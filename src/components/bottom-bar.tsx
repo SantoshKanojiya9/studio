@@ -6,23 +6,13 @@ import { usePathname } from 'next/navigation';
 import { Image as ImageIcon, MessageSquare, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const PlanIcon = () => (
-    <div className="relative h-6 w-6 flex items-center justify-center">
-        <Briefcase className="h-6 w-6"/>
-        <span className="absolute text-xs font-bold text-background bg-foreground rounded-full h-4 w-4 flex items-center justify-center top-[-2px] right-[-2px]">
-            N
-        </span>
-    </div>
-)
-
-
 export function BottomBar() {
   const pathname = usePathname();
 
   const navItems = [
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
     { href: '/image', label: 'Generate Image', icon: ImageIcon },
-    { href: '/plan', label: 'Plan', icon: PlanIcon },
+    { href: '/plan', label: 'Plan', icon: Briefcase },
   ];
 
   return (
@@ -39,7 +29,7 @@ export function BottomBar() {
                 : 'text-muted-foreground hover:text-primary'
             )}
           >
-            <item.icon />
+            <item.icon className="h-6 w-6" />
             <span className="text-xs font-medium">{item.label}</span>
           </Link>
         ))}
