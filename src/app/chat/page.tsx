@@ -2,11 +2,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
+import { generateSpeech, type GenerateSpeechInput } from '@/ai/flows/generate-speech';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ChatHeader } from '@/components/chat-header';
@@ -24,10 +25,12 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [wordCount, setWordCount] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
    useEffect(() => {
     // Start with a welcome message
@@ -39,6 +42,13 @@ export default function ChatPage() {
         messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [messages, isLoading]);
+
+  const playAudio = (audioDataUri: string) => {
+    if (audioRef.current) {
+      audioRef.current.src = audioDataUri;
+      audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +66,22 @@ export default function ChatPage() {
       const { response } = await generateChatResponse(chatInput);
       const assistantMessage: Message = { role: 'assistant', name: 'Edena', content: response, id: (Date.now() + 1).toString() };
       setMessages((prev) => [...prev, assistantMessage]);
+
+      if (!isMuted) {
+        try {
+          const speechInput: GenerateSpeechInput = { text: response };
+          const { audioDataUri } = await generateSpeech(speechInput);
+          playAudio(audioDataUri);
+        } catch (speechError) {
+          console.error('Error generating speech:', speechError);
+          toast({
+            title: "Speech Generation Failed",
+            description: "Could not generate audio for the response.",
+            variant: "destructive",
+          });
+        }
+      }
+
     } catch (error)
     {
       console.error('Error generating chat response:', error);
@@ -82,7 +108,12 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full">
-       <ChatHeader />
+       <ChatHeader>
+        <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:bg-transparent hover:text-primary">
+          {isMuted ? <VolumeX /> : <Volume2 />}
+          <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
+        </Button>
+       </ChatHeader>
        <div className="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
             <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
                 <div className="space-y-6 pr-4">
@@ -145,6 +176,7 @@ export default function ChatPage() {
                 </form>
             </div>
       </div>
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }

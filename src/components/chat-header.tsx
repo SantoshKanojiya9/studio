@@ -35,7 +35,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   );
   
 
-export function ChatHeader() {
+export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const { plan } = usePlan();
 
   return (
@@ -51,6 +51,7 @@ export function ChatHeader() {
         )}
       </div>
       <div className="flex items-center gap-2">
+        {children}
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
           <Menu />
           <span className="sr-only">Open menu</span>
