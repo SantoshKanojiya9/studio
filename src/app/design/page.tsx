@@ -211,20 +211,21 @@ const Face = ({
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div 
-                    className="absolute w-[180px] h-[45px] top-[100px] left-1/2 flex justify-between items-center"
-                    style={{ transform: 'translateX(-50%) translateZ(30px)' }}
+                    className="absolute w-[180px] h-[45px] top-[100px]"
+                    style={{ left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 >
-                    {/* Lenses */}
-                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                    {/* Bridge */}
-                    <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                    {/* Lenses and Bridge */}
+                    <div className="flex justify-between items-center w-full h-full">
+                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                        <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                    </div>
                 </div>
             </motion.div>
 
             <motion.div
-                className="absolute top-[165px] left-1/2"
-                style={{ transform: 'translateX(-50%) translateZ(25px)' }}
+                className="absolute top-[165px]"
+                style={{ left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
@@ -235,8 +236,8 @@ const Face = ({
             </motion.div>
             
             <motion.div
-                className="absolute top-[-30px] left-1/2"
-                style={{ transform: 'translateX(-50%) translateZ(5px)' }}
+                className="absolute top-[-30px]"
+                style={{ left: '50%', transform: 'translateX(-50%) translateZ(5px)' }}
                 initial={{ opacity: 0, y: -20, rotate: -15 }}
                 animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? -10 : -15 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 15 }}
