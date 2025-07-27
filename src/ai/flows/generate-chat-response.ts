@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -31,7 +32,7 @@ const prompt = ai.definePrompt({
   name: 'chatPrompt',
   input: {schema: ChatInputSchema},
   output: {schema: ChatOutputSchema},
-  prompt: `You are a helpful AI assistant.  Respond to the following user message: {{{message}}}`,
+  prompt: `You are a helpful AI assistant. Respond to the following user message. Keep your response under 35 words: {{{message}}}`,
 });
 
 const generateChatResponseFlow = ai.defineFlow(

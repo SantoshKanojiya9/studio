@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, Volume2, Bot } from 'lucide-react';
+import { Send, Loader2, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +18,8 @@ type Message = {
   id: string;
 };
 
+const MAX_WORDS = 35;
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -27,6 +29,7 @@ export default function ChatPage() {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [wordCount, setWordCount] = useState(0);
 
    useEffect(() => {
     // Start with a welcome message
@@ -79,12 +82,13 @@ export default function ChatPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || wordCount > MAX_WORDS) return;
 
     const userMessage: Message = { role: 'user', content: input, id: Date.now().toString() };
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = input;
     setInput('');
+    setWordCount(0);
     setIsLoading(true);
 
     try {
@@ -103,6 +107,15 @@ export default function ChatPage() {
       setMessages((prev) => prev.filter((msg) => msg !== userMessage));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length <= MAX_WORDS) {
+      setInput(text);
+      setWordCount(words.length);
     }
   };
 
@@ -127,7 +140,7 @@ export default function ChatPage() {
                     )}
                      <div
                         className={cn(
-                        'rounded-lg px-4 py-2 flex items-center gap-2',
+                        'rounded-lg px-4 py-2 flex items-center gap-2 max-w-full',
                          message.role === 'user'
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-secondary text-secondary-foreground'
@@ -168,15 +181,20 @@ export default function ChatPage() {
             </ScrollArea>
             <div className="border-t-0 pt-2">
                 <form onSubmit={handleSubmit} className="flex items-center gap-2">
-                    <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask me anything..."
-                    disabled={isLoading}
-                    className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                    aria-label="Chat input"
-                    />
-                    <Button type="submit" size="icon" disabled={isLoading || !input.trim()} aria-label="Send message">
+                    <div className="relative flex-1">
+                        <Input
+                        value={input}
+                        onChange={handleInputChange}
+                        placeholder="Ask me anything..."
+                        disabled={isLoading}
+                        className="flex-1 bg-secondary border-0 focus-visible:ring-1 focus-visible:ring-primary pr-16"
+                        aria-label="Chat input"
+                        />
+                         <div className={cn("absolute right-3 top-1/2 -translate-y-1/2 text-xs", wordCount > MAX_WORDS ? "text-destructive" : "text-muted-foreground")}>
+                            {wordCount}/{MAX_WORDS}
+                        </div>
+                    </div>
+                    <Button type="submit" size="icon" disabled={isLoading || !input.trim() || wordCount > MAX_WORDS} aria-label="Send message">
                     <Send className="h-4 w-4" />
                     </Button>
                 </form>
