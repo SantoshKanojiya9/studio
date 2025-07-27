@@ -534,7 +534,7 @@ export default function DesignPage() {
                     key="main"
                     variants={menuVariants} initial="visible" exit="exit" animate="visible"
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="flex items-center gap-4 whitespace-nowrap"
+                    className="flex items-center justify-evenly flex-wrap gap-2 md:gap-4 whitespace-nowrap w-full"
                 >
                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
                         <RotateCcw className="h-5 w-5" />
