@@ -12,7 +12,7 @@ import {
   X,
   ChevronDown,
   Save,
-  LayoutTemplate,
+  Scaling,
   Type,
   Component,
   ImageUp,
@@ -56,7 +56,7 @@ const toolConfig = {
   main: {
     label: 'Main',
     tools: [
-      { id: 'templates', icon: LayoutTemplate, label: 'Templates' },
+      { id: 'canvas', icon: Scaling, label: 'Canvas' },
       { id: 'text', icon: Type, label: 'Text' },
       { id: 'elements', icon: Component, label: 'Elements' },
       { id: 'uploads', icon: ImageUp, label: 'Uploads' },
@@ -65,16 +65,16 @@ const toolConfig = {
       { id: 'background', icon: FlipVertical, label: 'Background' },
     ],
   },
-  templates: {
-    label: 'Templates',
+  canvas: {
+    label: 'Canvas',
     tools: [
-      { id: 't-1', icon: LayoutTemplate, label: 'Template 1', image: 'https://placehold.co/600x400.png', hint: 'template design' },
-      { id: 't-2', icon: LayoutTemplate, label: 'Template 2', image: 'https://placehold.co/400x600.png', hint: 'template design' },
-      { id: 't-3', icon: LayoutTemplate, label: 'Template 3', image: 'https://placehold.co/600x600.png', hint: 'template design' },
-      { id: 't-4', icon: LayoutTemplate, label: 'Template 4', image: 'https://placehold.co/800x400.png', hint: 'template design' },
-      { id: 't-5', icon: LayoutTemplate, label: 'Template 5', image: 'https://placehold.co/400x800.png', hint: 'template design' },
-      { id: 't-6', icon: LayoutTemplate, label: 'Template 6', image: 'https://placehold.co/800x800.png', hint: 'template design' },
-      { id: 't-7', icon: LayoutTemplate, label: 'Template 7', image: 'https://placehold.co/1080x1920.png', hint: 'template story' },
+      { id: 'c-1', icon: Square, label: 'Square', image: 'https://placehold.co/600x600.png', hint: 'square canvas' },
+      { id: 'c-2', icon: FlipVertical, label: 'Portrait', image: 'https://placehold.co/400x600.png', hint: 'portrait canvas' },
+      { id: 'c-3', icon: FlipVertical, label: 'Landscape', image: 'https://placehold.co/600x400.png', hint: 'landscape canvas' },
+      { id: 'c-4', icon: FlipVertical, label: 'Story', image: 'https://placehold.co/1080x1920.png', hint: 'story canvas' },
+      { id: 'c-5', icon: FlipVertical, label: 'Wide', image: 'https://placehold.co/800x400.png', hint: 'wide canvas' },
+      { id: 'c-6', icon: FlipVertical, label: 'Tall', image: 'https://placehold.co/400x800.png', hint: 'tall canvas' },
+      { id: 'c-7', icon: Square, label: 'Large Square', image: 'https://placehold.co/800x800.png', hint: 'large square' },
     ],
   },
   text: {
