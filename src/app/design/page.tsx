@@ -18,7 +18,6 @@ import {
   ImageUp,
   Layers,
   Image as ImageIcon,
-  Sparkles,
   PenTool,
   FlipVertical,
   ArrowLeft,
@@ -64,7 +63,6 @@ const toolConfig = {
       { id: 'uploads', icon: ImageUp, label: 'Uploads' },
       { id: 'overlap', icon: Layers, label: 'Overlap' },
       { id: 'photos', icon: ImageIcon, label: 'Photos' },
-      { id: 'ai', icon: Sparkles, label: 'AI' },
       { id: 'draw', icon: PenTool, label: 'Draw' },
       { id: 'background', icon: FlipVertical, label: 'Background' },
     ],
@@ -101,10 +99,6 @@ const toolConfig = {
   photos: {
     label: 'Photos',
     tools: [{ id: 'search-photos', icon: Search, label: 'Search Photos', image: 'https://placehold.co/600x400.png', hint: 'landscape photo' }],
-  },
-  ai: {
-    label: 'AI',
-    tools: [{ id: 'ai-generate', icon: Sparkles, label: 'Generate', image: 'https://placehold.co/600x400.png', hint: 'abstract art' }],
   },
   draw: {
     label: 'Draw',
