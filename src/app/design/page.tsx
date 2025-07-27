@@ -251,16 +251,14 @@ const Face = ({
             </div>
 
             {/* Accessories */}
-             <motion.div 
-                className="absolute"
-                style={{ top: '100px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
+            <motion.div
+                className="absolute flex justify-center w-full"
+                style={{ top: '110px', transform: 'translateZ(30px)' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
-                <div 
-                    className="relative"
-                >
+                <div className="relative">
                     {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-[180px] h-[45px]">
                         <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
