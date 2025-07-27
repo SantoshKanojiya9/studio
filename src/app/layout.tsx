@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Header } from '@/components/header';
+import { BottomBar } from '@/components/bottom-bar';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 
@@ -22,9 +22,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased min-h-screen bg-background")}>
-        <div className="relative flex min-h-screen flex-col">
-          <Header />
+        <div className="relative flex min-h-screen flex-col pb-16">
           <main className="flex-1">{children}</main>
+          <BottomBar />
         </div>
         <Toaster />
       </body>
