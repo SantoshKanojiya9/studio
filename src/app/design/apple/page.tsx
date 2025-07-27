@@ -720,7 +720,7 @@ export default function DesignPage() {
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col items-center justify-start pt-12 p-4">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold flex items-center gap-2">Interactive Apple Emoji <Apple className="h-8 w-8 text-red-500" /></h1>
            <div className="relative h-12">
@@ -767,7 +767,7 @@ export default function DesignPage() {
           }}
         >
           <motion.div
-            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none mb-4"
+            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp} 
@@ -799,4 +799,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
