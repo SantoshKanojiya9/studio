@@ -78,10 +78,10 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
         <EdengramLogo />
         <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
         {plan === 'Silver' && (
-            <BadgeCheck className="h-5 w-5 text-zinc-400" />
+            <BadgeCheck className="h-4 w-4 text-zinc-400" />
         )}
         {plan === 'Gold' && (
-            <BadgeCheck className="h-5 w-5 text-amber-400" />
+            <BadgeCheck className="h-4 w-4 text-amber-400" />
         )}
       </div>
       <div className="flex items-center gap-2">
