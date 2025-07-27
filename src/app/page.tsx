@@ -43,7 +43,7 @@ export default function Home() {
         </div>
         <div>
           <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
-            <Link href="/chat">
+            <Link href="/design">
               Get Started
             </Link>
           </Button>
