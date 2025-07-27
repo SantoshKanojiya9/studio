@@ -54,8 +54,8 @@ const generateImageFlow = ai.defineFlow(
     }
 
     const {media} = await ai.generate({
-      // Switched to Imagen for more cost-effective image generation.
-      model: 'googleai/imagen-3.0-generate-001',
+      // Switched to Imagen 2.0 for more cost-effective image generation.
+      model: 'googleai/imagen-2.0-generate',
       prompt: promptContent,
       config: {
         responseModalities: ['TEXT', 'IMAGE'], // MUST provide both TEXT and IMAGE, IMAGE only won't work
