@@ -174,16 +174,6 @@ export default function DesignPage() {
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp} // Reset if the pointer leaves the area
-        animate={{
-          x: [-20, 20, -20],
-          y: [10, -10, 10],
-        }}
-        transition={{
-            duration: 8,
-            repeat: Infinity,
-            repeatType: 'mirror',
-            ease: "easeInOut"
-        }}
       >
         <AnimatePresence>
             <motion.div
