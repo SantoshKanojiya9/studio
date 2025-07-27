@@ -202,18 +202,18 @@ const Face = ({
 
           {/* Accessories */}
             <motion.div 
-                className="absolute top-0 left-0 w-full h-full"
+                className="absolute w-full h-full"
                 style={{ transformStyle: 'preserve-3d' }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div 
-                    className="absolute w-[180px] h-[45px] top-[100px] left-[70px]"
-                    style={{ transform: 'translateZ(30px)' }}
+                    className="absolute"
+                    style={{ top: '105px', left: '50%', transform: 'translateX(-50%) translateZ(30px)' }}
                 >
                     {/* Lenses and Bridge */}
-                    <div className="flex justify-between items-center w-full h-full">
+                    <div className="flex justify-between items-center w-[180px] h-[45px]">
                         <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                         <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
                         <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
@@ -223,7 +223,7 @@ const Face = ({
 
             <motion.div
                 className="absolute"
-                style={{ top: '165px', left: '110px', transform: 'translateZ(25px)' }}
+                style={{ top: '165px', left: '50%', transform: 'translateX(-50%) translateZ(25px)' }}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                 transition={{ duration: 0.2 }}
