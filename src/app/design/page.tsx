@@ -21,12 +21,14 @@ const Face = ({
     expression, 
     color, 
     showSunglasses, 
-    showMustache
+    showMustache,
+    isInitialPhase
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
-    showMustache: boolean
+    showMustache: boolean,
+    isInitialPhase: boolean
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -81,8 +83,42 @@ const Face = ({
   const pupilX = useTransform(pointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(pointerY, [0, 1], [-8, 8]);
 
+  useEffect(() => {
+    let eyeAnimationInterval: NodeJS.Timeout | null = null;
+    if (isInitialPhase) {
+      const eyePositions = [
+        { x: 0.5, y: 0.5 }, // center
+        { x: 0, y: 0.5 },   // left
+        { x: 1, y: 0.5 },   // right
+        { x: 0.5, y: 0.5 }, // center
+        { x: 0.5, y: 0 },   // up
+        { x: 0.5, y: 1 },   // down
+        { x: 0.5, y: 0.5 }, // center
+      ];
+      let eyeIndex = 0;
+
+      const animateEyes = () => {
+        const { x, y } = eyePositions[eyeIndex % eyePositions.length];
+        pointerX.set(x);
+        pointerY.set(y);
+        eyeIndex++;
+      };
+
+      eyeAnimationInterval = setInterval(animateEyes, 1000);
+    }
+    return () => {
+      if (eyeAnimationInterval) {
+        clearInterval(eyeAnimationInterval);
+      }
+      // Reset to center when phase changes or component unmounts
+      pointerX.set(0.5);
+      pointerY.set(0.5);
+    };
+  }, [isInitialPhase, pointerX, pointerY]);
+
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isInitialPhase) return; // Disable pointer tracking during initial animation
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
@@ -97,8 +133,10 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => {
-        pointerX.set(0.5);
-        pointerY.set(0.5);
+        if (!isInitialPhase) {
+            pointerX.set(0.5);
+            pointerY.set(0.5);
+        }
       }}
       style={{ transformStyle: 'preserve-3d' }}
     >
@@ -246,6 +284,7 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
+  const [isInitialPhase, setIsInitialPhase] = useState(true);
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
 
@@ -275,6 +314,7 @@ export default function DesignPage() {
     let phaseTimeout: NodeJS.Timeout;
     
     // Phase 1: Initial subtle animations (first 15 seconds)
+    setIsInitialPhase(true);
     const initialExpressions: Expression[] = ['happy', 'surprised', 'neutral'];
     let initialIndex = 0;
 
@@ -290,6 +330,7 @@ export default function DesignPage() {
     // Phase 2: Switch to full expressions after 15 seconds
     phaseTimeout = setTimeout(() => {
       clearInterval(animationInterval); // Stop the initial animation cycle
+      setIsInitialPhase(false); // End initial phase
       
       const fullExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
       let fullIndex = 0;
@@ -328,11 +369,11 @@ export default function DesignPage() {
   };
 
   const handlePointerDown = () => {
-    setExpression('happy');
+    if (!isInitialPhase) setExpression('happy');
   };
 
   const handlePointerUp = () => {
-    setExpression('neutral');
+    if (!isInitialPhase) setExpression('neutral');
   };
   
   const handleReset = () => {
@@ -516,8 +557,12 @@ export default function DesignPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 pb-32">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
-          <p className="text-muted-foreground">Press the emoji to see it change expression!</p>
-          <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
+          <p className="text-muted-foreground">
+            {isInitialPhase ? "Waking up..." : "Press the emoji to see it change expression!"}
+          </p>
+           <p className="text-xs text-muted-foreground">
+            {isInitialPhase ? "(It's looking around!)" : "(Its eyes will follow you, too!)"}
+          </p>
         </div>
 
         <motion.div
@@ -545,6 +590,7 @@ export default function DesignPage() {
                 color={emojiColor} 
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
+                isInitialPhase={isInitialPhase}
             />
           </motion.div>
         </motion.div>
@@ -562,3 +608,4 @@ export default function DesignPage() {
 }
 
     
+
