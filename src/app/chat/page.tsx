@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent } from '@/components/ui/card';
 import { generateChatResponse, type ChatInput } from '@/ai/flows/generate-chat-response';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -90,11 +89,9 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen">
        <ChatHeader isMuted={isMuted} onToggleMute={toggleMute} />
-       <div className="flex-1 flex flex-col overflow-hidden container py-4">
-        <Card className="flex-1 w-full flex flex-col shadow-lg overflow-hidden">
-            <CardContent className="flex-1 flex flex-col gap-4 p-4 md:p-6 overflow-hidden">
-            <ScrollArea className="flex-1 -mx-4 -mt-4" >
-                <div ref={scrollAreaRef} className="space-y-6 p-4">
+       <div className="flex-1 flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1">
+                <div ref={scrollAreaRef} className="space-y-6 p-4 container">
                 {messages.map((message, index) => (
                     <div
                     key={index}
@@ -145,21 +142,21 @@ export default function ChatPage() {
                 )}
                 </div>
             </ScrollArea>
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 pt-4 border-t">
-                <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                disabled={isLoading}
-                className="flex-1"
-                aria-label="Chat input"
-                />
-                <Button type="submit" size="icon" disabled={isLoading || !input.trim()} aria-label="Send message">
-                <Send className="h-4 w-4" />
-                </Button>
-            </form>
-            </CardContent>
-        </Card>
+            <div className="border-t">
+                <form onSubmit={handleSubmit} className="container flex items-center gap-2 py-4">
+                    <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                    disabled={isLoading}
+                    className="flex-1"
+                    aria-label="Chat input"
+                    />
+                    <Button type="submit" size="icon" disabled={isLoading || !input.trim()} aria-label="Send message">
+                    <Send className="h-4 w-4" />
+                    </Button>
+                </form>
+            </div>
       </div>
     </div>
   );

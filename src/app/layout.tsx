@@ -23,10 +23,8 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <div className="relative flex min-h-screen flex-col">
-          <main className="flex-1 flex flex-col">{children}</main>
-          <div className="pb-16 md:pb-0">
-             <BottomBar />
-          </div>
+          <main className="flex-1 flex flex-col pb-16 md:pb-0">{children}</main>
+          <BottomBar />
         </div>
         <Toaster />
       </body>
