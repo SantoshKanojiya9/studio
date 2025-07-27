@@ -265,6 +265,11 @@ export default function DesignPage() {
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
          <div className="flex items-center gap-4 overflow-x-auto p-4 whitespace-nowrap">
+            <div className="flex items-end h-10">
+                 <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
+                    <RotateCcw className="h-5 w-5" />
+                </Button>
+            </div>
             <div className="space-y-1 flex-shrink-0">
                 <Label htmlFor="bg-color" className="text-xs">Background</Label>
                 <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="p-1 h-10 w-16" />
@@ -289,13 +294,10 @@ export default function DesignPage() {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex items-end h-10">
-                 <Button variant="ghost" size="icon" onClick={handleReset} aria-label="Reset to defaults">
-                    <RotateCcw className="h-5 w-5" />
-                </Button>
-            </div>
          </div>
       </div>
     </div>
   );
 }
+
+    
