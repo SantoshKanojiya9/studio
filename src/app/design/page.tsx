@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -20,37 +21,111 @@ import {
   Sparkles,
   PenTool,
   FlipVertical,
+  ArrowLeft,
+  Heading1,
+  Heading2,
+  CaseSensitive,
 } from 'lucide-react';
 
 const EditorButton = ({
   icon: Icon,
   label,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
+  onClick?: () => void;
 }) => (
   <Button
     variant="ghost"
     className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground p-2 w-full hover:bg-transparent hover:text-primary"
+    onClick={onClick}
   >
     <Icon className="h-6 w-6 mb-1" />
     <span>{label}</span>
   </Button>
 );
 
-const editorTools = [
-  { icon: LayoutTemplate, label: 'Templates' },
-  { icon: Type, label: 'Text' },
-  { icon: Component, label: 'Elements' },
-  { icon: ImageUp, label: 'Uploads' },
-  { icon: Layers, label: 'Layers' },
-  { icon: ImageIcon, label: 'Photos' },
-  { icon: Sparkles, label: 'AI' },
-  { icon: PenTool, label: 'Draw' },
-  { icon: FlipVertical, label: 'Background' },
-];
+const toolConfig = {
+  main: {
+    label: 'Main',
+    tools: [
+      { id: 'templates', icon: LayoutTemplate, label: 'Templates' },
+      { id: 'text', icon: Type, label: 'Text' },
+      { id: 'elements', icon: Component, label: 'Elements' },
+      { id: 'uploads', icon: ImageUp, label: 'Uploads' },
+      { id: 'layers', icon: Layers, label: 'Layers' },
+      { id: 'photos', icon: ImageIcon, label: 'Photos' },
+      { id: 'ai', icon: Sparkles, label: 'AI' },
+      { id: 'draw', icon: PenTool, label: 'Draw' },
+      { id: 'background', icon: FlipVertical, label: 'Background' },
+    ],
+  },
+  templates: {
+    label: 'Templates',
+    tools: [
+      { id: 't-1', icon: LayoutTemplate, label: 'Template 1' },
+      { id: 't-2', icon: LayoutTemplate, label: 'Template 2' },
+      { id: 't-3', icon: LayoutTemplate, label: 'Template 3' },
+    ],
+  },
+  text: {
+    label: 'Text',
+    tools: [
+      { id: 'heading', icon: Heading1, label: 'Heading' },
+      { id: 'subheading', icon: Heading2, label: 'Subheading' },
+      { id: 'body', icon: Type, label: 'Body Text' },
+      { id: 'textbox', icon: CaseSensitive, label: 'Textbox' },
+    ],
+  },
+  elements: {
+    label: 'Elements',
+    tools: [{ id: 'e-1', icon: Component, label: 'Shape' }],
+  },
+  uploads: {
+    label: 'Uploads',
+    tools: [{ id: 'u-1', icon: ImageUp, label: 'Upload File' }],
+  },
+  layers: {
+    label: 'Layers',
+    tools: [{ id: 'l-1', icon: Layers, label: 'Layer 1' }],
+  },
+  photos: {
+    label: 'Photos',
+    tools: [{ id: 'p-1', icon: ImageIcon, label: 'Search Photos' }],
+  },
+  ai: {
+    label: 'AI',
+    tools: [{ id: 'a-1', icon: Sparkles, label: 'Generate' }],
+  },
+  draw: {
+    label: 'Draw',
+    tools: [{ id: 'd-1', icon: PenTool, label: 'Pen' }],
+  },
+  background: {
+    label: 'Background',
+    tools: [{ id: 'b-1', icon: FlipVertical, label: 'Color' }],
+  },
+};
+
+
+type ToolId = keyof typeof toolConfig;
 
 export default function DesignPage() {
+  const [activeTool, setActiveTool] = useState<ToolId>('main');
+
+  const handleToolClick = (toolId: string) => {
+    if (toolId in toolConfig) {
+      setActiveTool(toolId as ToolId);
+    }
+  };
+
+  const handleBackClick = () => {
+    setActiveTool('main');
+  };
+
+  const currentTools = toolConfig[activeTool].tools;
+
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-white">
       {/* Top Bar */}
@@ -85,9 +160,22 @@ export default function DesignPage() {
           className="w-full"
         >
           <CarouselContent className="-ml-0">
-            {editorTools.map((tool, index) => (
-              <CarouselItem key={index} className="basis-1/5 pl-2 first:pl-0">
-                <EditorButton icon={tool.icon} label={tool.label} />
+             {activeTool !== 'main' && (
+              <CarouselItem className="basis-1/5 pl-2 first:pl-0">
+                <EditorButton
+                  icon={ArrowLeft}
+                  label="Back"
+                  onClick={handleBackClick}
+                />
+              </CarouselItem>
+            )}
+            {currentTools.map((tool) => (
+              <CarouselItem key={tool.id} className="basis-1/5 pl-2 first:pl-0">
+                <EditorButton
+                  icon={tool.icon}
+                  label={tool.label}
+                  onClick={() => handleToolClick(tool.id)}
+                />
               </CarouselItem>
             ))}
           </CarouselContent>
