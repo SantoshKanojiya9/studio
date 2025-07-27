@@ -71,12 +71,6 @@ export default function ChatPage() {
     <div className="flex flex-col h-full">
        <ChatHeader />
        <div className="flex-1 flex flex-col overflow-hidden p-4 space-y-4">
-            <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 rounded-full bg-primary/10 text-primary px-4 py-2">
-                    <MessageSquare size={18} />
-                    <span className="font-semibold text-sm">AI Assistant</span>
-                </div>
-            </div>
             <ScrollArea className="flex-1" viewportRef={scrollAreaViewportRef}>
                 <div className="space-y-6 pr-4">
                 {messages.map((message, index) => (
