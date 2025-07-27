@@ -31,7 +31,7 @@ const EditorButton = ({
 }) => (
   <Button
     variant="ghost"
-    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground p-2 w-full"
+    className="flex flex-col items-center justify-center h-auto text-xs text-muted-foreground p-2 w-full hover:bg-transparent hover:text-primary"
   >
     <Icon className="h-6 w-6 mb-1" />
     <span>{label}</span>
