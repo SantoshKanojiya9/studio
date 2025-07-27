@@ -17,7 +17,6 @@ import {
   Component,
   ImageUp,
   Layers,
-  Image as ImageIcon,
   PenTool,
   FlipVertical,
   ArrowLeft,
@@ -25,7 +24,6 @@ import {
   Heading2,
   CaseSensitive,
   Square,
-  Search,
   Paintbrush,
   Palette,
 } from 'lucide-react';
@@ -62,7 +60,6 @@ const toolConfig = {
       { id: 'elements', icon: Component, label: 'Elements' },
       { id: 'uploads', icon: ImageUp, label: 'Uploads' },
       { id: 'overlap', icon: Layers, label: 'Overlap' },
-      { id: 'photos', icon: ImageIcon, label: 'Photos' },
       { id: 'draw', icon: PenTool, label: 'Draw' },
       { id: 'background', icon: FlipVertical, label: 'Background' },
     ],
@@ -95,10 +92,6 @@ const toolConfig = {
   overlap: {
     label: 'Overlap',
     tools: [{ id: 'l-1', icon: Layers, label: 'Layer 1' }],
-  },
-  photos: {
-    label: 'Photos',
-    tools: [{ id: 'search-photos', icon: Search, label: 'Search Photos', image: 'https://placehold.co/600x400.png', hint: 'landscape photo' }],
   },
   draw: {
     label: 'Draw',
