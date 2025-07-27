@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +40,12 @@ const Face = ({ expression }: { expression: Expression }) => {
       open: { scaleY: 1 },
   }
 
+  const blushVariants = {
+    neutral: { opacity: 0, scale: 0.8 },
+    happy: { opacity: 0.7, scale: 1 },
+    angry: { opacity: 0, scale: 0.8 },
+  }
+
   return (
     <motion.div 
       className="relative w-80 h-64"
@@ -49,6 +55,23 @@ const Face = ({ expression }: { expression: Expression }) => {
         <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center relative">
          {/* Noise Texture Overlay */}
          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C%2Fsvg%3E')] opacity-10"></div>
+          
+           {/* Cheeks */}
+            <div className="flex justify-between w-56 absolute top-40">
+                <motion.div 
+                    className="w-12 h-6 bg-pink-400 rounded-full"
+                    variants={blushVariants}
+                    animate={expression}
+                    transition={{ duration: 0.3 }}
+                />
+                <motion.div 
+                    className="w-12 h-6 bg-pink-400 rounded-full"
+                    variants={blushVariants}
+                    animate={expression}
+                    transition={{ duration: 0.3 }}
+                />
+            </div>
+          
           {/* Eyes */}
           <div className="flex gap-20 absolute top-28">
             {/* Left Eye */}
@@ -128,8 +151,24 @@ const Face = ({ expression }: { expression: Expression }) => {
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
+  const [isInteracting, setIsInteracting] = useState(false);
+  const expressions: Expression[] = ['neutral', 'happy', 'angry'];
+
+  useEffect(() => {
+    if (isInteracting) return;
+
+    const intervalId = setInterval(() => {
+        setExpression(prev => {
+            const nextIndex = (expressions.indexOf(prev) + 1) % expressions.length;
+            return expressions[nextIndex];
+        });
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [isInteracting]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsInteracting(true);
     // A standard mouse click will have pressure 0.5.
     // Pressure-sensitive devices can provide a range from 0 to 1.
     if (e.pressure > 0.5) {
@@ -141,14 +180,15 @@ export default function DesignPage() {
 
   const handlePointerUp = () => {
     setExpression('neutral');
+    setIsInteracting(false);
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-full w-full bg-background touch-none overflow-hidden">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold">Interactive Emoji</h1>
-        <p className="text-muted-foreground">Press on the emoji. A harder press makes it angry!</p>
-        <p className="text-xs text-muted-foreground">(Requires a pressure-sensitive screen for best results)</p>
+        <p className="text-muted-foreground">It changes expression on its own, or you can press it!</p>
+        <p className="text-xs text-muted-foreground">(Harder presses make it angry on supported devices)</p>
       </div>
 
       <motion.div
