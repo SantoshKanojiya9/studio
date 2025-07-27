@@ -718,18 +718,37 @@ export default function DesignPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold">Interactive Emoji</h1>
-          <p className="text-muted-foreground">
-            {isInitialPhase ? "Waking up..." : "Click the emoji to see it change expression!"}
-          </p>
-           <p className="text-xs text-muted-foreground">
-            {isInitialPhase ? "(It's looking around!)" : "(Its eyes will follow you, too!)"}
-          </p>
-          {isInitialPhase && (
-            <Button onClick={skipInitialAnimation} variant="outline" size="sm" className="mt-2">
-                <SkipForward className="mr-2 h-4 w-4" />
-                Skip Intro
-            </Button>
-           )}
+           <div className="relative h-12">
+                <AnimatePresence>
+                {isInitialPhase ? (
+                    <motion.div
+                        key="intro-text"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center"
+                    >
+                        <p className="text-muted-foreground">Waking up...</p>
+                        <p className="text-xs text-muted-foreground">(It's looking around!)</p>
+                         <Button onClick={skipInitialAnimation} variant="outline" size="sm" className="mt-2">
+                            <SkipForward className="mr-2 h-4 w-4" />
+                            Skip Intro
+                        </Button>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="interactive-text"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                         className="absolute inset-0 flex flex-col items-center justify-center"
+                    >
+                        <p className="text-muted-foreground">Click the emoji to see it change expression!</p>
+                        <p className="text-xs text-muted-foreground">(Its eyes will follow you, too!)</p>
+                    </motion.div>
+                )}
+                </AnimatePresence>
+            </div>
         </div>
 
         <motion.div
