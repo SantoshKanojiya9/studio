@@ -219,19 +219,19 @@ export default function DesignPage() {
   const smoothRotateX = useSpring(rotateX, springConfig);
   const smoothRotateY = useSpring(rotateY, springConfig);
 
-  const handleMouseMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const pointerX = e.clientX - rect.left;
+    const pointerY = e.clientY - rect.top;
 
-    x.set((mouseX / width) * 2 - 1);
-    y.set((mouseY / height) * 2 - 1);
+    x.set((pointerX / width) * 2 - 1);
+    y.set((pointerY / height) * 2 - 1);
   };
 
-  const handleMouseLeave = () => {
+  const handlePointerLeave = () => {
     x.set(0);
     y.set(0);
   };
@@ -286,8 +286,8 @@ export default function DesignPage() {
         </div>
 
         <motion.div
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerLeave}
           style={{
             transformStyle: 'preserve-3d',
             perspective: '1000px',
