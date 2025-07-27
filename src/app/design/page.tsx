@@ -235,7 +235,7 @@ const Face = ({
                 className="absolute top-[-30px] left-1/2 -translate-x-1/2"
                 style={{ transform: 'translateZ(5px)' }}
                 initial={{ opacity: 0, y: -20, rotate: -15 }}
-                animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? 0 : -15 }}
+                animate={{ opacity: showPartyHat ? 1 : 0, y: showPartyHat ? 0 : -20, rotate: showPartyHat ? -10 : -15 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
                 <div className="relative w-0 h-0" style={{ borderLeft: '40px solid transparent', borderRight: '40px solid transparent', borderBottom: '80px solid #4CAF50'}}></div>
