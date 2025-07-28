@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, useAnimationControls }
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft, SmilePlus, Moon } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -380,8 +380,8 @@ export default function DesignPage() {
             }
             
             const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
-            faceAnimationControls.start(faceAnimProps, transition);
-            pupilAnimationControls.start(pupilAnimProps, transition);
+            faceAnimationControls.start({ ...faceAnimProps, transition });
+            pupilAnimationControls.start({ ...pupilAnimProps, transition });
         }
       }, 100);
   };
@@ -614,6 +614,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-
-    
