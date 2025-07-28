@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useAnimation, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -118,12 +118,21 @@ const Face = ({
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
   const pupilXIllusion = useMotionValue(0);
-  const useAnimationControls = useAnimation();
+  const pupilYIllusion = useMotionValue(0);
+  const animationControls = useAnimation();
   
   useEffect(() => {
     if (isIllusionActive) {
-        useAnimationControls.start({
-            x: [-12, 12],
+        let animProps = {};
+        switch(activeIllusionType) {
+            case 0: animProps = { x: [-12, 12] }; break;
+            case 1: animProps = { y: [-8, 8] }; break;
+            case 2: animProps = { x: [12, -12], y: [-8, 8] }; break;
+            case 3: animProps = { x: [-12, 12], y: [-8, 8] }; break;
+        }
+
+        animationControls.start({
+            ...animProps,
             transition: {
                 duration: 3,
                 repeat: Infinity,
@@ -132,15 +141,14 @@ const Face = ({
             },
         });
     } else {
-        useAnimationControls.stop();
-        useAnimationControls.start({
-            x: 0,
-            transition: { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 },
-        });
+        animationControls.stop();
+        animate(pupilXIllusion, 0, { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 });
+        animate(pupilYIllusion, 0, { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 });
     }
-  }, [isIllusionActive, useAnimationControls]);
+  }, [isIllusionActive, activeIllusionType, animationControls]);
 
   const finalPupilX = isIllusionActive ? pupilXIllusion : pupilX;
+  const finalPupilY = isIllusionActive ? pupilYIllusion : pupilY;
 
   const eyeContainerVariants = {
     rest: { x: 0, y: 0, transition: { type: 'spring', duration: 1.5, bounce: 0.2 } },
@@ -231,7 +239,8 @@ const Face = ({
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: finalPupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: finalPupilX, y: finalPupilY, translateX: '-50%', translateY: '-50%' }}
+                        animate={animationControls}
                     >
                          <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
@@ -260,7 +269,8 @@ const Face = ({
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: finalPupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: finalPupilX, y: finalPupilY, translateX: '-50%', translateY: '-50%' }}
+                        animate={animationControls}
                     >
                         <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
