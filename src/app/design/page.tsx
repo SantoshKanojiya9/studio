@@ -486,14 +486,16 @@ export default function DesignPage() {
 
   useEffect(() => {
     // When mood changes, restart the animation cycle
-    resumeExpressionAnimation();
+    if (activeMenu === 'main' || activeMenu === 'moods') {
+      resumeExpressionAnimation();
+    }
     
     return stopAllAnimations;
-  }, [mood]);
+  }, [mood, activeMenu]);
 
 
   useEffect(() => {
-    resumeExpressionAnimation(); // Start the default animation
+    runContinuousIllusion(); // Start the default animation
     return stopAllAnimations; // Cleanup on unmount
   }, []);
 
@@ -560,19 +562,19 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center justify-start gap-2 md:gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('colors'); resumeExpressionAnimation(); }}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { setActiveMenu('colors'); }}>
                         <Palette className="h-5 w-5" />
                         <span className="text-sm">Colors</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('effects'); resumeExpressionAnimation(); }}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { setActiveMenu('effects'); }}>
                         <Wand2 className="h-5 w-5" />
                         <span className="text-sm">Effects</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('accessories'); resumeExpressionAnimation(); }}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { setActiveMenu('accessories'); }}>
                         <SmilePlus className="h-5 w-5" />
                         <span className="text-sm">Accessories</span>
                     </Button>
-                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('moods'); resumeExpressionAnimation(); }}>
+                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { setActiveMenu('moods'); }}>
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
