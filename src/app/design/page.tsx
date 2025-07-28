@@ -134,16 +134,16 @@ const Face = ({
         pupilXIllusionAnim.stop();
         pupilXIllusionAnim.start({
             x: 0,
-            transition: { type: 'spring', stiffness: 200, damping: 15 },
+            transition: { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 },
             onComplete: onIllusionEnd
         });
     }
-  }, [isEyeMovingPhase, pupilXIllusionAnim, pupilXIllusion, onIllusionEnd]);
+  }, [isEyeMovingPhase, pupilXIllusionAnim, onIllusionEnd]);
 
   const finalPupilX = isEyeMovingPhase ? pupilXIllusion : pupilX;
 
   const eyeContainerVariants = {
-    rest: { x: 0, y: 0 },
+    rest: { x: 0, y: 0, transition: { type: 'spring', duration: 1.5, bounce: 0.2 } },
     moving: { x: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } }
   };
 
