@@ -10,13 +10,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Eye } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Eye, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'winking' | 'playful-tongue';
-type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories' | 'moods';
+type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories' | 'moods' | 'illusions';
 type Mood = 'default' | 'sleepy' | 'playful';
 type IllusionType = 0 | 1 | 2 | 3; // 0: L-R, 1: U-D, 2: TR-BL, 3: TL-BR
 
@@ -144,8 +144,8 @@ const Face = ({
 
   const eyeContainerVariants = {
     rest: { x: 0, y: 0, transition: { type: 'spring', duration: 1.5, bounce: 0.2 } },
-    movingLR: { x: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
-    movingUD: { y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
+    movingLR: { x: [-20, 20], y: 0, transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
+    movingUD: { y: [-20, 20], x: 0, transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
     movingTRBL: { x: [20, -20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
     movingTLBR: { x: [-20, 20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
   };
@@ -429,15 +429,13 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
-  const startIllusionPhase = () => {
+  const startIllusionPhase = (illusionType: IllusionType) => {
       clearAllTimeouts();
       setIsInitialPhase(false);
       setIsIllusionActive(true);
-      
-      const nextIllusionType = ((activeIllusionType + 1) % 4) as IllusionType;
-      setActiveIllusionType(nextIllusionType);
+      setActiveIllusionType(illusionType);
 
-      switch(nextIllusionType) {
+      switch(illusionType) {
           case 0: setExpression('surprised'); break;
           case 1: setExpression('surprised'); break;
           case 2: setExpression('happy'); break;
@@ -449,6 +447,10 @@ export default function DesignPage() {
           resumeExpressionAnimation();
       }, 6000); // 6 seconds for illusion
   };
+
+  const startIntroIllusion = () => {
+     startIllusionPhase(0); // Start with the first illusion
+  }
   
   const startAnimation = () => {
     clearAllTimeouts();
@@ -476,7 +478,7 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
 
     phaseTimeoutRef.current = setTimeout(() => {
-        startIllusionPhase();
+        startIntroIllusion();
     }, 15000); // 15 seconds
 
     return clearAllTimeouts;
@@ -587,7 +589,7 @@ export default function DesignPage() {
         fill="currentColor"
         className="h-5 w-5"
       >
-        <path d="M7.40039 12.8799C8.36839 11.9119 10.0244 10.9999 12.0004 10.9999C13.9764 10.9999 15.6324 11.9119 16.6004 12.8799C16.8434 13.1229 17.2424 13.1229 17.4854 12.8799C17.7284 12.6369 17.7284 12.2379 17.4854 11.9949C16.2994 10.8089 14.3984 9.99991 12.0004 9.99991C9.60239 9.99991 7.70139 10.8089 6.51539 11.9949C6.27239 12.2379 6.27239 12.6369 6.51539 12.8799C6.75839 13.1229 7.15739 13.1229 7.40039 12.8799Z" />
+        <path d="M7.40039 12.8799C8.36839 11.9119 10.0244 10.9999 12.0004 10.9999C13.9764 10.9999 15.6324 11.9119 16.6004 12.8799C16.8434 13.1229 17.2424 13.1229 17.4854 12.8799C17.7284 12.6369 17.7284 12.2379 17.4854 11.9949C16.2994 10.8089 14.3984 9.99991 12.0004 9.99991C9.60239 9.99991 7.70139 10.8089 6.51539 11.9949C6.27239 12.2379 6.27239 12.2369 6.51539 12.8799C6.75839 13.1229 7.15739 13.1229 7.40039 12.8799Z" />
       </svg>
     );
     
@@ -631,7 +633,7 @@ export default function DesignPage() {
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={startIllusionPhase}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('illusions')}>
                         <Eye className="h-5 w-5" />
                         <span className="text-sm">Illusion</span>
                     </Button>
@@ -781,6 +783,53 @@ export default function DesignPage() {
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent><p>Playful Mood</p></TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </motion.div>
+            );
+        case 'illusions':
+            return (
+                <motion.div 
+                    key="illusions"
+                    variants={menuVariants} initial="hidden" animate="visible" exit="exit"
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="flex items-center gap-4 whitespace-nowrap"
+                >
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(0)}>
+                                    <ArrowLeftRight className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Horizontal Illusion</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(1)}>
+                                    <ArrowUpDown className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Vertical Illusion</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(2)}>
+                                    <ArrowUpRight className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Diagonal (TR-BL)</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(3)}>
+                                    <ArrowDownLeft className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Diagonal (TL-BR)</p></TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </motion.div>
