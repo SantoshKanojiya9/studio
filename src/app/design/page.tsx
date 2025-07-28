@@ -27,7 +27,8 @@ const Face = ({
     isInitialPhase,
     isEyeMovingPhase,
     pointerX,
-    pointerY
+    pointerY,
+    onIllusionEnd
 }: { 
     expression: Expression, 
     color: string, 
@@ -36,7 +37,8 @@ const Face = ({
     isInitialPhase: boolean,
     isEyeMovingPhase: boolean,
     pointerX: any,
-    pointerY: any
+    pointerY: any,
+    onIllusionEnd: () => void
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -130,9 +132,13 @@ const Face = ({
         });
     } else {
         pupilXIllusionAnim.stop();
-        pupilXIllusion.set(0);
+        pupilXIllusionAnim.start({
+            x: 0,
+            transition: { type: 'spring', stiffness: 200, damping: 15 },
+            onComplete: onIllusionEnd
+        });
     }
-  }, [isEyeMovingPhase, pupilXIllusionAnim, pupilXIllusion]);
+  }, [isEyeMovingPhase, pupilXIllusionAnim, pupilXIllusion, onIllusionEnd]);
 
   const finalPupilX = isEyeMovingPhase ? pupilXIllusion : pupilX;
 
@@ -415,8 +421,12 @@ export default function DesignPage() {
       setExpression('surprised');
 
       eyeMovementTimeoutRef.current = setTimeout(() => {
-          resumeExpressionAnimation();
+          setIsEyeMovingPhase(false); // This will trigger the smooth return animation
       }, 6000); // 6 seconds for eye movement
+  };
+
+  const handleIllusionEnd = () => {
+    resumeExpressionAnimation();
   };
   
   const startAnimation = () => {
@@ -803,6 +813,7 @@ export default function DesignPage() {
                 isEyeMovingPhase={isEyeMovingPhase}
                 pointerX={pointerX}
                 pointerY={pointerY}
+                onIllusionEnd={handleIllusionEnd}
             />
           </motion.div>
         </motion.div>
