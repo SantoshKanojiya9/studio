@@ -7,16 +7,15 @@ import { motion, useMotionValue, useTransform, useSpring, useAnimationControls }
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy';
-type Mood = 'default' | 'sleepy';
-type IllusionType = 0 | 1 | 2 | 3;
-type MenuType = 'main' | 'colors' | 'effects' | 'accessories' | 'moods' | 'illusions';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+type IllusionType = 'horizontal' | 'vertical' | 'diagonal-tr-bl' | 'diagonal-tl-br' | 'random';
+type MenuType = 'main' | 'colors' | 'effects' | 'accessories' | 'illusions';
 
 const Face = ({ 
     expression, 
@@ -43,7 +42,6 @@ const Face = ({
     angry: { y: -2, scaleY: 1 },
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
-    sleepy: { y: 8, scaleY: 0.4 },
   };
 
   const mouthVariants = {
@@ -62,9 +60,6 @@ const Face = ({
     surprised: {
         d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", // Open mouth
     },
-    sleepy: {
-        d: "M 40 60 Q 50 75 60 60 A 15 15 0 0 1 40 60", // Yawn
-    },
   };
   
   const eyebrowVariants = {
@@ -73,7 +68,6 @@ const Face = ({
     angry: { y: 2, rotate: 10 },
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
-    sleepy: { y: 4, rotate: 0 },
   }
 
   const eyeLidVariants = {
@@ -87,7 +81,6 @@ const Face = ({
     angry: { opacity: 0, scale: 1.1 },
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
-    sleepy: { opacity: 0.2, scale: 0.9 },
   }
   
   const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
@@ -270,7 +263,6 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [mood, setMood] = useState<Mood>('default');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
 
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
@@ -302,12 +294,8 @@ export default function DesignPage() {
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const illusionStateRef = useRef(false);
 
-  const animationSequences: Record<Mood, Expression[]> = {
-    default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
-    sleepy: ['neutral', 'sleepy', 'neutral', 'sleepy'],
-  };
-
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+  const expressionCycle: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
@@ -321,79 +309,87 @@ export default function DesignPage() {
     pupilAnimationControls.stop();
   }
   
-  const resumeExpressionAnimation = () => {
-    stopAllAnimations();
-    const expressions = animationSequences[mood];
-    let index = 0;
-    const runAnimation = () => {
-        setExpression(expressions[index % expressions.length]);
-        index++;
-    };
-    runAnimation();
-    animationIntervalRef.current = setInterval(runAnimation, 3000);
-  };
-  
   useEffect(() => {
-    resumeExpressionAnimation();
-    return () => stopAllAnimations();
-  }, [mood]);
+    let isMounted = true;
+    let expressionIndex = 0;
 
-  const startIllusionPhase = (illusionType: IllusionType) => {
+    const runExpressionCycle = () => {
+        if (!isMounted || illusionStateRef.current) return;
+        setExpression(expressionCycle[expressionIndex % expressionCycle.length]);
+        expressionIndex++;
+    };
+
+    runExpressionCycle(); // Run once immediately
+    animationIntervalRef.current = setInterval(runExpressionCycle, 3000);
+
+    return () => {
+        isMounted = false;
+        stopAllAnimations();
+    };
+  }, []);
+
+  const startIllusion = async (illusionType: IllusionType) => {
       stopAllAnimations();
       illusionStateRef.current = true;
       
-      let faceAnimProps = {};
-      let pupilAnimProps = {};
-
-      switch(illusionType) {
-          case 0: 
-              faceAnimProps = { x: [-20, 20] };
-              pupilAnimProps = { x: [-12, 12] };
-              break;
-          case 1: 
-              faceAnimProps = { y: [-20, 20] };
-              pupilAnimProps = { y: [-8, 8] };
-              break;
-          case 2:
-              faceAnimProps = { x: [20, -20], y: [-20, 20] };
-              pupilAnimProps = { x: [12, -12], y: [-8, 8] };
-              break;
-          case 3:
-              faceAnimProps = { x: [-20, 20], y: [-20, 20] };
-              pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
-              break;
-      }
-      
-      const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
-      faceAnimationControls.start({ ...faceAnimProps, transition });
-      pupilAnimationControls.start({ ...pupilAnimProps, transition });
-
-      animationIntervalRef.current = setInterval(() => {
-        if (illusionStateRef.current) {
+      if (illusionType === 'random') {
+        // Continuous random daydream
+        animationIntervalRef.current = setInterval(() => {
+          if (illusionStateRef.current) {
             setExpression(getRandomExpression());
+          }
+        }, 2000);
+
+        while (illusionStateRef.current) {
+            const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
+            const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
+            
+            const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 });
+            const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
+
+            await Promise.all([faceAnimation, pupilAnimation]);
+
+            if (!illusionStateRef.current) break;
+
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
         }
-      }, 2000);
-  };
 
-  const runContinuousIllusion = async () => {
-    stopAllAnimations();
-    illusionStateRef.current = true;
+      } else {
+        // Fixed path illusions
+        let faceAnimProps = {};
+        let pupilAnimProps = {};
 
-    while (illusionStateRef.current) {
-        setExpression(getRandomExpression());
-        const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
-        const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
+        switch(illusionType) {
+            case 'horizontal': 
+                faceAnimProps = { x: [-20, 20] };
+                pupilAnimProps = { x: [-12, 12] };
+                break;
+            case 'vertical': 
+                faceAnimProps = { y: [-20, 20] };
+                pupilAnimProps = { y: [-8, 8] };
+                break;
+            case 'diagonal-tr-bl':
+                faceAnimProps = { x: [20, -20], y: [-20, 20] };
+                pupilAnimProps = { x: [12, -12], y: [-8, 8] };
+                break;
+            case 'diagonal-tl-br':
+                faceAnimProps = { x: [-20, 20], y: [-20, 20] };
+                pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
+                break;
+        }
         
-        const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 });
-        const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
+        const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
+        faceAnimationControls.start({ ...faceAnimProps, transition });
+        pupilAnimationControls.start({ ...pupilAnimProps, transition });
 
-        await Promise.all([faceAnimation, pupilAnimation]);
-
-        if (!illusionStateRef.current) break;
-
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    }
+        animationIntervalRef.current = setInterval(() => {
+          if (illusionStateRef.current) {
+              setExpression(getRandomExpression());
+          }
+        }, 2000);
+      }
   };
+
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -413,15 +409,25 @@ export default function DesignPage() {
   };
   
   const handleReset = () => {
+    stopAllAnimations();
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
     setFilter(defaultFilter);
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
-    setMood('default');
-    resumeExpressionAnimation();
     setActiveMenu('main');
+    // Restart animation cycle after a brief moment
+    setTimeout(() => {
+        let expressionIndex = 0;
+        const runExpressionCycle = () => {
+            if (illusionStateRef.current) return;
+            setExpression(expressionCycle[expressionIndex % expressionCycle.length]);
+            expressionIndex++;
+        };
+        runExpressionCycle();
+        animationIntervalRef.current = setInterval(runExpressionCycle, 3000);
+    }, 100)
   };
   
   const MustacheIcon = () => (
@@ -507,52 +513,29 @@ export default function DesignPage() {
                     </Tooltip>
                  </>
             );
-        case 'moods':
-            return (
-                <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => { setMood('default'); resumeExpressionAnimation(); }} className={cn(mood === 'default' && 'bg-secondary')}>
-                                <SmilePlus className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Default Mood</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                           <Button variant="ghost" size="icon" onClick={() => { setMood('sleepy'); resumeExpressionAnimation(); }} className={cn(mood === 'sleepy' && 'bg-secondary')}>
-                                <Moon className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Sleepy Mood</p></TooltipContent>
-                    </Tooltip>
-                </>
-            );
         case 'illusions':
              return (
                 <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => { stopAllAnimations(); setActiveMenu('main'); }}><ArrowLeft /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                      <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(0)}><ArrowLeftRight className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('horizontal')}><ArrowLeftRight className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Horizontal Illusion</p></TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(1)}><ArrowUpDown className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('vertical')}><ArrowUpDown className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Vertical Illusion</p></TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(2)}><ArrowUpRight className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('diagonal-tr-bl')}><ArrowUpRight className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Diagonal (TR-BL)</p></TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(3)}><ArrowDownLeft className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('diagonal-tl-br')}><ArrowDownLeft className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Diagonal (TL-BR)</p></TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={runContinuousIllusion}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('random')}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Random Daydream</p></TooltipContent>
                     </Tooltip>
                 </>
@@ -570,7 +553,7 @@ export default function DesignPage() {
                         <TooltipContent><p>Colors</p></TooltipContent>
                     </Tooltip>
                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}><Sparkles className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Effects</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
@@ -578,11 +561,7 @@ export default function DesignPage() {
                         <TooltipContent><p>Accessories</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('moods')}><SmilePlus className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Moods</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('illusions')}><Drama className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => { stopAllAnimations(); setActiveMenu('illusions');}}><Drama className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Illusions</p></TooltipContent>
                     </Tooltip>
                 </>
