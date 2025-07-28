@@ -328,42 +328,11 @@ export default function DesignPage() {
         if (!illusionStateRef.current) return;
 
         if (illusionType === 'random') {
-            const illusionPatterns: Exclude<IllusionType, 'random'>[] = ['horizontal', 'vertical', 'diagonal-tr-bl', 'diagonal-tl-br'];
-
-            while (illusionStateRef.current) {
-                setExpression(getRandomExpression());
-
-                const pattern = illusionPatterns[Math.floor(Math.random() * illusionPatterns.length)];
-                
-                let faceAnimProps = {};
-                let pupilAnimProps = {};
-                const transition = { duration: 2, ease: 'easeInOut' as const };
-
-                switch(pattern) {
-                    case 'horizontal': 
-                        faceAnimProps = { x: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        pupilAnimProps = { x: [-12, 12], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        break;
-                    case 'vertical': 
-                        faceAnimProps = { y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        pupilAnimProps = { y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        break;
-                    case 'diagonal-tr-bl':
-                        faceAnimProps = { x: [20, -20], y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        pupilAnimProps = { x: [12, -12], y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        break;
-                    case 'diagonal-tl-br':
-                        faceAnimProps = { x: [-20, 20], y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        pupilAnimProps = { x: [-12, 12], y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
-                        break;
+            animationIntervalRef.current = setInterval(() => {
+                if (illusionStateRef.current) {
+                    setExpression(getRandomExpression());
                 }
-                
-                const faceAnimation = faceAnimationControls.start(faceAnimProps);
-                const pupilAnimation = pupilAnimationControls.start(pupilAnimProps);
-
-                await Promise.all([faceAnimation, pupilAnimation]);
-                if (!illusionStateRef.current) break;
-            }
+            }, 3000);
         } else {
             animationIntervalRef.current = setInterval(() => {
                 if (illusionStateRef.current) {
@@ -402,6 +371,7 @@ export default function DesignPage() {
   };
   
   useEffect(() => {
+    startIllusion('random');
     return () => stopAllAnimations();
   }, []);
 
