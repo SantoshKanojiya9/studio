@@ -324,43 +324,51 @@ export default function DesignPage() {
       resetAnimationState();
       setIsIllusionActive(true);
       
-      // Delay slightly to ensure state ref is updated
       setTimeout(async () => {
         if (!illusionStateRef.current) return;
 
         if (illusionType === 'random') {
-            // Continuous random daydream where all features move independently
-            animationIntervalRef.current = setInterval(() => {
-            if (illusionStateRef.current) {
-                setExpression(getRandomExpression());
-            }
-            }, 3000);
+            const illusionPatterns: Exclude<IllusionType, 'random'>[] = ['horizontal', 'vertical', 'diagonal-tr-bl', 'diagonal-tl-br'];
 
             while (illusionStateRef.current) {
-                const targetFace = { 
-                    x: (Math.random() - 0.5) * 30, 
-                    y: (Math.random() - 0.5) * 30,
-                    rotate: (Math.random() - 0.5) * 10,
-                };
-                const targetPupil = { 
-                    x: (Math.random() - 0.5) * 24, 
-                    y: (Math.random() - 0.5) * 16 
-                };
+                setExpression(getRandomExpression());
+
+                const pattern = illusionPatterns[Math.floor(Math.random() * illusionPatterns.length)];
                 
-                const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 20, damping: 10 });
-                const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
+                let faceAnimProps = {};
+                let pupilAnimProps = {};
+                const transition = { duration: 2, ease: 'easeInOut' as const };
+
+                switch(pattern) {
+                    case 'horizontal': 
+                        faceAnimProps = { x: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        pupilAnimProps = { x: [-12, 12], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        break;
+                    case 'vertical': 
+                        faceAnimProps = { y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        pupilAnimProps = { y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        break;
+                    case 'diagonal-tr-bl':
+                        faceAnimProps = { x: [20, -20], y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        pupilAnimProps = { x: [12, -12], y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        break;
+                    case 'diagonal-tl-br':
+                        faceAnimProps = { x: [-20, 20], y: [-20, 20], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        pupilAnimProps = { x: [-12, 12], y: [-8, 8], transition: {...transition, repeat: 1, repeatType: 'mirror' as const} };
+                        break;
+                }
+                
+                const faceAnimation = faceAnimationControls.start(faceAnimProps);
+                const pupilAnimation = pupilAnimationControls.start(pupilAnimProps);
 
                 await Promise.all([faceAnimation, pupilAnimation]);
                 if (!illusionStateRef.current) break;
-                await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1500));
             }
-
         } else {
-            // Fixed path illusions
             animationIntervalRef.current = setInterval(() => {
-            if (illusionStateRef.current) {
-                setExpression(getRandomExpression());
-            }
+                if (illusionStateRef.current) {
+                    setExpression(getRandomExpression());
+                }
             }, 2000);
 
             const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
