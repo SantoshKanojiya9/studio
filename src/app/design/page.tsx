@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useAnimation, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useAnimationControls, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -30,6 +30,8 @@ const Face = ({
     activeIllusionType,
     pointerX,
     pointerY,
+    faceAnimationControls,
+    pupilAnimationControls,
 }: { 
     expression: Expression, 
     color: string, 
@@ -40,6 +42,8 @@ const Face = ({
     activeIllusionType: IllusionType,
     pointerX: any,
     pointerY: any,
+    faceAnimationControls: any,
+    pupilAnimationControls: any,
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -117,58 +121,6 @@ const Face = ({
   const pupilX = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const pupilXIllusion = useMotionValue(0);
-  const pupilYIllusion = useMotionValue(0);
-  const animationControls = useAnimation();
-  
-  useEffect(() => {
-    if (isIllusionActive) {
-        let animProps = {};
-        switch(activeIllusionType) {
-            case 0: animProps = { x: [-12, 12] }; break;
-            case 1: animProps = { y: [-8, 8] }; break;
-            case 2: animProps = { x: [12, -12], y: [-8, 8] }; break;
-            case 3: animProps = { x: [-12, 12], y: [-8, 8] }; break;
-        }
-
-        animationControls.start({
-            ...animProps,
-            transition: {
-                duration: 3,
-                repeat: Infinity,
-                repeatType: 'mirror',
-                ease: 'easeInOut',
-            },
-        });
-    } else {
-        animationControls.stop();
-        animate(pupilXIllusion, 0, { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 });
-        animate(pupilYIllusion, 0, { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 });
-    }
-  }, [isIllusionActive, activeIllusionType, animationControls]);
-
-  const finalPupilX = isIllusionActive ? pupilXIllusion : pupilX;
-  const finalPupilY = isIllusionActive ? pupilYIllusion : pupilY;
-
-  const eyeContainerVariants = {
-    rest: { x: 0, y: 0, transition: { type: 'spring', duration: 1.5, bounce: 0.2 } },
-    movingLR: { x: [-20, 20], y: 0, transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
-    movingUD: { y: [-20, 20], x: 0, transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
-    movingTRBL: { x: [20, -20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
-    movingTLBR: { x: [-20, 20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
-  };
-
-  const getAnimationTarget = () => {
-      if (!isIllusionActive) return 'rest';
-      switch(activeIllusionType) {
-          case 0: return 'movingLR';
-          case 1: return 'movingUD';
-          case 2: return 'movingTRBL';
-          case 3: return 'movingTLBR';
-          default: return 'rest';
-      }
-  }
-
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isInitialPhase || isIllusionActive) return;
     if (e.currentTarget) {
@@ -210,8 +162,7 @@ const Face = ({
             {/* Cheeks */}
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
-                    variants={eyeContainerVariants}
-                    animate={getAnimationTarget()}
+                    animate={faceAnimationControls}
                 >
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
@@ -231,16 +182,15 @@ const Face = ({
             <motion.div 
                 className="flex gap-20 absolute top-28" 
                 style={{ transform: 'translateZ(20px)' }}
-                variants={eyeContainerVariants}
-                animate={getAnimationTarget()}
+                animate={faceAnimationControls}
             >
                 {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: finalPupilX, y: finalPupilY, translateX: '-50%', translateY: '-50%' }}
-                        animate={animationControls}
+                        style={{ x: isIllusionActive ? 0 : pupilX, y: isIllusionActive ? 0 : pupilY, translateX: '-50%', translateY: '-50%' }}
+                        animate={pupilAnimationControls}
                     >
                          <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
@@ -269,8 +219,8 @@ const Face = ({
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: finalPupilX, y: finalPupilY, translateX: '-50%', translateY: '-50%' }}
-                        animate={animationControls}
+                        style={{ x: isIllusionActive ? 0 : pupilX, y: isIllusionActive ? 0 : pupilY, translateX: '-50%', translateY: '-50%' }}
+                        animate={pupilAnimationControls}
                     >
                         <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
@@ -296,8 +246,7 @@ const Face = ({
             <motion.div 
                 className="absolute bottom-12" 
                 style={{ transform: 'translateZ(10px)' }}
-                variants={eyeContainerVariants}
-                animate={getAnimationTarget()}
+                animate={faceAnimationControls}
             >
                 <svg width="100" height="40" viewBox="0 0 100 80">
                     <motion.path
@@ -400,12 +349,20 @@ export default function DesignPage() {
   const smoothRotateX = useSpring(rotateX, springConfig);
   const smoothRotateY = useSpring(rotateY, springConfig);
 
+  const faceAnimationControls = useAnimationControls();
+  const pupilAnimationControls = useAnimationControls();
+  const illusionStateRef = useRef(isIllusionActive);
+
+  useEffect(() => {
+    illusionStateRef.current = isIllusionActive;
+  }, [isIllusionActive]);
+
+
   const clickCount = useRef(0);
   const clickTimer = useRef<NodeJS.Timeout | null>(null);
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const phaseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const illusionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -413,19 +370,27 @@ export default function DesignPage() {
     playful: ['happy', 'winking', 'happy', 'playful-tongue'],
   };
 
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'playful-tongue', 'winking'];
+
   const clearAllTimeouts = () => {
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
       if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-      if (illusionTimeoutRef.current) clearTimeout(illusionTimeoutRef.current);
       animationIntervalRef.current = null;
       phaseTimeoutRef.current = null;
-      illusionTimeoutRef.current = null;
   };
+  
+  const stopAllAnimations = () => {
+    clearAllTimeouts();
+    setIsIllusionActive(false);
+    faceAnimationControls.stop();
+    pupilAnimationControls.stop();
+    faceAnimationControls.set({ x: 0, y: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
+  }
 
   const resumeExpressionAnimation = () => {
-    clearAllTimeouts();
+    stopAllAnimations();
     setIsInitialPhase(false);
-    setIsIllusionActive(false);
 
     const expressions = animationSequences[mood];
     let index = 0;
@@ -439,44 +404,88 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
-  const startIllusionPhase = (illusionType: IllusionType, newExpression?: Expression) => {
-      clearAllTimeouts();
-      setIsInitialPhase(false);
+  const startIllusionPhase = (illusionType: IllusionType) => {
+      stopAllAnimations();
       setIsIllusionActive(true);
       setActiveIllusionType(illusionType);
 
-      if (newExpression) {
-        setExpression(newExpression);
-      } else {
-        switch(illusionType) {
-            case 0: setExpression('surprised'); break;
-            case 1: setExpression('surprised'); break;
-            case 2: setExpression('happy'); break;
-            case 3: setExpression('sad'); break;
-        }
+      let faceAnimProps = {};
+      let pupilAnimProps = {};
+      let expression: Expression = 'neutral';
+
+      switch(illusionType) {
+          case 0: 
+              faceAnimProps = { x: [-20, 20] };
+              pupilAnimProps = { x: [-12, 12] };
+              expression = 'surprised';
+              break;
+          case 1: 
+              faceAnimProps = { y: [-20, 20] };
+              pupilAnimProps = { y: [-8, 8] };
+              expression = 'surprised';
+              break;
+          case 2:
+              faceAnimProps = { x: [20, -20], y: [-20, 20] };
+              pupilAnimProps = { x: [12, -12], y: [-8, 8] };
+              expression = 'happy';
+              break;
+          case 3:
+              faceAnimProps = { x: [-20, 20], y: [-20, 20] };
+              pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
+              expression = 'sad';
+              break;
       }
+      setExpression(expression);
 
-      illusionTimeoutRef.current = setTimeout(() => {
-          setIsIllusionActive(false);
-          resumeExpressionAnimation();
-      }, 6000); // 6 seconds for illusion
+      const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' };
+      faceAnimationControls.start({ ...faceAnimProps, transition });
+      pupilAnimationControls.start({ ...pupilAnimProps, transition });
   };
 
-  const startRandomIllusion = () => {
-    const randomIllusion = Math.floor(Math.random() * 4) as IllusionType;
-    const expressions: Expression[] = ['happy', 'surprised', 'sad', 'playful-tongue'];
-    const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
-    startIllusionPhase(randomIllusion, randomExpression);
+  const runContinuousIllusion = async () => {
+    stopAllAnimations();
+    setIsIllusionActive(true);
+    
+    const getRandomValue = (range: number) => (Math.random() - 0.5) * 2 * range;
+    const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
+
+    while (illusionStateRef.current) {
+        setExpression(getRandomExpression());
+        
+        const targetFace = { x: getRandomValue(20), y: getRandomValue(20) };
+        const targetPupil = { x: getRandomValue(12), y: getRandomValue(8) };
+        
+        await Promise.all([
+            faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 100, damping: 20 }),
+            pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 100, damping: 20 })
+        ]);
+
+        if (!illusionStateRef.current) break;
+
+        const oscillationType = Math.random();
+        const duration = 2 + Math.random() * 2; // Oscillate for 2-4 seconds
+
+        if (oscillationType < 0.33) { // Horizontal
+            await pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+        } else if (oscillationType < 0.66) { // Vertical
+            await pupilAnimationControls.start({ y: [targetPupil.y, -targetPupil.y] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+        } else { // Diagonal
+            await pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x], y: [targetPupil.y, -targetPupil.y] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+        }
+    }
   };
+
 
   const startIntroIllusion = () => {
      startIllusionPhase(0); // Start with the first illusion
+     phaseTimeoutRef.current = setTimeout(() => {
+          resumeExpressionAnimation();
+      }, 6000); // 6 seconds for illusion
   }
   
   const startAnimation = () => {
-    clearAllTimeouts();
+    stopAllAnimations();
     setIsInitialPhase(true);
-    setIsIllusionActive(false);
 
     const initialAnimations = [
         { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
@@ -502,7 +511,7 @@ export default function DesignPage() {
         startIntroIllusion();
     }, 15000); // 15 seconds
 
-    return clearAllTimeouts;
+    return stopAllAnimations;
   };
 
   const skipInitialAnimation = () => {
@@ -514,7 +523,7 @@ export default function DesignPage() {
     // When mood changes, restart the animation cycle
     resumeExpressionAnimation();
     
-    return clearAllTimeouts;
+    return stopAllAnimations;
   }, [mood]);
 
 
@@ -854,11 +863,11 @@ export default function DesignPage() {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={startRandomIllusion}>
+                                <Button variant="ghost" size="icon" onClick={runContinuousIllusion}>
                                     <Wand2 className="h-5 w-5" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Random Illusion</p></TooltipContent>
+                            <TooltipContent><p>Random Daydream</p></TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </motion.div>
@@ -913,6 +922,8 @@ export default function DesignPage() {
                 activeIllusionType={activeIllusionType}
                 pointerX={pointerX}
                 pointerY={pointerY}
+                faceAnimationControls={faceAnimationControls}
+                pupilAnimationControls={pupilAnimationControls}
             />
           </motion.div>
         </motion.div>
