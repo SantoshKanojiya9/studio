@@ -3,14 +3,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Apple } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 
@@ -25,6 +25,7 @@ const Face = ({
     showSunglasses, 
     showMustache,
     isInitialPhase,
+    isEyeMovingPhase,
     pointerX,
     pointerY
 }: { 
@@ -33,6 +34,7 @@ const Face = ({
     showSunglasses: boolean,
     showMustache: boolean,
     isInitialPhase: boolean,
+    isEyeMovingPhase: boolean,
     pointerX: any,
     pointerY: any
 }) => {
@@ -112,6 +114,11 @@ const Face = ({
   const pupilX = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
 
+  const eyeContainerVariants = {
+    rest: { x: 0 },
+    moving: { x: [-20, 20] }
+  };
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isInitialPhase) return; // Disable pointer tracking during initial animation
     if (e.currentTarget) {
@@ -167,7 +174,13 @@ const Face = ({
                 </div>
             
             {/* Eyes */}
-            <div className="flex gap-20 absolute top-28" style={{ transform: 'translateZ(20px)' }}>
+            <motion.div 
+                className="flex gap-20 absolute top-28" 
+                style={{ transform: 'translateZ(20px)' }}
+                variants={eyeContainerVariants}
+                animate={isEyeMovingPhase ? 'moving' : 'rest'}
+                transition={isEyeMovingPhase ? { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } : { duration: 0.5 }}
+            >
                 {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
@@ -226,7 +239,7 @@ const Face = ({
                     transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
                 />
                 </motion.div>
-            </div>
+            </motion.div>
             {/* Mouth */}
             <div className="absolute bottom-12" style={{ transform: 'translateZ(10px)' }}>
                 <svg width="100" height="40" viewBox="0 0 100 80">
@@ -301,6 +314,7 @@ const Face = ({
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [isInitialPhase, setIsInitialPhase] = useState(true);
+  const [isEyeMovingPhase, setIsEyeMovingPhase] = useState(false);
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
   const [mood, setMood] = useState<Mood>('default');
@@ -333,6 +347,7 @@ export default function DesignPage() {
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const phaseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const eyeMovementTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -340,8 +355,19 @@ export default function DesignPage() {
     playful: ['happy', 'winking', 'happy', 'playful-tongue'],
   };
 
+  const clearAllTimeouts = () => {
+      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+      if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
+      if (eyeMovementTimeoutRef.current) clearTimeout(eyeMovementTimeoutRef.current);
+      animationIntervalRef.current = null;
+      phaseTimeoutRef.current = null;
+      eyeMovementTimeoutRef.current = null;
+  };
+
   const resumeExpressionAnimation = () => {
-    if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    clearAllTimeouts();
+    setIsInitialPhase(false);
+    setIsEyeMovingPhase(false);
 
     const expressions = animationSequences[mood];
     let index = 0;
@@ -355,13 +381,26 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
+  const startEyeMovementPhase = () => {
+      clearAllTimeouts();
+      setIsInitialPhase(false);
+      setIsEyeMovingPhase(true);
+      setExpression('surprised');
+
+      eyeMovementTimeoutRef.current = setTimeout(() => {
+          resumeExpressionAnimation();
+      }, 6000); // 6 seconds for eye movement
+  };
+  
   const startAnimation = () => {
+    clearAllTimeouts();
     setIsInitialPhase(true);
+    setIsEyeMovingPhase(false);
 
     const initialAnimations = [
         { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
         { expression: 'surprised', pupils: { x: 1, y: 0.5 } },   // right
-        { expression: 'neutral', pupils: { x: 0, y: 0.5 } },   // up
+        { expression: 'neutral', pupils: { x: 0.5, y: 0 } },   // up
         { expression: 'happy', pupils: { x: 0.5, y: 1 } },   // down
         { expression: 'neutral', pupils: { x: 0.5, y: 0.5 } }, // center
     ];
@@ -379,41 +418,22 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
 
     phaseTimeoutRef.current = setTimeout(() => {
-      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-      setIsInitialPhase(false); 
-      pointerX.set(0.5);
-      pointerY.set(0.5);
-      resumeExpressionAnimation();
+        startEyeMovementPhase();
     }, 15000); // 15 seconds
 
-    return () => {
-      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-      if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-    };
+    return clearAllTimeouts;
   };
 
   const skipInitialAnimation = () => {
-    if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
-        animationIntervalRef.current = null;
-    }
-    if (phaseTimeoutRef.current) {
-        clearTimeout(phaseTimeoutRef.current);
-        phaseTimeoutRef.current = null;
-    }
-    setIsInitialPhase(false);
-    pointerX.set(0.5);
-    pointerY.set(0.5);
+    clearAllTimeouts();
     resumeExpressionAnimation();
   };
 
   useEffect(() => {
     // When mood changes, restart the animation cycle
     resumeExpressionAnimation();
-
-    return () => {
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-    }
+    
+    return clearAllTimeouts;
   }, [mood]);
 
 
@@ -537,10 +557,6 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center justify-start gap-2 md:gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
-                        <RotateCcw className="h-5 w-5" />
-                        <span className="text-sm">Reset</span>
-                    </Button>
                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('colors')}>
                         <Palette className="h-5 w-5" />
                         <span className="text-sm">Colors</span>
@@ -556,6 +572,10 @@ export default function DesignPage() {
                      <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('moods')}>
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
+                    </Button>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={startEyeMovementPhase}>
+                        <Eye className="h-5 w-5" />
+                        <span className="text-sm">Illusion</span>
                     </Button>
                 </motion.div>
             );
@@ -598,6 +618,10 @@ export default function DesignPage() {
                 >
                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
+                        <RotateCcw className="h-5 w-5" />
+                        <span className="text-sm">Reset</span>
                     </Button>
                     <div className="w-32">
                         <Select value={filter} onValueChange={setFilter}>
@@ -749,6 +773,7 @@ export default function DesignPage() {
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
                 isInitialPhase={isInitialPhase}
+                isEyeMovingPhase={isEyeMovingPhase}
                 pointerX={pointerX}
                 pointerY={pointerY}
             />
@@ -766,3 +791,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
