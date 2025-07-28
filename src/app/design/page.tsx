@@ -286,15 +286,20 @@ export default function DesignPage() {
   const smoothRotateY = useSpring(rotateY, springConfig);
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+  const expressionEyeOffsets: Record<Expression, { x: number; y: number }> = {
+    neutral: { x: 0, y: 0 },
+    happy: { x: 20, y: -10 },
+    sad: { x: 0, y: 15 },
+    angry: { x: 0, y: 5 },
+    surprised: { x: 0, y: -5 },
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
       const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
-      setExpression(allExpressions[randomExpressionIndex]);
-      
-      const randomX = (Math.random() - 0.5) * 40;
-      setEyeOffset({ x: randomX, y: 0 });
-
+      const newExpression = allExpressions[randomExpressionIndex];
+      setExpression(newExpression);
+      setEyeOffset(expressionEyeOffsets[newExpression]);
     }, 3000);
 
     return () => clearInterval(interval);
@@ -329,6 +334,12 @@ export default function DesignPage() {
     setEyeOffset({ x: 0, y: 0 });
   };
   
+  const handleRandomize = () => {
+    const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
+    setExpression(newExpression);
+    setEyeOffset(expressionEyeOffsets[newExpression]);
+  }
+
   const MustacheIcon = () => (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -433,7 +444,7 @@ export default function DesignPage() {
                         <TooltipContent><p>Accessories</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => { setExpression(allExpressions[Math.floor(Math.random() * allExpressions.length)])}}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Random Expression</p></TooltipContent>
                     </Tooltip>
                 </>
@@ -464,7 +475,7 @@ export default function DesignPage() {
               filter: filter !== 'none' ? filter : undefined,
               transformStyle: 'preserve-3d'
             }}
-            onTap={() => setExpression(allExpressions[Math.floor(Math.random() * allExpressions.length)])}
+            onTap={handleRandomize}
           >
             <Face 
                 expression={expression} 
