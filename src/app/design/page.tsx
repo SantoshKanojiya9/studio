@@ -319,7 +319,7 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [isInitialPhase, setIsInitialPhase] = useState(true);
+  const [isInitialPhase, setIsInitialPhase] = useState(false);
   const [isIllusionActive, setIsIllusionActive] = useState(false);
   const [activeIllusionType, setActiveIllusionType] = useState<IllusionType>(0);
   
@@ -473,45 +473,6 @@ export default function DesignPage() {
     }
   };
 
-
-  const startIntroIllusion = () => {
-     startIllusionPhase(0); // Start with the first illusion
-     phaseTimeoutRef.current = setTimeout(() => {
-          resumeExpressionAnimation();
-      }, 6000); // 6 seconds for illusion
-  }
-  
-  const startAnimation = () => {
-    stopAllAnimations();
-    setIsInitialPhase(true);
-
-    const initialAnimations = [
-        { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
-        { expression: 'surprised', pupils: { x: 1, y: 0.5 } },   // right
-        { expression: 'neutral', pupils: { x: 0.5, y: 0 } },   // up
-        { expression: 'happy', pupils: { x: 0.5, y: 1 } },   // down
-        { expression: 'neutral', pupils: { x: 0.5, y: 0.5 } }, // center
-    ];
-    let initialIndex = 0;
-
-    const runInitialAnimation = () => {
-        const currentAnimation = initialAnimations[initialIndex % initialAnimations.length];
-        setExpression(currentAnimation.expression);
-        pointerX.set(currentAnimation.pupils.x);
-        pointerY.set(currentAnimation.pupils.y);
-        initialIndex++;
-    };
-    
-    runInitialAnimation();
-    animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
-
-    phaseTimeoutRef.current = setTimeout(() => {
-        startIntroIllusion();
-    }, 15000); // 15 seconds
-
-    return stopAllAnimations;
-  };
-
   const skipInitialAnimation = () => {
     clearAllTimeouts();
     resumeExpressionAnimation();
@@ -526,9 +487,9 @@ export default function DesignPage() {
 
 
   useEffect(() => {
-    const cleanup = startAnimation();
+    const cleanup = resumeExpressionAnimation();
     return () => {
-      cleanup();
+      if (cleanup) cleanup();
       if (clickTimer.current) clearTimeout(clickTimer.current);
       if (angerTimeout.current) clearTimeout(angerTimeout.current);
     };
@@ -882,14 +843,6 @@ export default function DesignPage() {
         style={{ backgroundColor }}
     >
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-          {isInitialPhase && (
-             <div className="absolute top-4 right-4 z-20">
-                <Button size="sm" variant="outline" onClick={skipInitialAnimation}>
-                    <SkipForward className="mr-2 h-4 w-4" />
-                    Skip Intro
-                </Button>
-            </div>
-          )}
         <motion.div
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
