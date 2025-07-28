@@ -349,8 +349,6 @@ export default function DesignPage() {
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
-    faceAnimationControls.set({ x: 0, y: 0 });
-    pupilAnimationControls.set({ x: 0, y: 0 });
   }
   
   const resumeExpressionAnimation = () => {
