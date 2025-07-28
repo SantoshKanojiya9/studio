@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, useAnimationControls }
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft, SmilePlus, Moon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -271,6 +271,7 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
+  const [isIllusionActive, setIsIllusionActive] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -292,96 +293,111 @@ export default function DesignPage() {
   const pupilAnimationControls = useAnimationControls();
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const illusionStateRef = useRef(false);
+  const illusionStateRef = useRef(isIllusionActive);
+
+  useEffect(() => {
+    illusionStateRef.current = isIllusionActive;
+  }, [isIllusionActive]);
+
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
   const stopAllAnimations = () => {
-    illusionStateRef.current = false;
+    setIsIllusionActive(false);
     if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
+    faceAnimationControls.set({ x: 0, y: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
   }
-  
-  useEffect(() => {
-    return () => {
-        stopAllAnimations();
-    };
-  }, []);
 
   const startIllusion = async (illusionType: IllusionType) => {
       stopAllAnimations();
-      illusionStateRef.current = true;
+      setIsIllusionActive(true);
       
-      if (illusionType === 'random') {
-        // Continuous random daydream where all features move independently
-        animationIntervalRef.current = setInterval(() => {
-          if (illusionStateRef.current) {
-            setExpression(getRandomExpression());
-          }
-        }, 1500 + Math.random() * 1000);
+      // Delay slightly to ensure state ref is updated
+      setTimeout(async () => {
+        if (!illusionStateRef.current) return;
 
-        while (illusionStateRef.current) {
-            const targetFace = { 
-                x: (Math.random() - 0.5) * 30, 
-                y: (Math.random() - 0.5) * 30,
-                rotate: (Math.random() - 0.5) * 10,
-            };
-            const targetPupil = { 
-                x: (Math.random() - 0.5) * 24, 
-                y: (Math.random() - 0.5) * 16 
-            };
+        if (illusionType === 'random') {
+            // Continuous random daydream where all features move independently
+            animationIntervalRef.current = setInterval(() => {
+            if (illusionStateRef.current) {
+                setExpression(getRandomExpression());
+            }
+            }, 1500 + Math.random() * 1000);
+
+            while (illusionStateRef.current) {
+                const targetFace = { 
+                    x: (Math.random() - 0.5) * 30, 
+                    y: (Math.random() - 0.5) * 30,
+                    rotate: (Math.random() - 0.5) * 10,
+                };
+                const targetPupil = { 
+                    x: (Math.random() - 0.5) * 24, 
+                    y: (Math.random() - 0.5) * 16 
+                };
+                
+                const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 20, damping: 10 });
+                const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
+
+                await Promise.all([faceAnimation, pupilAnimation]);
+                if (!illusionStateRef.current) break;
+                await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1500));
+            }
+
+        } else {
+            // Fixed path illusions
+            animationIntervalRef.current = setInterval(() => {
+            if (illusionStateRef.current) {
+                setExpression(getRandomExpression());
+            }
+            }, 2000);
+
+            let faceAnimProps = {};
+            let pupilAnimProps = {};
+
+            switch(illusionType) {
+                case 'horizontal': 
+                    faceAnimProps = { x: [-20, 20] };
+                    pupilAnimProps = { x: [-12, 12] };
+                    break;
+                case 'vertical': 
+                    faceAnimProps = { y: [-20, 20] };
+                    pupilAnimProps = { y: [-8, 8] };
+                    break;
+                case 'diagonal-tr-bl':
+                    faceAnimProps = { x: [20, -20], y: [-20, 20] };
+                    pupilAnimProps = { x: [12, -12], y: [-8, 8] };
+                    break;
+                case 'diagonal-tl-br':
+                    faceAnimProps = { x: [-20, 20], y: [-20, 20] };
+                    pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
+                    break;
+            }
             
-            const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 20, damping: 10 });
-            const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
-
-            await Promise.all([faceAnimation, pupilAnimation]);
-
-            if (!illusionStateRef.current) break;
-
-            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1500));
+            const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
+            faceAnimationControls.start({ ...faceAnimProps, transition });
+            pupilAnimationControls.start({ ...pupilAnimProps, transition });
         }
-
-      } else {
-        // Fixed path illusions
-        animationIntervalRef.current = setInterval(() => {
-          if (illusionStateRef.current) {
-            setExpression(getRandomExpression());
-          }
-        }, 2000);
-
-        let faceAnimProps = {};
-        let pupilAnimProps = {};
-
-        switch(illusionType) {
-            case 'horizontal': 
-                faceAnimProps = { x: [-20, 20] };
-                pupilAnimProps = { x: [-12, 12] };
-                break;
-            case 'vertical': 
-                faceAnimProps = { y: [-20, 20] };
-                pupilAnimProps = { y: [-8, 8] };
-                break;
-            case 'diagonal-tr-bl':
-                faceAnimProps = { x: [20, -20], y: [-20, 20] };
-                pupilAnimProps = { x: [12, -12], y: [-8, 8] };
-                break;
-            case 'diagonal-tl-br':
-                faceAnimProps = { x: [-20, 20], y: [-20, 20] };
-                pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
-                break;
-        }
-        
-        const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
-        faceAnimationControls.start({ ...faceAnimProps, transition });
-        pupilAnimationControls.start({ ...pupilAnimProps, transition });
-      }
+      }, 100);
   };
+  
+  const runContinuousIllusion = () => {
+    startIllusion('random');
+  };
+
+  useEffect(() => {
+    runContinuousIllusion();
+    // Cleanup on unmount
+    return () => stopAllAnimations();
+  }, []);
+
 
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -600,3 +616,6 @@ export default function DesignPage() {
     </div>
   );
 }
+
+
+    
