@@ -55,12 +55,12 @@ const ClockFace = ({
     },
   };
   
-  const eyebrowVariants = {
+  const eyelidVariants = {
     neutral: { y: 0, rotate: 0 },
-    happy: { y: -3, rotate: -5 },
-    angry: { y: 2, rotate: 5 },
-    sad: { y: 1, rotate: 5 },
-    surprised: { y: -5, rotate: 3 },
+    happy: { y: 3, rotate: -5 },
+    angry: { y: -2, rotate: 5 },
+    sad: { y: 5, rotate: 5 },
+    surprised: { y: -4, rotate: 2 },
   }
 
   const blushVariants = {
@@ -116,21 +116,21 @@ const ClockFace = ({
       onPointerLeave={handlePointerLeave}
     >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-10 w-20 h-8 z-0"
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-12 w-24 h-8 z-0"
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-16 h-2 bg-orangered absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
+            <div className="w-20 h-2 bg-orangered absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
             <div className="w-8 h-8 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(15deg)'}}></div>
                 <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(-15deg)'}}></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-10 w-20 h-8 z-0"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-24 h-8 z-0"
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-16 h-2 bg-orangered absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
+            <div className="w-20 h-2 bg-orangered absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
              <div className="w-8 h-8 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(-15deg)'}}></div>
                 <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(15deg)'}}></div>
@@ -138,10 +138,10 @@ const ClockFace = ({
         </motion.div>
 
         {/* Legs */}
-         <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
+         <div className="absolute bottom-[-34px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
               <div className="flex gap-4">
-                <div className="w-2.5 h-8" style={{ backgroundColor: '#4a2c0f'}}></div>
-                <div className="w-2.5 h-8" style={{ backgroundColor: '#4a2c0f'}}></div>
+                <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
+                <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
               <div className="flex -mt-0.5 gap-2">
                  <div className="w-8 h-4 bg-orangered rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
@@ -195,10 +195,10 @@ const ClockFace = ({
                 </motion.div>
 
             {/* Nose */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-black/70 rounded-full"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[2px] w-1.5 h-1.5 bg-black/70 rounded-full"></div>
             
             <motion.div 
-                className="flex gap-12 absolute top-1/2 -translate-y-[calc(50%_+_10px)] items-end" 
+                className="flex gap-12 absolute top-1/2 -translate-y-[calc(50%_+_20px)] items-end" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
@@ -215,7 +215,7 @@ const ClockFace = ({
                   <motion.div 
                       className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80"
                       style={{ clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }}
-                      variants={eyebrowVariants}
+                      variants={eyelidVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
                   />
@@ -234,7 +234,7 @@ const ClockFace = ({
                   <motion.div 
                       className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80"
                       style={{ clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }}
-                      variants={eyebrowVariants}
+                      variants={eyelidVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
                   />
@@ -242,7 +242,7 @@ const ClockFace = ({
             </motion.div>
 
             <motion.div 
-                className="absolute top-1/2 -translate-y-1/2 mt-8" 
+                className="absolute top-1/2 -translate-y-1/2 mt-6" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
@@ -425,7 +425,7 @@ export default function LokiPage() {
           transition={{ duration: 1.5, type: 'spring' }}
         >
           <motion.div
-            className="w-72 h-96 flex items-center justify-center cursor-pointer select-none"
+            className="w-80 h-96 flex items-center justify-center cursor-pointer select-none"
             onTap={handleTap}
           >
             <ClockFace 
