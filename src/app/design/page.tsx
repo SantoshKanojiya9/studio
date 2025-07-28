@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -413,6 +413,15 @@ export default function DesignPage() {
                     <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Reset All</p></TooltipContent>
+                    </Tooltip>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Good Mood</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Bad Mood</p></TooltipContent>
                     </Tooltip>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                     <Tooltip>
