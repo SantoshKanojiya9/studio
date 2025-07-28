@@ -262,7 +262,12 @@ const Face = ({
                 </motion.div>
             </motion.div>
             {/* Mouth */}
-            <div className="absolute bottom-12" style={{ transform: 'translateZ(10px)' }}>
+            <motion.div 
+                className="absolute bottom-12" 
+                style={{ transform: 'translateZ(10px)' }}
+                variants={eyeContainerVariants}
+                animate={isEyeMovingPhase ? 'moving' : 'rest'}
+            >
                 <svg width="100" height="40" viewBox="0 0 100 80">
                     <motion.path
                         fill="transparent"
@@ -283,7 +288,7 @@ const Face = ({
                         />
                     )}
                 </svg>
-            </div>
+            </motion.div>
 
             {/* Accessories */}
             <motion.div
