@@ -2,32 +2,27 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, AnimatePresence, useAnimationControls, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, useAnimationControls } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, SkipForward, Eye, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, SmilePlus, ArrowLeft, Drama, Moon, ToyBrick, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'winking' | 'playful-tongue';
 type Mood = 'default' | 'sleepy' | 'playful';
-type IllusionType = 0 | 1 | 2 | 3; // 0: L-R, 1: U-D, 2: TR-BL, 3: TL-BR
+type IllusionType = 0 | 1 | 2 | 3;
+type MenuType = 'main' | 'colors' | 'effects' | 'accessories' | 'moods' | 'illusions';
 
 const Face = ({ 
     expression, 
     color, 
     showSunglasses, 
     showMustache,
-    isIllusionActive,
-    activeIllusionType,
     pointerX,
     pointerY,
     faceAnimationControls,
@@ -37,8 +32,6 @@ const Face = ({
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
-    isIllusionActive: boolean,
-    activeIllusionType: IllusionType,
     pointerX: any,
     pointerY: any,
     faceAnimationControls: any,
@@ -121,7 +114,6 @@ const Face = ({
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isIllusionActive) return;
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
@@ -136,10 +128,8 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => {
-        if (!isIllusionActive) {
-            pointerX.set(0.5);
-            pointerY.set(0.5);
-        }
+        pointerX.set(0.5);
+        pointerY.set(0.5);
       }}
       style={{ transformStyle: 'preserve-3d' }}
     >
@@ -155,10 +145,8 @@ const Face = ({
           transition={{ duration: 0.3 }}
         >
             <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative">
-            {/* Noise Texture Overlay */}
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             
-            {/* Cheeks */}
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
                     animate={faceAnimationControls}
@@ -177,18 +165,16 @@ const Face = ({
                     />
                 </motion.div>
             
-            {/* Eyes */}
             <motion.div 
                 className="flex gap-20 absolute top-28" 
                 style={{ transform: 'translateZ(20px)' }}
                 animate={faceAnimationControls}
             >
-                {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: isIllusionActive ? 0 : pupilX, y: isIllusionActive ? 0 : pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                         animate={pupilAnimationControls}
                     >
                          <motion.div 
@@ -213,12 +199,11 @@ const Face = ({
                     transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
                 />
                 </motion.div>
-                {/* Right Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: isIllusionActive ? 0 : pupilX, y: isIllusionActive ? 0 : pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                         animate={pupilAnimationControls}
                     >
                         <motion.div 
@@ -241,7 +226,6 @@ const Face = ({
                 />
                 </motion.div>
             </motion.div>
-            {/* Mouth */}
             <motion.div 
                 className="absolute bottom-12" 
                 style={{ transform: 'translateZ(10px)' }}
@@ -269,7 +253,6 @@ const Face = ({
                 </svg>
             </motion.div>
 
-            {/* Accessories */}
             <motion.div
                 className="absolute flex justify-center w-full"
                 style={{ top: '110px', transform: 'translateZ(30px)' }}
@@ -278,7 +261,6 @@ const Face = ({
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
                 <div className="relative">
-                    {/* Lenses and Bridge */}
                     <div className="flex justify-between items-center w-[180px] h-[45px]">
                         <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                         <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
@@ -300,7 +282,6 @@ const Face = ({
             </div>
         </motion.div>
       </motion.div>
-       {/* 3D Base */}
        <motion.div 
          className="absolute bottom-0 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
          initial={{ y: 50, opacity: 0 }}
@@ -318,10 +299,8 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [isIllusionActive, setIsIllusionActive] = useState(false);
-  const [activeIllusionType, setActiveIllusionType] = useState<IllusionType>(0);
-  
   const [mood, setMood] = useState<Mood>('default');
+  const [activeMenu, setActiveMenu] = useState<MenuType>('main');
 
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
@@ -348,11 +327,6 @@ export default function DesignPage() {
 
   const faceAnimationControls = useAnimationControls();
   const pupilAnimationControls = useAnimationControls();
-  const illusionStateRef = useRef(isIllusionActive);
-
-  useEffect(() => {
-    illusionStateRef.current = isIllusionActive;
-  }, [isIllusionActive]);
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -366,40 +340,30 @@ export default function DesignPage() {
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
-  const clearAllTimeouts = () => {
-      if (animationIntervalRef.current) {
+  const stopAllAnimations = () => {
+    if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
-      }
-  };
-  
-  const stopAllAnimations = () => {
-    clearAllTimeouts();
-    setIsIllusionActive(false);
+    }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
-  }
-
+  };
+  
   const resumeExpressionAnimation = () => {
     stopAllAnimations();
-
     const expressions = animationSequences[mood];
     let index = 0;
-
     const runAnimation = () => {
         setExpression(expressions[index % expressions.length]);
         index++;
     };
-    
     runAnimation();
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
   const startIllusionPhase = (illusionType: IllusionType) => {
       stopAllAnimations();
-      setIsIllusionActive(true);
-      setActiveIllusionType(illusionType);
-
+      
       let faceAnimProps = {};
       let pupilAnimProps = {};
 
@@ -426,75 +390,44 @@ export default function DesignPage() {
       faceAnimationControls.start({ ...faceAnimProps, transition });
       pupilAnimationControls.start({ ...pupilAnimProps, transition });
 
-      // Start cycling expressions during the illusion
       animationIntervalRef.current = setInterval(() => {
         setExpression(getRandomExpression());
       }, 2000);
   };
 
-  const runContinuousIllusion = async () => {
+  const runContinuousIllusion = () => {
     stopAllAnimations();
-    setIsIllusionActive(true);
-    
-    const getRandomValue = (range: number) => (Math.random() - 0.5) * 2 * range;
+    let isRunning = true;
 
-    while (illusionStateRef.current) {
-        setExpression(getRandomExpression());
-        
-        const targetFace = { x: getRandomValue(20), y: getRandomValue(20) };
-        const targetPupil = { x: getRandomValue(12), y: getRandomValue(8) };
-        
-        // Animate to the new random position
-        const movePromise = Promise.all([
-            faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 100, damping: 20 }),
-            pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 100, damping: 20 })
-        ]);
-        await movePromise;
-        if (!illusionStateRef.current) break;
+    const animate = async () => {
+        while(isRunning) {
+            setExpression(getRandomExpression());
+            const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
+            const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
+            
+            await Promise.all([
+                faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 }),
+                pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 })
+            ]);
 
-        // Wait for a bit
-        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-        if (!illusionStateRef.current) break;
-        
-        // Oscillate for a random duration
-        const oscillationType = Math.random();
-        const duration = 1 + Math.random() * 2; 
-
-        let oscillationPromise;
-        const transition = { duration, repeat: Infinity, repeatType: 'mirror' as const };
-
-        if (oscillationType < 0.33) { // Horizontal
-            oscillationPromise = pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x] }, { ...transition });
-        } else if (oscillationType < 0.66) { // Vertical
-            oscillationPromise = pupilAnimationControls.start({ y: [targetPupil.y, -targetPupil.y] }, { ...transition });
-        } else { // Diagonal
-            oscillationPromise = pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x], y: [targetPupil.y, -targetPupil.y] }, { ...transition });
+            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
         }
-        
-        // Let it oscillate for its duration
-        await new Promise(resolve => setTimeout(resolve, duration * 1000));
-        if (!illusionStateRef.current) break;
+    };
+    
+    animate();
 
-        // Stop the oscillation before the next loop
-        pupilAnimationControls.stop();
-        // Snap back to the last target before starting the next move
-        await pupilAnimationControls.start(targetPupil, { duration: 0.1 });
-        if (!illusionStateRef.current) break;
-    }
+    return () => { isRunning = false; };
   };
 
-
   useEffect(() => {
-    // When mood changes, restart the animation cycle
     resumeExpressionAnimation();
-    
     return stopAllAnimations;
   }, [mood]);
 
 
   useEffect(() => {
-    runContinuousIllusion(); // Start the default animation
-    return stopAllAnimations; // Cleanup on unmount
+    runContinuousIllusion();
+    return stopAllAnimations; 
   }, []);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -522,7 +455,8 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setMood('default');
-    resumeExpressionAnimation(); // Go back to default mood animations
+    resumeExpressionAnimation();
+    setActiveMenu('main');
   };
   
   const MustacheIcon = () => (
@@ -535,14 +469,170 @@ export default function DesignPage() {
         <path d="M7.40039 12.8799C8.36839 11.9119 10.0244 10.9999 12.0004 10.9999C13.9764 10.9999 15.6324 11.9119 16.6004 12.8799C16.8434 13.1229 17.2424 13.1229 17.4854 12.8799C17.7284 12.6369 17.7284 12.2379 17.4854 11.9949C16.2994 10.8089 14.3984 9.99991 12.0004 9.99991C9.60239 9.99991 7.70139 10.8089 6.51539 11.9949C6.27239 12.2379 6.27239 12.2369 6.51539 12.8799C6.75839 13.1229 7.15739 13.1229 7.40039 12.8799Z" />
       </svg>
     );
-    
-  const BgColorIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-  );
 
-  const EmojiColorIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18.5c.8 0 1.5-.7 1.5-1.5s-.7-1.5-1.5-1.5-1.5.7-1.5 1.5.7 1.5 1.5 1.5z"/><path d="M8.5 14.5c.8 0 1.5-.7 1.5-1.5S9.3 11.5 8.5 11.5 7 12.2 7 13s.7 1.5 1.5 1.5z"/><path d="M15.5 14.5c.8 0 1.5-.7 1.5-1.5s-.7-1.5-1.5-1.5-1.5.7-1.5 1.5.7 1.5 1.5 1.5z"/></svg>
-  );
+  const renderMenu = () => {
+    switch (activeMenu) {
+        case 'colors':
+            return (
+                <>
+                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                     <Separator orientation="vertical" className="h-6 mx-2" />
+                     <div className="flex items-center gap-2">
+                         <div className="relative w-10 h-10 flex items-center justify-center">
+                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                            <span className="text-sm">BG</span>
+                        </div>
+                        <div className="relative w-10 h-10 flex items-center justify-center">
+                             <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
+                             <span className="text-sm">Face</span>
+                        </div>
+                     </div>
+                </>
+            );
+        case 'effects':
+            return (
+                 <>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <div className="w-32">
+                        <Select value={filter} onValueChange={setFilter}>
+                            <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Filter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
+                                <SelectItem value="sepia(100%)">Sepia</SelectItem>
+                                <SelectItem value="invert(100%)">Invert</SelectItem>
+                                <SelectItem value="blur(4px)">Blur</SelectItem>
+                                <SelectItem value="saturate(2)">Saturate</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div className="flex items-center gap-2">
+                                <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Toggle 3D Tilt Effect</p></TooltipContent>
+                    </Tooltip>
+                 </>
+            );
+        case 'accessories':
+            return (
+                 <>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(p => !p)} className={cn(showSunglasses && 'bg-secondary')}>
+                                <Glasses className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => setShowMustache(p => !p)} className={cn(showMustache && 'bg-secondary')}>
+                                <MustacheIcon />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Toggle Mustache</p></TooltipContent>
+                    </Tooltip>
+                 </>
+            );
+        case 'moods':
+            return (
+                <>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => { setMood('default'); resumeExpressionAnimation(); }} className={cn(mood === 'default' && 'bg-secondary')}>
+                                <SmilePlus className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Default Mood</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={() => { setMood('sleepy'); resumeExpressionAnimation(); }} className={cn(mood === 'sleepy' && 'bg-secondary')}>
+                                <Moon className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Sleepy Mood</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={() => { setMood('playful'); resumeExpressionAnimation(); }} className={cn(mood === 'playful' && 'bg-secondary')}>
+                                <ToyBrick className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Playful Mood</p></TooltipContent>
+                    </Tooltip>
+                </>
+            );
+        case 'illusions':
+             return (
+                <>
+                    <Button variant="ghost" size="icon" onClick={() => { setActiveMenu('main'); resumeExpressionAnimation(); }}><ArrowLeft /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(0)}><ArrowLeftRight className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Horizontal Illusion</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(1)}><ArrowUpDown className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Vertical Illusion</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(2)}><ArrowUpRight className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Diagonal (TR-BL)</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(3)}><ArrowDownLeft className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Diagonal (TL-BR)</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={runContinuousIllusion}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Random Daydream</p></TooltipContent>
+                    </Tooltip>
+                </>
+             );
+        default:
+            return (
+                <>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Reset All</p></TooltipContent>
+                    </Tooltip>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Colors</p></TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Effects</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Accessories</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('moods')}><SmilePlus className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Moods</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('illusions')}><Drama className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Illusions</p></TooltipContent>
+                    </Tooltip>
+                </>
+            );
+    }
+  }
+
 
   return (
     <div 
@@ -572,8 +662,6 @@ export default function DesignPage() {
                 color={emojiColor} 
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
-                isIllusionActive={isIllusionActive}
-                activeIllusionType={activeIllusionType}
                 pointerX={pointerX}
                 pointerY={pointerY}
                 faceAnimationControls={faceAnimationControls}
@@ -585,170 +673,11 @@ export default function DesignPage() {
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
          <TooltipProvider>
-            <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex items-center gap-2 p-4">
-                    {/* Colors */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative w-8 h-8 flex items-center justify-center">
-                            <Label htmlFor="bg-color" className="sr-only">Background Color</Label>
-                            <BgColorIcon />
-                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">BG</span>
-                    </div>
-                     <div className="flex items-center gap-2">
-                        <div className="relative w-8 h-8 flex items-center justify-center">
-                            <Label htmlFor="emoji-color" className="sr-only">Face Color</Label>
-                            <EmojiColorIcon/>
-                            <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => { setEmojiColor(e.target.value); stopAllAnimations(); }} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                        </div>
-                        <span className="text-sm text-muted-foreground">Face</span>
-                    </div>
-
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-
-                    {/* Effects */}
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={handleReset} aria-label="Reset to defaults">
-                            <RotateCcw className="h-5 w-5" />
-                        </Button>
-                        <div className="w-32">
-                            <Select value={filter} onValueChange={setFilter}>
-                                <SelectTrigger className="h-10">
-                                    <SelectValue asChild>
-                                    <div className="flex items-center gap-2">
-                                        <Sparkles className="h-5 w-5" />
-                                        <span className="sr-only md:not-sr-only">Filter</span>
-                                    </div>
-                                    </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
-                                    <SelectItem value="sepia(100%)">Sepia</SelectItem>
-                                    <SelectItem value="invert(100%)">Invert</SelectItem>
-                                    <SelectItem value="blur(4px)">Blur</SelectItem>
-                                    <SelectItem value="saturate(2)">Saturate</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="flex items-center gap-2">
-                                    <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} />
-                                    <Label htmlFor="tilt-switch" className="sr-only">3D Tilt Effect</Label>
-                                    <Move3d className="h-5 w-5 text-muted-foreground" />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Toggle 3D Tilt Effect</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    
-                    {/* Accessories */}
-                    <div className="flex items-center gap-2">
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(prev => !prev)} className={cn(showSunglasses ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
-                                    <Glasses className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => setShowMustache(prev => !prev)} className={cn(showMustache ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
-                                <MustacheIcon />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Toggle Mustache</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-
-                    {/* Moods */}
-                     <div className="flex items-center gap-2">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => { setMood('default'); resumeExpressionAnimation(); }} className={cn(mood === 'default' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
-                                    <SmilePlus className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Default Mood</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => { setMood('sleepy'); resumeExpressionAnimation(); }} className={cn(mood === 'sleepy' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
-                                    <Moon className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Sleepy Mood</p></TooltipContent>
-                        </Tooltip>
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => { setMood('playful'); resumeExpressionAnimation(); }} className={cn(mood === 'playful' ? 'bg-secondary text-secondary-foreground' : 'hover:bg-secondary')}>
-                                    <ToyBrick className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Playful Mood</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-                    
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-
-                    {/* Illusions */}
-                    <div className="flex items-center gap-2">
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(0)}>
-                                    <ArrowLeftRight className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Horizontal Illusion</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(1)}>
-                                    <ArrowUpDown className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Vertical Illusion</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(2)}>
-                                    <ArrowUpRight className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Diagonal (TR-BL)</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => startIllusionPhase(3)}>
-                                    <ArrowDownLeft className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Diagonal (TL-BR)</p></TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={runContinuousIllusion}>
-                                    <Wand2 className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Random Daydream</p></TooltipContent>
-                        </Tooltip>
-                    </div>
-
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            <div className="flex items-center justify-center gap-2 p-4 h-20">
+              {renderMenu()}
+            </div>
         </TooltipProvider>
       </div>
     </div>
   );
 }
-
-    
