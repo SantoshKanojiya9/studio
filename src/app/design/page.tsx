@@ -533,7 +533,7 @@ export default function DesignPage() {
         case 'illusions':
              return (
                 <>
-                    <Button variant="ghost" size="icon" onClick={() => { setActiveMenu('main'); resumeExpressionAnimation(); }}><ArrowLeft /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                      <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusionPhase(0)}><ArrowLeftRight className="h-5 w-5" /></Button></TooltipTrigger>
