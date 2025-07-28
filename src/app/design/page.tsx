@@ -303,7 +303,7 @@ export default function DesignPage() {
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
-
+  
   const stopAllAnimations = () => {
     setIsIllusionActive(false);
     if (animationIntervalRef.current) {
@@ -314,8 +314,14 @@ export default function DesignPage() {
     pupilAnimationControls.stop();
   }
 
+  const resetAnimationState = () => {
+    faceAnimationControls.set({ x: 0, y: 0, rotate: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
+  }
+
   const startIllusion = async (illusionType: IllusionType) => {
       stopAllAnimations();
+      resetAnimationState();
       setIsIllusionActive(true);
       
       // Delay slightly to ensure state ref is updated
@@ -413,6 +419,7 @@ export default function DesignPage() {
   
   const handleReset = () => {
     stopAllAnimations();
+    resetAnimationState();
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
@@ -509,7 +516,7 @@ export default function DesignPage() {
         case 'illusions':
              return (
                 <>
-                    <Button variant="ghost" size="icon" onClick={() => { stopAllAnimations(); setActiveMenu('main'); }}><ArrowLeft /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => { stopAllAnimations(); resetAnimationState(); setActiveMenu('main'); }}><ArrowLeft /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                      <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => startIllusion('horizontal')}><ArrowLeftRight className="h-5 w-5" /></Button></TooltipTrigger>
