@@ -23,7 +23,7 @@ const Face = ({
     showMustache,
     pointerX,
     pointerY,
-    eyeOffset,
+    featureOffset,
 }: { 
     expression: Expression, 
     color: string, 
@@ -31,7 +31,7 @@ const Face = ({
     showMustache: boolean,
     pointerX: any,
     pointerY: any,
-    eyeOffset: { x: number, y: number },
+    featureOffset: { x: number, y: number },
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -124,6 +124,8 @@ const Face = ({
             
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
+                    animate={{ x: featureOffset.x, y: featureOffset.y }}
+                    transition={{ duration: 1.5, type: 'spring' }}
                 >
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
@@ -142,7 +144,7 @@ const Face = ({
             <motion.div 
                 className="flex gap-20 absolute top-28" 
                 style={{ transform: 'translateZ(20px)' }}
-                animate={{ x: eyeOffset.x, y: eyeOffset.y }}
+                animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
@@ -199,6 +201,8 @@ const Face = ({
             <motion.div 
                 className="absolute bottom-12" 
                 style={{ transform: 'translateZ(10px)' }}
+                animate={{ x: featureOffset.x, y: featureOffset.y }}
+                transition={{ duration: 1.5, type: 'spring' }}
             >
                 <svg width="100" height="40" viewBox="0 0 100 80">
                     <motion.path
@@ -267,8 +271,7 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
-  const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
-  const [facePosition, setFacePosition] = useState({ x: 0, y: 0 });
+  const [featureOffset, setFeatureOffset] = useState({ x: 0, y: 0 });
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -287,25 +290,17 @@ export default function DesignPage() {
   const smoothRotateY = useSpring(rotateY, springConfig);
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
-  const expressionEyeOffsets: Record<Expression, { x: number; y: number }> = {
-    neutral: { x: 0, y: 0 },
-    happy: { x: 20, y: -10 },
-    sad: { x: 0, y: 15 },
-    angry: { x: -10, y: 5 },
-    surprised: { x: 0, y: -5 },
-  };
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
       const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
       const newExpression = allExpressions[randomExpressionIndex];
       setExpression(newExpression);
-      setEyeOffset(expressionEyeOffsets[newExpression]);
-      
-      // Add random face movement
-      const newX = Math.random() * 100 - 50; // -50 to 50
-      const newY = Math.random() * 60 - 30; // -30 to 30
-      setFacePosition({ x: newX, y: newY });
+
+      // Add random feature movement
+      const newX = Math.random() * 40 - 20; // -20 to 20
+      const newY = Math.random() * 30 - 15; // -15 to 15
+      setFeatureOffset({ x: newX, y: newY });
 
     }, 3000);
 
@@ -340,14 +335,12 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setActiveMenu('main');
-    setEyeOffset({ x: 0, y: 0 });
-    setFacePosition({ x: 0, y: 0 });
+    setFeatureOffset({ x: 0, y: 0 });
   };
   
   const handleRandomize = () => {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
-    setEyeOffset(expressionEyeOffsets[newExpression]);
   }
 
   const MustacheIcon = () => (
@@ -478,7 +471,6 @@ export default function DesignPage() {
             rotateX: tiltEnabled ? smoothRotateX : 0,
             rotateY: tiltEnabled ? smoothRotateY : 0,
           }}
-          animate={{ x: facePosition.x, y: facePosition.y }}
           transition={{ duration: 1.5, type: 'spring' }}
         >
           <motion.div
@@ -496,7 +488,7 @@ export default function DesignPage() {
                 showMustache={showMustache} 
                 pointerX={pointerX}
                 pointerY={pointerY}
-                eyeOffset={eyeOffset}
+                featureOffset={featureOffset}
             />
           </motion.div>
         </motion.div>
