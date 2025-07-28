@@ -103,7 +103,7 @@ const ClockFace = ({
         >
             <div className={cn(
                 "absolute bg-black/70",
-                isHour ? "w-1.5 h-0.5 top-2 left-1/2 -ml-0.5" : "w-1 h-0.5 top-2 left-1/2 -ml-0.5"
+                isHour ? "w-1 h-4 top-2 left-1/2 -ml-0.5" : "w-0.5 h-3 top-2 left-1/2 -ml-0.5"
             )}></div>
         </div>
     )
@@ -138,9 +138,15 @@ const ClockFace = ({
         </motion.div>
 
         {/* Legs */}
-         <div className="absolute bottom-[-12px] left-1/2 -translate-x-1/2 flex gap-8 z-0">
-              <div className="w-6 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 border-b-0"></div>
-              <div className="w-6 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 border-b-0"></div>
+         <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
+              <div className="flex gap-4">
+                <div className="w-3 h-6 bg-black/80"></div>
+                <div className="w-3 h-6 bg-black/80"></div>
+              </div>
+              <div className="flex -mt-1 gap-2">
+                 <div className="w-8 h-4 bg-orange-500 rounded-t-md border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-1 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 bg-orange-500 rounded-t-md border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-1 bg-white/70 rounded-t-sm"></div></div>
+              </div>
          </div>
 
 
