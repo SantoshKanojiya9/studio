@@ -268,6 +268,7 @@ export default function DesignPage() {
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
+  const [facePosition, setFacePosition] = useState({ x: 0, y: 0 });
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -290,7 +291,7 @@ export default function DesignPage() {
     neutral: { x: 0, y: 0 },
     happy: { x: 20, y: -10 },
     sad: { x: 0, y: 15 },
-    angry: { x: 0, y: 5 },
+    angry: { x: -10, y: 5 },
     surprised: { x: 0, y: -5 },
   };
 
@@ -300,6 +301,12 @@ export default function DesignPage() {
       const newExpression = allExpressions[randomExpressionIndex];
       setExpression(newExpression);
       setEyeOffset(expressionEyeOffsets[newExpression]);
+      
+      // Add random face movement
+      const newX = Math.random() * 100 - 50; // -50 to 50
+      const newY = Math.random() * 60 - 30; // -30 to 30
+      setFacePosition({ x: newX, y: newY });
+
     }, 3000);
 
     return () => clearInterval(interval);
@@ -320,6 +327,8 @@ export default function DesignPage() {
   const handlePointerLeave = () => {
     x.set(0);
     y.set(0);
+    pointerX.set(0.5);
+    pointerY.set(0.5);
   };
   
   const handleReset = () => {
@@ -332,6 +341,7 @@ export default function DesignPage() {
     setShowMustache(false);
     setActiveMenu('main');
     setEyeOffset({ x: 0, y: 0 });
+    setFacePosition({ x: 0, y: 0 });
   };
   
   const handleRandomize = () => {
@@ -457,17 +467,19 @@ export default function DesignPage() {
     <div 
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
     >
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
-          onPointerMove={handlePointerMove}
-          onPointerLeave={handlePointerLeave}
           style={{
             transformStyle: 'preserve-3d',
             perspective: '1000px',
             rotateX: tiltEnabled ? smoothRotateX : 0,
             rotateY: tiltEnabled ? smoothRotateY : 0,
           }}
+          animate={{ x: facePosition.x, y: facePosition.y }}
+          transition={{ duration: 1.5, type: 'spring' }}
         >
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
