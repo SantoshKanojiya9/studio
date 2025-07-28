@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, useAnimationControls }
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Move3d, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Drama, ArrowLeftRight, ArrowUpDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -295,7 +295,6 @@ export default function DesignPage() {
   const illusionStateRef = useRef(false);
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
-  const expressionCycle: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
@@ -310,20 +309,8 @@ export default function DesignPage() {
   }
   
   useEffect(() => {
-    let isMounted = true;
-    let expressionIndex = 0;
-
-    const runExpressionCycle = () => {
-        if (!isMounted || illusionStateRef.current) return;
-        setExpression(expressionCycle[expressionIndex % expressionCycle.length]);
-        expressionIndex++;
-    };
-
-    runExpressionCycle(); // Run once immediately
-    animationIntervalRef.current = setInterval(runExpressionCycle, 3000);
-
     return () => {
-        isMounted = false;
+        // Clean up on unmount
         stopAllAnimations();
     };
   }, []);
@@ -332,14 +319,14 @@ export default function DesignPage() {
       stopAllAnimations();
       illusionStateRef.current = true;
       
+      animationIntervalRef.current = setInterval(() => {
+        if (illusionStateRef.current) {
+          setExpression(getRandomExpression());
+        }
+      }, 2000);
+
       if (illusionType === 'random') {
         // Continuous random daydream
-        animationIntervalRef.current = setInterval(() => {
-          if (illusionStateRef.current) {
-            setExpression(getRandomExpression());
-          }
-        }, 2000);
-
         while (illusionStateRef.current) {
             const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
             const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
@@ -381,12 +368,6 @@ export default function DesignPage() {
         const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
         faceAnimationControls.start({ ...faceAnimProps, transition });
         pupilAnimationControls.start({ ...pupilAnimProps, transition });
-
-        animationIntervalRef.current = setInterval(() => {
-          if (illusionStateRef.current) {
-              setExpression(getRandomExpression());
-          }
-        }, 2000);
       }
   };
 
@@ -410,6 +391,7 @@ export default function DesignPage() {
   
   const handleReset = () => {
     stopAllAnimations();
+    setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
     setFilter(defaultFilter);
@@ -417,17 +399,6 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setActiveMenu('main');
-    // Restart animation cycle after a brief moment
-    setTimeout(() => {
-        let expressionIndex = 0;
-        const runExpressionCycle = () => {
-            if (illusionStateRef.current) return;
-            setExpression(expressionCycle[expressionIndex % expressionCycle.length]);
-            expressionIndex++;
-        };
-        runExpressionCycle();
-        animationIntervalRef.current = setInterval(runExpressionCycle, 3000);
-    }, 100)
   };
   
   const MustacheIcon = () => (
