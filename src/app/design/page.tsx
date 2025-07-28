@@ -13,8 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'playful-tongue';
-type Mood = 'default' | 'sleepy' | 'playful';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy';
+type Mood = 'default' | 'sleepy';
 type IllusionType = 0 | 1 | 2 | 3;
 type MenuType = 'main' | 'colors' | 'effects' | 'accessories' | 'moods' | 'illusions';
 
@@ -44,7 +44,6 @@ const Face = ({
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
     sleepy: { y: 8, scaleY: 0.4 },
-    'playful-tongue': { y: 0, scaleY: 1 },
   };
 
   const mouthVariants = {
@@ -66,9 +65,6 @@ const Face = ({
     sleepy: {
         d: "M 40 60 Q 50 75 60 60 A 15 15 0 0 1 40 60", // Yawn
     },
-    'playful-tongue': {
-      d: "M 30 50 Q 50 65 70 50", // Open smile
-    }
   };
   
   const eyebrowVariants = {
@@ -78,7 +74,6 @@ const Face = ({
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
     sleepy: { y: 4, rotate: 0 },
-    'playful-tongue': { y: -4, rotate: -5 },
   }
 
   const eyeLidVariants = {
@@ -93,7 +88,6 @@ const Face = ({
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
     sleepy: { opacity: 0.2, scale: 0.9 },
-    'playful-tongue': { opacity: 0.7, scale: 1 },
   }
   
   const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
@@ -227,15 +221,6 @@ const Face = ({
                         animate={expression}
                         transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                     />
-                     { expression === 'playful-tongue' && (
-                        <motion.path
-                            d="M 45 55 C 50 70, 50 70, 55 55 Z"
-                            fill="#ff8a80"
-                            initial={{ y: -20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                        />
-                    )}
                 </svg>
             </motion.div>
 
@@ -320,10 +305,9 @@ export default function DesignPage() {
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
     sleepy: ['neutral', 'sleepy', 'neutral', 'sleepy'],
-    playful: ['happy', 'playful-tongue', 'happy', 'playful-tongue'],
   };
 
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'playful-tongue'];
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
@@ -349,6 +333,11 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
+  useEffect(() => {
+    resumeExpressionAnimation();
+    return () => stopAllAnimations();
+  }, [mood]);
+
   const startIllusionPhase = (illusionType: IllusionType) => {
       stopAllAnimations();
       illusionStateRef.current = true;
@@ -538,14 +527,6 @@ export default function DesignPage() {
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent><p>Sleepy Mood</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => { setMood('playful'); resumeExpressionAnimation(); }} className={cn(mood === 'playful' && 'bg-secondary')}>
-                                <ToyBrick className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Playful Mood</p></TooltipContent>
                     </Tooltip>
                 </>
             );
