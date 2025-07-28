@@ -422,11 +422,13 @@ export default function DesignPage() {
 
       eyeMovementTimeoutRef.current = setTimeout(() => {
           setIsEyeMovingPhase(false); // This will trigger the smooth return animation
+          resumeExpressionAnimation();
       }, 6000); // 6 seconds for eye movement
   };
 
   const handleIllusionEnd = () => {
-    resumeExpressionAnimation();
+    // This function can be kept for future use if needed,
+    // but the main resumption logic is now in startEyeMovementPhase.
   };
   
   const startAnimation = () => {
