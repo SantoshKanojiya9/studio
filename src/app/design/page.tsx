@@ -406,17 +406,6 @@ export default function DesignPage() {
     }
   };
 
-  useEffect(() => {
-    resumeExpressionAnimation();
-    return stopAllAnimations;
-  }, [mood]);
-
-
-  useEffect(() => {
-    runContinuousIllusion();
-    return stopAllAnimations; 
-  }, []);
-
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
     const rect = e.currentTarget.getBoundingClientRect();
