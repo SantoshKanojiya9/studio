@@ -394,27 +394,11 @@ export default function DesignPage() {
   };
   
   useEffect(() => {
-    startIllusion('random');
     return () => stopAllAnimations();
   }, []);
 
   const triggerRandomMovement = () => {
-    stopAllAnimations();
-
-    const targetFace = { 
-        x: (Math.random() - 0.5) * 40, 
-        y: (Math.random() - 0.5) * 40,
-        rotate: (Math.random() - 0.5) * 20,
-    };
-    const targetPupil = { 
-        x: (Math.random() - 0.5) * 24, 
-        y: (Math.random() - 0.5) * 16 
-    };
-
-    setExpression(getRandomExpression());
-
-    faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 100, damping: 15 });
-    pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 150, damping: 20 });
+    startIllusion('random');
   };
 
 
