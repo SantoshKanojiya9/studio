@@ -312,8 +312,6 @@ export default function DesignPage() {
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
-    faceAnimationControls.set({ x: 0, y: 0, rotate: 0 });
-    pupilAnimationControls.set({ x: 0, y: 0 });
   }
 
   const startIllusion = async (illusionType: IllusionType) => {
