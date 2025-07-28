@@ -329,6 +329,7 @@ export default function DesignPage() {
   const pupilAnimationControls = useAnimationControls();
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const illusionStateRef = useRef(false);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -341,13 +342,16 @@ export default function DesignPage() {
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
   const stopAllAnimations = () => {
+    illusionStateRef.current = false;
     if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
         animationIntervalRef.current = null;
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
-  };
+    faceAnimationControls.set({ x: 0, y: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
+  }
   
   const resumeExpressionAnimation = () => {
     stopAllAnimations();
@@ -363,6 +367,7 @@ export default function DesignPage() {
   
   const startIllusionPhase = (illusionType: IllusionType) => {
       stopAllAnimations();
+      illusionStateRef.current = true;
       
       let faceAnimProps = {};
       let pupilAnimProps = {};
@@ -391,32 +396,30 @@ export default function DesignPage() {
       pupilAnimationControls.start({ ...pupilAnimProps, transition });
 
       animationIntervalRef.current = setInterval(() => {
-        setExpression(getRandomExpression());
+        if (illusionStateRef.current) {
+            setExpression(getRandomExpression());
+        }
       }, 2000);
   };
 
-  const runContinuousIllusion = () => {
+  const runContinuousIllusion = async () => {
     stopAllAnimations();
-    let isRunning = true;
+    illusionStateRef.current = true;
 
-    const animate = async () => {
-        while(isRunning) {
-            setExpression(getRandomExpression());
-            const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
-            const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
-            
-            await Promise.all([
-                faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 }),
-                pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 })
-            ]);
+    while (illusionStateRef.current) {
+        setExpression(getRandomExpression());
+        const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
+        const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
+        
+        const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 });
+        const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
 
-            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-        }
-    };
-    
-    animate();
+        await Promise.all([faceAnimation, pupilAnimation]);
 
-    return () => { isRunning = false; };
+        if (!illusionStateRef.current) break;
+
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    }
   };
 
   useEffect(() => {
