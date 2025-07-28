@@ -312,6 +312,8 @@ export default function DesignPage() {
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
+    faceAnimationControls.set({ x: 0, y: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
   }
 
   const startIllusion = async (illusionType: IllusionType) => {
@@ -380,8 +382,8 @@ export default function DesignPage() {
             }
             
             const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
-            faceAnimationControls.start({ ...faceAnimProps, transition });
-            pupilAnimationControls.start({ ...pupilAnimProps, transition });
+            faceAnimationControls.start(faceAnimProps, transition);
+            pupilAnimationControls.start(pupilAnimProps, transition);
         }
       }, 100);
   };
