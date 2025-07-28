@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'winking' | 'playful-tongue';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'playful-tongue';
 type Mood = 'default' | 'sleepy' | 'playful';
 type IllusionType = 0 | 1 | 2 | 3;
 type MenuType = 'main' | 'colors' | 'effects' | 'accessories' | 'moods' | 'illusions';
@@ -44,7 +44,6 @@ const Face = ({
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
     sleepy: { y: 8, scaleY: 0.4 },
-    winking: { y: 0, scaleY: 1 },
     'playful-tongue': { y: 0, scaleY: 1 },
   };
 
@@ -67,9 +66,6 @@ const Face = ({
     sleepy: {
         d: "M 40 60 Q 50 75 60 60 A 15 15 0 0 1 40 60", // Yawn
     },
-    winking: {
-      d: "M 30 50 Q 50 70 70 50", // Smile
-    },
     'playful-tongue': {
       d: "M 30 50 Q 50 65 70 50", // Open smile
     }
@@ -82,7 +78,6 @@ const Face = ({
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
     sleepy: { y: 4, rotate: 0 },
-    winking: { y: -4, rotate: -5 },
     'playful-tongue': { y: -4, rotate: -5 },
   }
 
@@ -90,11 +85,6 @@ const Face = ({
       closed: { scaleY: 0, y: 5 },
       open: { scaleY: 1, y: 0 },
   }
-  
-  const leftEyeLidWinkVariants = {
-    closed: { scaleY: 0.1, y: 5 },
-    open: { scaleY: 1, y: 0 }
-  };
 
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
@@ -103,7 +93,6 @@ const Face = ({
     sad: { opacity: 0.5, scale: 0.9 },
     surprised: { opacity: 0.4, scale: 0.9 },
     sleepy: { opacity: 0.2, scale: 0.9 },
-    winking: { opacity: 0.7, scale: 1 },
     'playful-tongue': { opacity: 0.7, scale: 1 },
   }
   
@@ -179,13 +168,10 @@ const Face = ({
                     >
                          <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={expression === 'winking' ? 'closed' : 'open'}
-                            variants={expression === 'winking' ? leftEyeLidWinkVariants : eyeLidVariants}
+                            animate={'open'}
+                            variants={eyeLidVariants}
                             transition={{
                                 duration: 0.1,
-                                repeat: expression === 'winking' ? 1 : 0,
-                                repeatType: "mirror",
-                                repeatDelay: expression === 'winking' ? 0.2 : 0,
                                 ease: "easeOut"
                             }}
                         />
@@ -334,10 +320,10 @@ export default function DesignPage() {
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
     sleepy: ['neutral', 'sleepy', 'neutral', 'sleepy'],
-    playful: ['happy', 'winking', 'happy', 'playful-tongue'],
+    playful: ['happy', 'playful-tongue', 'happy', 'playful-tongue'],
   };
 
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'playful-tongue', 'winking'];
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'playful-tongue'];
 
   const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
