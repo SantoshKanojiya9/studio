@@ -30,11 +30,11 @@ const ClockFace = ({
     featureOffset: { x: number, y: number },
 }) => {
   const eyeVariants = {
-    neutral: { y: 0, scaleY: 1, height: '2.5rem' },
-    happy: { y: 2, scaleY: 0.9, height: '2.25rem' },
-    angry: { y: -2, scaleY: 0.8, height: '2rem' },
-    sad: { y: 4, scaleY: 0.8, height: '2.25rem' },
-    surprised: { y: -3, scaleY: 1.1, height: '2.75rem' },
+    neutral: { y: 0, scaleY: 1, height: '2rem' },
+    happy: { y: 2, scaleY: 0.9, height: '1.75rem' },
+    angry: { y: -2, scaleY: 0.8, height: '1.5rem' },
+    sad: { y: 4, scaleY: 0.8, height: '1.75rem' },
+    surprised: { y: -3, scaleY: 1.1, height: '2.25rem' },
   };
 
   const mouthVariants = {
@@ -74,8 +74,8 @@ const ClockFace = ({
   const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
   const smoothPointerY = useSpring(pointerY, { stiffness: 300, damping: 20, mass: 0.5 });
   
-  const pupilX = useTransform(smoothPointerX, [0, 1], [-6, 6]);
-  const pupilY = useTransform(smoothPointerY, [0, 1], [-5, 5]);
+  const pupilX = useTransform(smoothPointerX, [0, 1], [-5, 5]);
+  const pupilY = useTransform(smoothPointerY, [0, 1], [-4, 4]);
   
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget) {
@@ -103,7 +103,7 @@ const ClockFace = ({
         >
             <div className={cn(
                 "absolute bg-black/70",
-                isHour ? "w-2 h-0.5 top-2.5 left-1/2 -ml-1" : "w-1 h-0.5 top-2.5 left-1/2 -ml-0.5"
+                isHour ? "w-1.5 h-0.5 top-2 left-1/2 -ml-0.5" : "w-1 h-0.5 top-2 left-1/2 -ml-0.5"
             )}></div>
         </div>
     )
@@ -111,36 +111,36 @@ const ClockFace = ({
 
   return (
     <motion.div 
-      className="relative w-80 h-80"
+      className="relative w-64 h-64"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-10 w-24 h-12 z-0"
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-8 w-20 h-10 z-0"
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-16 h-4 bg-orange-400 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
-            <div className="w-12 h-12 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(15deg)'}}></div>
-                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(-15deg)'}}></div>
+            <div className="w-12 h-3 bg-orange-400 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
+            <div className="w-10 h-10 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(15deg)'}}></div>
+                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(-15deg)'}}></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-10 w-24 h-12 z-0"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-8 w-20 h-10 z-0"
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-16 h-4 bg-orange-400 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
-             <div className="w-12 h-12 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(-15deg)'}}></div>
-                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(15deg)'}}></div>
+            <div className="w-12 h-3 bg-orange-400 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
+             <div className="w-10 h-10 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(-15deg)'}}></div>
+                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(15deg)'}}></div>
             </div>
         </motion.div>
 
         {/* Legs */}
-         <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 flex gap-10 z-0">
-              <div className="w-8 h-8 bg-orange-500 rounded-t-lg border-2 border-black/70 border-b-0"></div>
-              <div className="w-8 h-8 bg-orange-500 rounded-t-lg border-2 border-black/70 border-b-0"></div>
+         <div className="absolute bottom-[-12px] left-1/2 -translate-x-1/2 flex gap-8 z-0">
+              <div className="w-6 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 border-b-0"></div>
+              <div className="w-6 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 border-b-0"></div>
          </div>
 
 
@@ -151,7 +151,7 @@ const ClockFace = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className="w-full h-full rounded-full shadow-[inset_0_-15px_20px_rgba(0,0,0,0.15),_0_8px_15px_rgba(0,0,0,0.25)] relative overflow-hidden border-4 border-black/70" 
+          className="w-full h-full rounded-full shadow-[inset_0_-12px_15px_rgba(0,0,0,0.15),_0_6px_12px_rgba(0,0,0,0.25)] relative overflow-hidden border-4 border-black/70" 
           animate={{ backgroundColor: color }}
           transition={{ duration: 0.3 }}
         >
@@ -160,28 +160,28 @@ const ClockFace = ({
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
             
              <motion.div
-                className="absolute top-8 left-8 w-1/2 h-1/4 bg-white/20 rounded-full"
+                className="absolute top-6 left-6 w-1/2 h-1/4 bg-white/20 rounded-full"
                 style={{
-                  filter: 'blur(15px)',
+                  filter: 'blur(12px)',
                   transform: 'rotate(-25deg)',
                 }}
               />
 
                 <motion.div 
-                    className="flex justify-between w-48 absolute top-40"
+                    className="flex justify-between w-40 absolute top-36"
                     animate={{ x: featureOffset.x, y: featureOffset.y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
                     <motion.div 
-                        className="w-12 h-6 bg-rose-400/80 rounded-full"
-                        style={{ filter: 'blur(3px)'}}
+                        className="w-10 h-5 bg-rose-400/80 rounded-full"
+                        style={{ filter: 'blur(2px)'}}
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
                     />
                     <motion.div 
-                        className="w-12 h-6 bg-rose-400/80 rounded-full"
-                         style={{ filter: 'blur(3px)'}}
+                        className="w-10 h-5 bg-rose-400/80 rounded-full"
+                         style={{ filter: 'blur(2px)'}}
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
@@ -189,23 +189,23 @@ const ClockFace = ({
                 </motion.div>
             
             <motion.div 
-                className="flex gap-16 absolute top-32 items-end" 
+                className="flex gap-12 absolute top-28 items-end" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
                 {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                  <div className="w-12 h-10 bg-white rounded-t-full rounded-b-lg relative overflow-hidden border-2 border-black/70">
+                  <div className="w-10 h-8 bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
                       <motion.div 
-                          className="absolute top-1/2 left-1/2 w-8 h-8 bg-black rounded-full"
+                          className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
                           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                       >
-                           <motion.div className="absolute top-1 left-1.5 w-3 h-3 bg-white/80 rounded-full"/>
+                           <motion.div className="absolute top-1 left-1 w-2 h-2 bg-white/80 rounded-full"/>
                       </motion.div>
                   </div>
                   <motion.div 
-                      className="absolute -top-3 left-1 w-10 h-4 bg-black/80"
-                      style={{ clipPath: 'path("M0,10 C10,0, 30,0, 40,10")' }}
+                      className="absolute -top-2 left-0.5 w-9 h-3 bg-black/80"
+                      style={{ clipPath: 'path("M0,8 C8,0, 28,0, 36,8")' }}
                       variants={eyebrowVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
@@ -214,17 +214,17 @@ const ClockFace = ({
 
                 {/* Right Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                  <div className="w-12 h-10 bg-white rounded-t-full rounded-b-lg relative overflow-hidden border-2 border-black/70">
+                  <div className="w-10 h-8 bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
                       <motion.div 
-                          className="absolute top-1/2 left-1/2 w-8 h-8 bg-black rounded-full"
+                          className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
                           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                       >
-                          <motion.div className="absolute top-1 left-1.5 w-3 h-3 bg-white/80 rounded-full"/>
+                          <motion.div className="absolute top-1 left-1 w-2 h-2 bg-white/80 rounded-full"/>
                       </motion.div>
                   </div>
                   <motion.div 
-                      className="absolute -top-3 left-1 w-10 h-4 bg-black/80"
-                      style={{ clipPath: 'path("M0,10 C10,0, 30,0, 40,10")' }}
+                      className="absolute -top-2 left-0.5 w-9 h-3 bg-black/80"
+                      style={{ clipPath: 'path("M0,8 C8,0, 28,0, 36,8")' }}
                       variants={eyebrowVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
@@ -233,14 +233,14 @@ const ClockFace = ({
             </motion.div>
 
             {/* Nose */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-3 w-2 h-2 bg-black/70 rounded-full"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 w-1.5 h-1.5 bg-black/70 rounded-full"></div>
 
             <motion.div 
-                className="absolute bottom-20" 
+                className="absolute bottom-16" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
-                <svg width="100" height="40" viewBox="0 0 100 80">
+                <svg width="80" height="32" viewBox="0 0 100 80">
                     <motion.path
                         fill="transparent"
                         stroke="black"
@@ -419,7 +419,7 @@ export default function LokiPage() {
           transition={{ duration: 1.5, type: 'spring' }}
         >
           <motion.div
-            className="w-80 h-96 flex items-center justify-center cursor-pointer select-none"
+            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             onTap={handleTap}
           >
             <ClockFace 
