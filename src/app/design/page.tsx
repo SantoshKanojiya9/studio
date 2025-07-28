@@ -334,7 +334,7 @@ export default function DesignPage() {
             if (illusionStateRef.current) {
                 setExpression(getRandomExpression());
             }
-            }, 1500 + Math.random() * 1000);
+            }, 3000);
 
             while (illusionStateRef.current) {
                 const targetFace = { 
