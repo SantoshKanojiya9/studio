@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
-type MenuType = 'main' | 'colors' | 'effects' | 'accessories';
+type MenuType = 'main' | 'colors';
 
 const Face = ({ 
     expression, 
@@ -267,7 +267,6 @@ export default function DesignPage() {
 
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
-  const [filter, setFilter] = useState('none');
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
@@ -275,7 +274,6 @@ export default function DesignPage() {
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
-  const defaultFilter = 'none';
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -330,7 +328,6 @@ export default function DesignPage() {
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
-    setFilter(defaultFilter);
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
@@ -342,17 +339,6 @@ export default function DesignPage() {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
-
-  const MustacheIcon = () => (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        className="h-5 w-5"
-      >
-        <path d="M7.40039 12.8799C8.36839 11.9119 10.0244 10.9999 12.0004 10.9999C13.9764 10.9999 15.6324 11.9119 16.6004 12.8799C16.8434 13.1229 17.2424 13.1229 17.4854 12.8799C17.7284 12.6369 17.7284 12.2379 17.4854 11.9949C16.2994 10.8089 14.3984 9.99991 12.0004 9.99991C9.60239 9.99991 7.70139 10.8089 6.51539 11.9949C6.27239 12.2379 6.27239 12.2369 6.51539 12.8799C6.75839 13.1229 7.15739 13.1229 7.40039 12.8799Z" />
-      </svg>
-    );
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -373,59 +359,6 @@ export default function DesignPage() {
                      </div>
                 </>
             );
-        case 'effects':
-            return (
-                 <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    <div className="w-32">
-                        <Select value={filter} onValueChange={setFilter}>
-                            <SelectTrigger className="h-10">
-                                <SelectValue placeholder="Filter" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="grayscale(100%)">Grayscale</SelectItem>
-                                <SelectItem value="sepia(100%)">Sepia</SelectItem>
-                                <SelectItem value="invert(100%)">Invert</SelectItem>
-                                <SelectItem value="blur(4px)">Blur</SelectItem>
-                                <SelectItem value="saturate(2)">Saturate</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2">
-                                <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} />
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Toggle 3D Tilt Effect</p></TooltipContent>
-                    </Tooltip>
-                 </>
-            );
-        case 'accessories':
-            return (
-                 <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setShowSunglasses(p => !p)} className={cn(showSunglasses && 'bg-secondary')}>
-                                <Glasses className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => setShowMustache(p => !p)} className={cn(showMustache && 'bg-secondary')}>
-                                <MustacheIcon />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Toggle Mustache</p></TooltipContent>
-                    </Tooltip>
-                 </>
-            );
         default:
             return (
                 <>
@@ -437,14 +370,6 @@ export default function DesignPage() {
                     <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Colors</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('effects')}><Sparkles className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Effects</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Accessories</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
@@ -476,7 +401,6 @@ export default function DesignPage() {
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             style={{ 
-              filter: filter !== 'none' ? filter : undefined,
               transformStyle: 'preserve-3d'
             }}
             onTap={handleRandomize}
