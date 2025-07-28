@@ -439,23 +439,34 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
-  const startIllusionPhase = (illusionType: IllusionType) => {
+  const startIllusionPhase = (illusionType: IllusionType, newExpression?: Expression) => {
       clearAllTimeouts();
       setIsInitialPhase(false);
       setIsIllusionActive(true);
       setActiveIllusionType(illusionType);
 
-      switch(illusionType) {
-          case 0: setExpression('surprised'); break;
-          case 1: setExpression('surprised'); break;
-          case 2: setExpression('happy'); break;
-          case 3: setExpression('sad'); break;
+      if (newExpression) {
+        setExpression(newExpression);
+      } else {
+        switch(illusionType) {
+            case 0: setExpression('surprised'); break;
+            case 1: setExpression('surprised'); break;
+            case 2: setExpression('happy'); break;
+            case 3: setExpression('sad'); break;
+        }
       }
 
       illusionTimeoutRef.current = setTimeout(() => {
           setIsIllusionActive(false);
           resumeExpressionAnimation();
       }, 6000); // 6 seconds for illusion
+  };
+
+  const startRandomIllusion = () => {
+    const randomIllusion = Math.floor(Math.random() * 4) as IllusionType;
+    const expressions: Expression[] = ['happy', 'surprised', 'sad', 'playful-tongue'];
+    const randomExpression = expressions[Math.floor(Math.random() * expressions.length)];
+    startIllusionPhase(randomIllusion, randomExpression);
   };
 
   const startIntroIllusion = () => {
@@ -840,6 +851,14 @@ export default function DesignPage() {
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent><p>Diagonal (TL-BR)</p></TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={startRandomIllusion}>
+                                    <Wand2 className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Random Illusion</p></TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
                 </motion.div>
