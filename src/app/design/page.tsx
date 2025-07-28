@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'sleepy' | 'winking' | 'playful-tongue';
 type ActiveMenu = 'main' | 'colors' | 'effects' | 'accessories' | 'moods';
 type Mood = 'default' | 'sleepy' | 'playful';
+type IllusionType = 0 | 1 | 2 | 3; // 0: L-R, 1: U-D, 2: TR-BL, 3: TL-BR
 
 const Face = ({ 
     expression, 
@@ -25,20 +26,20 @@ const Face = ({
     showSunglasses, 
     showMustache,
     isInitialPhase,
-    isEyeMovingPhase,
+    isIllusionActive,
+    activeIllusionType,
     pointerX,
     pointerY,
-    onIllusionEnd
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
     isInitialPhase: boolean,
-    isEyeMovingPhase: boolean,
+    isIllusionActive: boolean,
+    activeIllusionType: IllusionType,
     pointerX: any,
     pointerY: any,
-    onIllusionEnd: () => void
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -117,11 +118,11 @@ const Face = ({
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
   const pupilXIllusion = useMotionValue(0);
-  const pupilXIllusionAnim = useAnimation();
+  const useAnimationControls = useAnimation();
   
   useEffect(() => {
-    if (isEyeMovingPhase) {
-        pupilXIllusionAnim.start({
+    if (isIllusionActive) {
+        useAnimationControls.start({
             x: [-12, 12],
             transition: {
                 duration: 3,
@@ -131,24 +132,37 @@ const Face = ({
             },
         });
     } else {
-        pupilXIllusionAnim.stop();
-        pupilXIllusionAnim.start({
+        useAnimationControls.stop();
+        useAnimationControls.start({
             x: 0,
             transition: { type: 'spring', stiffness: 200, damping: 15, duration: 1.5 },
-            onComplete: onIllusionEnd
         });
     }
-  }, [isEyeMovingPhase, pupilXIllusionAnim, onIllusionEnd]);
+  }, [isIllusionActive, useAnimationControls]);
 
-  const finalPupilX = isEyeMovingPhase ? pupilXIllusion : pupilX;
+  const finalPupilX = isIllusionActive ? pupilXIllusion : pupilX;
 
   const eyeContainerVariants = {
     rest: { x: 0, y: 0, transition: { type: 'spring', duration: 1.5, bounce: 0.2 } },
-    moving: { x: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } }
+    movingLR: { x: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
+    movingUD: { y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
+    movingTRBL: { x: [20, -20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
+    movingTLBR: { x: [-20, 20], y: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } },
   };
 
+  const getAnimationTarget = () => {
+      if (!isIllusionActive) return 'rest';
+      switch(activeIllusionType) {
+          case 0: return 'movingLR';
+          case 1: return 'movingUD';
+          case 2: return 'movingTRBL';
+          case 3: return 'movingTLBR';
+          default: return 'rest';
+      }
+  }
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isInitialPhase || isEyeMovingPhase) return;
+    if (isInitialPhase || isIllusionActive) return;
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
@@ -163,7 +177,7 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => {
-        if (!isInitialPhase && !isEyeMovingPhase) {
+        if (!isInitialPhase && !isIllusionActive) {
             pointerX.set(0.5);
             pointerY.set(0.5);
         }
@@ -189,7 +203,7 @@ const Face = ({
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
                     variants={eyeContainerVariants}
-                    animate={isEyeMovingPhase ? 'moving' : 'rest'}
+                    animate={getAnimationTarget()}
                 >
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
@@ -210,7 +224,7 @@ const Face = ({
                 className="flex gap-20 absolute top-28" 
                 style={{ transform: 'translateZ(20px)' }}
                 variants={eyeContainerVariants}
-                animate={isEyeMovingPhase ? 'moving' : 'rest'}
+                animate={getAnimationTarget()}
             >
                 {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
@@ -273,7 +287,7 @@ const Face = ({
                 className="absolute bottom-12" 
                 style={{ transform: 'translateZ(10px)' }}
                 variants={eyeContainerVariants}
-                animate={isEyeMovingPhase ? 'moving' : 'rest'}
+                animate={getAnimationTarget()}
             >
                 <svg width="100" height="40" viewBox="0 0 100 80">
                     <motion.path
@@ -347,7 +361,8 @@ const Face = ({
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [isInitialPhase, setIsInitialPhase] = useState(true);
-  const [isEyeMovingPhase, setIsEyeMovingPhase] = useState(false);
+  const [isIllusionActive, setIsIllusionActive] = useState(false);
+  const [activeIllusionType, setActiveIllusionType] = useState<IllusionType>(0);
   
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('main');
   const [mood, setMood] = useState<Mood>('default');
@@ -380,7 +395,7 @@ export default function DesignPage() {
   const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const phaseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const eyeMovementTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const illusionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -391,16 +406,16 @@ export default function DesignPage() {
   const clearAllTimeouts = () => {
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
       if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-      if (eyeMovementTimeoutRef.current) clearTimeout(eyeMovementTimeoutRef.current);
+      if (illusionTimeoutRef.current) clearTimeout(illusionTimeoutRef.current);
       animationIntervalRef.current = null;
       phaseTimeoutRef.current = null;
-      eyeMovementTimeoutRef.current = null;
+      illusionTimeoutRef.current = null;
   };
 
   const resumeExpressionAnimation = () => {
     clearAllTimeouts();
     setIsInitialPhase(false);
-    setIsEyeMovingPhase(false);
+    setIsIllusionActive(false);
 
     const expressions = animationSequences[mood];
     let index = 0;
@@ -414,27 +429,31 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runAnimation, 3000);
   };
   
-  const startEyeMovementPhase = () => {
+  const startIllusionPhase = () => {
       clearAllTimeouts();
       setIsInitialPhase(false);
-      setIsEyeMovingPhase(true);
-      setExpression('surprised');
+      setIsIllusionActive(true);
+      
+      const nextIllusionType = ((activeIllusionType + 1) % 4) as IllusionType;
+      setActiveIllusionType(nextIllusionType);
 
-      eyeMovementTimeoutRef.current = setTimeout(() => {
-          setIsEyeMovingPhase(false); // This will trigger the smooth return animation
+      switch(nextIllusionType) {
+          case 0: setExpression('surprised'); break;
+          case 1: setExpression('surprised'); break;
+          case 2: setExpression('happy'); break;
+          case 3: setExpression('sad'); break;
+      }
+
+      illusionTimeoutRef.current = setTimeout(() => {
+          setIsIllusionActive(false);
           resumeExpressionAnimation();
-      }, 6000); // 6 seconds for eye movement
-  };
-
-  const handleIllusionEnd = () => {
-    // This function can be kept for future use if needed,
-    // but the main resumption logic is now in startEyeMovementPhase.
+      }, 6000); // 6 seconds for illusion
   };
   
   const startAnimation = () => {
     clearAllTimeouts();
     setIsInitialPhase(true);
-    setIsEyeMovingPhase(false);
+    setIsIllusionActive(false);
 
     const initialAnimations = [
         { expression: 'happy', pupils: { x: 0, y: 0.5 } },   // left
@@ -457,7 +476,7 @@ export default function DesignPage() {
     animationIntervalRef.current = setInterval(runInitialAnimation, 3000);
 
     phaseTimeoutRef.current = setTimeout(() => {
-        startEyeMovementPhase();
+        startIllusionPhase();
     }, 15000); // 15 seconds
 
     return clearAllTimeouts;
@@ -612,7 +631,7 @@ export default function DesignPage() {
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={startEyeMovementPhase}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={startIllusionPhase}>
                         <Eye className="h-5 w-5" />
                         <span className="text-sm">Illusion</span>
                     </Button>
@@ -812,10 +831,10 @@ export default function DesignPage() {
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
                 isInitialPhase={isInitialPhase}
-                isEyeMovingPhase={isEyeMovingPhase}
+                isIllusionActive={isIllusionActive}
+                activeIllusionType={activeIllusionType}
                 pointerX={pointerX}
                 pointerY={pointerY}
-                onIllusionEnd={handleIllusionEnd}
             />
           </motion.div>
         </motion.div>
