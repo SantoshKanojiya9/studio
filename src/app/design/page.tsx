@@ -122,6 +122,14 @@ const Face = ({
             <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             
+             <motion.div
+                className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
+                style={{
+                  filter: 'blur(20px)',
+                  transform: 'rotate(-30deg)',
+                }}
+              />
+
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
                     animate={{ x: featureOffset.x, y: featureOffset.y }}
