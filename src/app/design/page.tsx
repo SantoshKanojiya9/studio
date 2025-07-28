@@ -113,14 +113,36 @@ const Face = ({
   
   const pupilX = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
+  
+  const pupilXIllusion = useMotionValue(0);
+  const pupilXIllusionAnim = useAnimation();
+  
+  useEffect(() => {
+    if (isEyeMovingPhase) {
+        pupilXIllusionAnim.start({
+            x: [-12, 12],
+            transition: {
+                duration: 3,
+                repeat: Infinity,
+                repeatType: 'mirror',
+                ease: 'easeInOut',
+            },
+        });
+    } else {
+        pupilXIllusionAnim.stop();
+        pupilXIllusion.set(0);
+    }
+  }, [isEyeMovingPhase, pupilXIllusionAnim, pupilXIllusion]);
+
+  const finalPupilX = isEyeMovingPhase ? pupilXIllusion : pupilX;
 
   const eyeContainerVariants = {
-    rest: { x: 0 },
-    moving: { x: [-20, 20] }
+    rest: { x: 0, y: 0 },
+    moving: { x: [-20, 20], transition: { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isInitialPhase) return; // Disable pointer tracking during initial animation
+    if (isInitialPhase || isEyeMovingPhase) return;
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
@@ -135,7 +157,7 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => {
-        if (!isInitialPhase) {
+        if (!isInitialPhase && !isEyeMovingPhase) {
             pointerX.set(0.5);
             pointerY.set(0.5);
         }
@@ -179,14 +201,13 @@ const Face = ({
                 style={{ transform: 'translateZ(20px)' }}
                 variants={eyeContainerVariants}
                 animate={isEyeMovingPhase ? 'moving' : 'rest'}
-                transition={isEyeMovingPhase ? { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' } : { duration: 0.5 }}
             >
                 {/* Left Eye */}
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: finalPupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                     >
                          <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
@@ -215,7 +236,7 @@ const Face = ({
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: finalPupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                     >
                         <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
