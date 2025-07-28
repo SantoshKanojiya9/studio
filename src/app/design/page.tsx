@@ -211,13 +211,13 @@ const Face = ({
                     >
                          <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={expression === 'winking' ? 'closed' : ['open', 'closed']}
+                            animate={expression === 'winking' ? 'closed' : 'open'}
                             variants={expression === 'winking' ? leftEyeLidWinkVariants : eyeLidVariants}
                             transition={{
                                 duration: 0.1,
-                                repeat: expression === 'winking' ? 1 : Infinity,
+                                repeat: expression === 'winking' ? 1 : 0,
                                 repeatType: "mirror",
-                                repeatDelay: expression === 'winking' ? 0.2 : 3.5,
+                                repeatDelay: expression === 'winking' ? 0.2 : 0,
                                 ease: "easeOut"
                             }}
                         />
@@ -240,13 +240,10 @@ const Face = ({
                     >
                         <motion.div 
                             className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={['open', 'closed']}
+                            animate={'open'}
                             variants={eyeLidVariants}
                             transition={{
                                 duration: 0.1,
-                                repeat: Infinity,
-                                repeatType: "mirror",
-                                repeatDelay: 3,
                                 ease: "easeOut"
                             }}
                         />
