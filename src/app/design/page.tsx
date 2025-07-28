@@ -279,9 +279,12 @@ export default function DesignPage() {
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [featureOffset, setFeatureOffset] = useState({ x: 0, y: 0 });
+  const [tapCount, setTapCount] = useState(0);
+  const [isAngryMode, setIsAngryMode] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
+  const angryColor = 'orangered';
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -297,21 +300,33 @@ export default function DesignPage() {
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
   
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
-      const newExpression = allExpressions[randomExpressionIndex];
-      setExpression(newExpression);
+    // Stop any existing interval when angry mode changes
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+    }
+    
+    // Start the interval only if not in angry mode
+    if (!isAngryMode) {
+      animationIntervalRef.current = setInterval(() => {
+        const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
+        const newExpression = allExpressions[randomExpressionIndex];
+        setExpression(newExpression);
 
-      // Add random feature movement
-      const newX = Math.random() * 40 - 20; // -20 to 20
-      const newY = Math.random() * 30 - 15; // -15 to 15
-      setFeatureOffset({ x: newX, y: newY });
+        const newX = Math.random() * 40 - 20; // -20 to 20
+        const newY = Math.random() * 30 - 15; // -15 to 15
+        setFeatureOffset({ x: newX, y: newY });
+      }, 3000);
+    }
 
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+      }
+    };
+  }, [isAngryMode]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -341,9 +356,34 @@ export default function DesignPage() {
     setShowMustache(false);
     setActiveMenu('main');
     setFeatureOffset({ x: 0, y: 0 });
+    setIsAngryMode(false);
+    setTapCount(0);
   };
   
+  const handleTap = () => {
+    if (isAngryMode) return;
+    
+    const newTapCount = tapCount + 1;
+    setTapCount(newTapCount);
+
+    if (newTapCount >= 4) {
+      setTapCount(0);
+      setIsAngryMode(true);
+      setEmojiColor(angryColor);
+      setExpression('angry');
+
+      setTimeout(() => {
+        setIsAngryMode(false);
+        setEmojiColor(defaultEmojiColor);
+        setExpression('neutral');
+      }, 3000);
+    } else {
+      handleRandomize();
+    }
+  };
+
   const handleRandomize = () => {
+    if (isAngryMode) return;
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
@@ -411,7 +451,7 @@ export default function DesignPage() {
             style={{ 
               transformStyle: 'preserve-3d'
             }}
-            onTap={handleRandomize}
+            onTap={handleTap}
           >
             <Face 
                 expression={expression} 
