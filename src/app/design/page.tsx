@@ -312,6 +312,8 @@ export default function DesignPage() {
     }
     faceAnimationControls.stop();
     pupilAnimationControls.stop();
+    faceAnimationControls.set({ x: 0, y: 0, rotate: 0 });
+    pupilAnimationControls.set({ x: 0, y: 0 });
   }
 
   const startIllusion = async (illusionType: IllusionType) => {
@@ -357,9 +359,10 @@ export default function DesignPage() {
             }
             }, 2000);
 
+            const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
+
             let faceAnimProps = {};
             let pupilAnimProps = {};
-            const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
 
             switch(illusionType) {
                 case 'horizontal': 
@@ -386,13 +389,9 @@ export default function DesignPage() {
       }, 100);
   };
   
-  const runContinuousIllusion = () => {
-    startIllusion('random');
-  };
-
   useEffect(() => {
-    runContinuousIllusion();
-    // Cleanup on unmount
+    // This effect now does nothing on startup, keeping the emoji static.
+    // Animations are only started by user interaction.
     return () => stopAllAnimations();
   }, []);
 
@@ -558,7 +557,7 @@ export default function DesignPage() {
                         <TooltipContent><p>Accessories</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => { stopAllAnimations(); setActiveMenu('illusions');}}><Drama className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => { setActiveMenu('illusions');}}><Drama className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Illusions</p></TooltipContent>
                     </Tooltip>
                 </>
