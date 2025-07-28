@@ -25,7 +25,6 @@ const Face = ({
     color, 
     showSunglasses, 
     showMustache,
-    isInitialPhase,
     isIllusionActive,
     activeIllusionType,
     pointerX,
@@ -37,7 +36,6 @@ const Face = ({
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
-    isInitialPhase: boolean,
     isIllusionActive: boolean,
     activeIllusionType: IllusionType,
     pointerX: any,
@@ -122,7 +120,7 @@ const Face = ({
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isInitialPhase || isIllusionActive) return;
+    if (isIllusionActive) return;
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
@@ -137,7 +135,7 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={() => {
-        if (!isInitialPhase && !isIllusionActive) {
+        if (!isIllusionActive) {
             pointerX.set(0.5);
             pointerY.set(0.5);
         }
@@ -319,7 +317,6 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
-  const [isInitialPhase, setIsInitialPhase] = useState(false);
   const [isIllusionActive, setIsIllusionActive] = useState(false);
   const [activeIllusionType, setActiveIllusionType] = useState<IllusionType>(0);
   
@@ -357,12 +354,7 @@ export default function DesignPage() {
     illusionStateRef.current = isIllusionActive;
   }, [isIllusionActive]);
 
-
-  const clickCount = useRef(0);
-  const clickTimer = useRef<NodeJS.Timeout | null>(null);
-  const angerTimeout = useRef<NodeJS.Timeout | null>(null);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const phaseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const animationSequences: Record<Mood, Expression[]> = {
     default: ['neutral', 'happy', 'angry', 'sad', 'surprised'],
@@ -372,11 +364,13 @@ export default function DesignPage() {
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'playful-tongue', 'winking'];
 
+  const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
+
   const clearAllTimeouts = () => {
-      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-      if (phaseTimeoutRef.current) clearTimeout(phaseTimeoutRef.current);
-      animationIntervalRef.current = null;
-      phaseTimeoutRef.current = null;
+      if (animationIntervalRef.current) {
+        clearInterval(animationIntervalRef.current);
+        animationIntervalRef.current = null;
+      }
   };
   
   const stopAllAnimations = () => {
@@ -388,7 +382,6 @@ export default function DesignPage() {
 
   const resumeExpressionAnimation = () => {
     stopAllAnimations();
-    setIsInitialPhase(false);
 
     const expressions = animationSequences[mood];
     let index = 0;
@@ -409,35 +402,34 @@ export default function DesignPage() {
 
       let faceAnimProps = {};
       let pupilAnimProps = {};
-      let expression: Expression = 'neutral';
 
       switch(illusionType) {
           case 0: 
               faceAnimProps = { x: [-20, 20] };
               pupilAnimProps = { x: [-12, 12] };
-              expression = 'surprised';
               break;
           case 1: 
               faceAnimProps = { y: [-20, 20] };
               pupilAnimProps = { y: [-8, 8] };
-              expression = 'surprised';
               break;
           case 2:
               faceAnimProps = { x: [20, -20], y: [-20, 20] };
               pupilAnimProps = { x: [12, -12], y: [-8, 8] };
-              expression = 'happy';
               break;
           case 3:
               faceAnimProps = { x: [-20, 20], y: [-20, 20] };
               pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
-              expression = 'sad';
               break;
       }
-      setExpression(expression);
-
-      const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' };
+      
+      const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
       faceAnimationControls.start({ ...faceAnimProps, transition });
       pupilAnimationControls.start({ ...pupilAnimProps, transition });
+
+      // Start cycling expressions during the illusion
+      animationIntervalRef.current = setInterval(() => {
+        setExpression(getRandomExpression());
+      }, 2000);
   };
 
   const runContinuousIllusion = async () => {
@@ -445,7 +437,6 @@ export default function DesignPage() {
     setIsIllusionActive(true);
     
     const getRandomValue = (range: number) => (Math.random() - 0.5) * 2 * range;
-    const getRandomExpression = () => allExpressions[Math.floor(Math.random() * allExpressions.length)];
 
     while (illusionStateRef.current) {
         setExpression(getRandomExpression());
@@ -453,30 +444,45 @@ export default function DesignPage() {
         const targetFace = { x: getRandomValue(20), y: getRandomValue(20) };
         const targetPupil = { x: getRandomValue(12), y: getRandomValue(8) };
         
-        await Promise.all([
+        // Animate to the new random position
+        const movePromise = Promise.all([
             faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 100, damping: 20 }),
             pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 100, damping: 20 })
         ]);
-
+        await movePromise;
         if (!illusionStateRef.current) break;
 
+        // Wait for a bit
+        await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+        if (!illusionStateRef.current) break;
+        
+        // Oscillate for a random duration
         const oscillationType = Math.random();
-        const duration = 2 + Math.random() * 2; // Oscillate for 2-4 seconds
+        const duration = 1 + Math.random() * 2; 
+
+        let oscillationPromise;
+        const transition = { duration, repeat: Infinity, repeatType: 'mirror' as const };
 
         if (oscillationType < 0.33) { // Horizontal
-            await pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+            oscillationPromise = pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x] }, { ...transition });
         } else if (oscillationType < 0.66) { // Vertical
-            await pupilAnimationControls.start({ y: [targetPupil.y, -targetPupil.y] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+            oscillationPromise = pupilAnimationControls.start({ y: [targetPupil.y, -targetPupil.y] }, { ...transition });
         } else { // Diagonal
-            await pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x], y: [targetPupil.y, -targetPupil.y] }, { duration, repeat: Infinity, repeatType: 'mirror' });
+            oscillationPromise = pupilAnimationControls.start({ x: [targetPupil.x, -targetPupil.x], y: [targetPupil.y, -targetPupil.y] }, { ...transition });
         }
+        
+        // Let it oscillate for its duration
+        await new Promise(resolve => setTimeout(resolve, duration * 1000));
+        if (!illusionStateRef.current) break;
+
+        // Stop the oscillation before the next loop
+        pupilAnimationControls.stop();
+        // Snap back to the last target before starting the next move
+        await pupilAnimationControls.start(targetPupil, { duration: 0.1 });
+        if (!illusionStateRef.current) break;
     }
   };
 
-  const skipInitialAnimation = () => {
-    clearAllTimeouts();
-    resumeExpressionAnimation();
-  };
 
   useEffect(() => {
     // When mood changes, restart the animation cycle
@@ -487,12 +493,8 @@ export default function DesignPage() {
 
 
   useEffect(() => {
-    const cleanup = resumeExpressionAnimation();
-    return () => {
-      if (cleanup) cleanup();
-      if (clickTimer.current) clearTimeout(clickTimer.current);
-      if (angerTimeout.current) clearTimeout(angerTimeout.current);
-    };
+    resumeExpressionAnimation(); // Start the default animation
+    return stopAllAnimations; // Cleanup on unmount
   }, []);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -511,55 +513,6 @@ export default function DesignPage() {
     x.set(0);
     y.set(0);
   };
-
-  const handlePointerDown = () => {
-    if (isInitialPhase) return;
-
-    if (angerTimeout.current) {
-        clearTimeout(angerTimeout.current);
-        angerTimeout.current = null;
-    }
-
-    if (clickTimer.current) {
-      clearTimeout(clickTimer.current);
-      clickTimer.current = null;
-    }
-    
-    clickCount.current += 1;
-
-    if (clickCount.current >= 4) {
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
-        animationIntervalRef.current = null;
-      }
-      setExpression('angry');
-      setEmojiColor('orangered');
-      clickCount.current = 0;
-      
-      angerTimeout.current = setTimeout(() => {
-        setExpression('neutral');
-        setEmojiColor(defaultEmojiColor);
-        angerTimeout.current = null;
-        resumeExpressionAnimation(); // Resume expressions
-      }, 2000);
-    } else {
-      setExpression('happy');
-      clickTimer.current = setTimeout(() => {
-        clickCount.current = 0;
-      }, 800);
-    }
-  };
-
-  const handlePointerUp = () => {
-    if (isInitialPhase) return;
-    // Don't change the expression if it's angry, let the timeout handle it.
-    if (expression === 'angry') return;
-    
-    // Only revert to neutral if the anger timeout is not active
-    if (!angerTimeout.current) {
-        resumeExpressionAnimation();
-    }
-  };
   
   const handleReset = () => {
     setBackgroundColor(defaultBackgroundColor);
@@ -569,6 +522,7 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setMood('default');
+    resumeExpressionAnimation(); // Go back to default mood animations
   };
   
   const MustacheIcon = () => (
@@ -591,9 +545,9 @@ export default function DesignPage() {
   );
 
   const menuVariants = {
-    hidden: { x: '100%', opacity: 0, position: 'absolute' },
-    visible: { x: '0%', opacity: 1, position: 'relative' },
-    exit: { x: '-100%', opacity: 0, position: 'absolute' },
+    hidden: { x: '100%', opacity: 0, position: 'absolute' as 'absolute' },
+    visible: { x: '0%', opacity: 1, position: 'relative' as 'relative' },
+    exit: { x: '-100%', opacity: 0, position: 'absolute' as 'absolute' },
   };
   
   const renderMenu = () => {
@@ -606,19 +560,19 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center justify-start gap-2 md:gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('colors')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('colors'); resumeExpressionAnimation(); }}>
                         <Palette className="h-5 w-5" />
                         <span className="text-sm">Colors</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('effects')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('effects'); resumeExpressionAnimation(); }}>
                         <Wand2 className="h-5 w-5" />
                         <span className="text-sm">Effects</span>
                     </Button>
-                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('accessories')}>
+                    <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('accessories'); resumeExpressionAnimation(); }}>
                         <SmilePlus className="h-5 w-5" />
                         <span className="text-sm">Accessories</span>
                     </Button>
-                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => setActiveMenu('moods')}>
+                     <Button variant="ghost" className="flex items-center gap-2 p-2 h-10 hover:bg-secondary focus:bg-secondary" onClick={() => { stopAllAnimations(); setActiveMenu('moods'); resumeExpressionAnimation(); }}>
                         <Drama className="h-5 w-5" />
                         <span className="text-sm">Moods</span>
                     </Button>
@@ -784,7 +738,7 @@ export default function DesignPage() {
                     transition={{ duration: 0.2, ease: 'easeInOut' }}
                     className="flex items-center gap-4 whitespace-nowrap"
                 >
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="hover:bg-secondary focus:bg-secondary">
+                    <Button variant="ghost" size="icon" onClick={() => { setActiveMenu('main'); resumeExpressionAnimation(); }} className="hover:bg-secondary focus:bg-secondary">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <TooltipProvider>
@@ -855,9 +809,6 @@ export default function DesignPage() {
         >
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerUp} 
             style={{ 
               filter: filter !== 'none' ? filter : undefined,
               transformStyle: 'preserve-3d'
@@ -868,7 +819,6 @@ export default function DesignPage() {
                 color={emojiColor} 
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
-                isInitialPhase={isInitialPhase}
                 isIllusionActive={isIllusionActive}
                 activeIllusionType={activeIllusionType}
                 pointerX={pointerX}
@@ -890,5 +840,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
