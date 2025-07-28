@@ -359,29 +359,29 @@ export default function DesignPage() {
 
             let faceAnimProps = {};
             let pupilAnimProps = {};
+            const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
 
             switch(illusionType) {
                 case 'horizontal': 
-                    faceAnimProps = { x: [-20, 20] };
-                    pupilAnimProps = { x: [-12, 12] };
+                    faceAnimProps = { x: [-20, 20], transition };
+                    pupilAnimProps = { x: [-12, 12], transition };
                     break;
                 case 'vertical': 
-                    faceAnimProps = { y: [-20, 20] };
-                    pupilAnimProps = { y: [-8, 8] };
+                    faceAnimProps = { y: [-20, 20], transition };
+                    pupilAnimProps = { y: [-8, 8], transition };
                     break;
                 case 'diagonal-tr-bl':
-                    faceAnimProps = { x: [20, -20], y: [-20, 20] };
-                    pupilAnimProps = { x: [12, -12], y: [-8, 8] };
+                    faceAnimProps = { x: [20, -20], y: [-20, 20], transition };
+                    pupilAnimProps = { x: [12, -12], y: [-8, 8], transition };
                     break;
                 case 'diagonal-tl-br':
-                    faceAnimProps = { x: [-20, 20], y: [-20, 20] };
-                    pupilAnimProps = { x: [-12, 12], y: [-8, 8] };
+                    faceAnimProps = { x: [-20, 20], y: [-20, 20], transition };
+                    pupilAnimProps = { x: [-12, 12], y: [-8, 8], transition };
                     break;
             }
             
-            const transition = { duration: 3, repeat: Infinity, repeatType: 'mirror' as const, ease: 'easeInOut' as const };
-            faceAnimationControls.start({ ...faceAnimProps, transition });
-            pupilAnimationControls.start({ ...pupilAnimProps, transition });
+            faceAnimationControls.start(faceAnimProps);
+            pupilAnimationControls.start(pupilAnimProps);
         }
       }, 100);
   };
