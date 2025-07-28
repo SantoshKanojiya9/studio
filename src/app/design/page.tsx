@@ -390,8 +390,7 @@ export default function DesignPage() {
   };
   
   useEffect(() => {
-    // This effect now does nothing on startup, keeping the emoji static.
-    // Animations are only started by user interaction.
+    startIllusion('random');
     return () => stopAllAnimations();
   }, []);
 
