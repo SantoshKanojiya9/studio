@@ -103,7 +103,7 @@ const ClockFace = ({
         >
             <div className={cn(
                 "absolute bg-black/70",
-                isHour ? "w-1 h-4 top-2 left-1/2 -ml-0.5" : "w-0.5 h-3 top-2 left-1/2 -ml-0.5"
+                isHour ? "w-1 h-3 top-1.5 left-1/2 -ml-0.5" : "w-0.5 h-2 top-1.5 left-1/2 -ml-0.5"
             )}></div>
         </div>
     )
@@ -111,41 +111,41 @@ const ClockFace = ({
 
   return (
     <motion.div 
-      className="relative w-64 h-64"
+      className="relative w-48 h-48"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-8 w-20 h-10 z-0"
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-6 w-16 h-8 z-0"
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-12 h-3 bg-orange-400 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
-            <div className="w-10 h-10 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(15deg)'}}></div>
-                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(-15deg)'}}></div>
+            <div className="w-10 h-2 bg-orangered absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
+            <div className="w-8 h-8 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(15deg)'}}></div>
+                <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(-15deg)'}}></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-8 w-20 h-10 z-0"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-6 w-16 h-8 z-0"
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-12 h-3 bg-orange-400 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
-             <div className="w-10 h-10 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(-15deg)'}}></div>
-                <div className="w-3 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(15deg)'}}></div>
+            <div className="w-10 h-2 bg-orangered absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
+             <div className="w-8 h-8 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(-15deg)'}}></div>
+                <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(15deg)'}}></div>
             </div>
         </motion.div>
 
         {/* Legs */}
-         <div className="absolute bottom-[-24px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
-              <div className="flex gap-4">
-                <div className="w-3 h-6 bg-black/80"></div>
-                <div className="w-3 h-6 bg-black/80"></div>
+         <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
+              <div className="flex gap-3">
+                <div className="w-2 h-5" style={{ backgroundColor: '#4a2c0f'}}></div>
+                <div className="w-2 h-5" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
-              <div className="flex -mt-1 gap-2">
-                 <div className="w-8 h-4 bg-orange-500 rounded-t-md border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-1 bg-white/70 rounded-t-sm"></div></div>
-                 <div className="w-8 h-4 bg-orange-500 rounded-t-md border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-1 bg-white/70 rounded-t-sm"></div></div>
+              <div className="flex -mt-0.5 gap-1.5">
+                 <div className="w-7 h-3 bg-orangered rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-3 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-7 h-3 bg-orangered rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-3 h-0.5 bg-white/70 rounded-t-sm"></div></div>
               </div>
          </div>
 
@@ -157,37 +157,37 @@ const ClockFace = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className="w-full h-full rounded-full shadow-[inset_0_-12px_15px_rgba(0,0,0,0.15),_0_6px_12px_rgba(0,0,0,0.25)] relative overflow-hidden border-4 border-black/70" 
+          className="w-full h-full rounded-full shadow-[inset_0_-10px_12px_rgba(0,0,0,0.15),_0_5px_10px_rgba(0,0,0,0.25)] relative overflow-hidden border-4 border-black/70" 
           animate={{ backgroundColor: color }}
           transition={{ duration: 0.3 }}
         >
             {tickMarks}
             <div className="w-full h-full rounded-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22%2F%3E%3C%2Fsvg%3E')] opacity-5"></div>
             
              <motion.div
-                className="absolute top-6 left-6 w-1/2 h-1/4 bg-white/20 rounded-full"
+                className="absolute top-5 left-5 w-1/2 h-1/4 bg-white/20 rounded-full"
                 style={{
-                  filter: 'blur(12px)',
+                  filter: 'blur(10px)',
                   transform: 'rotate(-25deg)',
                 }}
               />
 
                 <motion.div 
-                    className="flex justify-between w-40 absolute top-36"
+                    className="flex justify-between w-32 absolute top-32"
                     animate={{ x: featureOffset.x, y: featureOffset.y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
                     <motion.div 
-                        className="w-10 h-5 bg-rose-400/80 rounded-full"
-                        style={{ filter: 'blur(2px)'}}
+                        className="w-8 h-4 bg-rose-400/80 rounded-full"
+                        style={{ filter: 'blur(1.5px)'}}
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
                     />
                     <motion.div 
-                        className="w-10 h-5 bg-rose-400/80 rounded-full"
-                         style={{ filter: 'blur(2px)'}}
+                        className="w-8 h-4 bg-rose-400/80 rounded-full"
+                         style={{ filter: 'blur(1.5px)'}}
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
@@ -195,23 +195,23 @@ const ClockFace = ({
                 </motion.div>
             
             <motion.div 
-                className="flex gap-12 absolute top-28 items-end" 
+                className="flex gap-10 absolute top-24 items-end" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
                 {/* Left Eye */}
-                <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                  <div className="w-10 h-8 bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
+                <motion.div className="relative" style={{ height: '2rem' }} variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                  <div className="w-8 h-full bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
                       <motion.div 
-                          className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                          className="absolute top-1/2 left-1/2 w-5 h-5 bg-black rounded-full"
                           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                       >
-                           <motion.div className="absolute top-1 left-1 w-2 h-2 bg-white/80 rounded-full"/>
+                           <motion.div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/80 rounded-full"/>
                       </motion.div>
                   </div>
                   <motion.div 
-                      className="absolute -top-2 left-0.5 w-9 h-3 bg-black/80"
-                      style={{ clipPath: 'path("M0,8 C8,0, 28,0, 36,8")' }}
+                      className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80"
+                      style={{ clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }}
                       variants={eyebrowVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
@@ -219,18 +219,18 @@ const ClockFace = ({
                 </motion.div>
 
                 {/* Right Eye */}
-                <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                  <div className="w-10 h-8 bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
+                <motion.div className="relative" style={{ height: '2rem' }} variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                  <div className="w-8 h-full bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
                       <motion.div 
-                          className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                          className="absolute top-1/2 left-1/2 w-5 h-5 bg-black rounded-full"
                           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
                       >
-                          <motion.div className="absolute top-1 left-1 w-2 h-2 bg-white/80 rounded-full"/>
+                          <motion.div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/80 rounded-full"/>
                       </motion.div>
                   </div>
                   <motion.div 
-                      className="absolute -top-2 left-0.5 w-9 h-3 bg-black/80"
-                      style={{ clipPath: 'path("M0,8 C8,0, 28,0, 36,8")' }}
+                      className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80"
+                      style={{ clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }}
                       variants={eyebrowVariants}
                       animate={expression}
                       transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
@@ -239,14 +239,14 @@ const ClockFace = ({
             </motion.div>
 
             {/* Nose */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 w-1.5 h-1.5 bg-black/70 rounded-full"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-1.5 w-1 h-1 bg-black/70 rounded-full"></div>
 
             <motion.div 
-                className="absolute bottom-16" 
+                className="absolute bottom-12" 
                 animate={{ x: featureOffset.x, y: featureOffset.y }}
                 transition={{ duration: 1.5, type: 'spring' }}
             >
-                <svg width="80" height="32" viewBox="0 0 100 80">
+                <svg width="64" height="28" viewBox="0 0 100 80">
                     <motion.path
                         fill="transparent"
                         stroke="black"
@@ -270,15 +270,15 @@ export default function LokiPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
 
-  const [backgroundColor, setBackgroundColor] = useState('#a96628');
-  const [emojiColor, setEmojiColor] = useState('#f9a826');
+  const [backgroundColor, setBackgroundColor] = useState('#000000');
+  const [emojiColor, setEmojiColor] = useState('orangered');
   const [featureOffset, setFeatureOffset] = useState({ x: 0, y: 0 });
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
 
-  const defaultBackgroundColor = '#a96628';
-  const defaultEmojiColor = '#f9a826';
-  const angryColor = 'orangered';
+  const defaultBackgroundColor = '#000000';
+  const defaultEmojiColor = 'orangered';
+  const angryColor = 'red';
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -425,7 +425,7 @@ export default function LokiPage() {
           transition={{ duration: 1.5, type: 'spring' }}
         >
           <motion.div
-            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
+            className="w-64 h-80 flex items-center justify-center cursor-pointer select-none"
             onTap={handleTap}
           >
             <ClockFace 
@@ -449,3 +449,5 @@ export default function LokiPage() {
     </div>
   );
 }
+
+    
