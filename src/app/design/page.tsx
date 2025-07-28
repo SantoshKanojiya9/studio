@@ -310,7 +310,6 @@ export default function DesignPage() {
   
   useEffect(() => {
     return () => {
-        // Clean up on unmount
         stopAllAnimations();
     };
   }, []);
@@ -319,30 +318,43 @@ export default function DesignPage() {
       stopAllAnimations();
       illusionStateRef.current = true;
       
-      animationIntervalRef.current = setInterval(() => {
-        if (illusionStateRef.current) {
-          setExpression(getRandomExpression());
-        }
-      }, 2000);
-
       if (illusionType === 'random') {
-        // Continuous random daydream
+        // Continuous random daydream where all features move independently
+        animationIntervalRef.current = setInterval(() => {
+          if (illusionStateRef.current) {
+            setExpression(getRandomExpression());
+          }
+        }, 1500 + Math.random() * 1000);
+
         while (illusionStateRef.current) {
-            const targetFace = { x: (Math.random() - 0.5) * 40, y: (Math.random() - 0.5) * 40 };
-            const targetPupil = { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 16 };
+            const targetFace = { 
+                x: (Math.random() - 0.5) * 30, 
+                y: (Math.random() - 0.5) * 30,
+                rotate: (Math.random() - 0.5) * 10,
+            };
+            const targetPupil = { 
+                x: (Math.random() - 0.5) * 24, 
+                y: (Math.random() - 0.5) * 16 
+            };
             
-            const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 50, damping: 15 });
+            const faceAnimation = faceAnimationControls.start(targetFace, { type: 'spring', stiffness: 20, damping: 10 });
             const pupilAnimation = pupilAnimationControls.start(targetPupil, { type: 'spring', stiffness: 50, damping: 15 });
 
             await Promise.all([faceAnimation, pupilAnimation]);
 
             if (!illusionStateRef.current) break;
 
-            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1500));
         }
 
       } else {
         // Fixed path illusions
+        animationIntervalRef.current = setInterval(() => {
+          if (illusionStateRef.current) {
+            setExpression(getRandomExpression());
+          }
+        }, 2000);
+
         let faceAnimProps = {};
         let pupilAnimProps = {};
 
