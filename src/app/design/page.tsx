@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,6 +23,7 @@ const Face = ({
     showMustache,
     pointerX,
     pointerY,
+    eyeOffset,
 }: { 
     expression: Expression, 
     color: string, 
@@ -30,6 +31,7 @@ const Face = ({
     showMustache: boolean,
     pointerX: any,
     pointerY: any,
+    eyeOffset: { x: number, y: number },
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -140,6 +142,8 @@ const Face = ({
             <motion.div 
                 className="flex gap-20 absolute top-28" 
                 style={{ transform: 'translateZ(20px)' }}
+                animate={{ x: eyeOffset.x, y: eyeOffset.y }}
+                transition={{ duration: 1.5, type: 'spring' }}
             >
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
@@ -263,6 +267,7 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
+  const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -284,8 +289,12 @@ export default function DesignPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * allExpressions.length);
-      setExpression(allExpressions[randomIndex]);
+      const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
+      setExpression(allExpressions[randomExpressionIndex]);
+      
+      const randomX = (Math.random() - 0.5) * 40;
+      setEyeOffset({ x: randomX, y: 0 });
+
     }, 3000);
 
     return () => clearInterval(interval);
@@ -317,6 +326,7 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setActiveMenu('main');
+    setEyeOffset({ x: 0, y: 0 });
   };
   
   const MustacheIcon = () => (
@@ -463,6 +473,7 @@ export default function DesignPage() {
                 showMustache={showMustache} 
                 pointerX={pointerX}
                 pointerY={pointerY}
+                eyeOffset={eyeOffset}
             />
           </motion.div>
         </motion.div>
