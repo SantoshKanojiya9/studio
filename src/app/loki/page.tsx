@@ -116,29 +116,31 @@ const ClockFace = ({
       onPointerLeave={handlePointerLeave}
     >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 left-0 w-12 h-20"
-         animate={{ rotate: expression === 'happy' ? -20 : (expression === 'angry' ? -40 : -10) }}
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-10 w-24 h-12 z-0"
+         animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-full h-4 bg-orange-400 absolute top-1/2 -translate-y-1/2 rounded-l-full"></div>
-            <div className="w-10 h-10 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70"></div>
+            <div className="w-16 h-4 bg-orange-400 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
+            <div className="w-12 h-12 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(15deg)'}}></div>
+                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(-15deg)'}}></div>
+            </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-20"
-          animate={{ rotate: expression === 'surprised' ? 20 : (expression === 'sad' ? 30 : 10) }}
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-10 w-24 h-12 z-0"
+          animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-full h-4 bg-orange-400 absolute top-1/2 -translate-y-1/2 rounded-r-full"></div>
-            <div className="w-10 h-10 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70"></div>
+            <div className="w-16 h-4 bg-orange-400 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
+             <div className="w-12 h-12 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
+                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(3px) rotate(-15deg)'}}></div>
+                <div className="w-4 h-1 bg-black/70 rounded-full" style={{transform: 'translateY(-3px) rotate(15deg)'}}></div>
+            </div>
         </motion.div>
 
         {/* Legs */}
-         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-8">
-              <div className="w-4 h-16 bg-black/80 flex flex-col items-center">
-                  <div className="w-10 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 mt-auto"></div>
-              </div>
-               <div className="w-4 h-16 bg-black/80 flex flex-col items-center">
-                  <div className="w-10 h-6 bg-orange-500 rounded-t-md border-2 border-black/70 mt-auto"></div>
-              </div>
+         <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 flex gap-10 z-0">
+              <div className="w-8 h-8 bg-orange-500 rounded-t-lg border-2 border-black/70 border-b-0"></div>
+              <div className="w-8 h-8 bg-orange-500 rounded-t-lg border-2 border-black/70 border-b-0"></div>
          </div>
 
 
