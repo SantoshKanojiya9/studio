@@ -279,7 +279,7 @@ export default function DesignPage() {
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [featureOffset, setFeatureOffset] = useState({ x: 0, y: 0 });
-  const [tapCount, setTapCount] = useState(0);
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
@@ -357,28 +357,32 @@ export default function DesignPage() {
     setActiveMenu('main');
     setFeatureOffset({ x: 0, y: 0 });
     setIsAngryMode(false);
-    setTapCount(0);
+    setTapTimestamps([]);
   };
   
   const handleTap = () => {
     if (isAngryMode) return;
+
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].slice(-4);
+    setTapTimestamps(newTimestamps);
     
-    const newTapCount = tapCount + 1;
-    setTapCount(newTapCount);
+    if (newTimestamps.length === 4) {
+      const timeDiff = newTimestamps[3] - newTimestamps[0];
+      if (timeDiff < 2000) {
+        setTapTimestamps([]);
+        setIsAngryMode(true);
+        setEmojiColor(angryColor);
+        setExpression('angry');
 
-    if (newTapCount >= 4) {
-      setTapCount(0);
-      setIsAngryMode(true);
-      setEmojiColor(angryColor);
-      setExpression('angry');
-
-      setTimeout(() => {
-        setIsAngryMode(false);
-        setEmojiColor(defaultEmojiColor);
-        setExpression('neutral');
-      }, 3000);
+        setTimeout(() => {
+          setIsAngryMode(false);
+          setEmojiColor(defaultEmojiColor);
+          setExpression('neutral');
+        }, 3000);
+      }
     } else {
-      handleRandomize();
+        handleRandomize();
     }
   };
 
