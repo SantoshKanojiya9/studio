@@ -495,23 +495,23 @@ export default function DesignPage() {
       case 'expressions':
         return (
           <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
             <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'happy' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'happy' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('happy')}><Smile className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
           </>
         );
       case 'colors':
         return (
           <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
             <Separator orientation="vertical" className="h-6 mx-2" />
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                        <Paintbrush className="h-5 w-5"/>
+                        <Paintbrush className="h-4 w-4"/>
                         <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
@@ -520,7 +520,7 @@ export default function DesignPage() {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                        <Pipette className="h-5 w-5"/>
+                        <Pipette className="h-4 w-4"/>
                         <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
@@ -531,12 +531,12 @@ export default function DesignPage() {
       case 'accessories':
         return (
           <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
             <Separator orientation="vertical" className="h-6 mx-2" />
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showSunglasses && "bg-accent text-accent-foreground")}>
-                        <Glasses className="h-5 w-5" />
+                        <Glasses className="h-4 w-4" />
                         <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
@@ -545,7 +545,7 @@ export default function DesignPage() {
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showMustache && "bg-accent text-accent-foreground")}>
-                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
                         <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
@@ -556,7 +556,7 @@ export default function DesignPage() {
       case 'filters':
         return (
             <div className="flex items-center w-full">
-                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
                 <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
                 <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4">
                     {filters.map(filter => (
@@ -581,12 +581,12 @@ export default function DesignPage() {
          case 'base':
             return (
                 <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                     <Tooltip>
                         <TooltipTrigger asChild>
                              <Label htmlFor="tilt-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", tiltEnabled && "bg-accent text-accent-foreground")}>
-                                <Orbit className="h-5 w-5" />
+                                <Orbit className="h-4 w-4" />
                                 <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} className="sr-only" />
                             </Label>
                         </TooltipTrigger>
@@ -606,7 +606,7 @@ export default function DesignPage() {
             ];
             return (
                 <div className="flex items-center w-full">
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                     <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
                         {animations.map(({name, icon: Icon, label}) => (
@@ -617,7 +617,7 @@ export default function DesignPage() {
                                         size="icon"
                                         onClick={() => setAnimationType(prev => prev === name ? 'none' : name)}
                                     >
-                                        <Icon className="h-5 w-5" />
+                                        <Icon className="h-4 w-4" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent><p>{label}</p></TooltipContent>
@@ -629,38 +629,38 @@ export default function DesignPage() {
       default: // 'main'
         return (
           <>
-            <Button variant="ghost" onClick={handleReset} className="flex flex-col h-auto p-2">
-                <RotateCcw className="h-5 w-5" />
+            <Button variant="ghost" onClick={handleReset} className="flex flex-col h-auto p-1">
+                <RotateCcw className="h-4 w-4" />
                 <span className="text-xs mt-1">Reset</span>
             </Button>
             <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-2">
-                <Square className="h-5 w-5" />
+            <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-1">
+                <Square className="h-4 w-4" />
                 <span className="text-xs mt-1">Base</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-2">
-                <Smile className="h-5 w-5" />
+            <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-1">
+                <Smile className="h-4 w-4" />
                 <span className="text-xs mt-1">Expressions</span>
             </Button>
-             <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-2">
-                <Sparkles className="h-5 w-5" />
+             <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-1">
+                <Sparkles className="h-4 w-4" />
                 <span className="text-xs mt-1">Animations</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-2">
-                <Palette className="h-5 w-5" />
+            <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-1">
+                <Palette className="h-4 w-4" />
                 <span className="text-xs mt-1">Colors</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-2">
-                <Glasses className="h-5 w-5" />
+            <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-1">
+                <Glasses className="h-4 w-4" />
                 <span className="text-xs mt-1">Accessories</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-2">
-                <Camera className="h-5 w-5" />
+            <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-1">
+                <Camera className="h-4 w-4" />
                 <span className="text-xs mt-1">Filters</span>
             </Button>
             <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={handleRandomize} className="flex flex-col h-auto p-2">
-                <Wand2 className="h-5 w-5" />
+            <Button variant="ghost" onClick={handleRandomize} className="flex flex-col h-auto p-1">
+                <Wand2 className="h-4 w-4" />
                 <span className="text-xs mt-1">Random</span>
             </Button>
           </>
@@ -713,11 +713,11 @@ export default function DesignPage() {
 
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
-            <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border">
-                <div className="flex w-max space-x-2 p-2 mx-auto">
+            <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
+                <div className="flex w-max space-x-1 p-1 mx-auto">
                     {renderMenu()}
                 </div>
-                <ScrollBar orientation="horizontal" />
+                <ScrollBar orientation="horizontal" className="hidden" />
             </ScrollArea>
         </TooltipProvider>
       </div>

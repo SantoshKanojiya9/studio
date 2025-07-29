@@ -16,7 +16,7 @@ export function BottomBar() {
 
   return (
     <footer className="fixed bottom-0 left-0 z-50 w-full border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="container flex h-16 max-w-lg items-center justify-around">
+      <nav className="container flex h-14 max-w-lg items-center justify-around">
         {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -33,7 +33,6 @@ export function BottomBar() {
                 <div className="h-6 w-6">
                   <Icon className="h-full w-full" />
                 </div>
-                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             )
         })}
