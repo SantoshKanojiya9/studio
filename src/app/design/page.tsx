@@ -64,7 +64,7 @@ const Face = ({
       d: "M 30 50 Q 50 70 70 50", // Smile
     },
     angry: {
-      d: "M 25 60 Q 50 45 75 60", // Angry frown
+        d: "M 25 60 Q 50 45 75 60", // Angry frown
     },
     sad: {
         d: "M 30 60 Q 50 50 70 60", // Sad mouth
@@ -353,16 +353,17 @@ export default function DesignPage() {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         animationControlsX.current?.stop();
         animationControlsY.current?.stop();
-        featureOffsetX.set(0);
-        featureOffsetY.set(0);
     };
 
     if (isDragging || animationType === 'none') {
         stopAnimations();
+        if (animationType === 'none' && !isDragging) {
+            featureOffsetX.set(0);
+            featureOffsetY.set(0);
+        }
         return;
     }
     
-    // Stop previous animations before starting new ones
     stopAnimations();
 
     const animationOptions = {
@@ -373,6 +374,7 @@ export default function DesignPage() {
     };
     
     const randomAnimation = () => {
+        if(isAngryMode) return;
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
         const newX = Math.random() * 120 - 60;
@@ -411,7 +413,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isDragging]);
+  }, [animationType, isDragging, isAngryMode]);
   
   useEffect(() => {
     return () => {
@@ -457,12 +459,8 @@ export default function DesignPage() {
   };
   
   const handleTap = () => {
-    if (isDragging || isAngryMode) return;
-
-    if (angryTimeoutRef.current) {
-        clearTimeout(angryTimeoutRef.current);
-        angryTimeoutRef.current = null;
-    }
+    if (isDragging) return;
+    if (angryTimeoutRef.current) return;
 
     const now = Date.now();
     const newTimestamps = [...tapTimestamps, now].slice(-4);
@@ -540,8 +538,6 @@ export default function DesignPage() {
   
   const onPanEnd = () => {
     setIsDragging(false);
-    animate(featureOffsetX, 0, { type: 'spring', stiffness: 400, damping: 20 });
-    animate(featureOffsetY, 0, { type: 'spring', stiffness: 400, damping: 20 });
   };
 
 
