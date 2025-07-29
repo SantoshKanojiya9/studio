@@ -100,8 +100,8 @@ const Face = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.4);
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.4);
+  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.25);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.25);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
