@@ -90,7 +90,8 @@ const FaceFeatures = ({
                 transition={{ duration: 1.5, type: 'spring' }}
             >
                 <motion.div 
-                    className="flex justify-between w-56 absolute top-40"
+                    className="flex justify-between w-2/3 absolute top-40"
+                    animate={expression}
                 >
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
@@ -107,8 +108,9 @@ const FaceFeatures = ({
                 </motion.div>
             
                 <motion.div 
-                    className="flex gap-20 absolute top-28" 
+                    className="flex gap-16 absolute top-28" 
                     style={{ transform: 'translateZ(20px)' }}
+                    animate={expression}
                 >
                     <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                     <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
@@ -184,7 +186,7 @@ const FaceFeatures = ({
                     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 >
                     <div className="relative">
-                        <div className="flex justify-between items-center w-[180px] h-[45px]">
+                        <div className="flex justify-between items-center w-2/3 h-[45px]">
                             <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                             <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
                             <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
@@ -312,27 +314,22 @@ export function CreatorCanvas({
                     style={{ borderRadius: 'inherit' }}
                 >
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
-                     <motion.div
-                        className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
-                        style={{
-                        filter: 'blur(20px)',
-                        transform: 'rotate(-30deg)',
-                        }}
-                    />
+                    <div className="w-full h-full rounded-[inherit] bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative overflow-hidden"></div>
                 </div>
             )}
         </motion.div>
       </motion.div>
       <div
         className="absolute inset-0"
-        style={{
-            top: shape === 'triangle' ? size / 6 : 0,
-        }}
       >
         <div style={{
           width: '100%',
           height: '100%',
           position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          top: shape === 'triangle' ? size / 4 : 0,
           }}>
             <FaceFeatures 
                 style={style} 
@@ -356,3 +353,5 @@ export function CreatorCanvas({
     </motion.div>
   );
 }
+
+    
