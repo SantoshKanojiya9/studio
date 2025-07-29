@@ -6,10 +6,15 @@ import { CreatorCanvas } from '@/components/creator/canvas';
 import { CreatorToolbar } from '@/components/creator/toolbar';
 import { ChatHeader } from '@/components/chat-header';
 
+export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+
 export type CharacterStyle = {
   backgroundColor: string;
   size: number;
   shape: 'circle' | 'square';
+  expression: Expression;
+  showSunglasses: boolean;
+  showMustache: boolean;
 };
 
 export type MenuType = 'main' | 'base' | 'colors' | 'expressions' | 'accessories';
@@ -17,8 +22,11 @@ export type MenuType = 'main' | 'base' | 'colors' | 'expressions' | 'accessories
 export default function CreatorPage() {
   const [characterStyle, setCharacterStyle] = useState<CharacterStyle>({
     backgroundColor: '#ffb300',
-    size: 200,
+    size: 250,
     shape: 'circle',
+    expression: 'neutral',
+    showSunglasses: false,
+    showMustache: false,
   });
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
 

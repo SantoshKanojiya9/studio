@@ -2,16 +2,17 @@
 'use client';
 
 import React from 'react';
-import type { CharacterStyle, MenuType } from '@/app/creator/page';
+import type { CharacterStyle, MenuType, Expression } from '@/app/creator/page';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { ArrowLeft, Glasses, Palette, Shapes, Smile } from 'lucide-react';
+import { ArrowLeft, Glasses, Palette, Shapes, Smile, Frown, VenetianMask, Ghost } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Switch } from '../ui/switch';
 import { cn } from '@/lib/utils';
 
 interface CreatorToolbarProps {
@@ -28,6 +29,10 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
   ) => {
     setStyle((prev) => ({ ...prev, [key]: value }));
   };
+
+  const handleExpressionChange = (expression: Expression) => {
+      handleStyleChange('expression', expression);
+  }
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -83,10 +88,45 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
                 </div>
             )
         case 'expressions':
+            const expressions: { name: Expression, icon: React.ElementType }[] = [
+                { name: 'neutral', icon: Smile },
+                { name: 'happy', icon: Smile },
+                { name: 'sad', icon: Frown },
+                { name: 'angry', icon: Ghost },
+                { name: 'surprised', icon: VenetianMask }
+            ]
+            return (
+                <div className="grid grid-cols-3 gap-2">
+                   {expressions.map(({name, icon: Icon}) => (
+                        <Button 
+                            key={name} 
+                            variant={style.expression === name ? 'default' : 'outline'}
+                            onClick={() => handleExpressionChange(name)}
+                            className="flex flex-col h-auto p-2 capitalize"
+                        >
+                            <Icon className="h-5 w-5 mb-1" />
+                            {name}
+                        </Button>
+                   ))}
+                </div>
+            )
         case 'accessories':
             return (
-                <div className="text-center text-muted-foreground py-8">
-                    <p>Coming Soon!</p>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                         <Label htmlFor="sunglasses-switch" className="flex items-center gap-3">
+                            <Glasses className="h-5 w-5" />
+                            <span className="font-medium">Sunglasses</span>
+                        </Label>
+                        <Switch id="sunglasses-switch" checked={style.showSunglasses} onCheckedChange={(checked) => handleStyleChange('showSunglasses', checked)} />
+                    </div>
+                     <div className="flex items-center justify-between rounded-lg border p-3">
+                         <Label htmlFor="mustache-switch" className="flex items-center gap-3">
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
+                            <span className="font-medium">Mustache</span>
+                        </Label>
+                        <Switch id="mustache-switch" checked={style.showMustache} onCheckedChange={(checked) => handleStyleChange('showMustache', checked)} />
+                    </div>
                 </div>
             )
         default: // main menu is handled outside
