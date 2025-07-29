@@ -293,7 +293,7 @@ const Face = ({
 
 
 export default function DesignPage() {
-  const [expression, setExpression] = useState<Expression>('happy');
+  const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
@@ -559,7 +559,5 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
 
     
