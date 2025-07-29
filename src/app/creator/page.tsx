@@ -12,12 +12,15 @@ export type CharacterStyle = {
   shape: 'circle' | 'square';
 };
 
+export type MenuType = 'main' | 'base' | 'colors' | 'expressions' | 'accessories';
+
 export default function CreatorPage() {
   const [characterStyle, setCharacterStyle] = useState<CharacterStyle>({
     backgroundColor: '#ffb300',
     size: 200,
     shape: 'circle',
   });
+  const [activeMenu, setActiveMenu] = useState<MenuType>('main');
 
   return (
     <div className="flex flex-col h-full">
@@ -29,7 +32,12 @@ export default function CreatorPage() {
                 <CreatorCanvas style={characterStyle} />
             </div>
             <div className="border-l border-border bg-background p-4 overflow-y-auto">
-                <CreatorToolbar style={characterStyle} setStyle={setCharacterStyle} />
+                <CreatorToolbar 
+                  style={characterStyle} 
+                  setStyle={setCharacterStyle} 
+                  activeMenu={activeMenu}
+                  setActiveMenu={setActiveMenu}
+                />
             </div>
         </div>
     </div>
