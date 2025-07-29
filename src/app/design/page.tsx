@@ -688,6 +688,7 @@ export default function DesignPage() {
             rotateY: tiltEnabled ? smoothRotateY : 0,
           }}
           transition={{ duration: 1.5, type: 'spring' }}
+          className="mb-10"
         >
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
