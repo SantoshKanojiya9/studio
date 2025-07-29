@@ -5,12 +5,11 @@ import React from 'react';
 import type { CharacterStyle, MenuType, Shape, AnimationType } from '@/app/creator/page';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { ArrowLeft, Glasses, Palette, Shapes, Smile, VenetianMask, Ghost, Wand2, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
+import { ArrowLeft, Glasses, Palette, Shapes, Smile, Wand2, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
-import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { TooltipProvider } from '../ui/tooltip';
 import { Switch } from '../ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -36,7 +35,7 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
         case 'base':
             const shapes: Shape[] = ['circle', 'square', 'oval', 'rectangle', 'triangle', 'pentagon'];
             return (
-                 <div className="space-y-4">
+                 <div className="space-y-4 px-1">
                     <div className="space-y-2">
                         <Label>Shape</Label>
                         <Select
@@ -59,7 +58,7 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
             )
         case 'colors':
             return (
-                <div className="space-y-4">
+                <div className="space-y-4 px-1">
                     <div className="space-y-2">
                         <Label htmlFor="bg-color">Color</Label>
                         <div className="relative">
@@ -85,7 +84,7 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
                 { name: 'random', icon: Wand2, label: 'Random' },
             ]
             return (
-                <div className="grid grid-cols-3 gap-2">
+                 <div className="grid grid-cols-3 gap-2 px-1">
                    {animations.map(({name, icon: Icon, label}) => (
                         <Button 
                             key={name} 
@@ -101,16 +100,16 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
             )
         case 'accessories':
             return (
-                <div className="space-y-4">
+                <div className="space-y-4 px-1">
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                         <Label htmlFor="sunglasses-switch" className="flex items-center gap-3">
+                         <Label htmlFor="sunglasses-switch" className="flex items-center gap-3 cursor-pointer">
                             <Glasses className="h-5 w-5" />
                             <span className="font-medium">Sunglasses</span>
                         </Label>
                         <Switch id="sunglasses-switch" checked={style.showSunglasses} onCheckedChange={(checked) => handleStyleChange('showSunglasses', checked)} />
                     </div>
                      <div className="flex items-center justify-between rounded-lg border p-3">
-                         <Label htmlFor="mustache-switch" className="flex items-center gap-3">
+                         <Label htmlFor="mustache-switch" className="flex items-center gap-3 cursor-pointer">
                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
                             <span className="font-medium">Mustache</span>
                         </Label>
@@ -118,9 +117,27 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
                     </div>
                 </div>
             )
-        default: // main menu is handled outside
-            return null;
-
+        default: // main menu
+        return (
+            <div className="flex w-max space-x-1 p-1 mx-auto items-center">
+                <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-2">
+                    <Shapes className="h-5 w-5" />
+                    <span className="text-xs mt-1">Base</span>
+                </Button>
+                <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-2">
+                    <Palette className="h-5 w-5" />
+                    <span className="text-xs mt-1">Colors</span>
+                </Button>
+                <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-2">
+                    <Smile className="h-5 w-5" />
+                    <span className="text-xs mt-1">Animations</span>
+                </Button>
+                <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-2">
+                    <Glasses className="h-5 w-5" />
+                    <span className="text-xs mt-1">Accessories</span>
+                </Button>
+            </div>
+        );
     }
   }
 
@@ -134,47 +151,22 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
       
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex w-max space-x-2 p-1 mx-auto items-center">
-                    {activeMenu !== 'main' && (
-                        <>
-                            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
-                                <ArrowLeft className="h-5 w-5" />
-                            </Button>
-                            <Separator orientation="vertical" className="h-8" />
-                        </>
-                    )}
-                    {activeMenu === 'main' ? (
-                        <>
-                            <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-2">
-                                <Shapes className="h-5 w-5" />
-                                <span className="text-xs mt-1">Base</span>
-                            </Button>
-                             <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-2">
-                                <Palette className="h-5 w-5" />
-                                <span className="text-xs mt-1">Colors</span>
-                            </Button>
-                            <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-2">
-                                <Smile className="h-5 w-5" />
-                                <span className="text-xs mt-1">Animations</span>
-                            </Button>
-                            <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-2">
-                                <Glasses className="h-5 w-5" />
-                                <span className="text-xs mt-1">Accessories</span>
-                            </Button>
-                        </>
-                    ) : (
-                        <h3 className="font-medium text-base capitalize pl-2">{activeMenu === 'animations' ? 'Animations' : activeMenu}</h3>
-                    )}
-                </div>
+                {activeMenu !== 'main' ? (
+                     <div className="flex items-center px-1">
+                        <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}>
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <Separator orientation="vertical" className="h-8 mx-2" />
+                        <h3 className="font-medium text-base capitalize">{activeMenu}</h3>
+                    </div>
+                ) : renderMenu()}
                 <ScrollBar orientation="horizontal" />
             </ScrollArea>
         </TooltipProvider>
 
         <Separator />
         
-        <div className="px-1">
-            {renderMenu()}
-        </div>
+        {activeMenu !== 'main' && renderMenu()}
     </div>
   );
 }
