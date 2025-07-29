@@ -132,21 +132,22 @@ const Face = ({
 
   const getShapeStyles = () => {
     const baseHeight = 256; // h-64
+    const baseWidth = 320; // w-80
     switch(shape) {
       case 'circle':
-        return { height: `${baseHeight}px`, width: '100%', borderRadius: '50% 50% 40% 40% / 60% 60% 40% 40%' };
+        return { height: `${baseHeight}px`, width: '100%', borderRadius: '50%' };
       case 'square':
         return { height: `${baseHeight}px`, width: '100%', borderRadius: '1.5rem' };
       case 'oval':
-        return { height: `${baseHeight}px`, width: `${baseHeight * 0.8}px`, borderRadius: '50%' };
+        return { height: `${baseHeight * 0.75}px`, width: '100%', borderRadius: '50%' };
       case 'rectangle':
-         return { height: `${baseHeight}px`, width: `${baseHeight * 0.8}px`, borderRadius: '1.5rem' };
+         return { height: `${baseHeight * 0.75}px`, width: '100%', borderRadius: '1.5rem' };
       case 'triangle':
         return { 
             width: 0,
             height: 0,
-            borderLeft: `${baseHeight/2}px solid transparent`,
-            borderRight: `${baseHeight/2}px solid transparent`,
+            borderLeft: `${baseWidth/2}px solid transparent`,
+            borderRight: `${baseWidth/2}px solid transparent`,
             borderBottom: `${baseHeight}px solid ${color}`,
             backgroundColor: 'transparent',
             boxShadow: 'none',
@@ -154,8 +155,9 @@ const Face = ({
       case 'pentagon':
          return { 
             height: `${baseHeight}px`,
-            width: `${baseHeight}px`,
+            width: `${baseWidth}px`,
             clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
+            backgroundColor: color,
         };
       default:
         return { borderRadius: '50%' };
@@ -183,7 +185,7 @@ const Face = ({
           className="relative"
           style={{...shapeStyle}}
           animate={{
-             backgroundColor: isGeometric ? 'transparent' : color,
+             backgroundColor: shape === 'pentagon' ? color : 'transparent',
              borderBottomColor: shape === 'triangle' ? color : 'transparent',
           }}
           transition={{ duration: 0.3 }}
@@ -194,7 +196,7 @@ const Face = ({
             </div>
           }
         </motion.div>
-         <div className="absolute inset-0 flex items-center justify-center" style={{top: shape === 'triangle' ? size/4 : 0}}>
+         <div className="absolute inset-0 flex items-center justify-center" style={{top: shape === 'triangle' ? size/3 : (shape === 'pentagon' ? -size/16 : 0)}}>
              <div className="absolute inset-0 p-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
