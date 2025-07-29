@@ -19,7 +19,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'base' | 'animations';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-
+type Shape = 'circle' | 'square' | 'oval' | 'rectangle' | 'triangle' | 'pentagon';
 
 const Face = ({ 
     expression, 
@@ -30,6 +30,8 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
+    shape,
+    size,
 }: { 
     expression: Expression, 
     color: string, 
@@ -39,6 +41,8 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
+    shape: Shape,
+    size: number,
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -126,36 +130,72 @@ const Face = ({
     pointerY.set(0.5);
   };
 
+  const getShapeStyles = () => {
+    const baseHeight = 256; // h-64
+    switch(shape) {
+      case 'circle':
+        return { height: `${baseHeight}px`, width: '100%', borderRadius: '50% 50% 40% 40% / 60% 60% 40% 40%' };
+      case 'square':
+        return { height: `${baseHeight}px`, width: '100%', borderRadius: '1.5rem' };
+      case 'oval':
+        return { height: `${baseHeight}px`, width: `${baseHeight * 0.8}px`, borderRadius: '50%' };
+      case 'rectangle':
+         return { height: `${baseHeight}px`, width: `${baseHeight * 0.8}px`, borderRadius: '1.5rem' };
+      case 'triangle':
+        return { 
+            width: 0,
+            height: 0,
+            borderLeft: `${baseHeight/2}px solid transparent`,
+            borderRight: `${baseHeight/2}px solid transparent`,
+            borderBottom: `${baseHeight}px solid ${color}`,
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        };
+      case 'pentagon':
+         return { 
+            height: `${baseHeight}px`,
+            width: `${baseHeight}px`,
+            clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
+        };
+      default:
+        return { borderRadius: '50%' };
+    }
+  }
+
+  const shapeStyle = getShapeStyles();
+  const isGeometric = shape === 'triangle' || shape === 'pentagon';
+
   return (
     <motion.div 
-      className="relative w-80 h-80"
+      className="relative w-80 h-80 flex items-center justify-center"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
-        className="absolute top-10 w-full h-64 z-10"
+        className="absolute top-10 flex justify-center items-center"
+        style={{ width: '320px', height: '256px' }}
         initial={{ y: 20, scale: 0.95, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
+          className="relative"
+          style={{...shapeStyle}}
+          animate={{
+             backgroundColor: isGeometric ? 'transparent' : color,
+             borderBottomColor: shape === 'triangle' ? color : 'transparent',
+          }}
           transition={{ duration: 0.3 }}
         >
-            <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: color }}>
+          {!isGeometric && 
+            <div className="w-full h-full rounded-[inherit] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: color }}>
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
-
-                <motion.div
-                    className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
-                    style={{
-                    filter: 'blur(20px)',
-                    transform: 'rotate(-30deg)',
-                    }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                />
-
-                <div className="absolute inset-0 p-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
+            </div>
+          }
+        </motion.div>
+         <div className="absolute inset-0 flex items-center justify-center" style={{top: shape === 'triangle' ? size/4 : 0}}>
+             <div className="absolute inset-0 p-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -179,7 +219,7 @@ const Face = ({
                         </motion.div>
                     
                         <motion.div 
-                            className="flex gap-20 absolute top-28" 
+                            className="flex gap-16 absolute top-28" 
                             style={{ transform: 'translateZ(20px)' }}
                         >
                             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
@@ -277,7 +317,6 @@ const Face = ({
                     </motion.div>
                 </div>
             </div>
-        </motion.div>
       </motion.div>
        <motion.div 
          className="absolute bottom-0 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
@@ -297,6 +336,7 @@ const Face = ({
 export default function CreatorPage() {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
+  const [shape, setShape] = useState<Shape>('circle');
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
@@ -422,6 +462,7 @@ export default function CreatorPage() {
     setShowMustache(false);
     setSelectedFilter(null);
     setAnimationType('random');
+    setShape('circle');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setIsAngryMode(false);
@@ -583,6 +624,19 @@ export default function CreatorPage() {
                 <>
                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
+                     <Select value={shape} onValueChange={(value) => setShape(value as Shape)}>
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Shape" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="circle">Circle</SelectItem>
+                            <SelectItem value="square">Square</SelectItem>
+                            <SelectItem value="oval">Oval</SelectItem>
+                            <SelectItem value="rectangle">Rectangle</SelectItem>
+                            <SelectItem value="triangle">Triangle</SelectItem>
+                            <SelectItem value="pentagon">Pentagon</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Tooltip>
                         <TooltipTrigger asChild>
                              <Label htmlFor="tilt-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", tiltEnabled && "bg-accent text-accent-foreground")}>
@@ -703,6 +757,8 @@ export default function CreatorPage() {
                 pointerY={pointerY}
                 featureOffsetX={featureOffsetX}
                 featureOffsetY={featureOffsetY}
+                shape={shape}
+                size={320}
             />
           </motion.div>
         </motion.div>
