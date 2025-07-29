@@ -523,17 +523,17 @@ export default function DesignPage() {
 
   const onPan = (e: any, info: PanInfo) => {
     const { x, y } = info.offset;
-    const distance = Math.sqrt(x * x + y * y);
-    const radius = 100; // Face radius
 
-    if (distance > radius) {
-        const angle = Math.atan2(y, x);
-        featureOffsetX.set(Math.cos(angle) * radius);
-        featureOffsetY.set(Math.sin(angle) * radius);
-    } else {
-        featureOffsetX.set(x);
-        featureOffsetY.set(y);
-    }
+    // Define the boundaries for movement
+    const boundaryX = 80; // Horizontal movement limit
+    const boundaryY = 60; // Vertical movement limit
+
+    // Constrain the movement within the defined boundaries
+    const constrainedX = Math.max(-boundaryX, Math.min(boundaryX, x));
+    const constrainedY = Math.max(-boundaryY, Math.min(boundaryY, y));
+
+    featureOffsetX.set(constrainedX);
+    featureOffsetY.set(constrainedY);
   };
   
   const onPanEnd = () => {
