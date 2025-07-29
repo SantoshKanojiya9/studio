@@ -49,7 +49,7 @@ const Face = ({
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
     happy: { y: 4, scaleY: 0.8 },
-    angry: { y: -2, scaleY: 1 },
+    angry: { y: 2, scaleY: 0.8 },
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
     scared: { y: -4, scaleY: 1.2, scaleX: 1.1 },
@@ -64,7 +64,7 @@ const Face = ({
       d: "M 30 50 Q 50 70 70 50", // Smile
     },
     angry: {
-        d: "M 30 60 Q 50 30 70 60", // Angry
+      d: "M 25 60 Q 50 45 75 60", // Angry frown
     },
     sad: {
         d: "M 30 60 Q 50 50 70 60", // Sad mouth
@@ -83,7 +83,7 @@ const Face = ({
   const eyebrowVariants = {
     neutral: { y: 0, rotate: 0 },
     happy: { y: -4, rotate: -5 },
-    angry: { y: 2, rotate: 10 },
+    angry: { y: 4, rotate: 15 },
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
     scared: { y: -8, rotate: 3 },
@@ -111,8 +111,8 @@ const Face = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.1);
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.1);
+  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.05);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.05);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
@@ -152,7 +152,11 @@ const Face = ({
           className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
           transition={{ duration: 0.3 }}
         >
-            <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: color }}>
+            <motion.div 
+                className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" 
+                animate={{ backgroundColor: color }}
+                transition={{ duration: 0.2 }}
+            >
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
 
                 <motion.div
@@ -285,7 +289,7 @@ const Face = ({
                         </motion.div>
                     </motion.div>
                 </div>
-            </div>
+            </motion.div>
         </motion.div>
       </motion.div>
        <motion.div 
@@ -341,6 +345,7 @@ export default function DesignPage() {
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+  const angryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
    useEffect(() => {
@@ -352,10 +357,15 @@ export default function DesignPage() {
         featureOffsetY.set(0);
     };
 
-    if (isDragging) {
-        stopAnimations();
+    if (isDragging || animationType === 'none' || isAngryMode) {
+        if (animationType === 'none' || isDragging) {
+            stopAnimations();
+        }
         return;
     }
+    
+    // Stop previous animations before starting new ones
+    stopAnimations();
 
     const animationOptions = {
         duration: 2,
@@ -373,11 +383,6 @@ export default function DesignPage() {
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
-    if (isAngryMode || animationType === 'none') {
-        setExpression('neutral');
-        return stopAnimations;
-    }
-    
     switch (animationType) {
         case 'left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
@@ -408,7 +413,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [isAngryMode, featureOffsetX, featureOffsetY, animationType, isDragging]);
+  }, [animationType, isDragging, isAngryMode]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -446,7 +451,11 @@ export default function DesignPage() {
   };
   
   const handleTap = () => {
-    if (isAngryMode || isDragging) return;
+    if (isDragging) return;
+
+    if (angryTimeoutRef.current) {
+        clearTimeout(angryTimeoutRef.current);
+    }
 
     const now = Date.now();
     const newTimestamps = [...tapTimestamps, now].slice(-4);
@@ -457,16 +466,12 @@ export default function DesignPage() {
       if (timeDiff < 2000) {
         setTapTimestamps([]);
         setIsAngryMode(true);
-        setEmojiColor(angryColor);
-        setExpression('angry');
-
-        setTimeout(() => {
+        
+        angryTimeoutRef.current = setTimeout(() => {
           setIsAngryMode(false);
-          setEmojiColor(defaultEmojiColor);
-          setExpression('neutral');
         }, 3000);
       }
-    } else {
+    } else if (!isAngryMode) {
         handleRandomize();
     }
   };
@@ -741,8 +746,8 @@ export default function DesignPage() {
             onTap={handleTap}
           >
             <Face 
-                expression={expression} 
-                color={emojiColor} 
+                expression={isAngryMode ? 'angry' : expression} 
+                color={isAngryMode ? angryColor : emojiColor} 
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
                 pointerX={pointerX}
