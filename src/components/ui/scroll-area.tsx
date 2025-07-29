@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -51,3 +52,5 @@ const ScrollBar = React.forwardRef<
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
 
 export { ScrollArea, ScrollBar }
+
+    

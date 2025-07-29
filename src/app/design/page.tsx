@@ -7,15 +7,16 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters';
 
 
 const Face = ({ 
@@ -482,6 +483,14 @@ export default function DesignPage() {
             </Tooltip>
           </>
         );
+      case 'filters':
+        return (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <p className="text-sm text-muted-foreground">Filters coming soon!</p>
+          </>
+        );
       default: // 'main'
         return (
           <>
@@ -490,6 +499,7 @@ export default function DesignPage() {
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('expressions')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Expressions</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Colors</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Accessories</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('filters')}><Camera className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Filters</p></TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-6 mx-2" />
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Random</p></TooltipContent></Tooltip>
           </>
@@ -536,15 +546,20 @@ export default function DesignPage() {
         </motion.div>
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
-         <TooltipProvider>
-            <div className="flex items-center justify-center flex-wrap gap-2 p-4 h-auto md:h-20">
-              {renderMenu()}
-            </div>
+      <div className="fixed bottom-16 left-0 right-0 w-full z-20">
+        <TooltipProvider>
+            <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border">
+                <div className="flex w-max space-x-2 p-4 mx-auto">
+                    {renderMenu()}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
         </TooltipProvider>
       </div>
     </div>
   );
 }
+
+    
 
     
