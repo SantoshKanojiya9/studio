@@ -194,7 +194,6 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
       <motion.div
         className={cn(
             'relative',
-            !isGeometric && 'shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2)]',
             isBlob && 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
         )}
         style={{
