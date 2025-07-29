@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories';
+
 
 const Face = ({ 
     expression, 
@@ -138,142 +140,139 @@ const Face = ({
           className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
           transition={{ duration: 0.3 }}
         >
-            <div 
-                className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center p-[10px] relative overflow-hidden"
-                 style={{
-                    backgroundColor: color
-                 }}
-            >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
-            
-             <motion.div
-                className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
-                style={{
-                  filter: 'blur(20px)',
-                  transform: 'rotate(-30deg)',
-                }}
-                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              />
+            <div className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: color }}>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
 
-            <motion.div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ x: featureOffsetX, y: featureOffsetY }}
-                transition={{ duration: 1.5, type: 'spring' }}
-            >
-                <motion.div 
-                    className="flex justify-between w-56 absolute top-40"
-                >
-                    <motion.div 
-                        className="w-12 h-6 bg-pink-400 rounded-full"
-                        variants={blushVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: "spring" }}
-                    />
-                    <motion.div 
-                        className="w-12 h-6 bg-pink-400 rounded-full"
-                        variants={blushVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: "spring" }}
-                    />
-                </motion.div>
-            
-                <motion.div 
-                    className="flex gap-20 absolute top-28" 
-                    style={{ transform: 'translateZ(20px)' }}
-                >
-                    <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                    <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
+                <motion.div
+                    className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
+                    style={{
+                    filter: 'blur(20px)',
+                    transform: 'rotate(-30deg)',
+                    }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                />
+
+                <div className="absolute inset-0 p-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
+                    <motion.div
+                        className="absolute inset-[10px] flex items-center justify-center"
+                        style={{ x: featureOffsetX, y: featureOffsetY }}
+                        transition={{ duration: 1.5, type: 'spring' }}
+                    >
                         <motion.div 
-                            className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                            style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+                            className="flex justify-between w-56 absolute top-40"
                         >
-                             <motion.div 
-                                className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
-                                animate={'open'}
-                                variants={eyeLidVariants}
-                                transition={{
-                                    duration: 0.1,
-                                    ease: "easeOut"
-                                }}
-                            >
-                                <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
-                                    <Heart className="w-5 h-5 text-red-500 fill-current" />
-                                </motion.div>
-                             </motion.div>
+                            <motion.div 
+                                className="w-12 h-6 bg-pink-400 rounded-full"
+                                variants={blushVariants}
+                                animate={expression}
+                                transition={{ duration: 0.3, type: "spring" }}
+                            />
+                            <motion.div 
+                                className="w-12 h-6 bg-pink-400 rounded-full"
+                                variants={blushVariants}
+                                animate={expression}
+                                transition={{ duration: 0.3, type: "spring" }}
+                            />
                         </motion.div>
-                    </div>
-                    <motion.div 
-                        className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
-                        variants={eyebrowVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                    />
-                    </motion.div>
-                    <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                    <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+                    
                         <motion.div 
-                            className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
-                            style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+                            className="flex gap-20 absolute top-28" 
+                            style={{ transform: 'translateZ(20px)' }}
                         >
-                            <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
-                                <Heart className="w-5 h-5 text-red-500 fill-current" />
+                            <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                            <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
+                                <motion.div 
+                                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+                                >
+                                    <motion.div 
+                                        className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
+                                        animate={'open'}
+                                        variants={eyeLidVariants}
+                                        transition={{
+                                            duration: 0.1,
+                                            ease: "easeOut"
+                                        }}
+                                    >
+                                        <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+                                            <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                        </motion.div>
+                                    </motion.div>
+                                </motion.div>
+                            </div>
+                            <motion.div 
+                                className="absolute -top-3 left-0 w-12 h-4 bg-black"
+                                style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
+                                variants={eyebrowVariants}
+                                animate={expression}
+                                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+                            />
+                            </motion.div>
+                            <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                            <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+                                <motion.div 
+                                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
+                                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+                                >
+                                    <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+                                        <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                    </motion.div>
+                                </motion.div>
+                            </div>
+                            <motion.div 
+                                className="absolute -top-3 left-0 w-12 h-4 bg-black"
+                                style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
+                                variants={eyebrowVariants}
+                                animate={expression}
+                                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+                            />
                             </motion.div>
                         </motion.div>
-                    </div>
-                    <motion.div 
-                        className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
-                        variants={eyebrowVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                    />
-                    </motion.div>
-                </motion.div>
-                <motion.div 
-                    className="absolute bottom-12" 
-                    style={{ transform: 'translateZ(10px)' }}
-                >
-                    <svg width="100" height="40" viewBox="0 0 100 80">
-                        <motion.path
-                            fill="transparent"
-                            stroke="black"
-                            strokeWidth={5}
-                            strokeLinecap="round"
-                            variants={mouthVariants}
-                            animate={expression}
-                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
-                        />
-                    </svg>
-                </motion.div>
+                        <motion.div 
+                            className="absolute bottom-12" 
+                            style={{ transform: 'translateZ(10px)' }}
+                        >
+                            <svg width="100" height="40" viewBox="0 0 100 80">
+                                <motion.path
+                                    fill="transparent"
+                                    stroke="black"
+                                    strokeWidth={5}
+                                    strokeLinecap="round"
+                                    variants={mouthVariants}
+                                    animate={expression}
+                                    transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
+                                />
+                            </svg>
+                        </motion.div>
 
-                <motion.div
-                    className="absolute flex justify-center w-full"
-                    style={{ top: '110px', transform: 'translateZ(30px)' }}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                    <div className="relative">
-                        <div className="flex justify-between items-center w-[180px] h-[45px]">
-                            <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                            <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                            <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                        </div>
-                    </div>
-                </motion.div>
-                <motion.div
-                    className="absolute flex justify-center w-full"
-                    style={{ top: '175px', transform: 'translateZ(25px)' }}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
-                    transition={{ duration: 0.2 }}
-                >
-                    <svg width="100" height="30" viewBox="0 0 100 30">
-                        <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
-                    </svg>
-                </motion.div>
-            </motion.div>
+                        <motion.div
+                            className="absolute flex justify-center w-full"
+                            style={{ top: '110px', transform: 'translateZ(30px)' }}
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        >
+                            <div className="relative">
+                                <div className="flex justify-between items-center w-[180px] h-[45px]">
+                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                    <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                </div>
+                            </div>
+                        </motion.div>
+                        <motion.div
+                            className="absolute flex justify-center w-full"
+                            style={{ top: '175px', transform: 'translateZ(25px)' }}
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <svg width="100" height="30" viewBox="0 0 100 30">
+                                <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
+                            </svg>
+                        </motion.div>
+                    </motion.div>
+                </div>
             </div>
         </motion.div>
       </motion.div>
@@ -294,6 +293,7 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('happy');
+  const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
@@ -384,6 +384,7 @@ export default function DesignPage() {
     featureOffsetY.set(0);
     setIsAngryMode(false);
     setTapTimestamps([]);
+    setActiveMenu('main');
   };
   
   const handleTap = () => {
@@ -417,6 +418,85 @@ export default function DesignPage() {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
+  
+  const renderMenu = () => {
+    switch (activeMenu) {
+      case 'expressions':
+        return (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
+          </>
+        );
+      case 'colors':
+        return (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
+                        <Paintbrush className="h-5 w-5"/>
+                        <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
+                    </Label>
+                </TooltipTrigger>
+                <TooltipContent><p>Background Color</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
+                        <Pipette className="h-5 w-5"/>
+                        <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
+                    </Label>
+                </TooltipTrigger>
+                <TooltipContent><p>Face Color</p></TooltipContent>
+            </Tooltip>
+          </>
+        );
+      case 'accessories':
+        return (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showSunglasses && "bg-accent text-accent-foreground")}>
+                        <Glasses className="h-5 w-5" />
+                        <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
+                    </Label>
+                </TooltipTrigger>
+                <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showMustache && "bg-accent text-accent-foreground")}>
+                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
+                        <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
+                    </Label>
+                </TooltipTrigger>
+                <TooltipContent><p>Toggle Mustache</p></TooltipContent>
+            </Tooltip>
+          </>
+        );
+      default: // 'main'
+        return (
+          <>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Reset All</p></TooltipContent></Tooltip>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('expressions')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Expressions</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Colors</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Accessories</p></TooltipContent></Tooltip>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Random</p></TooltipContent></Tooltip>
+          </>
+        );
+    }
+  };
+
 
   return (
     <div 
@@ -459,72 +539,12 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
          <TooltipProvider>
             <div className="flex items-center justify-center flex-wrap gap-2 p-4 h-auto md:h-20">
-                <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Reset All</p></TooltipContent>
-                </Tooltip>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                 <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Happy</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Sad</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Scared</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Love</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
-                    <TooltipContent><p>Random</p></TooltipContent>
-                </Tooltip>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                           <Paintbrush className="h-5 w-5"/>
-                           <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
-                        </Label>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Background Color</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                           <Pipette className="h-5 w-5"/>
-                           <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
-                        </Label>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Face Color</p></TooltipContent>
-                </Tooltip>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer")}>
-                            <Glasses className="h-5 w-5" />
-                            <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
-                        </Label>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
-                </Tooltip>
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer")}>
-                           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
-                           <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
-                        </Label>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Toggle Mustache</p></TooltipContent>
-                </Tooltip>
+              {renderMenu()}
             </div>
         </TooltipProvider>
       </div>
     </div>
   );
 }
+
+    
