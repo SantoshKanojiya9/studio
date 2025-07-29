@@ -11,10 +11,11 @@ import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'colors';
+type MenuType = 'main' | 'colors' | 'filters';
 
 const Face = ({ 
     expression, 
@@ -439,6 +440,23 @@ export default function DesignPage() {
                      </div>
                 </>
             );
+        case 'filters':
+            return (
+                <>
+                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
+                     <Separator orientation="vertical" className="h-6 mx-2" />
+                     <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                            <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} />
+                            <Label htmlFor="sunglasses-switch">Sunglasses</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} />
+                            <Label htmlFor="mustache-switch">Mustache</Label>
+                        </div>
+                     </div>
+                </>
+            )
         default:
             return (
                 <>
@@ -467,6 +485,10 @@ export default function DesignPage() {
                     <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Colors</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('filters')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Filters</p></TooltipContent>
                     </Tooltip>
                      <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
