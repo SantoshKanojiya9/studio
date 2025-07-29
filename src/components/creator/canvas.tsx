@@ -36,11 +36,11 @@ const FaceFeatures = ({ style, featureOffsetX, featureOffsetY }: { style: Charac
     }
 
     const blushVariants = {
-        neutral: { opacity: 0 },
-        happy: { opacity: 0.7 },
-        angry: { opacity: 0.4 },
-        sad: { opacity: 0.2 },
-        surprised: { opacity: 0.1 },
+        neutral: { opacity: 0, scale: 0.8 },
+        happy: { opacity: 0.7, scale: 1 },
+        angry: { opacity: 0.4, scale: 1.1 },
+        sad: { opacity: 0.2, scale: 0.9 },
+        surprised: { opacity: 0.1, scale: 1.2 },
     }
 
     return (
@@ -53,13 +53,15 @@ const FaceFeatures = ({ style, featureOffsetX, featureOffsetY }: { style: Charac
                 className="flex justify-between w-2/3 absolute top-[60%]"
             >
                 <motion.div 
-                    className="w-1/4 h-6 bg-pink-400/80 rounded-full"
+                    className="w-1/4 h-6 bg-pink-400 rounded-full"
+                    style={{ filter: 'blur(2px)'}}
                     variants={blushVariants}
                     animate={expression}
                     transition={{ duration: 0.3, type: "spring" }}
                 />
                 <motion.div 
-                    className="w-1/4 h-6 bg-pink-400/80 rounded-full"
+                    className="w-1/4 h-6 bg-pink-400 rounded-full"
+                    style={{ filter: 'blur(2px)'}}
                     variants={blushVariants}
                     animate={expression}
                     transition={{ duration: 0.3, type: "spring" }}
@@ -69,7 +71,9 @@ const FaceFeatures = ({ style, featureOffsetX, featureOffsetY }: { style: Charac
             <motion.div className="flex gap-x-[25%] absolute top-1/3">
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                     <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black/80" >
-                        <motion.div className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full" style={{ translateX: '-50%', translateY: '-50%' }} />
+                        <motion.div className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full" style={{ translateX: '-50%', translateY: '-50%' }}>
+                            <div className="absolute top-1 left-1 w-2 h-2 bg-white/70 rounded-full" />
+                        </motion.div>
                     </div>
                     <motion.div 
                         className="absolute -top-3 left-0 w-12 h-4 bg-black"
@@ -81,7 +85,9 @@ const FaceFeatures = ({ style, featureOffsetX, featureOffsetY }: { style: Charac
                 </motion.div>
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                     <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black/80">
-                        <motion.div className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full" style={{ translateX: '-50%', translateY: '-50%' }} />
+                        <motion.div className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full" style={{ translateX: '-50%', translateY: '-50%' }}>
+                            <div className="absolute top-1 left-1 w-2 h-2 bg-white/70 rounded-full" />
+                        </motion.div>
                     </div>
                     <motion.div 
                         className="absolute -top-3 left-0 w-12 h-4 bg-black"
@@ -168,7 +174,9 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
   }
 
   const shapeStyle = getShapeStyles();
-  const isTriangle = shape === 'triangle';
+  const isGeometric = shape === 'triangle' || shape === 'pentagon';
+  const isBlob = ['circle', 'oval'].includes(shape);
+
 
   return (
     <motion.div
@@ -185,8 +193,9 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
     >
       <motion.div
         className={cn(
-            'shadow-lg relative',
-            !isTriangle && 'overflow-hidden shadow-[inset_0_-10px_20px_rgba(0,0,0,0.2),_0_5px_15px_rgba(0,0,0,0.2)]'
+            'relative',
+            !isGeometric && 'shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)]',
+            isBlob && 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
         )}
         style={{
           backgroundColor,
@@ -195,28 +204,31 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
           ...shapeStyle
         }}
         animate={{
-          backgroundColor: isTriangle ? 'transparent' : backgroundColor,
-          borderBottomColor: isTriangle ? backgroundColor : 'transparent',
+          backgroundColor: isGeometric ? 'transparent' : backgroundColor,
+          borderBottomColor: shape === 'triangle' ? backgroundColor : 'transparent',
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        {!isTriangle && (
-          <>
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
+        {!isGeometric && (
+          <div className={cn(
+            "w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden",
+             isBlob ? 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]' : shape === 'square' || shape === 'rectangle' ? 'rounded-[1.5rem]' : ''
+          )}>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
              <motion.div
-                className="absolute top-[5%] left-[10%] w-4/5 h-1/2 bg-white/25 rounded-full"
+                className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
                 style={{
-                  filter: 'blur(15px)',
-                  transform: 'rotate(-15deg)',
+                  filter: 'blur(20px)',
+                  transform: 'rotate(-30deg)',
                 }}
               />
-          </>
+          </div>
         )}
       </motion.div>
-       <div
+      <div
         className="absolute inset-0 flex items-center justify-center"
         style={{
-          paddingTop: isTriangle ? `${size / 4}px` : '0px',
+          paddingTop: shape === 'triangle' ? `${size / 4}px` : '0px',
         }}
        >
         <div style={{width: size, height: size, position: 'relative'}}>
@@ -226,5 +238,3 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
     </motion.div>
   );
 }
-
-    
