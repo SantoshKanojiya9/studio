@@ -193,9 +193,6 @@ const ClockFace = ({
                         transition={{ duration: 0.3, type: "spring" }}
                     />
                 </motion.div>
-
-            {/* Nose */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[2px] w-1.5 h-1.5 bg-black/70 rounded-full"></div>
             
             <motion.div 
                 className="flex gap-12 absolute top-1/2 -translate-y-[calc(50%_+_20px)] items-end" 
@@ -240,6 +237,9 @@ const ClockFace = ({
                   />
                 </motion.div>
             </motion.div>
+
+            {/* Nose */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[2px] w-1.5 h-1.5 bg-black/70 rounded-full"></div>
 
             <motion.div 
                 className="absolute top-1/2 -translate-y-1/2 mt-6" 
