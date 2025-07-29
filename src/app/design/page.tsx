@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, animate, PanInfo } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,6 +30,9 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
+    onPan,
+    onPanStart,
+    onPanEnd,
 }: { 
     expression: Expression, 
     color: string, 
@@ -39,6 +42,9 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
+    onPan: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
+    onPanStart: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
+    onPanEnd: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -131,6 +137,9 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
+      onPan={onPan}
+      onPanStart={onPanStart}
+      onPanEnd={onPanEnd}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
@@ -309,6 +318,7 @@ export default function DesignPage() {
   const featureOffsetY = useMotionValue(0);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -329,19 +339,23 @@ export default function DesignPage() {
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
   
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  let animationControlsX: ReturnType<typeof animate> | null = null;
-  let animationControlsY: ReturnType<typeof animate> | null = null;
+  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+
 
    useEffect(() => {
     const stopAnimations = () => {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-        animationControlsX?.stop();
-        animationControlsY?.stop();
+        animationControlsX.current?.stop();
+        animationControlsY.current?.stop();
         featureOffsetX.set(0);
         featureOffsetY.set(0);
     };
 
-    stopAnimations();
+    if (isDragging) {
+        stopAnimations();
+        return;
+    }
 
     const animationOptions = {
         duration: 2,
@@ -366,33 +380,35 @@ export default function DesignPage() {
     
     switch (animationType) {
         case 'left-right':
-            animationControlsX = animate(featureOffsetX, [-60, 60], animationOptions);
+            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
             break;
         case 'right-left':
-            animationControlsX = animate(featureOffsetX, [60, -60], animationOptions);
+            animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
             break;
         case 'up-down':
-            animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY = animate(featureOffsetY, [50, 50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
-            animationControlsX = animate(featureOffsetX, [-60, 60], animationOptions);
-            animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'diag-right-left':
-             animationControlsX = animate(featureOffsetX, [60, -60], animationOptions);
-             animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+             animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
+             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'random':
             animationIntervalRef.current = setInterval(randomAnimation, 3000);
-            randomAnimation(); // a
+            randomAnimation();
             break;
+        default:
+            stopAnimations();
     }
 
     return stopAnimations;
-  }, [isAngryMode, featureOffsetX, featureOffsetY, animationType]);
+  }, [isAngryMode, featureOffsetX, featureOffsetY, animationType, isDragging]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -430,7 +446,7 @@ export default function DesignPage() {
   };
   
   const handleTap = () => {
-    if (isAngryMode) return;
+    if (isAngryMode || isDragging) return;
 
     const now = Date.now();
     const newTimestamps = [...tapTimestamps, now].slice(-4);
@@ -489,6 +505,22 @@ export default function DesignPage() {
         setExpression(newExpression);
     }
   };
+
+  const onPanStart = () => {
+    setIsDragging(true);
+  };
+
+  const onPan = (e: any, info: PanInfo) => {
+    featureOffsetX.set(info.offset.x);
+    featureOffsetY.set(info.offset.y);
+  };
+  
+  const onPanEnd = () => {
+    setIsDragging(false);
+    animate(featureOffsetX, 0, { type: 'spring', stiffness: 400, damping: 20 });
+    animate(featureOffsetY, 0, { type: 'spring', stiffness: 400, damping: 20 });
+  };
+
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -707,6 +739,9 @@ export default function DesignPage() {
                 pointerY={pointerY}
                 featureOffsetX={featureOffsetX}
                 featureOffsetY={featureOffsetY}
+                onPan={onPan}
+                onPanStart={onPanStart}
+                onPanEnd={onPanEnd}
             />
           </motion.div>
         </motion.div>
