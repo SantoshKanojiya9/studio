@@ -7,13 +7,13 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Eye } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'wink' | 'scared' | 'love';
 type MenuType = 'main' | 'colors';
 
 const Face = ({ 
@@ -39,6 +39,9 @@ const Face = ({
     angry: { y: -2, scaleY: 1 },
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
+    wink: { y: 0, scaleY: 1 },
+    scared: { y: -4, scaleY: 1.2, scaleX: 1.1 },
+    love: { y: 2, scaleY: 1 },
   };
 
   const mouthVariants = {
@@ -57,6 +60,15 @@ const Face = ({
     surprised: {
         d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", // Open mouth
     },
+    wink: {
+      d: "M 35 50 Q 50 60 65 50", // Small smile
+    },
+    scared: {
+        d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50", // Open mouth scared
+    },
+    love: {
+      d: "M 30 50 Q 50 75 70 50", // Big smile for love
+    },
   };
   
   const eyebrowVariants = {
@@ -65,6 +77,9 @@ const Face = ({
     angry: { y: 2, rotate: 10 },
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
+    wink: { y: -2, rotate: -3 },
+    scared: { y: -8, rotate: 3 },
+    love: { y: -5, rotate: -5 },
   }
 
   const eyeLidVariants = {
@@ -78,6 +93,9 @@ const Face = ({
     angry: { opacity: 0, scale: 1.1 },
     sad: { opacity: 0, scale: 0.9 },
     surprised: { opacity: 0, scale: 0.9 },
+    wink: { opacity: 0.3, scale: 0.9 },
+    scared: { opacity: 0, scale: 1.2 },
+    love: { opacity: 0.9, scale: 1.1, filter: 'blur(1px)' },
   }
   
   const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
@@ -85,6 +103,8 @@ const Face = ({
   
   const pupilX = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilY = useTransform(smoothPointerY, [0, 1], [-8, 8]);
+  
+  const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget) {
@@ -159,17 +179,21 @@ const Face = ({
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
                     <motion.div 
                         className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
                     >
                          <motion.div 
-                            className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={'open'}
+                            className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
+                            animate={expression === 'wink' ? 'closed' : 'open'}
                             variants={eyeLidVariants}
                             transition={{
                                 duration: 0.1,
                                 ease: "easeOut"
                             }}
-                        />
+                        >
+                            <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+                                <Heart className="w-5 h-5 text-red-500 fill-current" />
+                            </motion.div>
+                         </motion.div>
                     </motion.div>
                 </div>
                 <motion.div 
@@ -183,18 +207,12 @@ const Face = ({
                 <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                 <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
                     <motion.div 
-                        className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%' }}
+                        className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
+                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
                     >
-                        <motion.div 
-                            className="w-full h-full bg-black rounded-full origin-bottom"
-                            animate={'open'}
-                            variants={eyeLidVariants}
-                            transition={{
-                                duration: 0.1,
-                                ease: "easeOut"
-                            }}
-                        />
+                        <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+                            <Heart className="w-5 h-5 text-red-500 fill-current" />
+                        </motion.div>
                     </motion.div>
                 </div>
                 <motion.div 
@@ -298,7 +316,7 @@ export default function DesignPage() {
   const smoothRotateX = useSpring(rotateX, springConfig);
   const smoothRotateY = useSpring(rotateY, springConfig);
 
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'wink', 'scared', 'love'];
   
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -427,6 +445,18 @@ export default function DesignPage() {
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger>
                         <TooltipContent><p>Bad Mood</p></TooltipContent>
                     </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('wink')}><Eye className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Wink</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Scared</p></TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger>
+                        <TooltipContent><p>Love</p></TooltipContent>
+                    </Tooltip>
                     <Separator orientation="vertical" className="h-6 mx-2" />
                     <Tooltip>
                         <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger>
@@ -489,3 +519,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
