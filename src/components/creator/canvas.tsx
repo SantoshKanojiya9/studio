@@ -212,16 +212,19 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
               />
           </>
         )}
-        <div style={{
-          width: size, 
-          height: size, 
-          position: 'absolute', 
-          top: isTriangle ? size / 4 : 0, 
-          left: 0,
-        }}>
-             <FaceFeatures style={style} featureOffsetX={featureOffsetX} featureOffsetY={featureOffsetY} />
-        </div>
       </motion.div>
+       <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          paddingTop: isTriangle ? `${size / 4}px` : '0px',
+        }}
+       >
+        <div style={{width: size, height: size, position: 'relative'}}>
+            <FaceFeatures style={style} featureOffsetX={featureOffsetX} featureOffsetY={featureOffsetY} />
+        </div>
+      </div>
     </motion.div>
   );
 }
+
+    
