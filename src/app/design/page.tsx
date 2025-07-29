@@ -357,10 +357,8 @@ export default function DesignPage() {
         featureOffsetY.set(0);
     };
 
-    if (isDragging || animationType === 'none' || isAngryMode) {
-        if (animationType === 'none' || isDragging) {
-            stopAnimations();
-        }
+    if (isDragging || animationType === 'none') {
+        stopAnimations();
         return;
     }
     
@@ -413,7 +411,15 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isDragging, isAngryMode]);
+  }, [animationType, isDragging]);
+  
+  useEffect(() => {
+    return () => {
+        if (angryTimeoutRef.current) {
+            clearTimeout(angryTimeoutRef.current);
+        }
+    }
+  }, []);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -451,10 +457,11 @@ export default function DesignPage() {
   };
   
   const handleTap = () => {
-    if (isDragging) return;
+    if (isDragging || isAngryMode) return;
 
     if (angryTimeoutRef.current) {
         clearTimeout(angryTimeoutRef.current);
+        angryTimeoutRef.current = null;
     }
 
     const now = Date.now();
@@ -469,6 +476,7 @@ export default function DesignPage() {
         
         angryTimeoutRef.current = setTimeout(() => {
           setIsAngryMode(false);
+          angryTimeoutRef.current = null;
         }, 3000);
       }
     } else if (!isAngryMode) {
