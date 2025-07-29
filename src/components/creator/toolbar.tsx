@@ -38,18 +38,6 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
             return (
                  <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="size">Size ({style.size}px)</Label>
-                        <Slider
-                            id="size"
-                            min={50}
-                            max={400}
-                            step={10}
-                            value={[style.size]}
-                            onValueChange={(value) => handleStyleChange('size', value[0])}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
                         <Label>Shape</Label>
                         <Select
                             value={style.shape}
