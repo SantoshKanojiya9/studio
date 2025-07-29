@@ -105,8 +105,6 @@ const Face = ({
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
-  const glossX = useTransform(featureOffsetX, (v) => -v / 5);
-  const glossY = useTransform(featureOffsetY, (v) => -v / 5);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget) {
@@ -153,8 +151,6 @@ const Face = ({
                 style={{
                   filter: 'blur(20px)',
                   transform: 'rotate(-30deg)',
-                  x: glossX,
-                  y: glossY,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               />
