@@ -17,7 +17,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'base' | 'animations';
-export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random';
+export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 
 
 const Face = ({ 
@@ -336,6 +336,8 @@ export default function DesignPage() {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         animationControlsX?.stop();
         animationControlsY?.stop();
+        featureOffsetX.set(0);
+        featureOffsetY.set(0);
     };
 
     stopAnimations();
@@ -356,7 +358,10 @@ export default function DesignPage() {
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
-    if (isAngryMode) return;
+    if (isAngryMode || animationType === 'none') {
+        setExpression('neutral');
+        return stopAnimations;
+    }
     
     switch (animationType) {
         case 'left-right':
@@ -369,7 +374,7 @@ export default function DesignPage() {
             animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY = animate(featureOffsetY, [50, -50], animationOptions);
+            animationControlsY = animate(featureOffsetY, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX = animate(featureOffsetX, [-60, 60], animationOptions);
@@ -415,6 +420,7 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setSelectedFilter(null);
+    setAnimationType('random');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setIsAngryMode(false);
@@ -475,6 +481,14 @@ export default function DesignPage() {
     }
   };
 
+  const handleExpressionToggle = (newExpression: Expression) => {
+    if (expression === newExpression) {
+        setExpression('neutral');
+    } else {
+        setExpression(newExpression);
+    }
+  };
+
   const renderMenu = () => {
     switch (activeMenu) {
       case 'expressions':
@@ -482,10 +496,10 @@ export default function DesignPage() {
           <>
             <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
             <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'happy' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
           </>
         );
       case 'colors':
@@ -600,7 +614,7 @@ export default function DesignPage() {
                                     <Button 
                                         variant={animationType === name ? 'default' : 'outline'}
                                         size="icon"
-                                        onClick={() => setAnimationType(name)}
+                                        onClick={() => setAnimationType(prev => prev === name ? 'none' : name)}
                                     >
                                         <Icon className="h-5 w-5" />
                                     </Button>
@@ -706,3 +720,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
