@@ -111,8 +111,8 @@ const Face = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.25);
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.25);
+  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.1);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.1);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
@@ -511,8 +511,18 @@ export default function DesignPage() {
   };
 
   const onPan = (e: any, info: PanInfo) => {
-    featureOffsetX.set(info.offset.x);
-    featureOffsetY.set(info.offset.y);
+    const { x, y } = info.offset;
+    const distance = Math.sqrt(x * x + y * y);
+    const radius = 100; // Face radius
+
+    if (distance > radius) {
+        const angle = Math.atan2(y, x);
+        featureOffsetX.set(Math.cos(angle) * radius);
+        featureOffsetY.set(Math.sin(angle) * radius);
+    } else {
+        featureOffsetX.set(x);
+        featureOffsetY.set(y);
+    }
   };
   
   const onPanEnd = () => {
