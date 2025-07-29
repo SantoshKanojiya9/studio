@@ -196,7 +196,7 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
         }}
         animate={{
           backgroundColor: isTriangle ? 'transparent' : backgroundColor,
-          borderBottomColor: isTriangle ? backgroundColor : undefined,
+          borderBottomColor: isTriangle ? backgroundColor : 'transparent',
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
@@ -216,8 +216,8 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
           width: size, 
           height: size, 
           position: 'absolute', 
-          top: isTriangle ? `-${size/1.5}px`: 0, 
-          left: isTriangle ? `-${size/2}px`: 0
+          top: isTriangle ? size / 4 : 0, 
+          left: 0,
         }}>
              <FaceFeatures style={style} featureOffsetX={featureOffsetX} featureOffsetY={featureOffsetY} />
         </div>
