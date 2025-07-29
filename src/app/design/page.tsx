@@ -522,18 +522,14 @@ export default function DesignPage() {
   };
 
   const onPan = (e: any, info: PanInfo) => {
-    const { x, y } = info.offset;
-
-    // Define the boundaries for movement
-    const boundaryX = 80; // Horizontal movement limit
-    const boundaryY = 60; // Vertical movement limit
-
-    // Constrain the movement within the defined boundaries
-    const constrainedX = Math.max(-boundaryX, Math.min(boundaryX, x));
-    const constrainedY = Math.max(-boundaryY, Math.min(boundaryY, y));
-
-    featureOffsetX.set(constrainedX);
-    featureOffsetY.set(constrainedY);
+    const boundaryX = 80;
+    const boundaryY = 60;
+    
+    const newX = Math.max(-boundaryX, Math.min(boundaryX, info.offset.x));
+    const newY = Math.max(-boundaryY, Math.min(boundaryY, info.offset.y));
+    
+    featureOffsetX.set(newX);
+    featureOffsetY.set(newY);
   };
   
   const onPanEnd = () => {
@@ -779,3 +775,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
