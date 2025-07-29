@@ -2,13 +2,13 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionValue } from 'framer-motion';
 import type { CharacterStyle } from '@/app/creator/page';
 import { cn } from '@/lib/utils';
 import { Heart } from 'lucide-react';
 
 
-const FaceFeatures = ({ style }: { style: CharacterStyle }) => {
+const FaceFeatures = ({ style, featureOffsetX, featureOffsetY }: { style: CharacterStyle, featureOffsetX: MotionValue<number>, featureOffsetY: MotionValue<number> }) => {
     const { expression, showSunglasses, showMustache } = style;
 
     const eyeVariants = {
@@ -44,7 +44,11 @@ const FaceFeatures = ({ style }: { style: CharacterStyle }) => {
     }
 
     return (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ x: featureOffsetX, y: featureOffsetY }}
+            transition={{ duration: 1.5, type: 'spring' }}
+        >
              <motion.div 
                 className="flex justify-between w-2/3 absolute top-[60%]"
             >
@@ -126,12 +130,12 @@ const FaceFeatures = ({ style }: { style: CharacterStyle }) => {
                     <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
                 </svg>
             </motion.div>
-        </div>
+        </motion.div>
     )
 }
 
 
-export function CreatorCanvas({ style }: { style: CharacterStyle }) {
+export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style: CharacterStyle, featureOffsetX: MotionValue<number>, featureOffsetY: MotionValue<number> }) {
   const { backgroundColor, size, shape } = style;
 
   const getShapeStyles = () => {
@@ -197,7 +201,7 @@ export function CreatorCanvas({ style }: { style: CharacterStyle }) {
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         <div style={{width: size, height: size, position: 'absolute', top: isTriangle ? `-${size/1.5}px`: 0, left: isTriangle ? `-${size/2}px`: 0}}>
-             <FaceFeatures style={style} />
+             <FaceFeatures style={style} featureOffsetX={featureOffsetX} featureOffsetY={featureOffsetY} />
         </div>
       </motion.div>
     </motion.div>

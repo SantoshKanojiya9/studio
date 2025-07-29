@@ -2,13 +2,13 @@
 'use client';
 
 import React from 'react';
-import type { CharacterStyle, MenuType, Expression, Shape } from '@/app/creator/page';
+import type { CharacterStyle, MenuType, Shape, AnimationType } from '@/app/creator/page';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { ArrowLeft, Glasses, Palette, Shapes, Smile, Frown, VenetianMask, Ghost } from 'lucide-react';
+import { ArrowLeft, Glasses, Palette, Shapes, Smile, VenetianMask, Ghost, Wand2, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Switch } from '../ui/switch';
@@ -19,19 +19,17 @@ interface CreatorToolbarProps {
   setStyle: React.Dispatch<React.SetStateAction<CharacterStyle>>;
   activeMenu: MenuType;
   setActiveMenu: React.Dispatch<React.SetStateAction<MenuType>>;
+  animationType: AnimationType;
+  setAnimationType: React.Dispatch<React.SetStateAction<AnimationType>>;
 }
 
-export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: CreatorToolbarProps) {
+export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, animationType, setAnimationType }: CreatorToolbarProps) {
   const handleStyleChange = <K extends keyof CharacterStyle>(
     key: K,
     value: CharacterStyle[K]
   ) => {
     setStyle((prev) => ({ ...prev, [key]: value }));
   };
-
-  const handleExpressionChange = (expression: Expression) => {
-      handleStyleChange('expression', expression);
-  }
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -88,25 +86,27 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
                     </div>
                 </div>
             )
-        case 'expressions':
-            const expressions: { name: Expression, icon: React.ElementType }[] = [
-                { name: 'neutral', icon: Smile },
-                { name: 'happy', icon: Smile },
-                { name: 'sad', icon: Frown },
-                { name: 'angry', icon: Ghost },
-                { name: 'surprised', icon: VenetianMask }
+        case 'animations':
+            const animations: { name: AnimationType, icon: React.ElementType, label: string }[] = [
+                { name: 'left-right', icon: ArrowRight, label: 'L-R' },
+                { name: 'right-left', icon: ArrowLeft, label: 'R-L' },
+                { name: 'up-down', icon: ArrowDown, label: 'U-D' },
+                { name: 'down-up', icon: ArrowUp, label: 'D-U' },
+                { name: 'diag-left-right', icon: ArrowUpRight, label: 'Diag L-R' },
+                { name: 'diag-right-left', icon: ArrowUpLeft, label: 'Diag R-L' },
+                { name: 'random', icon: Wand2, label: 'Random' },
             ]
             return (
                 <div className="grid grid-cols-3 gap-2">
-                   {expressions.map(({name, icon: Icon}) => (
+                   {animations.map(({name, icon: Icon, label}) => (
                         <Button 
                             key={name} 
-                            variant={style.expression === name ? 'default' : 'outline'}
-                            onClick={() => handleExpressionChange(name)}
-                            className="flex flex-col h-auto p-2 capitalize"
+                            variant={animationType === name ? 'default' : 'outline'}
+                            onClick={() => setAnimationType(name)}
+                            className="flex flex-col h-auto p-2 text-xs"
                         >
                             <Icon className="h-5 w-5 mb-1" />
-                            {name}
+                            {label}
                         </Button>
                    ))}
                 </div>
@@ -165,9 +165,9 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
                                 <Palette className="h-5 w-5" />
                                 <span className="text-xs mt-1">Colors</span>
                             </Button>
-                            <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-2">
+                            <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-2">
                                 <Smile className="h-5 w-5" />
-                                <span className="text-xs mt-1">Expressions</span>
+                                <span className="text-xs mt-1">Animations</span>
                             </Button>
                             <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-2">
                                 <Glasses className="h-5 w-5" />
@@ -175,7 +175,7 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
                             </Button>
                         </>
                     ) : (
-                        <h3 className="font-medium text-base capitalize pl-2">{activeMenu}</h3>
+                        <h3 className="font-medium text-base capitalize pl-2">{activeMenu === 'animations' ? 'Animations' : activeMenu}</h3>
                     )}
                 </div>
                 <ScrollBar orientation="horizontal" />
