@@ -194,7 +194,7 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
       <motion.div
         className={cn(
             'relative',
-            !isGeometric && 'shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)]',
+            !isGeometric && 'shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2)]',
             isBlob && 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
         )}
         style={{
@@ -227,11 +227,13 @@ export function CreatorCanvas({ style, featureOffsetX, featureOffsetY }: { style
       </motion.div>
       <div
         className="absolute inset-0 flex items-center justify-center"
-        style={{
-          paddingTop: shape === 'triangle' ? `${size / 4}px` : '0px',
-        }}
-       >
-        <div style={{width: size, height: size, position: 'relative'}}>
+      >
+        <div style={{
+          width: size,
+          height: size,
+          position: 'relative',
+          top: shape === 'triangle' ? size/4 : 0,
+          }}>
             <FaceFeatures style={style} featureOffsetX={featureOffsetX} featureOffsetY={featureOffsetY} />
         </div>
       </div>
