@@ -534,14 +534,32 @@ export default function DesignPage() {
       default: // 'main'
         return (
           <>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Reset All</p></TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('expressions')}><Smile className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Expressions</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Colors</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('accessories')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Accessories</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('filters')}><Camera className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Filters</p></TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger><TooltipContent><p>Random</p></TooltipContent></Tooltip>
+            <Button variant="ghost" onClick={handleReset} className="flex flex-col h-auto p-2">
+                <RotateCcw className="h-5 w-5" />
+                <span className="text-xs mt-1">Reset</span>
+            </Button>
+            <Separator orientation="vertical" className="h-10 mx-1" />
+             <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-2">
+                <Smile className="h-5 w-5" />
+                <span className="text-xs mt-1">Expressions</span>
+            </Button>
+            <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-2">
+                <Palette className="h-5 w-5" />
+                <span className="text-xs mt-1">Colors</span>
+            </Button>
+            <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-2">
+                <Glasses className="h-5 w-5" />
+                <span className="text-xs mt-1">Accessories</span>
+            </Button>
+            <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-2">
+                <Camera className="h-5 w-5" />
+                <span className="text-xs mt-1">Filters</span>
+            </Button>
+            <Separator orientation="vertical" className="h-10 mx-1" />
+            <Button variant="ghost" onClick={handleRandomize} className="flex flex-col h-auto p-2">
+                <Wand2 className="h-5 w-5" />
+                <span className="text-xs mt-1">Random</span>
+            </Button>
           </>
         );
     }
@@ -590,7 +608,7 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border">
-                <div className="flex w-full space-x-2 p-4 mx-auto">
+                <div className="flex w-max space-x-2 p-2 mx-auto">
                     {renderMenu()}
                 </div>
                 <ScrollBar orientation="horizontal" />
@@ -600,3 +618,4 @@ export default function DesignPage() {
     </div>
   );
 }
+
