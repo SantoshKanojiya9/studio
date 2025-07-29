@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, PaintBrush, Pipette } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'colors' | 'filters';
 
 const Face = ({ 
     expression, 
@@ -295,8 +294,7 @@ const Face = ({
 
 export default function DesignPage() {
   const [expression, setExpression] = useState<Expression>('happy');
-  const [activeMenu, setActiveMenu] = useState<MenuType>('main');
-
+  
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
   const [tiltEnabled, setTiltEnabled] = useState(false);
@@ -382,7 +380,6 @@ export default function DesignPage() {
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
-    setActiveMenu('main');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setIsAngryMode(false);
@@ -420,85 +417,6 @@ export default function DesignPage() {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
-
-  const renderMenu = () => {
-    switch (activeMenu) {
-        case 'colors':
-            return (
-                <>
-                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
-                     <Separator orientation="vertical" className="h-6 mx-2" />
-                     <div className="flex items-center gap-2">
-                         <div className="relative w-10 h-10 flex items-center justify-center">
-                            <Input id="bg-color" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                            <span className="text-sm">BG</span>
-                        </div>
-                        <div className="relative w-10 h-10 flex items-center justify-center">
-                             <Input id="emoji-color" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="absolute w-full h-full p-0 opacity-0 cursor-pointer" />
-                             <span className="text-sm">Face</span>
-                        </div>
-                     </div>
-                </>
-            );
-        case 'filters':
-            return (
-                <>
-                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft /></Button>
-                     <Separator orientation="vertical" className="h-6 mx-2" />
-                     <div className="flex items-center gap-4">
-                        <div className="flex items-center space-x-2">
-                            <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} />
-                            <Label htmlFor="sunglasses-switch">Sunglasses</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} />
-                            <Label htmlFor="mustache-switch">Mustache</Label>
-                        </div>
-                     </div>
-                </>
-            )
-        default:
-            return (
-                <>
-                    <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Reset All</p></TooltipContent>
-                    </Tooltip>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Good Mood</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Bad Mood</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Scared</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Love</p></TooltipContent>
-                    </Tooltip>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('colors')}><Palette className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Colors</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setActiveMenu('filters')}><Glasses className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Filters</p></TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
-                        <TooltipContent><p>Random Expression</p></TooltipContent>
-                    </Tooltip>
-                </>
-            );
-    }
-  }
-
 
   return (
     <div 
@@ -540,8 +458,70 @@ export default function DesignPage() {
 
       <div className="fixed bottom-16 left-0 right-0 w-full bg-background/80 backdrop-blur-sm border-t border-border z-20">
          <TooltipProvider>
-            <div className="flex items-center justify-center gap-2 p-4 h-20">
-              {renderMenu()}
+            <div className="flex items-center justify-center flex-wrap gap-2 p-4 h-auto md:h-20">
+                <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleReset}><RotateCcw className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Reset All</p></TooltipContent>
+                </Tooltip>
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                 <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('happy')}><Smile className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Happy</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('sad')}><Frown className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Sad</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('scared')}><Ghost className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Scared</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => setExpression('love')}><Heart className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Love</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleRandomize}><Wand2 className="h-5 w-5" /></Button></TooltipTrigger>
+                    <TooltipContent><p>Random</p></TooltipContent>
+                </Tooltip>
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
+                           <PaintBrush className="h-5 w-5"/>
+                           <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
+                        </Label>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Background Color</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
+                           <Pipette className="h-5 w-5"/>
+                           <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
+                        </Label>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Face Color</p></TooltipContent>
+                </Tooltip>
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer")}>
+                            <Glasses className="h-5 w-5" />
+                            <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
+                        </Label>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
+                </Tooltip>
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer")}>
+                           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
+                           <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
+                        </Label>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Toggle Mustache</p></TooltipContent>
+                </Tooltip>
             </div>
         </TooltipProvider>
       </div>
