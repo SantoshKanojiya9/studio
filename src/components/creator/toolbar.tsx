@@ -2,12 +2,12 @@
 'use client';
 
 import React from 'react';
-import type { CharacterStyle, MenuType, Shape, AnimationType } from '@/app/creator/page';
+import type { CharacterStyle, MenuType, Shape, AnimationType, Expression } from '@/app/creator/page';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { ArrowLeft, Glasses, Palette, Shapes, Smile, Wand2, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
+import { ArrowLeft, Glasses, Palette, Shapes, Smile, Wand2, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Heart, Ghost, Frown } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Switch } from '../ui/switch';
@@ -31,6 +31,10 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
   ) => {
     setStyle((prev) => ({ ...prev, [key]: value }));
   };
+
+  const handleExpressionChange = (expression: Expression) => {
+      handleStyleChange('expression', expression);
+  }
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -84,26 +88,53 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
                 { name: 'diag-left-right', icon: ArrowUpRight, label: 'Diag L-R' },
                 { name: 'diag-right-left', icon: ArrowUpLeft, label: 'Diag R-L' },
                 { name: 'random', icon: Wand2, label: 'Random' },
+            ];
+            const expressions: { name: Expression, icon: React.ElementType, label: string }[] = [
+                { name: 'happy', icon: Smile, label: 'Happy' },
+                { name: 'sad', icon: Frown, label: 'Sad' },
+                { name: 'scared', icon: Ghost, label: 'Scared' },
+                { name: 'love', icon: Heart, label: 'Love' },
             ]
             return (
-                <>
+                <div className="flex items-center w-full">
                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
-                    {animations.map(({name, icon: Icon, label}) => (
-                        <Tooltip key={name}>
-                            <TooltipTrigger asChild>
-                                <Button 
-                                    variant={animationType === name ? 'default' : 'outline'}
-                                    size="icon"
-                                    onClick={() => setAnimationType(name)}
-                                >
-                                    <Icon className="h-5 w-5" />
-                                </Button>
-                            </TooltipTrigger>
-                             <TooltipContent><p>{label}</p></TooltipContent>
-                        </Tooltip>
-                   ))}
-                </>
+                    <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4">
+                        <div className="flex items-center gap-2">
+                             {animations.map(({name, icon: Icon, label}) => (
+                                <Tooltip key={name}>
+                                    <TooltipTrigger asChild>
+                                        <Button 
+                                            variant={animationType === name ? 'default' : 'outline'}
+                                            size="icon"
+                                            onClick={() => setAnimationType(name)}
+                                        >
+                                            <Icon className="h-5 w-5" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{label}</p></TooltipContent>
+                                </Tooltip>
+                            ))}
+                        </div>
+                        <Separator orientation="vertical" className="h-6 mx-2" />
+                        <div className="flex items-center gap-2">
+                             {expressions.map(({name, icon: Icon, label}) => (
+                                <Tooltip key={name}>
+                                    <TooltipTrigger asChild>
+                                        <Button 
+                                            variant={style.expression === name ? 'secondary' : 'outline'}
+                                            size="icon"
+                                            onClick={() => handleExpressionChange(name)}
+                                        >
+                                            <Icon className="h-5 w-5" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>{label}</p></TooltipContent>
+                                </Tooltip>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             )
         case 'accessories':
             return (
@@ -165,4 +196,3 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu, ani
     </TooltipProvider>
   );
 }
-

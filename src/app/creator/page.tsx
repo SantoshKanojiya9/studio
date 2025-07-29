@@ -5,9 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { CreatorCanvas } from '@/components/creator/canvas';
 import { CreatorToolbar } from '@/components/creator/toolbar';
 import { ChatHeader } from '@/components/chat-header';
-import { useMotionValue, animate } from 'framer-motion';
+import { useMotionValue, animate, useSpring, useTransform } from 'framer-motion';
 
-export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 export type Shape = 'circle' | 'square' | 'oval' | 'rectangle' | 'triangle' | 'pentagon';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random';
 
@@ -34,9 +34,14 @@ export default function CreatorPage() {
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised'];
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+  
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
+
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+
 
   useEffect(() => {
     let controlsX: ReturnType<typeof animate> | null = null;
@@ -108,6 +113,8 @@ export default function CreatorPage() {
                 style={characterStyle} 
                 featureOffsetX={featureOffsetX}
                 featureOffsetY={featureOffsetY}
+                pointerX={pointerX}
+                pointerY={pointerY}
             />
         </div>
         <div className="fixed bottom-16 left-0 right-0 w-full z-20">
