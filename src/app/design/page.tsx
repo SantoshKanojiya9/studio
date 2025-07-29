@@ -301,6 +301,7 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -381,6 +382,7 @@ export default function DesignPage() {
     setTiltEnabled(false);
     setShowSunglasses(false);
     setShowMustache(false);
+    setSelectedFilter(null);
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setIsAngryMode(false);
@@ -420,6 +422,27 @@ export default function DesignPage() {
     setExpression(newExpression);
   }
   
+  const filters = [
+    { name: 'None', style: {} },
+    { name: 'Sepia', style: { background: 'linear-gradient(to right, #704214, #EAE0C8)' } },
+    { name: 'Grayscale', style: { background: 'linear-gradient(to right, #333, #ccc)' } },
+    { name: 'Invert', style: { background: 'linear-gradient(to right, #f00, #0ff)' } },
+    { name: 'Hue-Rotate', style: { background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' } },
+    { name: 'Contrast', style: { background: 'linear-gradient(to right, #000, #fff)' } },
+    { name: 'Saturate', style: { background: 'linear-gradient(to right, gray, red)' } },
+    { name: 'Vintage', style: { background: 'linear-gradient(to right, #6d5a4c, #d5c8b8)' } },
+    { name: 'Cool', style: { background: 'linear-gradient(to right, #3a7bd5, #00d2ff)' } },
+    { name: 'Warm', style: { background: 'linear-gradient(to right, #f7b733, #fc4a1a)' } },
+  ];
+
+  const handleFilterSelect = (filterName: string) => {
+    if (selectedFilter === filterName) {
+      setSelectedFilter(null); // Deselect
+    } else {
+      setSelectedFilter(filterName);
+    }
+  };
+
   const renderMenu = () => {
     switch (activeMenu) {
       case 'expressions':
@@ -485,11 +508,28 @@ export default function DesignPage() {
         );
       case 'filters':
         return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <p className="text-sm text-muted-foreground">Filters coming soon!</p>
-          </>
+            <div className="flex items-center w-full">
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-5 w-5" /></Button>
+                <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
+                <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4">
+                    {filters.map(filter => (
+                        <Tooltip key={filter.name}>
+                            <TooltipTrigger asChild>
+                                <button
+                                    onClick={() => handleFilterSelect(filter.name)}
+                                    className={cn(
+                                        "w-12 h-12 rounded-lg flex-shrink-0 border-2 transition-all duration-200",
+                                        selectedFilter === filter.name ? 'border-primary scale-110' : 'border-border'
+                                    )}
+                                >
+                                    <div className="w-full h-full rounded-md" style={filter.style}></div>
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{filter.name}</p></TooltipContent>
+                        </Tooltip>
+                    ))}
+                </div>
+            </div>
         );
       default: // 'main'
         return (
@@ -528,7 +568,8 @@ export default function DesignPage() {
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             style={{ 
-              transformStyle: 'preserve-3d'
+              transformStyle: 'preserve-3d',
+              filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase()}(1)` : 'none'
             }}
             onTap={handleTap}
           >
@@ -549,7 +590,7 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border">
-                <div className="flex w-max space-x-2 p-4 mx-auto">
+                <div className="flex w-full space-x-2 p-4 mx-auto">
                     {renderMenu()}
                 </div>
                 <ScrollBar orientation="horizontal" />
@@ -559,7 +600,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
-
-    
