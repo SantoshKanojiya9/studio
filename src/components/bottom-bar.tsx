@@ -12,8 +12,6 @@ export function BottomBar() {
   const navItems = [
     { href: '/design', label: 'Emoji', icon: Palette },
     { href: '/loki', label: 'Loki Clock', icon: Clock },
-    { href: '/chat', label: 'AI Chat', icon: MessageSquare },
-    { href: '/image', label: 'Generate Image', icon: ImageIcon },
   ];
 
   return (

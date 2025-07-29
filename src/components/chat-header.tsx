@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn } from 'lucide-react';
+import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import { Button, buttonVariants } from './ui/button';
 import { cn } from '@/lib/utils';
 import { usePlan } from '@/context/PlanContext';
@@ -114,6 +114,18 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                         </>
                     )}
                     <nav className="flex flex-col gap-2 mt-4">
+                        <SheetClose asChild>
+                            <Link href="/chat" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
+                                <MessageSquare className="mr-3 h-5 w-5" />
+                                <span>AI Chat</span>
+                            </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <Link href="/image" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
+                                <ImageIcon className="mr-3 h-5 w-5" />
+                                <span>Image Generation</span>
+                            </Link>
+                        </SheetClose>
                         <SheetClose asChild>
                             <Link href="/plan" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
                                 <CreditCard className="mr-3 h-5 w-5" />
