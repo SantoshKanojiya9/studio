@@ -23,7 +23,8 @@ const Face = ({
     showMustache,
     pointerX,
     pointerY,
-    featureOffset,
+    featureOffsetX,
+    featureOffsetY,
 }: { 
     expression: Expression, 
     color: string, 
@@ -31,7 +32,8 @@ const Face = ({
     showMustache: boolean,
     pointerX: any,
     pointerY: any,
-    featureOffset: { x: number, y: number },
+    featureOffsetX: any,
+    featureOffsetY: any,
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -100,6 +102,9 @@ const Face = ({
   
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
+  const glossX = useTransform(featureOffsetX, (v) => -v / 5);
+  const glossY = useTransform(featureOffsetY, (v) => -v / 5);
+
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget) {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -145,13 +150,19 @@ const Face = ({
                 style={{
                   filter: 'blur(20px)',
                   transform: 'rotate(-30deg)',
+                  x: glossX,
+                  y: glossY,
                 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
               />
 
+            <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ x: featureOffsetX, y: featureOffsetY }}
+                transition={{ duration: 1.5, type: 'spring' }}
+            >
                 <motion.div 
                     className="flex justify-between w-56 absolute top-40"
-                    animate={{ x: featureOffset.x, y: featureOffset.y }}
-                    transition={{ duration: 1.5, type: 'spring' }}
                 >
                     <motion.div 
                         className="w-12 h-6 bg-pink-400 rounded-full"
@@ -167,105 +178,102 @@ const Face = ({
                     />
                 </motion.div>
             
-            <motion.div 
-                className="flex gap-20 absolute top-28" 
-                style={{ transform: 'translateZ(20px)' }}
-                animate={{ x: featureOffset.x, y: featureOffset.y }}
-                transition={{ duration: 1.5, type: 'spring' }}
-            >
-                <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
+                <motion.div 
+                    className="flex gap-20 absolute top-28" 
+                    style={{ transform: 'translateZ(20px)' }}
+                >
+                    <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                    <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
+                        <motion.div 
+                            className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+                            style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+                        >
+                             <motion.div 
+                                className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
+                                animate={'open'}
+                                variants={eyeLidVariants}
+                                transition={{
+                                    duration: 0.1,
+                                    ease: "easeOut"
+                                }}
+                            >
+                                <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+                                    <Heart className="w-5 h-5 text-red-500 fill-current" />
+                                </motion.div>
+                             </motion.div>
+                        </motion.div>
+                    </div>
                     <motion.div 
-                        className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
-                    >
-                         <motion.div 
-                            className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
-                            animate={'open'}
-                            variants={eyeLidVariants}
-                            transition={{
-                                duration: 0.1,
-                                ease: "easeOut"
-                            }}
+                        className="absolute -top-3 left-0 w-12 h-4 bg-black"
+                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
+                        variants={eyebrowVariants}
+                        animate={expression}
+                        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+                    />
+                    </motion.div>
+                    <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                    <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+                        <motion.div 
+                            className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
+                            style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
                         >
                             <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
                                 <Heart className="w-5 h-5 text-red-500 fill-current" />
                             </motion.div>
-                         </motion.div>
-                    </motion.div>
-                </div>
-                <motion.div 
-                    className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
-                    variants={eyebrowVariants}
-                    animate={expression}
-                    transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                />
-                </motion.div>
-                <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
-                    <motion.div 
-                        className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
-                        style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
-                    >
-                        <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
-                            <Heart className="w-5 h-5 text-red-500 fill-current" />
                         </motion.div>
-                    </motion.div>
-                </div>
-                <motion.div 
-                    className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
-                    variants={eyebrowVariants}
-                    animate={expression}
-                    transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                />
-                </motion.div>
-            </motion.div>
-            <motion.div 
-                className="absolute bottom-12" 
-                style={{ transform: 'translateZ(10px)' }}
-                animate={{ x: featureOffset.x, y: featureOffset.y }}
-                transition={{ duration: 1.5, type: 'spring' }}
-            >
-                <svg width="100" height="40" viewBox="0 0 100 80">
-                    <motion.path
-                        fill="transparent"
-                        stroke="black"
-                        strokeWidth={5}
-                        strokeLinecap="round"
-                        variants={mouthVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
-                    />
-                </svg>
-            </motion.div>
-
-            <motion.div
-                className="absolute flex justify-center w-full"
-                style={{ top: '110px', transform: 'translateZ(30px)' }}
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            >
-                <div className="relative">
-                    <div className="flex justify-between items-center w-[180px] h-[45px]">
-                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                        <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                     </div>
-                </div>
-            </motion.div>
-            <motion.div
-                className="absolute flex justify-center w-full"
-                style={{ top: '175px', transform: 'translateZ(25px)' }}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
-                transition={{ duration: 0.2 }}
-            >
-                <svg width="100" height="30" viewBox="0 0 100 30">
-                    <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
-                </svg>
+                    <motion.div 
+                        className="absolute -top-3 left-0 w-12 h-4 bg-black"
+                        style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
+                        variants={eyebrowVariants}
+                        animate={expression}
+                        transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
+                    />
+                    </motion.div>
+                </motion.div>
+                <motion.div 
+                    className="absolute bottom-12" 
+                    style={{ transform: 'translateZ(10px)' }}
+                >
+                    <svg width="100" height="40" viewBox="0 0 100 80">
+                        <motion.path
+                            fill="transparent"
+                            stroke="black"
+                            strokeWidth={5}
+                            strokeLinecap="round"
+                            variants={mouthVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
+                        />
+                    </svg>
+                </motion.div>
+
+                <motion.div
+                    className="absolute flex justify-center w-full"
+                    style={{ top: '110px', transform: 'translateZ(30px)' }}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                    <div className="relative">
+                        <div className="flex justify-between items-center w-[180px] h-[45px]">
+                            <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                            <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                            <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                        </div>
+                    </div>
+                </motion.div>
+                <motion.div
+                    className="absolute flex justify-center w-full"
+                    style={{ top: '175px', transform: 'translateZ(25px)' }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <svg width="100" height="30" viewBox="0 0 100 30">
+                        <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
+                    </svg>
+                </motion.div>
             </motion.div>
             </div>
         </motion.div>
@@ -294,7 +302,8 @@ export default function DesignPage() {
   const [tiltEnabled, setTiltEnabled] = useState(false);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
-  const [featureOffset, setFeatureOffset] = useState({ x: 0, y: 0 });
+  const featureOffsetX = useMotionValue(0);
+  const featureOffsetY = useMotionValue(0);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
 
@@ -333,7 +342,10 @@ export default function DesignPage() {
 
         const newX = Math.random() * 120 - 60; // -60 to 60
         const newY = Math.random() * 100 - 50; // -50 to 50
-        setFeatureOffset({ x: newX, y: newY });
+        
+        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+
       }, 3000);
     }
 
@@ -342,7 +354,7 @@ export default function DesignPage() {
         clearInterval(animationIntervalRef.current);
       }
     };
-  }, [isAngryMode]);
+  }, [isAngryMode, featureOffsetX, featureOffsetY]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -371,7 +383,8 @@ export default function DesignPage() {
     setShowSunglasses(false);
     setShowMustache(false);
     setActiveMenu('main');
-    setFeatureOffset({ x: 0, y: 0 });
+    featureOffsetX.set(0);
+    featureOffsetY.set(0);
     setIsAngryMode(false);
     setTapTimestamps([]);
   };
@@ -497,7 +510,8 @@ export default function DesignPage() {
                 showMustache={showMustache} 
                 pointerX={pointerX}
                 pointerY={pointerY}
-                featureOffset={featureOffset}
+                featureOffsetX={featureOffsetX}
+                featureOffsetY={featureOffsetY}
             />
           </motion.div>
         </motion.div>
