@@ -103,24 +103,22 @@ export default function CreatorPage() {
         <div className="sticky top-0 z-10 bg-background">
             <ChatHeader />
         </div>
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_350px] overflow-hidden">
-            <div className="flex-1 flex items-center justify-center p-4 bg-secondary/20 h-full">
-                <CreatorCanvas 
-                    style={characterStyle} 
-                    featureOffsetX={featureOffsetX}
-                    featureOffsetY={featureOffsetY}
-                />
-            </div>
-            <div className="border-l border-border bg-background p-4 overflow-y-auto">
-                <CreatorToolbar 
-                  style={characterStyle} 
-                  setStyle={setCharacterStyle} 
-                  activeMenu={activeMenu}
-                  setActiveMenu={setActiveMenu}
-                  animationType={animationType}
-                  setAnimationType={setAnimationType}
-                />
-            </div>
+        <div className="flex-1 flex items-center justify-center p-4 bg-secondary/20 h-full">
+            <CreatorCanvas 
+                style={characterStyle} 
+                featureOffsetX={featureOffsetX}
+                featureOffsetY={featureOffsetY}
+            />
+        </div>
+        <div className="fixed bottom-16 left-0 right-0 w-full z-20">
+            <CreatorToolbar 
+                style={characterStyle} 
+                setStyle={setCharacterStyle} 
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                animationType={animationType}
+                setAnimationType={setAnimationType}
+            />
         </div>
     </div>
   );
