@@ -315,8 +315,8 @@ export default function DesignPage() {
         const newExpression = allExpressions[randomExpressionIndex];
         setExpression(newExpression);
 
-        const newX = Math.random() * 40 - 20; // -20 to 20
-        const newY = Math.random() * 30 - 15; // -15 to 15
+        const newX = Math.random() * 120 - 60; // -60 to 60
+        const newY = Math.random() * 100 - 50; // -50 to 50
         setFeatureOffset({ x: newX, y: newY });
       }, 3000);
     }
