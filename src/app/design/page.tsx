@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -675,6 +676,9 @@ export default function DesignPage() {
         onPointerMove={handlePointerMove}
         onPointerLeave={handlePointerLeave}
     >
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
+        <ChatHeader />
+      </div>
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
           style={{
@@ -720,5 +724,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
