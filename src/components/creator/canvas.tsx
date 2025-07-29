@@ -134,6 +134,38 @@ const FaceFeatures = ({ style }: { style: CharacterStyle }) => {
 export function CreatorCanvas({ style }: { style: CharacterStyle }) {
   const { backgroundColor, size, shape } = style;
 
+  const getShapeStyles = () => {
+    switch(shape) {
+      case 'circle':
+        return { borderRadius: '50%' };
+      case 'square':
+        return { borderRadius: '1.5rem' };
+      case 'oval':
+        return { width: `${size * 0.75}px`, borderRadius: '50%' };
+      case 'rectangle':
+         return { width: `${size * 0.75}px`, borderRadius: '1.5rem' };
+      case 'triangle':
+        return { 
+            width: 0,
+            height: 0,
+            borderLeft: `${size/2}px solid transparent`,
+            borderRight: `${size/2}px solid transparent`,
+            borderBottom: `${size}px solid ${backgroundColor}`,
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        };
+      case 'pentagon':
+         return { 
+            clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)',
+        };
+      default:
+        return { borderRadius: '50%' };
+    }
+  }
+
+  const shapeStyle = getShapeStyles();
+  const isTriangle = shape === 'triangle';
+
   return (
     <motion.div
       className="flex items-center justify-center relative"
@@ -141,26 +173,32 @@ export function CreatorCanvas({ style }: { style: CharacterStyle }) {
         width: size,
         height: size,
       }}
+       animate={{
+          width: size,
+          height: size,
+        }}
+       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
       <motion.div
         className={cn(
-            'shadow-lg relative overflow-hidden',
-            shape === 'circle' ? 'rounded-full' : 'rounded-2xl'
+            'shadow-lg relative',
+            !isTriangle && 'overflow-hidden'
         )}
         style={{
           backgroundColor,
           width: '100%',
           height: '100%',
+          ...shapeStyle
         }}
         animate={{
-          backgroundColor,
-          width: size,
-          height: size,
-          borderRadius: shape === 'circle' ? '50%' : '1.5rem',
+          backgroundColor: isTriangle ? 'transparent' : backgroundColor,
+          borderBottomColor: isTriangle ? backgroundColor : undefined,
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <FaceFeatures style={style} />
+        <div style={{width: size, height: size, position: 'absolute', top: isTriangle ? `-${size/1.5}px`: 0, left: isTriangle ? `-${size/2}px`: 0}}>
+             <FaceFeatures style={style} />
+        </div>
       </motion.div>
     </motion.div>
   );

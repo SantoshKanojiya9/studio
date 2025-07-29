@@ -7,11 +7,12 @@ import { CreatorToolbar } from '@/components/creator/toolbar';
 import { ChatHeader } from '@/components/chat-header';
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised';
+export type Shape = 'circle' | 'square' | 'oval' | 'rectangle' | 'triangle' | 'pentagon';
 
 export type CharacterStyle = {
   backgroundColor: string;
   size: number;
-  shape: 'circle' | 'square';
+  shape: Shape;
   expression: Expression;
   showSunglasses: boolean;
   showMustache: boolean;

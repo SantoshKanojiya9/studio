@@ -2,18 +2,17 @@
 'use client';
 
 import React from 'react';
-import type { CharacterStyle, MenuType, Expression } from '@/app/creator/page';
+import type { CharacterStyle, MenuType, Expression, Shape } from '@/app/creator/page';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import { ArrowLeft, Glasses, Palette, Shapes, Smile, Frown, VenetianMask, Ghost } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Tooltip, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Switch } from '../ui/switch';
-import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CreatorToolbarProps {
   style: CharacterStyle;
@@ -37,6 +36,7 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
   const renderMenu = () => {
     switch (activeMenu) {
         case 'base':
+            const shapes: Shape[] = ['circle', 'square', 'oval', 'rectangle', 'triangle', 'pentagon'];
             return (
                  <div className="space-y-4">
                     <div className="space-y-2">
@@ -53,20 +53,21 @@ export function CreatorToolbar({ style, setStyle, activeMenu, setActiveMenu }: C
 
                     <div className="space-y-2">
                         <Label>Shape</Label>
-                        <RadioGroup
+                        <Select
                             value={style.shape}
-                            onValueChange={(value) => handleStyleChange('shape', value as 'circle' | 'square')}
-                            className="flex gap-4 pt-1"
+                            onValueChange={(value) => handleStyleChange('shape', value as Shape)}
                         >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="circle" id="r1" />
-                                <Label htmlFor="r1">Circle</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="square" id="r2" />
-                                <Label htmlFor="r2">Square</Label>
-                            </div>
-                        </RadioGroup>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a shape" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {shapes.map((shape) => (
+                                    <SelectItem key={shape} value={shape} className="capitalize">
+                                        {shape}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
             )
