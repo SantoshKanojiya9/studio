@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Orbit, Square, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -16,7 +16,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'base' | 'animations';
+export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random';
 
 
 const Face = ({ 
@@ -302,6 +303,7 @@ export default function DesignPage() {
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [animationType, setAnimationType] = useState<AnimationType>('random');
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -326,35 +328,65 @@ export default function DesignPage() {
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
   
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  let animationControlsX: ReturnType<typeof animate> | null = null;
+  let animationControlsY: ReturnType<typeof animate> | null = null;
 
-  useEffect(() => {
-    // Stop any existing interval when angry mode changes
-    if (animationIntervalRef.current) {
-      clearInterval(animationIntervalRef.current);
-    }
+   useEffect(() => {
+    const stopAnimations = () => {
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+        animationControlsX?.stop();
+        animationControlsY?.stop();
+    };
+
+    stopAnimations();
+
+    const animationOptions = {
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "mirror" as const,
+        ease: "easeInOut" as const,
+    };
     
-    // Start the interval only if not in angry mode
-    if (!isAngryMode) {
-      animationIntervalRef.current = setInterval(() => {
-        const randomExpressionIndex = Math.floor(Math.random() * allExpressions.length);
-        const newExpression = allExpressions[randomExpressionIndex];
+    const randomAnimation = () => {
+        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
-
-        const newX = Math.random() * 120 - 60; // -60 to 60
-        const newY = Math.random() * 100 - 50; // -50 to 50
-        
+        const newX = Math.random() * 120 - 60;
+        const newY = Math.random() * 100 - 50;
         animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+    };
 
-      }, 3000);
+    if (isAngryMode) return;
+    
+    switch (animationType) {
+        case 'left-right':
+            animationControlsX = animate(featureOffsetX, [-60, 60], animationOptions);
+            break;
+        case 'right-left':
+            animationControlsX = animate(featureOffsetX, [60, -60], animationOptions);
+            break;
+        case 'up-down':
+            animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'down-up':
+            animationControlsY = animate(featureOffsetY, [50, -50], animationOptions);
+            break;
+        case 'diag-left-right':
+            animationControlsX = animate(featureOffsetX, [-60, 60], animationOptions);
+            animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'diag-right-left':
+             animationControlsX = animate(featureOffsetX, [60, -60], animationOptions);
+             animationControlsY = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'random':
+            animationIntervalRef.current = setInterval(randomAnimation, 3000);
+            randomAnimation(); // a
+            break;
     }
 
-    return () => {
-      if (animationIntervalRef.current) {
-        clearInterval(animationIntervalRef.current);
-      }
-    };
-  }, [isAngryMode, featureOffsetX, featureOffsetY]);
+    return stopAnimations;
+  }, [isAngryMode, featureOffsetX, featureOffsetY, animationType]);
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!tiltEnabled) return;
@@ -531,6 +563,54 @@ export default function DesignPage() {
                 </div>
             </div>
         );
+         case 'base':
+            return (
+                <>
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Label htmlFor="tilt-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", tiltEnabled && "bg-accent text-accent-foreground")}>
+                                <Orbit className="h-5 w-5" />
+                                <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} className="sr-only" />
+                            </Label>
+                        </TooltipTrigger>
+                        <TooltipContent><p>3D Tilt</p></TooltipContent>
+                    </Tooltip>
+                </>
+            );
+        case 'animations':
+             const animations: { name: AnimationType, icon: React.ElementType, label: string }[] = [
+                { name: 'left-right', icon: ArrowRight, label: 'L-R' },
+                { name: 'right-left', icon: ArrowLeft, label: 'R-L' },
+                { name: 'up-down', icon: ArrowDown, label: 'U-D' },
+                { name: 'down-up', icon: ArrowUp, label: 'D-U' },
+                { name: 'diag-left-right', icon: ArrowUpRight, label: 'Diag L-R' },
+                { name: 'diag-right-left', icon: ArrowUpLeft, label: 'Diag R-L' },
+                { name: 'random', icon: Wand2, label: 'Random' },
+            ];
+            return (
+                <div className="flex items-center w-full">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-5 w-5" /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
+                        {animations.map(({name, icon: Icon, label}) => (
+                            <Tooltip key={name}>
+                                <TooltipTrigger asChild>
+                                    <Button 
+                                        variant={animationType === name ? 'default' : 'outline'}
+                                        size="icon"
+                                        onClick={() => setAnimationType(name)}
+                                    >
+                                        <Icon className="h-5 w-5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>{label}</p></TooltipContent>
+                            </Tooltip>
+                        ))}
+                    </div>
+                </div>
+            );
       default: // 'main'
         return (
           <>
@@ -539,9 +619,17 @@ export default function DesignPage() {
                 <span className="text-xs mt-1">Reset</span>
             </Button>
             <Separator orientation="vertical" className="h-10 mx-1" />
-             <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-2">
+            <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-2">
+                <Square className="h-5 w-5" />
+                <span className="text-xs mt-1">Base</span>
+            </Button>
+            <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-2">
                 <Smile className="h-5 w-5" />
                 <span className="text-xs mt-1">Expressions</span>
+            </Button>
+             <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-2">
+                <Sparkles className="h-5 w-5" />
+                <span className="text-xs mt-1">Animations</span>
             </Button>
             <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-2">
                 <Palette className="h-5 w-5" />
@@ -618,4 +706,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
