@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Image as ImageIcon, MessageSquare, Palette, Clock, WandSparkles } from 'lucide-react';
+import { Image as ImageIcon, MessageSquare, Palette, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomBar() {
@@ -12,7 +12,6 @@ export function BottomBar() {
   const navItems = [
     { href: '/design', label: 'Emoji', icon: Palette },
     { href: '/loki', label: 'Loki Clock', icon: Clock },
-    { href: '/creator', label: 'Creator', icon: WandSparkles },
     { href: '/chat', label: 'AI Chat', icon: MessageSquare },
     { href: '/image', label: 'Generate Image', icon: ImageIcon },
   ];
