@@ -263,7 +263,7 @@ const Face = ({
                         </motion.div>
                         <motion.div
                             className="absolute flex justify-center w-full"
-                            style={{ top: '165px', transform: 'translateZ(25px)' }}
+                            style={{ top: '158px', transform: 'translateZ(25px)' }}
                             initial={{ opacity: 0, scale: 0.5 }}
                             animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
                             transition={{ duration: 0.2 }}
