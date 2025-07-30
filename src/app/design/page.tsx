@@ -675,7 +675,7 @@ export default function DesignPage() {
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: inherit;
+            background: inherit;
             border-radius: 50%;
         }
         .heart-shape::before {
