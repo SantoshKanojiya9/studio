@@ -335,6 +335,7 @@ export default function DesignPage() {
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isAngryMode || isDragging) return;
@@ -455,6 +456,9 @@ export default function DesignPage() {
   };
 
   const handlePanStart = () => {
+    if (dragTimeoutRef.current) {
+      clearTimeout(dragTimeoutRef.current);
+    }
     setIsDragging(true);
     dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
   };
@@ -480,8 +484,13 @@ export default function DesignPage() {
   };
 
   const handlePanEnd = () => {
-    setIsDragging(false);
     dragOrigin.current = null;
+    if (dragTimeoutRef.current) {
+        clearTimeout(dragTimeoutRef.current);
+    }
+    dragTimeoutRef.current = setTimeout(() => {
+        setIsDragging(false);
+    }, 2000);
   };
   
   const filters = [
@@ -718,5 +727,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
