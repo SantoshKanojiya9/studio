@@ -30,9 +30,6 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
-    onPan,
-    onPanStart,
-    onPanEnd,
 }: { 
     expression: Expression, 
     color: string, 
@@ -42,9 +39,6 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
-    onPan: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
-    onPanStart: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
-    onPanEnd: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -137,9 +131,6 @@ const Face = ({
       className="relative w-80 h-80"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      onPan={onPan}
-      onPanStart={onPanStart}
-      onPanEnd={onPanEnd}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
@@ -322,7 +313,6 @@ export default function DesignPage() {
   const featureOffsetY = useMotionValue(0);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -346,8 +336,6 @@ export default function DesignPage() {
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
   const angryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const panStartOffset = useRef({ x: 0, y: 0 });
-
 
    useEffect(() => {
     const stopAnimations = () => {
@@ -356,12 +344,10 @@ export default function DesignPage() {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    if (isDragging || animationType === 'none') {
+    if (animationType === 'none') {
         stopAnimations();
-        if (animationType === 'none' && !isDragging) {
-            animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-            animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        }
+        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
         return;
     }
     
@@ -414,7 +400,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isDragging, isAngryMode]);
+  }, [animationType, isAngryMode]);
   
   useEffect(() => {
     return () => {
@@ -460,7 +446,6 @@ export default function DesignPage() {
   };
   
   const handleTap = () => {
-    if (isDragging) return;
     if (angryTimeoutRef.current) return;
 
     const now = Date.now();
@@ -517,38 +502,6 @@ export default function DesignPage() {
         setExpression(newExpression);
     }
   };
-
-  const onPanStart = (event: any, info: PanInfo) => {
-    setIsDragging(true);
-    panStartOffset.current = {
-        x: featureOffsetX.get(),
-        y: featureOffsetY.get()
-    };
-  };
-
-  const onPan = (e: any, info: PanInfo) => {
-    const boundaryX = 80;
-    const boundaryY = 60;
-    
-    let targetX = panStartOffset.current.x + info.offset.x;
-    let targetY = panStartOffset.current.y + info.offset.y;
-
-    const ellipseValue = (targetX * targetX) / (boundaryX * boundaryX) + (targetY * targetY) / (boundaryY * boundaryY);
-
-    if (ellipseValue > 1) {
-        const angle = Math.atan2(targetY, targetX);
-        targetX = boundaryX * Math.cos(angle);
-        targetY = boundaryY * Math.sin(angle);
-    }
-
-    featureOffsetX.set(targetX);
-    featureOffsetY.set(targetY);
-  };
-  
-  const onPanEnd = () => {
-    setIsDragging(false);
-  };
-
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -767,9 +720,6 @@ export default function DesignPage() {
                 pointerY={pointerY}
                 featureOffsetX={featureOffsetX}
                 featureOffsetY={featureOffsetY}
-                onPan={onPan}
-                onPanStart={onPanStart}
-                onPanEnd={onPanEnd}
             />
           </motion.div>
         </motion.div>
