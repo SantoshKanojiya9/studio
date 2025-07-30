@@ -395,7 +395,7 @@ export default function DesignPage() {
             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, -50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
@@ -518,13 +518,8 @@ export default function DesignPage() {
     }
   };
 
-  const onPanStart = () => {
+  const onPanStart = (event: any, info: PanInfo) => {
     setIsDragging(true);
-    // Stop any ongoing animations to allow for manual control.
-    animationControlsX.current?.stop();
-    animationControlsY.current?.stop();
-    if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-    
     panStartOffset.current = {
         x: featureOffsetX.get(),
         y: featureOffsetY.get()
@@ -535,19 +530,19 @@ export default function DesignPage() {
     const boundaryX = 80;
     const boundaryY = 60;
     
-    let newX = panStartOffset.current.x + info.offset.x;
-    let newY = panStartOffset.current.y + info.offset.y;
+    let targetX = panStartOffset.current.x + info.offset.x;
+    let targetY = panStartOffset.current.y + info.offset.y;
 
-    const ellipseValue = (newX * newX) / (boundaryX * boundaryX) + (newY * newY) / (boundaryY * boundaryY);
+    const ellipseValue = (targetX * targetX) / (boundaryX * boundaryX) + (targetY * targetY) / (boundaryY * boundaryY);
 
     if (ellipseValue > 1) {
-        const angle = Math.atan2(newY, newX);
-        newX = boundaryX * Math.cos(angle);
-        newY = boundaryY * Math.sin(angle);
+        const angle = Math.atan2(targetY, targetX);
+        targetX = boundaryX * Math.cos(angle);
+        targetY = boundaryY * Math.sin(angle);
     }
 
-    featureOffsetX.set(newX);
-    featureOffsetY.set(newY);
+    featureOffsetX.set(targetX);
+    featureOffsetY.set(targetY);
   };
   
   const onPanEnd = () => {
