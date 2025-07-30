@@ -351,9 +351,9 @@ export default function DesignPage() {
 
    useEffect(() => {
     const stopAnimations = () => {
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         animationControlsX.current?.stop();
         animationControlsY.current?.stop();
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
     if (isDragging || animationType === 'none') {
@@ -395,7 +395,7 @@ export default function DesignPage() {
             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [50, -50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
@@ -410,7 +410,7 @@ export default function DesignPage() {
             randomAnimation();
             break;
         default:
-            stopAnimations();
+            // Do nothing, animations are already stopped
     }
 
     return stopAnimations;
@@ -520,6 +520,11 @@ export default function DesignPage() {
 
   const onPanStart = () => {
     setIsDragging(true);
+    // Stop any ongoing animations to allow for manual control. This is key to preventing the teleport bug.
+    animationControlsX.current?.stop();
+    animationControlsY.current?.stop();
+    if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    
     panStartOffset.current = {
         x: featureOffsetX.get(),
         y: featureOffsetY.get()
