@@ -302,10 +302,14 @@ export default function DesignPage() {
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
+  const [preAngryColor, setPreAngryColor] = useState(emojiColor);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
+  const [isAngryMode, setIsAngryMode] = useState(false);
+
   
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
@@ -322,8 +326,9 @@ export default function DesignPage() {
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
-
-   useEffect(() => {
+  useEffect(() => {
+    if (isAngryMode) return;
+    
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
@@ -394,7 +399,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType]);
+  }, [animationType, isAngryMode]);
   
   const handleReset = () => {
     setExpression('neutral');
@@ -413,6 +418,31 @@ export default function DesignPage() {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
+
+  const handleTap = () => {
+    if (isAngryMode) return;
+
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].slice(-4);
+    setTapTimestamps(newTimestamps);
+
+    if (newTimestamps.length === 4) {
+      const timeDiff = newTimestamps[3] - newTimestamps[0];
+      if (timeDiff < 2000) {
+        setTapTimestamps([]);
+        setPreAngryColor(emojiColor); // Save current color
+        setIsAngryMode(true);
+        setEmojiColor('orangered');
+        setExpression('angry');
+
+        setTimeout(() => {
+          setIsAngryMode(false);
+          setEmojiColor(preAngryColor); // Revert to saved color
+          setExpression('neutral');
+        }, 2000);
+      }
+    }
+  };
   
   const filters = [
     { name: 'None', style: {} },
@@ -613,6 +643,7 @@ export default function DesignPage() {
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
           className="w-80 h-80 flex items-center justify-center select-none"
+          onTap={handleTap}
           style={{ 
             transformStyle: 'preserve-3d',
             filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
