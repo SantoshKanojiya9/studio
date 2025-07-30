@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Pill, Gem } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Pentagon, ChevronsRightLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -19,7 +19,7 @@ import { ChatHeader } from '@/components/chat-header';
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'shapes' | 'animations';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type FaceShape = 'blob' | 'circle' | 'square' | 'pill' | 'diamond';
+export type FaceShape = 'blob' | 'circle' | 'square' | 'heart' | 'parallelogram' | 'pentagram';
 
 const Face = ({ 
     expression, 
@@ -132,13 +132,15 @@ const Face = ({
       blob: 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
       circle: 'rounded-full',
       square: 'rounded-3xl',
-      pill: 'rounded-full',
-      diamond: 'rotate-45 rounded-3xl'
+      heart: 'heart-shape',
+      parallelogram: 'parallelogram-shape',
+      pentagram: 'pentagram-shape',
   }
   
   const shapeStyles = {
-    pill: { width: '80%', height: '100%' },
-    diamond: { width: '70%', height: '70%' },
+    heart: { width: '90%', height: '90%' },
+    parallelogram: { width: '100%', height: '80%' },
+    pentagram: { width: '95%', height: '95%' },
   }
 
   return (
@@ -175,9 +177,7 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}
-                  style={shape === 'diamond' ? { transform: 'rotate(-45deg)', transformOrigin: 'center' } : {}}
-                >
+                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}>
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -556,10 +556,11 @@ export default function DesignPage() {
         case 'shapes':
             const shapes: { name: FaceShape, icon: React.ElementType, label: string }[] = [
                 { name: 'blob', icon: () => <div className="w-4 h-4 rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-current" />, label: 'Blob' },
-                { name: 'circle', icon: Circle, label: 'Circle' },
+                { name: 'circle', icon: Circle, label: 'Round' },
                 { name: 'square', icon: SquareIcon, label: 'Square' },
-                { name: 'pill', icon: Pill, label: 'Pill' },
-                { name: 'diamond', icon: Gem, label: 'Diamond' },
+                { name: 'heart', icon: Heart, label: 'Heart' },
+                { name: 'parallelogram', icon: ChevronsRightLeft, label: 'Parallelogram' },
+                { name: 'pentagram', icon: Pentagon, label: 'Pentagram' },
             ];
             return (
                 <>
@@ -661,6 +662,35 @@ export default function DesignPage() {
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
+      <style jsx>{`
+        .heart-shape {
+            position: relative;
+            transform: rotate(-45deg);
+        }
+        .heart-shape::before,
+        .heart-shape::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: inherit;
+            border-radius: 50%;
+        }
+        .heart-shape::before {
+            transform: translateY(-50%);
+        }
+        .heart-shape::after {
+            transform: translateX(50%);
+        }
+        .parallelogram-shape {
+            transform: skew(-20deg);
+        }
+        .pentagram-shape {
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+        }
+      `}</style>
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
       </div>
