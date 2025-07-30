@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Hand, Pill, Gem } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Pill, Gem } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -325,7 +325,6 @@ export default function DesignPage() {
   const [faceShape, setFaceShape] = useState<FaceShape>('blob');
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
-  const [showLimbs, setShowLimbs] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   
@@ -344,8 +343,6 @@ export default function DesignPage() {
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
-  const isDraggingRef = useRef(false);
-
 
    useEffect(() => {
     const stopAnimations = () => {
@@ -354,12 +351,10 @@ export default function DesignPage() {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    if (animationType === 'none' || isDraggingRef.current) {
+    if (animationType === 'none') {
         stopAnimations();
-        if (!isDraggingRef.current) {
-            animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-            animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        }
+        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
         return;
     }
     
@@ -373,7 +368,6 @@ export default function DesignPage() {
     };
     
     const randomAnimation = () => {
-        if(isDraggingRef.current) return;
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
         
@@ -421,7 +415,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isDraggingRef.current]);
+  }, [animationType]);
   
   const handleReset = () => {
     setExpression('neutral');
@@ -430,7 +424,6 @@ export default function DesignPage() {
     setFaceShape('blob');
     setShowSunglasses(false);
     setShowMustache(false);
-    setShowLimbs(false);
     setSelectedFilter(null);
     setAnimationType('random');
     featureOffsetX.set(0);
@@ -648,10 +641,6 @@ export default function DesignPage() {
                 <Glasses className="h-4 w-4" />
                 <span className="text-xs mt-1">Accessories</span>
             </Button>
-             <Button variant={showLimbs ? "secondary" : "ghost"} onClick={() => setShowLimbs(!showLimbs)} className="flex flex-col h-auto p-1">
-                <Hand className="h-4 w-4" />
-                <span className="text-xs mt-1">Limbs</span>
-            </Button>
             <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-1">
                 <Camera className="h-4 w-4" />
                 <span className="text-xs mt-1">Filters</span>
@@ -677,91 +666,23 @@ export default function DesignPage() {
       </div>
       <div className="flex-1 flex flex-col items-center justify-center p-4">
         <motion.div
-          style={{
+          className="w-80 h-80 flex items-center justify-center select-none"
+          style={{ 
             transformStyle: 'preserve-3d',
-            perspective: '1000px',
+            filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
           }}
-          animate={{ scale: showLimbs ? 0.75 : 1 }}
-          transition={{ duration: 0.4, type: 'spring' }}
-          className="mb-10"
         >
-            {/* Limbs */}
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: showLimbs ? 1 : 0 }}
-                transition={{ duration: 0.3, delay: showLimbs ? 0.2 : 0 }}
-            >
-                {/* Arms */}
-                <motion.div 
-                    className="absolute top-1/2 -left-20 w-32 h-8 z-0 origin-right"
-                    style={{ y: '-50%' }}
-                    animate={{rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0}}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                >
-                    {/* Upper Arm */}
-                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
-                    {/* Forearm */}
-                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full origin-left" style={{transform: 'rotate(20deg) translateY(-10px)'}}></div>
-                    {/* Hand */}
-                    <div className="w-8 h-8 bg-white rounded-full absolute -left-4 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center" style={{transform: 'translateY(-16px) rotate(20deg)'}}>
-                        <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(15deg)'}}></div>
-                        <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(-15deg)'}}></div>
-                    </div>
-                </motion.div>
-                <motion.div 
-                    className="absolute top-1/2 -right-20 w-32 h-8 z-0 origin-left"
-                    style={{ y: '-50%' }}
-                    animate={{rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0}}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                >
-                     {/* Upper Arm */}
-                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
-                     {/* Forearm */}
-                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full origin-right" style={{transform: 'rotate(-20deg) translateY(-10px)'}}></div>
-                    {/* Hand */}
-                    <div className="w-8 h-8 bg-white rounded-full absolute -right-4 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center" style={{transform: 'translateY(-16px) rotate(-20deg)'}}>
-                       <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(-15deg)'}}></div>
-                       <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(15deg)'}}></div>
-                    </div>
-                </motion.div>
-                
-                {/* Legs */}
-                <motion.div 
-                     className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0"
-                     initial={{y: 20}}
-                     animate={{y: 0}}
-                     transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                >
-                    <div className="flex gap-4">
-                        <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
-                        <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
-                    </div>
-                    <div className="flex -mt-0.5 gap-2">
-                        <div className="w-8 h-4 bg-orange-600 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
-                        <div className="w-8 h-4 bg-orange-600 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
-                    </div>
-                </motion.div>
-            </motion.div>
-
-          <motion.div
-            className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
-            style={{ 
-              transformStyle: 'preserve-3d',
-              filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
-            }}
-          >
-            <Face 
-                expression={expression} 
-                color={emojiColor} 
-                shape={faceShape}
-                showSunglasses={showSunglasses} 
-                showMustache={showMustache} 
-                pointerX={pointerX}
-                pointerY={pointerY}
-                featureOffsetX={featureOffsetX}
-                featureOffsetY={featureOffsetY}
-            />
-          </motion.div>
+          <Face 
+              expression={expression} 
+              color={emojiColor} 
+              shape={faceShape}
+              showSunglasses={showSunglasses} 
+              showMustache={showMustache} 
+              pointerX={pointerX}
+              pointerY={pointerY}
+              featureOffsetX={featureOffsetX}
+              featureOffsetY={featureOffsetY}
+          />
         </motion.div>
       </div>
 
