@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Pentagon, ChevronsRightLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -17,9 +17,8 @@ import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'shapes' | 'animations';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type FaceShape = 'blob' | 'circle' | 'square' | 'heart' | 'parallelogram' | 'pentagram';
 
 const Face = ({ 
     expression, 
@@ -30,7 +29,6 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
-    shape,
 }: { 
     expression: Expression, 
     color: string, 
@@ -40,7 +38,6 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
-    shape: FaceShape,
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -128,21 +125,6 @@ const Face = ({
     pointerY.set(0.5);
   };
   
-  const shapeClasses = {
-      blob: 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
-      circle: 'rounded-full',
-      square: 'rounded-3xl',
-      heart: 'heart-shape',
-      parallelogram: 'parallelogram-shape',
-      pentagram: 'pentagram-shape',
-  }
-  
-  const shapeStyles = {
-    heart: { width: '90%', height: '90%' },
-    parallelogram: { width: '100%', height: '80%' },
-    pentagram: { width: '95%', height: '95%' },
-  }
-
   return (
     <motion.div 
       className="relative w-80 h-80 flex items-center justify-center"
@@ -157,12 +139,11 @@ const Face = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className={cn("w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative", shapeClasses[shape])}
-          style={shapeStyles[shape as keyof typeof shapeStyles]}
+          className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative rounded-[50%_50%_40%_40%/60%_60%_40%_40%]"
           transition={{ duration: 0.3 }}
         >
             <motion.div 
-                className={cn("w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden", shapeClasses[shape])}
+                className="w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]"
                 animate={{ backgroundColor: color }}
                 transition={{ duration: 0.2 }}
             >
@@ -177,7 +158,7 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}>
+                <div className="absolute inset-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -322,7 +303,6 @@ export default function DesignPage() {
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
-  const [faceShape, setFaceShape] = useState<FaceShape>('blob');
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -421,7 +401,6 @@ export default function DesignPage() {
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
-    setFaceShape('blob');
     setShowSunglasses(false);
     setShowMustache(false);
     setSelectedFilter(null);
@@ -553,35 +532,6 @@ export default function DesignPage() {
                 </div>
             </div>
         );
-        case 'shapes':
-            const shapes: { name: FaceShape, icon: React.ElementType, label: string }[] = [
-                { name: 'blob', icon: () => <div className="w-4 h-4 rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-current" />, label: 'Blob' },
-                { name: 'circle', icon: Circle, label: 'Round' },
-                { name: 'square', icon: SquareIcon, label: 'Square' },
-                { name: 'heart', icon: Heart, label: 'Heart' },
-                { name: 'parallelogram', icon: ChevronsRightLeft, label: 'Parallelogram' },
-                { name: 'pentagram', icon: Pentagon, label: 'Pentagram' },
-            ];
-            return (
-                <>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    {shapes.map(({name, icon: Icon, label}) => (
-                        <Tooltip key={name}>
-                            <TooltipTrigger asChild>
-                                <Button 
-                                    variant={faceShape === name ? 'secondary' : 'ghost'}
-                                    size="icon"
-                                    onClick={() => setFaceShape(name)}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{label}</p></TooltipContent>
-                        </Tooltip>
-                    ))}
-                </>
-            );
         case 'animations':
              const animations: { name: AnimationType, icon: React.ElementType, label: string }[] = [
                 { name: 'left-right', icon: ArrowRight, label: 'L-R' },
@@ -622,10 +572,6 @@ export default function DesignPage() {
                 <span className="text-xs mt-1">Reset</span>
             </Button>
             <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={() => setActiveMenu('shapes')} className="flex flex-col h-auto p-1">
-                <Shapes className="h-4 w-4" />
-                <span className="text-xs mt-1">Shapes</span>
-            </Button>
             <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-1">
                 <Smile className="h-4 w-4" />
                 <span className="text-xs mt-1">Expressions</span>
@@ -662,35 +608,6 @@ export default function DesignPage() {
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <style jsx>{`
-        .heart-shape {
-            position: relative;
-            transform: rotate(-45deg);
-        }
-        .heart-shape::before,
-        .heart-shape::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: inherit;
-            border-radius: 50%;
-        }
-        .heart-shape::before {
-            transform: translateY(-50%);
-        }
-        .heart-shape::after {
-            transform: translateX(50%);
-        }
-        .parallelogram-shape {
-            transform: skew(-20deg);
-        }
-        .pentagram-shape {
-            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-        }
-      `}</style>
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
       </div>
@@ -705,7 +622,6 @@ export default function DesignPage() {
           <Face 
               expression={expression} 
               color={emojiColor} 
-              shape={faceShape}
               showSunglasses={showSunglasses} 
               showMustache={showMustache} 
               pointerX={pointerX}
