@@ -90,7 +90,7 @@ const Face = ({
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
-    angry: { opacity: 0.8, scale: 1.2, y: 5 },
+    angry: { opacity: 0, scale: 1.2, y: 5 },
     sad: { opacity: 0, scale: 0.9 },
     surprised: { opacity: 0, scale: 0.9 },
     scared: { opacity: 0, scale: 1.2 },
