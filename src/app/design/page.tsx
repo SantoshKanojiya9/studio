@@ -350,8 +350,8 @@ export default function DesignPage() {
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
         
-        const boundaryX = 100; 
-        const boundaryY = 80;
+        const boundaryX = 80; 
+        const boundaryY = 60;
         
         let newX, newY;
         
