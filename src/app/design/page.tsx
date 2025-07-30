@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, animate, useVelocity } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
@@ -28,6 +28,9 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
+    onPan,
+    onPanStart,
+    onPanEnd,
 }: { 
     expression: Expression, 
     color: string, 
@@ -37,6 +40,9 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
+    onPan: (event: any, info: any) => void;
+    onPanStart: (event: any, info: any) => void;
+    onPanEnd: (event: any, info: any) => void;
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -126,9 +132,12 @@ const Face = ({
   
   return (
     <motion.div 
-      className="relative w-80 h-80 flex items-center justify-center"
+      className="relative w-80 h-80 flex items-center justify-center cursor-grab active:cursor-grabbing"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
+      onPan={onPan}
+      onPanStart={onPanStart}
+      onPanEnd={onPanEnd}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
@@ -309,7 +318,7 @@ export default function DesignPage() {
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
-
+  const [isDragging, setIsDragging] = useState(false);
   
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
@@ -325,9 +334,10 @@ export default function DesignPage() {
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+  const dragOrigin = useRef<{ x: number, y: number } | null>(null);
 
   useEffect(() => {
-    if (isAngryMode) return;
+    if (isAngryMode || isDragging) return;
     
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
@@ -399,7 +409,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode]);
+  }, [animationType, isAngryMode, isDragging]);
   
   const handleReset = () => {
     setExpression('neutral');
@@ -420,7 +430,7 @@ export default function DesignPage() {
   }
 
   const handleTap = () => {
-    if (isAngryMode) return;
+    if (isAngryMode || isDragging) return;
 
     const now = Date.now();
     const newTimestamps = [...tapTimestamps, now].slice(-4);
@@ -430,18 +440,48 @@ export default function DesignPage() {
       const timeDiff = newTimestamps[3] - newTimestamps[0];
       if (timeDiff < 2000) {
         setTapTimestamps([]);
-        setPreAngryColor(emojiColor); // Save current color
+        setPreAngryColor(emojiColor);
         setIsAngryMode(true);
         setEmojiColor('orangered');
         setExpression('angry');
 
         setTimeout(() => {
           setIsAngryMode(false);
-          setEmojiColor(preAngryColor); // Revert to saved color
+          setEmojiColor(preAngryColor);
           setExpression('neutral');
         }, 2000);
       }
     }
+  };
+
+  const handlePanStart = () => {
+    setIsDragging(true);
+    dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
+  };
+
+  const handlePan = (event: any, info: any) => {
+    if (dragOrigin.current) {
+        const boundaryX = 80; 
+        const boundaryY = 60;
+        
+        let newX = dragOrigin.current.x + info.offset.x;
+        let newY = dragOrigin.current.y + info.offset.y;
+
+        if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
+            // If outside, find the angle and project back to the boundary
+            const angle = Math.atan2(newY, newX);
+            newX = boundaryX * Math.cos(angle);
+            newY = boundaryY * Math.sin(angle);
+        }
+
+        featureOffsetX.set(newX);
+        featureOffsetY.set(newY);
+    }
+  };
+
+  const handlePanEnd = () => {
+    setIsDragging(false);
+    dragOrigin.current = null;
   };
   
   const filters = [
@@ -658,6 +698,9 @@ export default function DesignPage() {
               pointerY={pointerY}
               featureOffsetX={featureOffsetX}
               featureOffsetY={featureOffsetY}
+              onPan={handlePan}
+              onPanStart={handlePanStart}
+              onPanEnd={handlePanEnd}
           />
         </motion.div>
       </div>
@@ -675,3 +718,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
