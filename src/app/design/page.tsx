@@ -103,14 +103,8 @@ const Face = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const velocityX = useVelocity(featureOffsetX);
-  const velocityY = useVelocity(featureOffsetY);
-
-  const pupilXFromVelocity = useTransform(velocityX, [-1000, 1000], [-8, 8], { clamp: false });
-  const pupilYFromVelocity = useTransform(velocityY, [-1000, 1000], [-6, 6], { clamp: false });
-
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.08 + pupilXFromVelocity.get());
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.08 + pupilYFromVelocity.get());
+  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.2);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.2);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
