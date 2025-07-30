@@ -3,11 +3,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, animate, PanInfo } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Orbit, Square, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -17,9 +17,9 @@ import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'base' | 'animations';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'shapes' | 'animations';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-
+export type FaceShape = 'blob' | 'circle' | 'square';
 
 const Face = ({ 
     expression, 
@@ -30,6 +30,7 @@ const Face = ({
     pointerY,
     featureOffsetX,
     featureOffsetY,
+    shape,
 }: { 
     expression: Expression, 
     color: string, 
@@ -39,11 +40,12 @@ const Face = ({
     pointerY: any,
     featureOffsetX: any,
     featureOffsetY: any,
+    shape: FaceShape,
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
     happy: { y: 4, scaleY: 0.8 },
-    angry: { y: 2, scaleY: 0.8 },
+    angry: { y: 2, scaleY: 0.8, rotate: -2 },
     sad: { y: 6, scaleY: 0.9 },
     surprised: { y: -3, scaleY: 1.1 },
     scared: { y: -4, scaleY: 1.2, scaleX: 1.1 },
@@ -58,7 +60,7 @@ const Face = ({
       d: "M 30 50 Q 50 70 70 50", // Smile
     },
     angry: {
-        d: "M 25 60 Q 50 45 75 60", // Angry frown
+        d: "M 25 60 Q 50 35 75 60", // Angry frown
     },
     sad: {
         d: "M 30 60 Q 50 50 70 60", // Sad mouth
@@ -77,7 +79,7 @@ const Face = ({
   const eyebrowVariants = {
     neutral: { y: 0, rotate: 0 },
     happy: { y: -4, rotate: -5 },
-    angry: { y: 4, rotate: 15 },
+    angry: { y: 4, rotate: 20 },
     sad: { y: 2, rotate: -10 },
     surprised: { y: -6, rotate: 5 },
     scared: { y: -8, rotate: 3 },
@@ -92,7 +94,7 @@ const Face = ({
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
-    angry: { opacity: 0, scale: 1.1 },
+    angry: { opacity: 0.8, scale: 1.2, y: 5 },
     sad: { opacity: 0, scale: 0.9 },
     surprised: { opacity: 0, scale: 0.9 },
     scared: { opacity: 0, scale: 1.2 },
@@ -125,6 +127,12 @@ const Face = ({
     pointerX.set(0.5);
     pointerY.set(0.5);
   };
+  
+  const shapeClasses = {
+      blob: 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
+      circle: 'rounded-full',
+      square: 'rounded-3xl'
+  }
 
   return (
     <motion.div 
@@ -140,11 +148,11 @@ const Face = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
+          className={cn("w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative", shapeClasses[shape])}
           transition={{ duration: 0.3 }}
         >
             <motion.div 
-                className="w-full h-full rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden" 
+                className={cn("w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden", shapeClasses[shape])}
                 animate={{ backgroundColor: color }}
                 transition={{ duration: 0.2 }}
             >
@@ -159,7 +167,7 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className="absolute inset-0 p-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
+                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}>
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -304,7 +312,7 @@ export default function DesignPage() {
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
-  const [tiltEnabled, setTiltEnabled] = useState(false);
+  const [faceShape, setFaceShape] = useState<FaceShape>('blob');
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
@@ -318,17 +326,8 @@ export default function DesignPage() {
   const defaultEmojiColor = '#ffb300';
   const angryColor = 'orangered';
 
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
-
-  const rotateX = useTransform(y, [-1, 1], [15, -15]);
-  const rotateY = useTransform(x, [-1, 1], [-15, 15]);
-  
-  const springConfig = { stiffness: 300, damping: 20 };
-  const smoothRotateX = useSpring(rotateX, springConfig);
-  const smoothRotateY = useSpring(rotateY, springConfig);
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
   
@@ -364,8 +363,18 @@ export default function DesignPage() {
         if(isAngryMode) return;
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
-        const newX = Math.random() * 120 - 60;
-        const newY = Math.random() * 100 - 50;
+        
+        const boundaryX = 100; 
+        const boundaryY = 80;
+        
+        let newX, newY;
+        
+        // Use elliptical boundary check for random positions
+        do {
+            newX = Math.random() * (2 * boundaryX) - boundaryX;
+            newY = Math.random() * (2 * boundaryY) - boundaryY;
+        } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
+
         animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
@@ -381,7 +390,7 @@ export default function DesignPage() {
             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [50, -50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
@@ -409,31 +418,12 @@ export default function DesignPage() {
         }
     }
   }, []);
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!tiltEnabled) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const pointerXVal = e.clientX - rect.left;
-    const pointerYVal = e.clientY - rect.top;
-
-    x.set((pointerXVal / width) * 2 - 1);
-    y.set((pointerYVal / height) * 2 - 1);
-  };
-
-  const handlePointerLeave = () => {
-    x.set(0);
-    y.set(0);
-    pointerX.set(0.5);
-    pointerY.set(0.5);
-  };
   
   const handleReset = () => {
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
-    setTiltEnabled(false);
+    setFaceShape('blob');
     setShowSunglasses(false);
     setShowMustache(false);
     setSelectedFilter(null);
@@ -456,10 +446,16 @@ export default function DesignPage() {
       const timeDiff = newTimestamps[3] - newTimestamps[0];
       if (timeDiff < 2000) {
         setTapTimestamps([]);
+        
+        const originalExpression = expression;
+        const originalColor = emojiColor;
+        
         setIsAngryMode(true);
         
         angryTimeoutRef.current = setTimeout(() => {
           setIsAngryMode(false);
+          setExpression(originalExpression);
+          setEmojiColor(originalColor);
           angryTimeoutRef.current = null;
         }, 3000);
       }
@@ -591,20 +587,30 @@ export default function DesignPage() {
                 </div>
             </div>
         );
-         case 'base':
+         case 'shapes':
+            const shapes: { name: FaceShape, icon: React.ElementType, label: string }[] = [
+                { name: 'blob', icon: () => <div className="w-4 h-4 rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-current" />, label: 'Blob' },
+                { name: 'circle', icon: Circle, label: 'Circle' },
+                { name: 'square', icon: SquareIcon, label: 'Square' },
+            ];
             return (
                 <>
                     <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
                     <Separator orientation="vertical" className="h-6 mx-2" />
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                             <Label htmlFor="tilt-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", tiltEnabled && "bg-accent text-accent-foreground")}>
-                                <Orbit className="h-4 w-4" />
-                                <Switch id="tilt-switch" checked={tiltEnabled} onCheckedChange={setTiltEnabled} className="sr-only" />
-                            </Label>
-                        </TooltipTrigger>
-                        <TooltipContent><p>3D Tilt</p></TooltipContent>
-                    </Tooltip>
+                    {shapes.map(({name, icon: Icon, label}) => (
+                        <Tooltip key={name}>
+                            <TooltipTrigger asChild>
+                                <Button 
+                                    variant={faceShape === name ? 'secondary' : 'ghost'}
+                                    size="icon"
+                                    onClick={() => setFaceShape(name)}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>{label}</p></TooltipContent>
+                        </Tooltip>
+                    ))}
                 </>
             );
         case 'animations':
@@ -647,9 +653,9 @@ export default function DesignPage() {
                 <span className="text-xs mt-1">Reset</span>
             </Button>
             <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={() => setActiveMenu('base')} className="flex flex-col h-auto p-1">
-                <Square className="h-4 w-4" />
-                <span className="text-xs mt-1">Base</span>
+            <Button variant="ghost" onClick={() => setActiveMenu('shapes')} className="flex flex-col h-auto p-1">
+                <Shapes className="h-4 w-4" />
+                <span className="text-xs mt-1">Shapes</span>
             </Button>
             <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-1">
                 <Smile className="h-4 w-4" />
@@ -686,8 +692,6 @@ export default function DesignPage() {
     <div 
         className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
-        onPointerMove={handlePointerMove}
-        onPointerLeave={handlePointerLeave}
     >
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
@@ -697,8 +701,6 @@ export default function DesignPage() {
           style={{
             transformStyle: 'preserve-3d',
             perspective: '1000px',
-            rotateX: tiltEnabled ? smoothRotateX : 0,
-            rotateY: tiltEnabled ? smoothRotateY : 0,
           }}
           transition={{ duration: 1.5, type: 'spring' }}
           className="mb-10"
@@ -714,6 +716,7 @@ export default function DesignPage() {
             <Face 
                 expression={isAngryMode ? 'angry' : expression} 
                 color={isAngryMode ? angryColor : emojiColor} 
+                shape={faceShape}
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
                 pointerX={pointerX}
