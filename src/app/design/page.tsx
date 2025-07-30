@@ -396,7 +396,7 @@ export default function DesignPage() {
             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, -50], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
