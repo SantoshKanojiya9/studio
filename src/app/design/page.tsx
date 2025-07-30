@@ -6,7 +6,6 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -158,9 +157,9 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className="absolute inset-[10px] overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
+                <div className="absolute inset-0 overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
                     <motion.div
-                        className="absolute inset-[10px] flex items-center justify-center"
+                        className="absolute inset-0 flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
                         transition={{ duration: 1.5, type: 'spring' }}
                     >
