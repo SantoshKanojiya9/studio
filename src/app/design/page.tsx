@@ -351,8 +351,8 @@ export default function DesignPage() {
 
    useEffect(() => {
     const stopAnimations = () => {
-        animationControlsX.current?.stop();
-        animationControlsY.current?.stop();
+        if (animationControlsX.current) animationControlsX.current.stop();
+        if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
@@ -520,7 +520,7 @@ export default function DesignPage() {
 
   const onPanStart = () => {
     setIsDragging(true);
-    // Stop any ongoing animations to allow for manual control. This is key to preventing the teleport bug.
+    // Stop any ongoing animations to allow for manual control.
     animationControlsX.current?.stop();
     animationControlsY.current?.stop();
     if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
