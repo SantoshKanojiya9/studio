@@ -346,6 +346,7 @@ export default function DesignPage() {
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
   const angryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const panStartOffset = useRef({ x: 0, y: 0 });
 
 
    useEffect(() => {
@@ -358,8 +359,8 @@ export default function DesignPage() {
     if (isDragging || animationType === 'none') {
         stopAnimations();
         if (animationType === 'none' && !isDragging) {
-            featureOffsetX.set(0);
-            featureOffsetY.set(0);
+            animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+            animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
         }
         return;
     }
@@ -519,15 +520,22 @@ export default function DesignPage() {
 
   const onPanStart = () => {
     setIsDragging(true);
+    panStartOffset.current = {
+        x: featureOffsetX.get(),
+        y: featureOffsetY.get()
+    };
   };
 
   const onPan = (e: any, info: PanInfo) => {
     const boundaryX = 80;
     const boundaryY = 60;
     
-    const newX = Math.max(-boundaryX, Math.min(boundaryX, info.offset.x));
-    const newY = Math.max(-boundaryY, Math.min(boundaryY, info.offset.y));
-    
+    let newX = panStartOffset.current.x + info.offset.x;
+    let newY = panStartOffset.current.y + info.offset.y;
+
+    newX = Math.max(-boundaryX, Math.min(boundaryX, newX));
+    newY = Math.max(-boundaryY, Math.min(boundaryY, newY));
+
     featureOffsetX.set(newX);
     featureOffsetY.set(newY);
   };
@@ -775,5 +783,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
