@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Hand } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -315,6 +315,7 @@ export default function DesignPage() {
   const [faceShape, setFaceShape] = useState<FaceShape>('blob');
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
+  const [showLimbs, setShowLimbs] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   const featureOffsetX = useMotionValue(0);
@@ -426,6 +427,7 @@ export default function DesignPage() {
     setFaceShape('blob');
     setShowSunglasses(false);
     setShowMustache(false);
+    setShowLimbs(false);
     setSelectedFilter(null);
     setAnimationType('random');
     featureOffsetX.set(0);
@@ -673,6 +675,10 @@ export default function DesignPage() {
                 <Glasses className="h-4 w-4" />
                 <span className="text-xs mt-1">Accessories</span>
             </Button>
+             <Button variant={showLimbs ? "secondary" : "ghost"} onClick={() => setShowLimbs(!showLimbs)} className="flex flex-col h-auto p-1">
+                <Hand className="h-4 w-4" />
+                <span className="text-xs mt-1">Limbs</span>
+            </Button>
             <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-1">
                 <Camera className="h-4 w-4" />
                 <span className="text-xs mt-1">Filters</span>
@@ -702,9 +708,44 @@ export default function DesignPage() {
             transformStyle: 'preserve-3d',
             perspective: '1000px',
           }}
-          transition={{ duration: 1.5, type: 'spring' }}
+          animate={{ scale: showLimbs ? 0.75 : 1 }}
+          transition={{ duration: 0.4, type: 'spring' }}
           className="mb-10"
         >
+            {/* Limbs */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showLimbs ? 1 : 0 }}
+                transition={{ duration: 0.3, delay: showLimbs ? 0.2 : 0 }}
+            >
+                {/* Arms */}
+                <motion.div 
+                    className="absolute top-1/2 -left-16 w-20 h-8 bg-black rounded-full z-0" 
+                    initial={{x: -20, rotate: -20}}
+                    animate={{x: 0, rotate: expression === 'happy' ? -40 : -20}}
+                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
+                />
+                <motion.div 
+                    className="absolute top-1/2 -right-16 w-20 h-8 bg-black rounded-full z-0" 
+                    initial={{x: 20, rotate: 20}}
+                    animate={{x: 0, rotate: expression === 'happy' ? 40 : 20}}
+                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
+                />
+                {/* Legs */}
+                <motion.div 
+                    className="absolute bottom-[-20px] left-1/4 w-8 h-12 bg-black rounded-full z-0"
+                    initial={{y: 20}}
+                    animate={{y: 0}}
+                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
+                 />
+                 <motion.div 
+                    className="absolute bottom-[-20px] right-1/4 w-8 h-12 bg-black rounded-full z-0"
+                    initial={{y: 20}}
+                    animate={{y: 0}}
+                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
+                 />
+            </motion.div>
+
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             style={{ 
