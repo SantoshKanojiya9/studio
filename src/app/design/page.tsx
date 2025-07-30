@@ -7,7 +7,7 @@ import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Hand } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, Shapes, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Circle, Square as SquareIcon, Hand, Pill, Gem } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -19,7 +19,7 @@ import { ChatHeader } from '@/components/chat-header';
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'shapes' | 'animations';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type FaceShape = 'blob' | 'circle' | 'square';
+export type FaceShape = 'blob' | 'circle' | 'square' | 'pill' | 'diamond';
 
 const Face = ({ 
     expression, 
@@ -131,24 +131,32 @@ const Face = ({
   const shapeClasses = {
       blob: 'rounded-[50%_50%_40%_40%/60%_60%_40%_40%]',
       circle: 'rounded-full',
-      square: 'rounded-3xl'
+      square: 'rounded-3xl',
+      pill: 'rounded-full',
+      diamond: 'rotate-45 rounded-3xl'
+  }
+  
+  const shapeStyles = {
+    pill: { width: '80%', height: '100%' },
+    diamond: { width: '70%', height: '70%' },
   }
 
   return (
     <motion.div 
-      className="relative w-80 h-80"
+      className="relative w-80 h-80 flex items-center justify-center"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
-        className="absolute top-10 w-full h-64 z-10"
+        className="absolute w-full h-64 z-10 flex items-center justify-center"
         initial={{ y: 20, scale: 0.95, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
           className={cn("w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative", shapeClasses[shape])}
+          style={shapeStyles[shape as keyof typeof shapeStyles]}
           transition={{ duration: 0.3 }}
         >
             <motion.div 
@@ -167,7 +175,9 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}>
+                <div className={cn("absolute inset-0 p-[10px] overflow-hidden", shapeClasses[shape])}
+                  style={shape === 'diamond' ? { transform: 'rotate(-45deg)', transformOrigin: 'center' } : {}}
+                >
                     <motion.div
                         className="absolute inset-[10px] flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -318,15 +328,13 @@ export default function DesignPage() {
   const [showLimbs, setShowLimbs] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
+  
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
-  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [isAngryMode, setIsAngryMode] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
-  const angryColor = 'orangered';
-
+  
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
 
@@ -335,7 +343,9 @@ export default function DesignPage() {
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-  const angryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isDraggingRef = useRef(false);
+
 
    useEffect(() => {
     const stopAnimations = () => {
@@ -344,10 +354,12 @@ export default function DesignPage() {
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    if (animationType === 'none') {
+    if (animationType === 'none' || isDraggingRef.current) {
         stopAnimations();
-        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        if (!isDraggingRef.current) {
+            animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+            animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        }
         return;
     }
     
@@ -361,7 +373,7 @@ export default function DesignPage() {
     };
     
     const randomAnimation = () => {
-        if(isAngryMode) return;
+        if(isDraggingRef.current) return;
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
         
@@ -370,7 +382,6 @@ export default function DesignPage() {
         
         let newX, newY;
         
-        // Use elliptical boundary check for random positions
         do {
             newX = Math.random() * (2 * boundaryX) - boundaryX;
             newY = Math.random() * (2 * boundaryY) - boundaryY;
@@ -410,15 +421,7 @@ export default function DesignPage() {
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode]);
-  
-  useEffect(() => {
-    return () => {
-        if (angryTimeoutRef.current) {
-            clearTimeout(angryTimeoutRef.current);
-        }
-    }
-  }, []);
+  }, [animationType, isDraggingRef.current]);
   
   const handleReset = () => {
     setExpression('neutral');
@@ -432,42 +435,10 @@ export default function DesignPage() {
     setAnimationType('random');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
-    setIsAngryMode(false);
-    setTapTimestamps([]);
     setActiveMenu('main');
   };
   
-  const handleTap = () => {
-    if (angryTimeoutRef.current) return;
-
-    const now = Date.now();
-    const newTimestamps = [...tapTimestamps, now].slice(-4);
-    setTapTimestamps(newTimestamps);
-    
-    if (newTimestamps.length === 4) {
-      const timeDiff = newTimestamps[3] - newTimestamps[0];
-      if (timeDiff < 2000) {
-        setTapTimestamps([]);
-        
-        const originalExpression = expression;
-        const originalColor = emojiColor;
-        
-        setIsAngryMode(true);
-        
-        angryTimeoutRef.current = setTimeout(() => {
-          setIsAngryMode(false);
-          setExpression(originalExpression);
-          setEmojiColor(originalColor);
-          angryTimeoutRef.current = null;
-        }, 3000);
-      }
-    } else if (!isAngryMode) {
-        handleRandomize();
-    }
-  };
-
   const handleRandomize = () => {
-    if (isAngryMode) return;
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
@@ -589,11 +560,13 @@ export default function DesignPage() {
                 </div>
             </div>
         );
-         case 'shapes':
+        case 'shapes':
             const shapes: { name: FaceShape, icon: React.ElementType, label: string }[] = [
                 { name: 'blob', icon: () => <div className="w-4 h-4 rounded-[50%_50%_40%_40%/60%_60%_40%_40%] bg-current" />, label: 'Blob' },
                 { name: 'circle', icon: Circle, label: 'Circle' },
                 { name: 'square', icon: SquareIcon, label: 'Square' },
+                { name: 'pill', icon: Pill, label: 'Pill' },
+                { name: 'diamond', icon: Gem, label: 'Diamond' },
             ];
             return (
                 <>
@@ -720,43 +693,66 @@ export default function DesignPage() {
             >
                 {/* Arms */}
                 <motion.div 
-                    className="absolute top-1/2 -left-16 w-20 h-8 bg-black rounded-full z-0" 
-                    initial={{x: -20, rotate: -20}}
-                    animate={{x: 0, rotate: expression === 'happy' ? -40 : -20}}
+                    className="absolute top-1/2 -left-20 w-32 h-8 z-0 origin-right"
+                    style={{ y: '-50%' }}
+                    animate={{rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0}}
                     transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                />
+                >
+                    {/* Upper Arm */}
+                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"></div>
+                    {/* Forearm */}
+                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full origin-left" style={{transform: 'rotate(20deg) translateY(-10px)'}}></div>
+                    {/* Hand */}
+                    <div className="w-8 h-8 bg-white rounded-full absolute -left-4 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center" style={{transform: 'translateY(-16px) rotate(20deg)'}}>
+                        <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(15deg)'}}></div>
+                        <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(-15deg)'}}></div>
+                    </div>
+                </motion.div>
                 <motion.div 
-                    className="absolute top-1/2 -right-16 w-20 h-8 bg-black rounded-full z-0" 
-                    initial={{x: 20, rotate: 20}}
-                    animate={{x: 0, rotate: expression === 'happy' ? 40 : 20}}
+                    className="absolute top-1/2 -right-20 w-32 h-8 z-0 origin-left"
+                    style={{ y: '-50%' }}
+                    animate={{rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0}}
                     transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                />
+                >
+                     {/* Upper Arm */}
+                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"></div>
+                     {/* Forearm */}
+                    <div className="w-16 h-2.5 bg-[#4a2c0f] absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full origin-right" style={{transform: 'rotate(-20deg) translateY(-10px)'}}></div>
+                    {/* Hand */}
+                    <div className="w-8 h-8 bg-white rounded-full absolute -right-4 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center" style={{transform: 'translateY(-16px) rotate(-20deg)'}}>
+                       <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(2px) rotate(-15deg)'}}></div>
+                       <div className="w-2 h-0.5 bg-black/70 rounded-full" style={{transform: 'translateY(-2px) rotate(15deg)'}}></div>
+                    </div>
+                </motion.div>
+                
                 {/* Legs */}
                 <motion.div 
-                    className="absolute bottom-[-20px] left-1/4 w-8 h-12 bg-black rounded-full z-0"
-                    initial={{y: 20}}
-                    animate={{y: 0}}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                 />
-                 <motion.div 
-                    className="absolute bottom-[-20px] right-1/4 w-8 h-12 bg-black rounded-full z-0"
-                    initial={{y: 20}}
-                    animate={{y: 0}}
-                    transition={{ type: 'spring', stiffness: 200, damping: 10}}
-                 />
+                     className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0"
+                     initial={{y: 20}}
+                     animate={{y: 0}}
+                     transition={{ type: 'spring', stiffness: 200, damping: 10}}
+                >
+                    <div className="flex gap-4">
+                        <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
+                        <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
+                    </div>
+                    <div className="flex -mt-0.5 gap-2">
+                        <div className="w-8 h-4 bg-orange-600 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                        <div className="w-8 h-4 bg-orange-600 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                    </div>
+                </motion.div>
             </motion.div>
 
           <motion.div
             className="w-80 h-80 flex items-center justify-center cursor-pointer select-none"
             style={{ 
               transformStyle: 'preserve-3d',
-              filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase()}(1)` : 'none'
+              filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
             }}
-            onTap={handleTap}
           >
             <Face 
-                expression={isAngryMode ? 'angry' : expression} 
-                color={isAngryMode ? angryColor : emojiColor} 
+                expression={expression} 
+                color={emojiColor} 
                 shape={faceShape}
                 showSunglasses={showSunglasses} 
                 showMustache={showMustache} 
