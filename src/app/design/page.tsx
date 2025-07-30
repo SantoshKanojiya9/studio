@@ -533,8 +533,13 @@ export default function DesignPage() {
     let newX = panStartOffset.current.x + info.offset.x;
     let newY = panStartOffset.current.y + info.offset.y;
 
-    newX = Math.max(-boundaryX, Math.min(boundaryX, newX));
-    newY = Math.max(-boundaryY, Math.min(boundaryY, newY));
+    const ellipseValue = (newX * newX) / (boundaryX * boundaryX) + (newY * newY) / (boundaryY * boundaryY);
+
+    if (ellipseValue > 1) {
+        const angle = Math.atan2(newY, newX);
+        newX = boundaryX * Math.cos(angle);
+        newY = boundaryY * Math.sin(angle);
+    }
 
     featureOffsetX.set(newX);
     featureOffsetY.set(newY);
