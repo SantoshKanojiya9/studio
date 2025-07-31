@@ -6,7 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -16,9 +16,11 @@ import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
+type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
+
 
 const Face = ({ 
     expression, 
@@ -33,6 +35,9 @@ const Face = ({
     onPanStart,
     onPanEnd,
     shape,
+    eyeStyle,
+    mouthStyle,
+    eyebrowStyle,
 }: { 
     expression: Expression, 
     color: string, 
@@ -46,6 +51,9 @@ const Face = ({
     onPanStart: (event: any, info: any) => void;
     onPanEnd: (event: any, info: any) => void;
     shape: ShapeType;
+    eyeStyle: FeatureStyle;
+    mouthStyle: FeatureStyle;
+    eyebrowStyle: FeatureStyle;
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -57,28 +65,24 @@ const Face = ({
     love: { y: 2, scaleY: 1 },
   };
 
-  const mouthVariants = {
-    neutral: {
-      d: "M 30 50 Q 50 50 70 50", // Straight line
-    },
-    happy: {
-      d: "M 30 50 Q 50 70 70 50", // Smile
-    },
-    angry: {
-        d: "M 25 60 Q 50 35 75 60", // Angry frown
-    },
-    sad: {
-        d: "M 30 60 Q 50 50 70 60", // Sad mouth
-    },
-    surprised: {
-        d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", // Open mouth
-    },
-    scared: {
-        d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50", // Open mouth scared
-    },
-    love: {
-      d: "M 30 50 Q 50 75 70 50", // Big smile for love
-    },
+  const mouthVariants: Record<FeatureStyle, any> = {
+    default: { d: "M 30 50 Q 50 60 70 50" },
+    'male-1': { d: "M 30 55 H 70" },
+    'male-2': { d: "M 30 50 Q 50 40 70 50" },
+    'male-3': { d: "M 30 60 Q 50 70 70 60" },
+    'female-1': { d: "M 30 55 Q 50 70 70 55" },
+    'female-2': { d: "M 25 50 C 35 60, 65 60, 75 50" },
+    'female-3': { d: "M 40 55 A 10 5 0 0 0 60 55" },
+  };
+
+  const expressionMouthVariants = {
+    neutral: { d: mouthVariants[mouthStyle].d },
+    happy: { d: "M 30 50 Q 50 70 70 50" },
+    angry: { d: "M 25 60 Q 50 35 75 60" },
+    sad: { d: "M 30 60 Q 50 50 70 60" },
+    surprised: { d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55" },
+    scared: { d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50" },
+    love: { d: "M 30 50 Q 50 75 70 50" },
   };
   
   const eyebrowVariants = {
@@ -150,6 +154,47 @@ const Face = ({
     return paths[s] || paths.default;
   };
   
+    const renderEye = (style: FeatureStyle) => {
+    const eyeBase = (
+      <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+        <motion.div
+          className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
+          style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
+        >
+          <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+            <Heart className="w-5 h-5 text-red-500 fill-current" />
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+    switch (style) {
+      case 'male-1': return <div className="w-12 h-8 bg-fuchsia-200 rounded-lg relative overflow-hidden">{eyeBase}</div>;
+      case 'male-2': return <div className="w-12 h-10 bg-fuchsia-200 rounded-t-full relative overflow-hidden">{eyeBase}</div>;
+      case 'male-3': return <div className="w-10 h-10 bg-fuchsia-200 rounded-md relative overflow-hidden">{eyeBase}</div>;
+      case 'female-1': return <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-fuchsia-200" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase}</div>;
+      case 'female-2': return <div className="w-12 h-12 bg-fuchsia-200 rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase}</div>;
+      case 'female-3': return <div className="w-14 h-8 bg-fuchsia-200 rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBase}</div>;
+      default: return eyeBase;
+    }
+  };
+
+  const renderEyebrow = (style: FeatureStyle, isRight?: boolean) => {
+    const baseStyle = {
+      clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)',
+      transformOrigin: 'center',
+      transform: isRight ? 'scaleX(-1)' : 'none',
+    };
+    switch (style) {
+      case 'male-1': return <motion.div className="absolute -top-3 left-0 w-14 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} variants={eyebrowVariants} animate={expression} />;
+      case 'male-2': return <motion.div className="absolute -top-4 left-0 w-12 h-5 bg-black" style={{ ...baseStyle, borderRadius: '4px' }} variants={eyebrowVariants} animate={expression} />;
+      case 'male-3': return <motion.div className="absolute -top-2 left-0 w-12 h-3 bg-black" style={baseStyle} variants={eyebrowVariants} animate={expression} />;
+      case 'female-1': return <motion.div className="absolute -top-4 left-0 w-12 h-3 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,10 C10,0 40,0 50,10")' }} variants={eyebrowVariants} animate={expression} />;
+      case 'female-2': return <motion.div className="absolute -top-3 left-0 w-12 h-2.5 bg-black" style={{ ...baseStyle }} variants={eyebrowVariants} animate={expression} />;
+      case 'female-3': return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} variants={eyebrowVariants} animate={expression} />;
+      default: return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={baseStyle} variants={eyebrowVariants} animate={expression} transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }} />;
+    }
+  };
+
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
@@ -215,52 +260,12 @@ const Face = ({
                             style={{ transform: 'translateZ(20px)' }}
                         >
                             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                            <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden" >
-                                <motion.div 
-                                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
-                                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
-                                >
-                                    <motion.div 
-                                        className="w-full h-full bg-black rounded-full origin-bottom flex items-center justify-center"
-                                        animate={'open'}
-                                        variants={eyeLidVariants}
-                                        transition={{
-                                            duration: 0.1,
-                                            ease: "easeOut"
-                                        }}
-                                    >
-                                        <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
-                                            <Heart className="w-5 h-5 text-red-500 fill-current" />
-                                        </motion.div>
-                                    </motion.div>
-                                </motion.div>
-                            </div>
-                            <motion.div 
-                                className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                                style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center' }}
-                                variants={eyebrowVariants}
-                                animate={expression}
-                                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                            />
+                                {renderEye(eyeStyle)}
+                                {renderEyebrow(eyebrowStyle)}
                             </motion.div>
                             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                            <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
-                                <motion.div 
-                                    className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full flex items-center justify-center"
-                                    style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
-                                >
-                                    <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
-                                        <Heart className="w-5 h-5 text-red-500 fill-current" />
-                                    </motion.div>
-                                </motion.div>
-                            </div>
-                            <motion.div 
-                                className="absolute -top-3 left-0 w-12 h-4 bg-black"
-                                style={{ clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)', transformOrigin: 'center', transform: 'scaleX(-1)' }}
-                                variants={eyebrowVariants}
-                                animate={expression}
-                                transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}
-                            />
+                                {renderEye(eyeStyle)}
+                                {renderEyebrow(eyebrowStyle, true)}
                             </motion.div>
                         </motion.div>
                         <motion.div 
@@ -273,7 +278,7 @@ const Face = ({
                                     stroke="black"
                                     strokeWidth={5}
                                     strokeLinecap="round"
-                                    variants={mouthVariants}
+                                    variants={expressionMouthVariants}
                                     animate={expression}
                                     transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                                 />
@@ -341,7 +346,10 @@ export default function DesignPage() {
   const [isAngryMode, setIsAngryMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [shape, setShape] = useState<ShapeType>('default');
-  
+  const [eyeStyle, setEyeStyle] = useState<FeatureStyle>('default');
+  const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
+  const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
+
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
 
@@ -443,6 +451,9 @@ export default function DesignPage() {
     setSelectedFilter(null);
     setAnimationType('random');
     setShape('default');
+    setEyeStyle('default');
+    setMouthStyle('default');
+    setEyebrowStyle('default');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setActiveMenu('main');
@@ -552,6 +563,59 @@ export default function DesignPage() {
       setShape(newShape);
     }
   };
+
+  const handleFeatureSelect = (
+    type: 'eye' | 'mouth' | 'eyebrow', 
+    style: FeatureStyle
+  ) => {
+    if (type === 'eye') {
+        setEyeStyle(prev => prev === style ? 'default' : style);
+    } else if (type === 'mouth') {
+        setMouthStyle(prev => prev === style ? 'default' : style);
+    } else {
+        setEyebrowStyle(prev => prev === style ? 'default' : style);
+    }
+  };
+
+
+  const renderFeatureMenu = (
+    type: 'eye' | 'mouth' | 'eyebrow', 
+    currentStyle: FeatureStyle
+  ) => {
+    const featureStyles: {name: FeatureStyle, label: string}[] = [
+        {name: 'male-1', label: 'Male 1'},
+        {name: 'male-2', label: 'Male 2'},
+        {name: 'male-3', label: 'Male 3'},
+        {name: 'female-1', label: 'Female 1'},
+        {name: 'female-2', label: 'Female 2'},
+        {name: 'female-3', label: 'Female 3'},
+    ];
+
+    const title = type.charAt(0).toUpperCase() + type.slice(1);
+
+    return (
+        <div className="flex items-center w-full">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('face')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
+            <span className="font-semibold text-sm mr-4">{title}</span>
+             <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
+                {featureStyles.map(style => (
+                    <Tooltip key={style.name}>
+                        <TooltipTrigger asChild>
+                            <Button 
+                                variant={currentStyle === style.name ? 'default' : 'outline'}
+                                onClick={() => handleFeatureSelect(type, style.name)}
+                            >
+                                {style.label}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>{style.label}</p></TooltipContent>
+                    </Tooltip>
+                ))}
+             </div>
+        </div>
+    )
+  }
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -696,6 +760,22 @@ export default function DesignPage() {
                     </div>
                 </div>
             );
+      case 'face':
+        return (
+            <>
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                <Button variant="ghost" onClick={() => setActiveMenu('eyes')}><Eye className="mr-2 h-4 w-4" /> Eyes</Button>
+                <Button variant="ghost" onClick={() => setActiveMenu('mouth')}><Meh className="mr-2 h-4 w-4" /> Mouth</Button>
+                <Button variant="ghost" onClick={() => setActiveMenu('eyebrows')}><ChevronsRight className="mr-2 h-4 w-4" style={{transform: 'rotate(-45deg)'}} /> Eyebrows</Button>
+            </>
+        )
+      case 'eyes':
+        return renderFeatureMenu('eye', eyeStyle);
+      case 'mouth':
+        return renderFeatureMenu('mouth', mouthStyle);
+      case 'eyebrows':
+        return renderFeatureMenu('eyebrow', eyebrowStyle);
       default: // 'main'
         return (
           <>
@@ -707,6 +787,10 @@ export default function DesignPage() {
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
                 <span className="text-xs mt-1">Expressions</span>
+            </Button>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
+                <UserIcon className="h-4 w-4" />
+                <span className="text-xs mt-1">Face</span>
             </Button>
              <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
                 <Sparkles className="h-4 w-4" />
@@ -767,6 +851,9 @@ export default function DesignPage() {
               onPanStart={handlePanStart}
               onPanEnd={handlePanEnd}
               shape={shape}
+              eyeStyle={eyeStyle}
+              mouthStyle={mouthStyle}
+              eyebrowStyle={eyebrowStyle}
           />
         </motion.div>
       </div>
