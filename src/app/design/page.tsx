@@ -645,35 +645,35 @@ export default function DesignPage() {
       default: // 'main'
         return (
           <>
-            <Button variant="ghost" onClick={handleReset} className="flex flex-col h-auto p-1">
+            <Button variant="ghost" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
-                <span className="text-xs mt-1">Reset</span>
+                <span className="text-xs ml-2">Reset</span>
             </Button>
-            <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={() => setActiveMenu('expressions')} className="flex flex-col h-auto p-1">
+            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Button variant="ghost" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
-                <span className="text-xs mt-1">Expressions</span>
+                <span className="text-xs ml-2">Expressions</span>
             </Button>
-             <Button variant="ghost" onClick={() => setActiveMenu('animations')} className="flex flex-col h-auto p-1">
+             <Button variant="ghost" onClick={() => setActiveMenu('animations')}>
                 <Sparkles className="h-4 w-4" />
-                <span className="text-xs mt-1">Animations</span>
+                <span className="text-xs ml-2">Animations</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('colors')} className="flex flex-col h-auto p-1">
+            <Button variant="ghost" onClick={() => setActiveMenu('colors')}>
                 <Palette className="h-4 w-4" />
-                <span className="text-xs mt-1">Colors</span>
+                <span className="text-xs ml-2">Colors</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('accessories')} className="flex flex-col h-auto p-1">
+            <Button variant="ghost" onClick={() => setActiveMenu('accessories')}>
                 <Glasses className="h-4 w-4" />
-                <span className="text-xs mt-1">Accessories</span>
+                <span className="text-xs ml-2">Accessories</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('filters')} className="flex flex-col h-auto p-1">
+            <Button variant="ghost" onClick={() => setActiveMenu('filters')}>
                 <Camera className="h-4 w-4" />
-                <span className="text-xs mt-1">Filters</span>
+                <span className="text-xs ml-2">Filters</span>
             </Button>
-            <Separator orientation="vertical" className="h-10 mx-1" />
-            <Button variant="ghost" onClick={handleRandomize} className="flex flex-col h-auto p-1">
+            <Separator orientation="vertical" className="h-6 mx-1" />
+            <Button variant="ghost" onClick={handleRandomize}>
                 <Wand2 className="h-4 w-4" />
-                <span className="text-xs mt-1">Random</span>
+                <span className="text-xs ml-2">Random</span>
             </Button>
           </>
         );
@@ -717,7 +717,7 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
-                <div className="flex w-max space-x-1 p-1 mx-auto">
+                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-14">
                     {renderMenu()}
                 </div>
                 <ScrollBar orientation="horizontal" className="hidden" />
