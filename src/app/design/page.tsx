@@ -6,13 +6,12 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -366,6 +365,30 @@ export default function DesignPage() {
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Load saved state from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedState = localStorage.getItem('savedEmoji');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        setExpression(state.expression || 'neutral');
+        setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
+        setEmojiColor(state.emojiColor || defaultEmojiColor);
+        setShowSunglasses(state.showSunglasses || false);
+        setShowMustache(state.showMustache || false);
+        setSelectedFilter(state.selectedFilter || null);
+        setAnimationType(state.animationType || 'random');
+        setShape(state.shape || 'default');
+        setEyeStyle(state.eyeStyle || 'default');
+        setMouthStyle(state.mouthStyle || 'default');
+        setEyebrowStyle(state.eyebrowStyle || 'default');
+      }
+    } catch (error) {
+        console.error("Failed to load or parse saved state from localStorage", error);
+    }
+  }, []);
+
 
   useEffect(() => {
     if (isAngryMode || isDragging) return;
@@ -463,6 +486,31 @@ export default function DesignPage() {
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
+
+  const handleSave = () => {
+    const stateToSave = {
+      expression,
+      backgroundColor,
+      emojiColor,
+      showSunglasses,
+      showMustache,
+      selectedFilter,
+      animationType,
+      shape,
+      eyeStyle,
+      mouthStyle,
+      eyebrowStyle,
+    };
+    try {
+        localStorage.setItem('savedEmoji', JSON.stringify(stateToSave));
+        // Maybe show a toast notification for feedback
+        alert('Emoji saved!');
+    } catch (error) {
+        console.error("Failed to save state to localStorage", error);
+        alert('Failed to save emoji.');
+    }
+  };
+
 
   const handleTap = () => {
     if (isAngryMode || isDragging) return;
@@ -782,6 +830,10 @@ export default function DesignPage() {
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
                 <span className="text-xs mt-1">Reset</span>
+            </Button>
+             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleSave}>
+                <Save className="h-4 w-4" />
+                <span className="text-xs mt-1">Save</span>
             </Button>
             <Separator orientation="vertical" className="h-full mx-1" />
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
