@@ -683,13 +683,11 @@ export default function DesignPage() {
 
   return (
     <div 
-        className="relative flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
+        className="flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
-        <ChatHeader />
-      </div>
-      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-20">
+      <ChatHeader />
+      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"
           onTap={handleTap}
@@ -714,7 +712,7 @@ export default function DesignPage() {
         </motion.div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20">
+      <div className="z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
                 <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
