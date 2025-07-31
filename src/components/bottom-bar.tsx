@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Palette, Clock } from 'lucide-react';
+import { MessageSquare, Palette, Clock, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomBar() {
@@ -12,6 +12,7 @@ export function BottomBar() {
   const navItems = [
     { href: '/chat', label: 'Chat', icon: MessageSquare },
     { href: '/design', label: 'Emoji', icon: Palette },
+    { href: '/gallery', label: 'Gallery', icon: LayoutGrid },
     { href: '/loki', label: 'Loki Clock', icon: Clock },
   ];
 
@@ -26,7 +27,7 @@ export function BottomBar() {
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center gap-1 p-2 rounded-md transition-colors w-20',
-                  pathname.startsWith(item.href)
+                  pathname === item.href // Use exact match for active state
                     ? 'text-primary'
                     : 'text-muted-foreground hover:text-primary'
                 )}
