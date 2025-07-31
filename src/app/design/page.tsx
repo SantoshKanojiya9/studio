@@ -6,7 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Library } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -15,10 +15,25 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'gallery';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
 type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
+
+type EmojiState = {
+    id: string;
+    expression: Expression;
+    backgroundColor: string;
+    emojiColor: string;
+    showSunglasses: boolean;
+    showMustache: boolean;
+    selectedFilter: string | null;
+    animationType: AnimationType;
+    shape: ShapeType;
+    eyeStyle: FeatureStyle;
+    mouthStyle: FeatureStyle;
+    eyebrowStyle: FeatureStyle;
+};
 
 
 const Face = ({ 
@@ -329,8 +344,21 @@ const Face = ({
   );
 };
 
+const GalleryThumbnail = ({ emoji, onClick }: { emoji: EmojiState; onClick: () => void }) => {
+    return (
+        <button onClick={onClick} className="w-20 h-20 rounded-lg p-1 border-2 border-transparent hover:border-primary transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary">
+            <div className="w-full h-full rounded-md overflow-hidden" style={{ backgroundColor: emoji.backgroundColor }}>
+                <div className="w-full h-full flex items-center justify-center transform scale-[0.25] origin-top-left">
+                     <div className="w-64 h-64 rounded-full" style={{ backgroundColor: emoji.emojiColor }}></div>
+                </div>
+            </div>
+        </button>
+    );
+};
+
 
 export default function DesignPage() {
+  const [id, setId] = useState<string>(Date.now().toString());
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
@@ -349,6 +377,8 @@ export default function DesignPage() {
   const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
 
+  const [savedEmojis, setSavedEmojis] = useState<EmojiState[]>([]);
+
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
 
@@ -366,23 +396,37 @@ export default function DesignPage() {
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  const loadState = (state: Omit<EmojiState, 'id'>) => {
+    setExpression(state.expression || 'neutral');
+    setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
+    setEmojiColor(state.emojiColor || defaultEmojiColor);
+    setShowSunglasses(state.showSunglasses || false);
+    setShowMustache(state.showMustache || false);
+    setSelectedFilter(state.selectedFilter || null);
+    setAnimationType(state.animationType || 'random');
+    setShape(state.shape || 'default');
+    setEyeStyle(state.eyeStyle || 'default');
+    setMouthStyle(state.mouthStyle || 'default');
+    setEyebrowStyle(state.eyebrowStyle || 'default');
+  };
+
+  const handleLoadEmoji = (emojiState: EmojiState) => {
+    loadState(emojiState);
+    setId(emojiState.id);
+    setActiveMenu('main');
+  };
+  
   // Load saved state from localStorage on initial render
   useEffect(() => {
     try {
-      const savedState = localStorage.getItem('savedEmoji');
-      if (savedState) {
-        const state = JSON.parse(savedState);
-        setExpression(state.expression || 'neutral');
-        setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
-        setEmojiColor(state.emojiColor || defaultEmojiColor);
-        setShowSunglasses(state.showSunglasses || false);
-        setShowMustache(state.showMustache || false);
-        setSelectedFilter(state.selectedFilter || null);
-        setAnimationType(state.animationType || 'random');
-        setShape(state.shape || 'default');
-        setEyeStyle(state.eyeStyle || 'default');
-        setMouthStyle(state.mouthStyle || 'default');
-        setEyebrowStyle(state.eyebrowStyle || 'default');
+      const savedGallery = localStorage.getItem('savedEmojiGallery');
+      if (savedGallery) {
+        const gallery = JSON.parse(savedGallery);
+        setSavedEmojis(gallery);
+        if (gallery.length > 0) {
+            // Load the first emoji from the gallery by default
+            handleLoadEmoji(gallery[0]);
+        }
       }
     } catch (error) {
         console.error("Failed to load or parse saved state from localStorage", error);
@@ -466,6 +510,7 @@ export default function DesignPage() {
   }, [animationType, isAngryMode, isDragging]);
   
   const handleReset = () => {
+    setId(Date.now().toString());
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
     setEmojiColor(defaultEmojiColor);
@@ -488,7 +533,8 @@ export default function DesignPage() {
   }
 
   const handleSave = () => {
-    const stateToSave = {
+    const currentState: EmojiState = {
+      id,
       expression,
       backgroundColor,
       emojiColor,
@@ -501,9 +547,24 @@ export default function DesignPage() {
       mouthStyle,
       eyebrowStyle,
     };
+
     try {
-        localStorage.setItem('savedEmoji', JSON.stringify(stateToSave));
-        // Maybe show a toast notification for feedback
+        const existingGallery = JSON.parse(localStorage.getItem('savedEmojiGallery') || '[]') as EmojiState[];
+        
+        const existingIndex = existingGallery.findIndex(emoji => emoji.id === id);
+
+        let newGallery;
+        if (existingIndex > -1) {
+            // Update existing emoji
+            newGallery = [...existingGallery];
+            newGallery[existingIndex] = currentState;
+        } else {
+            // Add new emoji
+            newGallery = [...existingGallery, currentState];
+        }
+
+        localStorage.setItem('savedEmojiGallery', JSON.stringify(newGallery));
+        setSavedEmojis(newGallery);
         alert('Emoji saved!');
     } catch (error) {
         console.error("Failed to save state to localStorage", error);
@@ -824,16 +885,41 @@ export default function DesignPage() {
         return renderFeatureMenu('mouth', mouthStyle);
       case 'eyebrows':
         return renderFeatureMenu('eyebrow', eyebrowStyle);
+      case 'gallery':
+        return (
+            <div className="flex items-center w-full">
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
+                <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
+                <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
+                    {savedEmojis.length > 0 ? (
+                        savedEmojis.map(emoji => (
+                           <Tooltip key={emoji.id}>
+                                <TooltipTrigger asChild>
+                                    <GalleryThumbnail emoji={emoji} onClick={() => handleLoadEmoji(emoji)} />
+                                </TooltipTrigger>
+                                <TooltipContent><p>Load this emoji</p></TooltipContent>
+                           </Tooltip>
+                        ))
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No saved emojis yet. Create one and click Save!</p>
+                    )}
+                </div>
+            </div>
+        );
       default: // 'main'
         return (
           <>
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
-                <span className="text-xs mt-1">Reset</span>
+                <span className="text-xs mt-1">New</span>
             </Button>
              <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleSave}>
                 <Save className="h-4 w-4" />
                 <span className="text-xs mt-1">Save</span>
+            </Button>
+             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('gallery')}>
+                <Library className="h-4 w-4" />
+                <span className="text-xs mt-1">Gallery</span>
             </Button>
             <Separator orientation="vertical" className="h-full mx-1" />
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
