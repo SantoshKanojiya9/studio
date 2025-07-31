@@ -132,7 +132,7 @@ const Face = ({
   
   return (
     <motion.div 
-      className="relative w-80 h-80 flex items-center justify-center cursor-grab active:cursor-grabbing"
+      className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       onPan={onPan}
@@ -317,7 +317,7 @@ export default function DesignPage() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [isAngryMode, setIsAngryMode] = useState(false);
+  const [isAngryMode, setIsAngryMode] = useState(isAngryMode);
   const [isDragging, setIsDragging] = useState(false);
   
   const featureOffsetX = useMotionValue(0);
@@ -645,35 +645,35 @@ export default function DesignPage() {
       default: // 'main'
         return (
           <>
-            <Button variant="ghost" className="h-auto p-2" onClick={handleReset}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
-                <span className="text-xs ml-2">Reset</span>
+                <span className="text-xs mt-1">Reset</span>
             </Button>
-            <Separator orientation="vertical" className="h-6 mx-1" />
-            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('expressions')}>
+            <Separator orientation="vertical" className="h-full mx-1" />
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
-                <span className="text-xs ml-2">Expressions</span>
+                <span className="text-xs mt-1">Expressions</span>
             </Button>
-             <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('animations')}>
+             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
                 <Sparkles className="h-4 w-4" />
-                <span className="text-xs ml-2">Animations</span>
+                <span className="text-xs mt-1">Animations</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('colors')}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
                 <Palette className="h-4 w-4" />
-                <span className="text-xs ml-2">Colors</span>
+                <span className="text-xs mt-1">Colors</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('accessories')}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
                 <Glasses className="h-4 w-4" />
-                <span className="text-xs ml-2">Accessories</span>
+                <span className="text-xs mt-1">Accessories</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('filters')}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
                 <Camera className="h-4 w-4" />
-                <span className="text-xs ml-2">Filters</span>
+                <span className="text-xs mt-1">Filters</span>
             </Button>
-            <Separator orientation="vertical" className="h-6 mx-1" />
-            <Button variant="ghost" className="h-auto p-2" onClick={handleRandomize}>
+            <Separator orientation="vertical" className="h-full mx-1" />
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
                 <Wand2 className="h-4 w-4" />
-                <span className="text-xs ml-2">Random</span>
+                <span className="text-xs mt-1">Random</span>
             </Button>
           </>
         );
@@ -689,9 +689,9 @@ export default function DesignPage() {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col items-center justify-start pt-12 p-4">
         <motion.div
-          className="w-80 h-80 flex items-center justify-center select-none"
+          className="w-80 h-96 flex items-center justify-center select-none"
           onTap={handleTap}
           style={{ 
             transformStyle: 'preserve-3d',
@@ -717,7 +717,7 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
-                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-12">
+                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
                     {renderMenu()}
                 </div>
                 <ScrollBar orientation="horizontal" className="hidden" />
@@ -727,3 +727,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
