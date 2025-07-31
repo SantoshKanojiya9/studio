@@ -154,12 +154,12 @@ const MissMinutesClock = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* Arms */}
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -left-16 w-24 h-8 z-0 flex items-center justify-end"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -left-12 w-20 h-8 z-0 flex items-center justify-end"
             animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
             <div className="w-12 h-2" style={{ backgroundColor: color }}></div>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 -mr-1">
                 <div className="w-2 h-[2px] bg-white"></div>
                 <div className="w-2 h-[2px] bg-white"></div>
                 <div className="w-2 h-[2px] bg-white"></div>
@@ -168,14 +168,14 @@ const MissMinutesClock = ({
                 <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-16 w-24 h-8 z-0 flex items-center"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-20 h-8 z-0 flex items-center"
             animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
             <div className="w-8 h-8 bg-white rounded-full border-2 border-black/70 flex items-center justify-center relative -ml-1 z-10">
                  <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 -ml-1">
                 <div className="w-2 h-[2px] bg-white"></div>
                 <div className="w-2 h-[2px] bg-white"></div>
                 <div className="w-2 h-[2px] bg-white"></div>
