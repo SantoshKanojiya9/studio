@@ -6,7 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -16,8 +16,9 @@ import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
 
 const Face = ({ 
     expression, 
@@ -31,6 +32,7 @@ const Face = ({
     onPan,
     onPanStart,
     onPanEnd,
+    shape,
 }: { 
     expression: Expression, 
     color: string, 
@@ -43,6 +45,7 @@ const Face = ({
     onPan: (event: any, info: any) => void;
     onPanStart: (event: any, info: any) => void;
     onPanEnd: (event: any, info: any) => void;
+    shape: ShapeType;
 }) => {
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
@@ -130,6 +133,23 @@ const Face = ({
     pointerY.set(0.5);
   };
   
+    const shapePaths: Record<ShapeType, string> = {
+    default: 'path("M 50,0 C 77.6,0 100,22.4 100,50 C 100,77.6 77.6,100 50,100 C 22.4,100 0,77.6 0,50 C 0,22.4 22.4,0 50,0 Z")',
+    square: 'path("M 0,10 C 0,4.477 4.477,0 10,0 H 90 C 95.523,0 100,4.477 100,10 V 90 C 100,95.523 95.523,100 90,100 H 10 C 4.477,100 0,95.523 0,90 Z")',
+    squircle: 'path("M 50,0 C 90,0 100,10 100,50 C 100,90 90,100 50,100 C 10,100 0,90 0,50 C 0,10 10,0 50,0 Z")',
+    tear: 'path("M 50,0 C 77.6,0 100,22.4 100,50 C 100,77.6 77.6,100 50,100 C 22.4,100 0,77.6 0,50 C 0,35 25,-15 50,0 Z")',
+  };
+
+  const getShapeClipPath = (s: ShapeType) => {
+    const paths = {
+      default: '50% 50% 40% 40% / 60% 60% 40% 40%',
+      square: '10%',
+      squircle: '30%',
+      tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
+    };
+    return paths[s] || paths.default;
+  };
+  
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
@@ -147,12 +167,13 @@ const Face = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <motion.div 
-          className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative rounded-[50%_50%_40%_40%/60%_60%_40%_40%]"
+          className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
+          animate={{ borderRadius: getShapeClipPath(shape) }}
           transition={{ duration: 0.3 }}
         >
             <motion.div 
-                className="w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]"
-                animate={{ backgroundColor: color }}
+                className="w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden"
+                animate={{ backgroundColor: color, borderRadius: getShapeClipPath(shape) }}
                 transition={{ duration: 0.2 }}
             >
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
@@ -166,7 +187,7 @@ const Face = ({
                     transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                 />
 
-                <div className="absolute inset-0 overflow-hidden rounded-[50%_50%_40%_40%/60%_60%_40%_40%]">
+                <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: getShapeClipPath(shape) }}>
                     <motion.div
                         className="absolute inset-0 flex items-center justify-center"
                         style={{ x: featureOffsetX, y: featureOffsetY }}
@@ -319,6 +340,7 @@ export default function DesignPage() {
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [shape, setShape] = useState<ShapeType>('default');
   
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
@@ -420,6 +442,7 @@ export default function DesignPage() {
     setShowMustache(false);
     setSelectedFilter(null);
     setAnimationType('random');
+    setShape('default');
     featureOffsetX.set(0);
     featureOffsetY.set(0);
     setActiveMenu('main');
@@ -521,6 +544,14 @@ export default function DesignPage() {
         setExpression(newExpression);
     }
   };
+  
+  const handleShapeToggle = (newShape: ShapeType) => {
+    if (shape === newShape) {
+      setShape('default');
+    } else {
+      setShape(newShape);
+    }
+  };
 
   const renderMenu = () => {
     switch (activeMenu) {
@@ -533,6 +564,29 @@ export default function DesignPage() {
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
+          </>
+        );
+      case 'shapes':
+        const shapes: { name: ShapeType; label: string }[] = [
+          { name: 'default', label: 'Default' },
+          { name: 'square', label: 'Square' },
+          { name: 'squircle', label: 'Squircle' },
+          { name: 'tear', label: 'Tear' },
+        ];
+        return (
+          <>
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            {shapes.map(({ name, label }) => (
+                <Tooltip key={name}>
+                    <TooltipTrigger asChild>
+                        <Button variant={shape === name ? 'secondary' : 'ghost'} onClick={() => handleShapeToggle(name)}>
+                            {label}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>{label}</p></TooltipContent>
+                </Tooltip>
+            ))}
           </>
         );
       case 'colors':
@@ -658,6 +712,10 @@ export default function DesignPage() {
                 <Sparkles className="h-4 w-4" />
                 <span className="text-xs mt-1">Animations</span>
             </Button>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('shapes')}>
+                <Square className="h-4 w-4" />
+                <span className="text-xs mt-1">Shapes</span>
+            </Button>
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
                 <Palette className="h-4 w-4" />
                 <span className="text-xs mt-1">Colors</span>
@@ -683,7 +741,7 @@ export default function DesignPage() {
 
   return (
     <div 
-        className="flex flex-col h-full w-full touch-none overflow-hidden transition-colors duration-300"
+        className="flex h-full w-full flex-col overflow-hidden touch-none transition-colors duration-300"
         style={{ backgroundColor }}
     >
       <ChatHeader />
@@ -708,6 +766,7 @@ export default function DesignPage() {
               onPan={handlePan}
               onPanStart={handlePanStart}
               onPanEnd={handlePanEnd}
+              shape={shape}
           />
         </motion.div>
       </div>
