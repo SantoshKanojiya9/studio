@@ -158,26 +158,26 @@ const MissMinutesClock = ({
             animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-8 h-8 bg-white rounded-full border-2 border-black/70 flex items-center justify-center relative -mr-1">
-                <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
+            <div className="w-12 h-2" style={{ backgroundColor: color }}></div>
+            <div className="w-8 h-8 bg-white rounded-full border-2 border-black/70 flex items-center justify-center relative -ml-1">
+                 <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
-             <div className="w-12 h-2" style={{ backgroundColor: color }}></div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-20 h-8 z-0 flex items-center"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-20 h-8 z-0 flex items-center justify-end"
             animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-             <div className="w-12 h-2" style={{ backgroundColor: color }}></div>
-            <div className="w-8 h-8 bg-white rounded-full border-2 border-black/70 flex items-center justify-center relative -ml-1 z-10">
+             <div className="w-8 h-8 bg-white rounded-full border-2 border-black/70 flex items-center justify-center relative -mr-1 z-10">
                  <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
+            <div className="w-12 h-2" style={{ backgroundColor: color }}></div>
         </motion.div>
 
         {/* Legs */}
          <div className="absolute bottom-[-34px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
               <div className="flex gap-4">
-                <div className="w-2.5 h-10 bg-black/80"></div>
-                <div className="w-2.5 h-10 bg-black/80"></div>
+                <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
+                <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
               <div className="flex -mt-0.5 gap-2">
                  <div className="w-8 h-4 bg-yellow-400 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/20 rounded-t-sm"></div></div>
