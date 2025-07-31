@@ -689,7 +689,7 @@ export default function DesignPage() {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-8">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"
           onTap={handleTap}

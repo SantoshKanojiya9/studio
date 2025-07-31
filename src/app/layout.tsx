@@ -32,7 +32,7 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
             <div className="relative flex flex-col h-screen">
-              <main className={cn("flex-1 flex flex-col", showBottomBar && "pb-14")}>{children}</main>
+              <main className={cn("flex-1", showBottomBar && "pb-14")}>{children}</main>
               {showBottomBar && <BottomBar />}
             </div>
             <Toaster />
