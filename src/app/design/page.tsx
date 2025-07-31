@@ -645,33 +645,33 @@ export default function DesignPage() {
       default: // 'main'
         return (
           <>
-            <Button variant="ghost" onClick={handleReset}>
+            <Button variant="ghost" className="h-auto p-2" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
                 <span className="text-xs ml-2">Reset</span>
             </Button>
             <Separator orientation="vertical" className="h-6 mx-1" />
-            <Button variant="ghost" onClick={() => setActiveMenu('expressions')}>
+            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
                 <span className="text-xs ml-2">Expressions</span>
             </Button>
-             <Button variant="ghost" onClick={() => setActiveMenu('animations')}>
+             <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('animations')}>
                 <Sparkles className="h-4 w-4" />
                 <span className="text-xs ml-2">Animations</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('colors')}>
+            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('colors')}>
                 <Palette className="h-4 w-4" />
                 <span className="text-xs ml-2">Colors</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('accessories')}>
+            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('accessories')}>
                 <Glasses className="h-4 w-4" />
                 <span className="text-xs ml-2">Accessories</span>
             </Button>
-            <Button variant="ghost" onClick={() => setActiveMenu('filters')}>
+            <Button variant="ghost" className="h-auto p-2" onClick={() => setActiveMenu('filters')}>
                 <Camera className="h-4 w-4" />
                 <span className="text-xs ml-2">Filters</span>
             </Button>
             <Separator orientation="vertical" className="h-6 mx-1" />
-            <Button variant="ghost" onClick={handleRandomize}>
+            <Button variant="ghost" className="h-auto p-2" onClick={handleRandomize}>
                 <Wand2 className="h-4 w-4" />
                 <span className="text-xs ml-2">Random</span>
             </Button>
@@ -717,7 +717,7 @@ export default function DesignPage() {
       <div className="fixed bottom-16 left-0 right-0 w-full z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
-                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-14">
+                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-12">
                     {renderMenu()}
                 </div>
                 <ScrollBar orientation="horizontal" className="hidden" />
