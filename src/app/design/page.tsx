@@ -291,7 +291,7 @@ const Face = ({
         </motion.div>
       </motion.div>
        <motion.div 
-         className="absolute bottom-12 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
+         className="absolute bottom-12 w-full pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
          initial={{ y: 50, opacity: 0 }}
          animate={{ y: 0, opacity: 1 }}
          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
@@ -689,7 +689,7 @@ export default function DesignPage() {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <ChatHeader />
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 pb-20">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"
           onTap={handleTap}
@@ -714,7 +714,7 @@ export default function DesignPage() {
         </motion.div>
       </div>
 
-      <div className="w-full z-20">
+      <div className="absolute bottom-0 left-0 right-0 z-20">
         <TooltipProvider>
             <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
                 <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
@@ -727,5 +727,3 @@ export default function DesignPage() {
     </div>
   );
 }
-
-    
