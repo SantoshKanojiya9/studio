@@ -154,8 +154,8 @@ const ClockFace = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-8 w-24 h-8 z-0"
-         animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-4 w-16 h-8 z-0"
+         animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -5 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
             <div className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full" style={{backgroundColor: color}}></div>
@@ -163,8 +163,8 @@ const ClockFace = ({
                 <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-8 w-24 h-8 z-0"
-          animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-4 w-16 h-8 z-0"
+          animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 5 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
             <div className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full" style={{backgroundColor: color}}></div>
