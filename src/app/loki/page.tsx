@@ -154,22 +154,28 @@ const ClockFace = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* Arms */}
-        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-4 w-16 h-8 z-0"
+        <motion.div className="absolute top-1/2 -translate-y-1/2 -left-12 w-16 h-8 z-0"
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -5 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
             <div className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full" style={{backgroundColor: color}}></div>
             <div className="w-8 h-8 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
+                <div className="relative w-4 h-4">
+                    <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-black/70 rounded-full transform -translate-x-1/2 -translate-y-1/2 rotate-[-20deg]"></div>
+                    <div className="absolute top-1/2 left-1/2 w-2 h-0.5 bg-black/70 rounded-full transform -translate-x-1/2 translate-y-[2px] rotate-[15deg]"></div>
+                </div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-4 w-16 h-8 z-0"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-16 h-8 z-0"
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 5 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
             <div className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full" style={{backgroundColor: color}}></div>
              <div className="w-8 h-8 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
-                <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
+                <div className="relative w-4 h-4">
+                    <div className="absolute top-1/2 left-1/2 w-3 h-0.5 bg-black/70 rounded-full transform -translate-x-1/2 -translate-y-1/2 rotate-[20deg]"></div>
+                    <div className="absolute top-1/2 left-1/2 w-2 h-0.5 bg-black/70 rounded-full transform -translate-x-1/2 translate-y-[2px] rotate-[-15deg]"></div>
+                </div>
             </div>
         </motion.div>
 
