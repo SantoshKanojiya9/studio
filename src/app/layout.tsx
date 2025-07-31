@@ -19,6 +19,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const showBottomBar = !isHomePage;
 
   return (
     <html lang="en" className={cn("dark", inter.variable, kalam.variable)}>
@@ -31,11 +32,13 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
             <div className="relative flex flex-col h-screen">
-              <main className={cn("flex-1 flex flex-col", !isHomePage && "pb-16")}>{children}</main>
-              {!isHomePage && <BottomBar />}
+              <main className={cn("flex-1 flex flex-col", showBottomBar && "pb-14")}>{children}</main>
+              {showBottomBar && <BottomBar />}
             </div>
             <Toaster />
       </body>
     </html>
   );
 }
+
+    

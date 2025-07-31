@@ -291,7 +291,7 @@ const Face = ({
         </motion.div>
       </motion.div>
        <motion.div 
-         className="absolute bottom-0 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
+         className="absolute bottom-12 w-full" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
          initial={{ y: 50, opacity: 0 }}
          animate={{ y: 0, opacity: 1 }}
          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
@@ -727,3 +727,5 @@ export default function DesignPage() {
     </div>
   );
 }
+
+    
