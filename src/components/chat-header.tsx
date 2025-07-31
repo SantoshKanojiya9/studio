@@ -4,7 +4,6 @@
 import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import { Button, buttonVariants } from './ui/button';
 import { cn } from '@/lib/utils';
-import { usePlan } from '@/context/PlanContext';
 import { useAuth } from '@/context/AuthContext';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -51,7 +50,6 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { plan } = usePlan();
   const { user } = useAuth();
 
   const handleSignIn = async () => {
@@ -77,12 +75,6 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       <div className="flex items-center gap-2">
         <EdengramLogo />
         <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
-        {plan === 'Silver' && (
-            <BadgeCheck className="h-4 w-4 text-zinc-400" />
-        )}
-        {plan === 'Gold' && (
-            <BadgeCheck className="h-4 w-4 text-amber-400" />
-        )}
       </div>
       <div className="flex items-center gap-2">
         {children}
@@ -113,14 +105,6 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                             <Separator/>
                         </>
                     )}
-                    <nav className="flex flex-col gap-2 mt-4">
-                        <SheetClose asChild>
-                            <Link href="/plan" className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "justify-start")}>
-                                <CreditCard className="mr-3 h-5 w-5" />
-                                <span>Plan</span>
-                            </Link>
-                        </SheetClose>
-                    </nav>
                 </div>
 
                 <div className="mt-auto">

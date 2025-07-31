@@ -7,7 +7,6 @@ import { BottomBar } from '@/components/bottom-bar';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 import { Inter, Kalam } from 'next/font/google'
-import { PlanProvider } from '@/context/PlanContext';
 import { AuthProvider } from '@/context/AuthContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -33,13 +32,11 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <AuthProvider>
-          <PlanProvider>
             <div className="relative flex flex-col h-screen">
               <main className={cn("flex-1 flex flex-col", !isHomePage && "pb-16")}>{children}</main>
               {!isHomePage && <BottomBar />}
             </div>
             <Toaster />
-          </PlanProvider>
         </AuthProvider>
       </body>
     </html>
