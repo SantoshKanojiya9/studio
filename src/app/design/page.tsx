@@ -19,7 +19,7 @@ import Link from 'next/link';
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
 
 export type EmojiState = {
@@ -158,6 +158,7 @@ const Face = ({
     square: 'path("M 0,10 C 0,4.477 4.477,0 10,0 H 90 C 95.523,0 100,4.477 100,10 V 90 C 100,95.523 95.523,100 90,100 H 10 C 4.477,100 0,95.523 0,90 Z")',
     squircle: 'path("M 50,0 C 90,0 100,10 100,50 C 100,90 90,100 50,100 C 10,100 0,90 0,50 C 0,10 10,0 50,0 Z")',
     tear: 'path("M 50,0 C 77.6,0 100,22.4 100,50 C 100,77.6 77.6,100 50,100 C 22.4,100 0,77.6 0,50 C 0,35 25,-15 50,0 Z")',
+    blob: 'path("M 90 50 C 90 77.6, 77.6 90, 50 90 C 22.4 90, 10 77.6, 10 50 C 10 22.4, 22.4 10, 50 10 C 77.6 10, 90 22.4, 90 50")',
   };
 
   const getShapeClipPath = (s: ShapeType) => {
@@ -166,6 +167,7 @@ const Face = ({
       square: '10%',
       squircle: '30%',
       tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
+      blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };
@@ -741,6 +743,7 @@ const DesignPageContent = () => {
           { name: 'square', label: 'Square' },
           { name: 'squircle', label: 'Squircle' },
           { name: 'tear', label: 'Tear' },
+          { name: 'blob', label: 'Blob' },
         ];
         return (
           <>
