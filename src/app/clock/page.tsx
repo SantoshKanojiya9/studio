@@ -154,7 +154,7 @@ const MissMinutesClock = ({
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* Arms */}
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -left-12 w-20 h-8 z-0 flex items-center justify-start"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -left-16 w-20 h-8 z-0 flex items-center justify-start"
             animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -50 : -10), x: expression === 'angry' ? -10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
@@ -163,7 +163,7 @@ const MissMinutesClock = ({
                  <div className="w-4 h-0.5 bg-black/70 rounded-full"></div>
             </div>
         </motion.div>
-         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-12 w-20 h-8 z-0 flex items-center justify-end"
+         <motion.div className="absolute top-1/2 -translate-y-1/2 -right-16 w-20 h-8 z-0 flex items-center justify-end"
             animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 10 : 0 }}
             transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
@@ -180,8 +180,8 @@ const MissMinutesClock = ({
                 <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
               <div className="flex -mt-0.5 gap-2">
-                 <div className="w-8 h-4 bg-yellow-400 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/20 rounded-t-sm"></div></div>
-                 <div className="w-8 h-4 bg-yellow-400 rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/20 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 bg-yellow-400 rounded-t-sm"></div>
+                 <div className="w-8 h-4 bg-yellow-400 rounded-t-sm"></div>
               </div>
          </div>
          
@@ -788,7 +788,5 @@ export default function ClockPage() {
     </div>
   );
 }
-
-    
 
     
