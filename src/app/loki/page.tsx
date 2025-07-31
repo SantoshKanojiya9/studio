@@ -182,8 +182,8 @@ const ClockFace = ({
                 <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
               <div className="flex -mt-0.5 gap-2">
-                 <div className="w-8 h-4 bg-orangered rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
-                 <div className="w-8 h-4 bg-orangered rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 bg-yellow rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 bg-yellow rounded-t-sm border-2 border-black/70 flex items-end justify-center"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
               </div>
          </div>
          
