@@ -317,7 +317,7 @@ export default function DesignPage() {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [isAngryMode, setIsAngryMode] = useState(isAngryMode);
+  const [isAngryMode, setIsAngryMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   
   const featureOffsetX = useMotionValue(0);
