@@ -158,7 +158,7 @@ const ClockFace = ({
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -30 : -10), x: expression === 'angry' ? -5 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full" style={{backgroundColor: color}}></div>
+            <div className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full bg-orangered"></div>
             <div className="w-8 h-8 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="relative w-5 h-4 flex items-center justify-center gap-px">
                     <div className="w-2 h-0.5 bg-black/70 rounded-full"></div>
@@ -170,7 +170,7 @@ const ClockFace = ({
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 5 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full" style={{backgroundColor: color}}></div>
+            <div className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full bg-orangered"></div>
              <div className="w-8 h-8 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="relative w-5 h-4 flex items-center justify-center gap-px">
                     <div className="w-2 h-0.5 bg-black/70 rounded-full"></div>
@@ -186,8 +186,8 @@ const ClockFace = ({
                 <div className="w-2.5 h-10" style={{ backgroundColor: '#4a2c0f'}}></div>
               </div>
               <div className="flex -mt-0.5 gap-2">
-                 <div className="w-8 h-4 rounded-t-sm border-2 border-black/70 flex items-end justify-center" style={{backgroundColor: color}}><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
-                 <div className="w-8 h-4 rounded-t-sm border-2 border-black/70 flex items-end justify-center" style={{backgroundColor: color}}><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 rounded-t-sm border-2 border-black/70 flex items-end justify-center bg-orangered"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
+                 <div className="w-8 h-4 rounded-t-sm border-2 border-black/70 flex items-end justify-center bg-orangered"><div className="w-4 h-0.5 bg-white/70 rounded-t-sm"></div></div>
               </div>
          </div>
          
@@ -754,7 +754,6 @@ export default function LokiPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 z-0"></div>
         <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '1rem 1rem' }}></div>
 
-      <ChatHeader />
       <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 z-10">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"

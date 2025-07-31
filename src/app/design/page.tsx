@@ -828,7 +828,6 @@ export default function DesignPage() {
         className="flex h-full w-full flex-col overflow-hidden touch-none transition-colors duration-300"
         style={{ backgroundColor }}
     >
-      <ChatHeader />
       <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"
