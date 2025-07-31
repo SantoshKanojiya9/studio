@@ -1,23 +1,16 @@
 
 'use client';
 
-import { Menu, BadgeCheck, CreditCard, Home, User, LogOut, LogIn, MessageSquare, Image as ImageIcon } from 'lucide-react';
-import { Button, buttonVariants } from './ui/button';
+import { Menu } from 'lucide-react';
+import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import Link from 'next/link';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose
 } from '@/components/ui/sheet';
-import { Separator } from './ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -50,25 +43,6 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { user } = useAuth();
-
-  const handleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
@@ -90,36 +64,9 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                     <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex-1">
-                    {user && (
-                        <>
-                            <div className="flex items-center gap-3 my-4">
-                                <Avatar>
-                                    <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
-                                    <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold">{user.displayName}</p>
-                                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                                </div>
-                            </div>
-                            <Separator/>
-                        </>
-                    )}
                 </div>
 
                 <div className="mt-auto">
-                    <Separator className="my-4" />
-                    {user ? (
-                         <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignOut}>
-                            <LogOut className="mr-3 h-5 w-5" />
-                            <span>Log out</span>
-                         </Button>
-                    ) : (
-                        <Button variant="ghost" className="w-full justify-start text-base" onClick={handleSignIn}>
-                            <LogIn className="mr-3 h-5 w-5" />
-                            <span>Sign In</span>
-                        </Button>
-                    )}
                 </div>
             </SheetContent>
         </Sheet>
