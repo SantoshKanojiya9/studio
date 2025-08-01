@@ -22,7 +22,7 @@ import {
   AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Trash2 } from 'lucide-react';
+import { MoreVertical, Trash2, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Face } from '@/app/design/page';
 import { motion, useMotionValue } from 'framer-motion';
+import Link from 'next/link';
 
 export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
@@ -124,6 +125,12 @@ export default function GalleryPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/design?emojiId=${selectedEmoji.id}`}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                <span>Edit</span>
+                                            </Link>
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem className="text-destructive" onClick={handleOpenAlert}>
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             <span>Delete</span>
