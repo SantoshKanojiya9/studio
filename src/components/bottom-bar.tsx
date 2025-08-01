@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Palette, Clock, LayoutGrid } from 'lucide-react';
+import { MessageSquare, Palette, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomBar() {

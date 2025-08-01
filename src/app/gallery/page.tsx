@@ -29,8 +29,6 @@ export default function GalleryPage() {
     // State for the Loki Clock avatar
     const featureOffsetX = useMotionValue(0);
     const featureOffsetY = useMotionValue(0);
-    const pointerX = useMotionValue(0.5);
-    const pointerY = useMotionValue(0.5);
 
     React.useEffect(() => {
         setIsClient(true);
