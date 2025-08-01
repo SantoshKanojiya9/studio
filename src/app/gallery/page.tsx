@@ -53,6 +53,8 @@ export default function GalleryPage() {
     // State for the Loki Clock avatar
     const featureOffsetX = useMotionValue(0);
     const featureOffsetY = useMotionValue(0);
+    const pointerX = useMotionValue(0.5);
+    const pointerY = useMotionValue(0.5);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -138,8 +140,8 @@ export default function GalleryPage() {
                                     color="orangered"
                                     showSunglasses={false}
                                     showMustache={false}
-                                    pointerX={useMotionValue(0.5)}
-                                    pointerY={useMotionValue(0.5)}
+                                    pointerX={pointerX}
+                                    pointerY={pointerY}
                                     featureOffsetX={featureOffsetX}
                                     featureOffsetY={featureOffsetY}
                                     onPan={() => {}}
