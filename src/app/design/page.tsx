@@ -613,7 +613,6 @@ const DesignPageContent = () => {
     }
     setIsDragging(true);
     dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
-    if (onPanStart) onPanStart(event, info);
   };
 
   const handlePan = (event: any, info: any) => {
