@@ -157,7 +157,7 @@ export default function GalleryPage() {
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto">
                     <div className="bg-zinc-800/50 rounded-lg m-4 p-4">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
                            <div className="w-20 h-20 flex-shrink-0">
                                 <CrownedEggAvatar />
                             </div>
@@ -166,7 +166,7 @@ export default function GalleryPage() {
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
-                                <div className="flex items-center text-center mt-2 gap-4">
+                                <div className="flex flex-1 items-center justify-around text-center mt-2">
                                     <div>
                                         <p className="font-bold text-base">3</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
