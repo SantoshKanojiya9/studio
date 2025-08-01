@@ -4,7 +4,6 @@
 import React from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
-import { ChatHeader } from '@/components/chat-header';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,9 @@ import {
   AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Trash2, Edit } from 'lucide-react';
+import { MoreVertical, Trash2, Edit, Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
+import { CgClapperBoard } from "react-icons/cg";
+import { BsPersonVcard } from "react-icons/bs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,15 @@ import {
 import { Face } from '@/app/design/page';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
@@ -71,29 +81,117 @@ export default function GalleryPage() {
     if (!isClient) {
         return (
              <div className="flex h-full w-full flex-col">
-                <ChatHeader />
-                <div className="flex h-full items-center justify-center">
-                    <p className="text-muted-foreground">Loading gallery...</p>
+                <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex h-full items-center justify-center">
+                        <p className="text-muted-foreground">Loading gallery...</p>
+                    </div>
                 </div>
             </div>
         )
     }
 
+    const ProfileHeader = () => (
+        <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
+            <div className="flex items-center gap-1 font-semibold text-lg">
+                <Lock className="h-4 w-4" />
+                <span>santosh.r.k_</span>
+                <ChevronDown className="h-5 w-5" />
+            </div>
+            <div className="flex items-center gap-2">
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                            <Menu />
+                            <span className="sr-only">Open menu</span>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full max-w-sm flex flex-col">
+                        <SheetHeader className="text-left">
+                            <SheetTitle>Menu</SheetTitle>
+                        </SheetHeader>
+                        <div className="flex-1">
+                        </div>
+        
+                        <div className="mt-auto">
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
+        </header>
+    );
+
     return (
         <div className="flex h-full w-full flex-col">
-            <ChatHeader />
-            <div className="flex-1 overflow-y-auto p-1">
-                {savedEmojis.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-1">
-                        {savedEmojis.map(emoji => (
-                            <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmoji(emoji)} />
-                        ))}
+            <ProfileHeader />
+            <div className="flex-1 overflow-y-auto">
+                <div className="p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24 border-2 border-background">
+                                <AvatarImage src="https://placehold.co/96x96.png" alt="santosh.r.k_" data-ai-hint="profile picture" />
+                                <AvatarFallback>SRK</AvatarFallback>
+                            </Avatar>
+                            <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-primary rounded-full flex items-center justify-center border-4 border-background">
+                                <span className="text-primary-foreground text-lg font-bold">+</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-center">
+                            <div>
+                                <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                <p className="text-sm text-muted-foreground">posts</p>
+                            </div>
+                            <div>
+                                <p className="font-bold text-lg">524</p>
+                                <p className="text-sm text-muted-foreground">followers</p>
+                            </div>
+                            <div>
+                                <p className="font-bold text-lg">65</p>
+                                <p className="text-sm text-muted-foreground">following</p>
+                            </div>
+                        </div>
                     </div>
-                ) : (
-                    <div className="flex h-full items-center justify-center text-center p-4">
-                        <p className="text-muted-foreground">No saved emojis yet. Go to the design page to create one!</p>
+                    <div className="mt-3">
+                        <h2 className="font-semibold">SK</h2>
                     </div>
-                )}
+                    <div className="mt-4 flex gap-2">
+                        <Button variant="secondary" className="flex-1">Edit profile</Button>
+                        <Button variant="secondary" className="flex-1">Share profile</Button>
+                        <Button variant="secondary" size="icon"><UserPlus className="h-4 w-4" /></Button>
+                    </div>
+                </div>
+
+                <Tabs defaultValue="grid" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 bg-transparent">
+                        <TabsTrigger value="grid" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
+                            <Grid3x3 />
+                        </TabsTrigger>
+                        <TabsTrigger value="reels" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
+                            <CgClapperBoard size={24} />
+                        </TabsTrigger>
+                        <TabsTrigger value="tagged" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
+                            <BsPersonVcard size={24} />
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="grid" className="p-1">
+                        {savedEmojis.length > 0 ? (
+                            <div className="grid grid-cols-3 gap-1">
+                                {savedEmojis.map(emoji => (
+                                    <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmoji(emoji)} />
+                                ))}
+                            </div>
+                        ) : (
+                             <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
+                                <div className="border-2 border-foreground rounded-full p-4">
+                                    <Grid3x3 className="h-12 w-12" />
+                                 </div>
+                                <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
+                                <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
+                            </div>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="reels" className="flex items-center justify-center p-8 text-muted-foreground">Reels coming soon!</TabsContent>
+                    <TabsContent value="tagged" className="flex items-center justify-center p-8 text-muted-foreground">Tagged posts coming soon!</TabsContent>
+                </Tabs>
             </div>
 
             {selectedEmoji && (
@@ -142,9 +240,6 @@ export default function GalleryPage() {
                                   {...selectedEmoji}
                                   color={selectedEmoji.emojiColor}
                                   isDragging={false}
-                                  onPan={() => {}}
-                                  onPanStart={() => {}}
-                                  onPanEnd={() => {}}
                                 />
                            </motion.div>
                         </div>
