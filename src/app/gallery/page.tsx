@@ -8,6 +8,8 @@ import { ChatHeader } from '@/components/chat-header';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -17,7 +19,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle as AlertDialogTitleComponent,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { MoreVertical, Trash2 } from 'lucide-react';
@@ -102,6 +104,9 @@ export default function GalleryPage() {
             {selectedEmoji && (
                 <Dialog open={!!selectedEmoji} onOpenChange={(isOpen) => !isOpen && setSelectedEmoji(null)}>
                     <DialogContent className="p-0 border-0 bg-transparent shadow-none w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <DialogHeader className="sr-only">
+                          <DialogTitle>Emoji Preview</DialogTitle>
+                        </DialogHeader>
                         <div 
                             className="relative w-full h-full flex items-center justify-center transition-colors duration-300"
                             style={{ backgroundColor: selectedEmoji.backgroundColor }}
@@ -151,7 +156,7 @@ export default function GalleryPage() {
                 <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
                     <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogTitleComponent>Are you sure?</AlertDialogTitleComponent>
                             <AlertDialogDescription>
                                 Do you want to delete this emoji? This action cannot be undone.
                             </AlertDialogDescription>
