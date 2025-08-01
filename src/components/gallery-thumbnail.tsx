@@ -106,53 +106,55 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         >
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             <div className="relative w-full h-full flex items-center justify-center" style={{ transform: 'scale(0.35)'}}>
-                <motion.div className="flex justify-between w-56 absolute top-40" variants={blushVariants} animate={emoji.expression} {...faceMotionProps}>
-                    <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
-                    <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
-                </motion.div>
-                <motion.div className="flex gap-20 absolute top-28">
-                    <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
-                        {renderEye(emoji.eyeStyle)}
-                        {renderEyebrow(emoji.eyebrowStyle)}
+                <div className="absolute inset-0 top-[20%]">
+                    <motion.div className="flex justify-between w-56 absolute top-40" variants={blushVariants} animate={emoji.expression} {...faceMotionProps}>
+                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
+                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
                     </motion.div>
-                    <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
-                        {renderEye(emoji.eyeStyle)}
-                        {renderEyebrow(emoji.eyebrowStyle, true)}
+                    <motion.div className="flex gap-20 absolute top-28">
+                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                            {renderEye(emoji.eyeStyle)}
+                            {renderEyebrow(emoji.eyebrowStyle)}
+                        </motion.div>
+                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                            {renderEye(emoji.eyeStyle)}
+                            {renderEyebrow(emoji.eyebrowStyle, true)}
+                        </motion.div>
                     </motion.div>
-                </motion.div>
-                <motion.div className="absolute bottom-12">
-                    <svg width="100" height="40" viewBox="0 0 100 80">
-                        <motion.path
-                            fill="transparent"
-                            stroke="black"
-                            strokeWidth={5}
-                            strokeLinecap="round"
-                            variants={expressionMouthVariants}
-                            animate={emoji.expression}
-                            {...faceMotionProps}
-                        />
-                    </svg>
-                </motion.div>
-                {emoji.showSunglasses && (
-                    <div className="absolute flex justify-center w-full" style={{ top: '110px', transform: 'translateZ(30px)' }}>
-                        <div className="relative">
-                            <div className="flex justify-between items-center w-[180px] h-[45px]">
-                                <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                                <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                                <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                    <motion.div className="absolute bottom-12">
+                        <svg width="100" height="40" viewBox="0 0 100 80">
+                            <motion.path
+                                fill="transparent"
+                                stroke="black"
+                                strokeWidth={5}
+                                strokeLinecap="round"
+                                variants={expressionMouthVariants}
+                                animate={emoji.expression}
+                                {...faceMotionProps}
+                            />
+                        </svg>
+                    </motion.div>
+                    {emoji.showSunglasses && (
+                        <div className="absolute flex justify-center w-full" style={{ top: '110px', transform: 'translateZ(30px)' }}>
+                            <div className="relative">
+                                <div className="flex justify-between items-center w-[180px] h-[45px]">
+                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                    <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-                {emoji.showMustache && (
-                    <div className="absolute flex justify-center w-full" style={{ top: '170px', transform: 'translateZ(25px)' }}>
-                        <svg width="100" height="30" viewBox="0 0 100 30">
-                            <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
-                        </svg>
-                    </div>
-                )}
+                    )}
+                    {emoji.showMustache && (
+                        <div className="absolute flex justify-center w-full" style={{ top: '170px', transform: 'translateZ(25px)' }}>
+                            <svg width="100" height="30" viewBox="0 0 100 30">
+                                <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
+                            </svg>
+                        </div>
+                    )}
+                </div>
                  <motion.div 
-                    className="absolute bottom-[-60px] w-full pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', perspective: '1000px' }}
+                    className="absolute bottom-[-110px] w-[90%] pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', perspective: '1000px' }}
                     >
                     <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
                     <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
@@ -197,4 +199,5 @@ function getShapeClipPath(shape: EmojiState['shape']) {
     };
     return paths[shape] || paths.default;
 };
+
 
