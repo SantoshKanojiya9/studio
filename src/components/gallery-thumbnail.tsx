@@ -199,5 +199,3 @@ function getShapeClipPath(shape: EmojiState['shape']) {
     };
     return paths[shape] || paths.default;
 };
-
-
