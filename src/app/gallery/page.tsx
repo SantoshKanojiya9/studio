@@ -22,8 +22,25 @@ export default function GalleryPage() {
         }
     }, []);
 
+    const handleDelete = (emojiId: string) => {
+        try {
+            const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
+            setSavedEmojis(updatedEmojis);
+            localStorage.setItem('savedEmojiGallery', JSON.stringify(updatedEmojis));
+        } catch (error) {
+            console.error("Failed to delete emoji from localStorage", error);
+        }
+    };
+
     if (!isClient) {
-        return null; // or a loading spinner
+        return (
+             <div className="flex h-full w-full flex-col">
+                <ChatHeader />
+                <div className="flex h-full items-center justify-center">
+                    <p className="text-muted-foreground">Loading gallery...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -31,9 +48,9 @@ export default function GalleryPage() {
             <ChatHeader />
             <div className="flex-1 overflow-y-auto p-4">
                 {savedEmojis.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                         {savedEmojis.map(emoji => (
-                            <GalleryThumbnail key={emoji.id} emoji={emoji} />
+                            <GalleryThumbnail key={emoji.id} emoji={emoji} onDelete={handleDelete} />
                         ))}
                     </div>
                 ) : (

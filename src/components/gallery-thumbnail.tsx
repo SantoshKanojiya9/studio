@@ -5,7 +5,8 @@ import Link from 'next/link';
 import type { EmojiState } from '@/app/design/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, X } from 'lucide-react';
+import { Button } from './ui/button';
 
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     const eyeVariants = {
@@ -111,83 +112,107 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     };
 
     return (
-        <div className="relative w-full h-full flex flex-col items-center justify-center">
+        <div className="relative w-full h-full flex flex-col items-center justify-center scale-[0.35] sm:scale-50">
             <motion.div 
-                className="w-24 h-16 shadow-[inset_0_-5px_8px_rgba(0,0,0,0.2),_0_2px_5px_rgba(0,0,0,0.3)] relative"
-                style={shapeStyle}
+                className="w-80 h-96 flex items-center justify-center"
             >
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
-                <div className="relative w-full h-full flex items-center justify-center">
-                    <motion.div className="flex justify-between w-14 absolute top-10" variants={blushVariants} animate={emoji.expression} {...faceMotionProps}>
-                        <motion.div className="w-3 h-1.5 bg-pink-400 rounded-full" />
-                        <motion.div className="w-3 h-1.5 bg-pink-400 rounded-full" />
-                    </motion.div>
-                    <motion.div className="flex gap-5 absolute top-7">
-                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
-                            {renderEye(emoji.eyeStyle)}
-                            {renderEyebrow(emoji.eyebrowStyle)}
+                <motion.div 
+                    className="w-full h-64 shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
+                    style={shapeStyle}
+                >
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        <motion.div className="flex justify-between w-56 absolute top-40" variants={blushVariants} animate={emoji.expression} {...faceMotionProps}>
+                            <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
+                            <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
                         </motion.div>
-                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
-                            {renderEye(emoji.eyeStyle)}
-                            {renderEyebrow(emoji.eyebrowStyle, true)}
+                        <motion.div className="flex gap-20 absolute top-28">
+                            <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                                {renderEye(emoji.eyeStyle)}
+                                {renderEyebrow(emoji.eyebrowStyle)}
+                            </motion.div>
+                            <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                                {renderEye(emoji.eyeStyle)}
+                                {renderEyebrow(emoji.eyebrowStyle, true)}
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                    <motion.div className="absolute top-9">
-                        <svg width="25" height="10" viewBox="0 0 25 20">
-                            <motion.path
-                                fill="transparent"
-                                stroke="black"
-                                strokeWidth={1.25}
-                                strokeLinecap="round"
-                                variants={expressionMouthVariants}
-                                animate={emoji.expression}
-                                {...faceMotionProps}
-                            />
-                        </svg>
-                    </motion.div>
-                    {emoji.showSunglasses && (
-                        <div className="absolute flex justify-center w-full" style={{ top: '28px', transform: 'scale(0.25)' }}>
-                            <div className="relative">
-                                <div className="flex justify-between items-center w-[180px] h-[45px]">
-                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
-                                    <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                                    <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                        <motion.div className="absolute bottom-12">
+                            <svg width="100" height="40" viewBox="0 0 100 80">
+                                <motion.path
+                                    fill="transparent"
+                                    stroke="black"
+                                    strokeWidth={5}
+                                    strokeLinecap="round"
+                                    variants={expressionMouthVariants}
+                                    animate={emoji.expression}
+                                    {...faceMotionProps}
+                                />
+                            </svg>
+                        </motion.div>
+                        {emoji.showSunglasses && (
+                            <div className="absolute flex justify-center w-full" style={{ top: '110px', transform: 'translateZ(30px)' }}>
+                                <div className="relative">
+                                    <div className="flex justify-between items-center w-[180px] h-[45px]">
+                                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                        <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
+                                        <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                    {emoji.showMustache && (
-                        <div className="absolute flex justify-center w-full" style={{ top: '42px', transform: 'scale(0.25)' }}>
-                            <svg width="100" height="30" viewBox="0 0 100 30">
-                                <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
-                            </svg>
-                        </div>
-                    )}
-                </div>
-            </motion.div>
-             <motion.div className="absolute bottom-0 w-24 h-4">
-                <div className="absolute bottom-0 left-0 w-full h-3 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-5px)' }}></div>
-                <div className="absolute bottom-[-2.5px] left-1/2 w-[98%] h-4 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-4px)', boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }}></div>
+                        )}
+                        {emoji.showMustache && (
+                            <div className="absolute flex justify-center w-full" style={{ top: '170px', transform: 'translateZ(25px)' }}>
+                                <svg width="100" height="30" viewBox="0 0 100 30">
+                                    <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+                <motion.div 
+                    className="absolute bottom-10 w-full pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
+                    >
+                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
+                    <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
+                </motion.div>
             </motion.div>
         </div>
     );
 };
 
 
-export const GalleryThumbnail = ({ emoji }: { emoji: EmojiState }) => {
+export const GalleryThumbnail = ({ emoji, onDelete }: { emoji: EmojiState; onDelete: (id: string) => void; }) => {
+    
+    const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault(); // Prevent Link navigation
+        e.stopPropagation(); // Stop event bubbling
+        onDelete(emoji.id);
+    };
+
     return (
-        <Link 
-            href={`/design?emojiId=${emoji.id}`}
-            className="aspect-square w-full rounded-md overflow-hidden relative group"
-            style={{ backgroundColor: emoji.backgroundColor }}
-        >
-            <div className={cn(
-                "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-110"
-            )}>
-                <MiniFace emoji={emoji} />
-            </div>
-            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </Link>
+        <div className="relative group aspect-square">
+             <Link 
+                href={`/design?emojiId=${emoji.id}`}
+                className="aspect-square w-full rounded-md overflow-hidden relative block"
+                style={{ backgroundColor: emoji.backgroundColor }}
+            >
+                <div className={cn(
+                    "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                )}>
+                    <MiniFace emoji={emoji} />
+                </div>
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </Link>
+            <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                onClick={handleDeleteClick}
+                aria-label="Delete emoji"
+            >
+                <X className="h-4 w-4" />
+            </Button>
+        </div>
     );
 };
 
