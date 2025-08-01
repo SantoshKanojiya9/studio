@@ -98,19 +98,20 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
 
     return (
         <div 
-            className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.2),_0_2px_4px_rgba(0,0,0,0.3)]"
+            className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.2),_0_2px_4px_rgba(0,0,0,0.3)] relative"
             style={shapeStyle}
         >
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%2.../%3E%3C/svg%3E')] opacity-10"></div>
-            <div className="relative w-full h-full">
+            
                 {/* Face Content Scaled Container */}
-                <div className="absolute w-full h-full top-0 left-0" style={{ transform: 'scale(0.8) translateY(10%)' }}>
-                    <motion.div className="flex justify-between w-28 absolute top-20 left-1/2 -translate-x-1/2" variants={blushVariants} animate={emoji.expression} transition={{duration:0}}>
-                        <motion.div className="w-6 h-3 bg-pink-400 rounded-full" />
-                        <motion.div className="w-6 h-3 bg-pink-400 rounded-full" />
+                <div className="absolute w-full h-full top-0 left-0 scale-[0.35] flex items-center justify-center">
+                  <div className="relative w-80 h-96">
+                    <motion.div className="flex justify-between w-56 absolute top-40 left-1/2 -translate-x-1/2" variants={blushVariants} animate={emoji.expression} transition={{duration:0}}>
+                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
+                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
                     </motion.div>
                     
-                    <motion.div className="flex gap-10 absolute top-12 left-1/2 -translate-x-1/2 items-center">
+                    <motion.div className="flex gap-20 absolute top-28 left-1/2 -translate-x-1/2 items-center">
                         <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} transition={{duration:0}}>
                             {renderEye(emoji.eyeStyle)}
                             {renderEyebrow(emoji.eyebrowStyle)}
@@ -121,12 +122,12 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                         </motion.div>
                     </motion.div>
                     
-                    <motion.div className="absolute top-24 left-1/2 -translate-x-1/2">
-                        <svg width="50" height="20" viewBox="0 0 50 40">
+                    <motion.div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+                        <svg width="100" height="40" viewBox="0 0 100 80">
                             <motion.path
                                 fill="transparent"
                                 stroke="black"
-                                strokeWidth={2.5}
+                                strokeWidth={5}
                                 strokeLinecap="round"
                                 variants={expressionMouthVariants}
                                 animate={emoji.expression}
@@ -136,7 +137,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     </motion.div>
 
                     {emoji.showSunglasses && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-[-10px]" style={{ transform: 'translate(-50%, -50%) scale(0.4) translateY(-80px)' }}>
+                        <div className="absolute" style={{ top: '110px', left: '50%', transform: 'translateX(-50%)' }}>
                              <div className="relative">
                                 <div className="flex justify-between items-center w-[180px] h-[45px]">
                                     <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
@@ -147,23 +148,24 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                         </div>
                     )}
                     {emoji.showMustache && (
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-[20px]" style={{ transform: 'translate(-50%, -50%) scale(0.4) translateY(20px)' }}>
+                        <div className="absolute" style={{ top: '170px', left: '50%', transform: 'translateX(-50%)' }}>
                              <svg width="100" height="30" viewBox="0 0 100 30">
                                 <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
                             </svg>
                         </div>
                     )}
+                  </div>
                 </div>
 
                 {/* Base Shadow */}
                 <div 
-                    className="absolute bottom-[-20px] w-[80%] h-[40px] left-1/2 -translate-x-1/2" 
+                    className="absolute -bottom-5 w-[80%] h-[40px] left-1/2 -translate-x-1/2" 
                     style={{ transformStyle: 'preserve-3d', perspective: '100px' }}
                 >
                     <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gray-700 rounded-full" style={{ transform: 'rotateX(75deg) translateZ(-5px)' }}></div>
-                    <div className="absolute bottom-[-5px] left-1/2 w-[98%] h-3/4 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-8px)' }}></div>
+                    <div className="absolute -bottom-1 left-1/2 w-[98%] h-3/4 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-8px)' }}></div>
                 </div>
-            </div>
+            
         </div>
     );
 };
@@ -181,14 +183,6 @@ export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSel
                 <MiniFace emoji={emoji} />
             </div>
             <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <Link 
-                href={`/design?emojiId=${emoji.id}`}
-                className="absolute bottom-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 bg-black/20 rounded-full flex items-center justify-center text-white hover:bg-black/40"
-                aria-label="Edit emoji"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <Edit className="h-3 w-3" />
-            </Link>
         </div>
     );
 };
