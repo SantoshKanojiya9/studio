@@ -104,7 +104,7 @@ export default function GalleryPage() {
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto">
                     <div className="bg-[#2c1f17] rounded-lg m-4 p-4">
-                        <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                            <div className="w-24 h-24 flex items-center justify-center">
                                <div className="scale-[0.35] origin-center">
                                     <ClockFace 
@@ -123,7 +123,7 @@ export default function GalleryPage() {
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
-                                <div className="flex items-center justify-between text-center mt-2">
+                                <div className="flex items-center justify-around text-center mt-2 gap-4">
                                     <div>
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
