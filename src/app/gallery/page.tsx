@@ -7,11 +7,8 @@ import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
 import { Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
-import { CgClapperBoard } from "react-icons/cg";
-import { BsPersonVcard } from "react-icons/bs";
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Sheet,
   SheetContent,

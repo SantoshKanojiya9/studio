@@ -6,14 +6,13 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Library, Users, Clock } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -84,7 +83,6 @@ export const Face = ({
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [preAngryColor, setPreAngryColor] = useState(color);
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -217,11 +215,6 @@ export const Face = ({
     love: { y: -5, rotate: -5 },
   }
 
-  const eyeLidVariants = {
-      closed: { scaleY: 0, y: 5 },
-      open: { scaleY: 1, y: 0 },
-  }
-
   const blushVariants = {
     neutral: { opacity: 0, scale: 0.8 },
     happy: { opacity: 0.7, scale: 1 },
@@ -254,15 +247,11 @@ export const Face = ({
       const timeDiff = newTimestamps[3] - newTimestamps[0];
       if (timeDiff < 2000) {
         setTapTimestamps([]);
-        setPreAngryColor(color);
         setIsAngryMode(true);
-        // This is a bit of a hack, we probably want to change the color state in the parent
-        // setEmojiColor('orangered'); 
         setExpression('angry');
 
         setTimeout(() => {
           setIsAngryMode(false);
-          // setEmojiColor(preAngryColor);
           setExpression('neutral');
         }, 2000);
       }
@@ -284,14 +273,6 @@ export const Face = ({
     pointerY.set(0.5);
   };
   
-    const shapePaths: Record<ShapeType, string> = {
-    default: 'path("M 50,0 C 77.6,0 100,22.4 100,50 C 100,77.6 77.6,100 50,100 C 22.4,100 0,77.6 0,50 C 0,22.4 22.4,0 50,0 Z")',
-    square: 'path("M 0,10 C 0,4.477 4.477,0 10,0 H 90 C 95.523,0 100,4.477 100,10 V 90 C 100,95.523 95.523,100 90,100 H 10 C 4.477,100 0,95.523 0,90 Z")',
-    squircle: 'path("M 50,0 C 90,0 100,10 100,50 C 100,90 90,100 50,100 C 10,100 0,90 0,50 C 0,10 10,0 50,0 Z")',
-    tear: 'path("M 50,0 C 77.6,0 100,22.4 100,50 C 100,77.6 77.6,100 50,100 C 22.4,100 0,77.6 0,50 C 0,35 25,-15 50,0 Z")',
-    blob: 'path("M 90 50 C 90 77.6, 77.6 90, 50 90 C 22.4 90, 10 77.6, 10 50 C 10 22.4, 22.4 10, 50 10 C 77.6 10, 90 22.4, 90 50")',
-  };
-
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
         default: '50% 50% 40% 40% / 60% 60% 40% 40%',
@@ -508,7 +489,6 @@ export const ClockFace = ({
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
   const [isAngryMode, setIsAngryMode] = useState(false);
-  const [preAngryColor, setPreAngryColor] = useState(color);
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
@@ -518,8 +498,6 @@ export const ClockFace = ({
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-  const dragOrigin = useRef<{ x: number, y: number } | null>(null);
-  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
@@ -705,14 +683,11 @@ export const ClockFace = ({
       const timeDiff = newTimestamps[3] - newTimestamps[0];
       if (timeDiff < 2000) {
         setTapTimestamps([]);
-        setPreAngryColor(color);
         setIsAngryMode(true);
-        // setEmojiColor('red'); This should be handled by the parent
         setExpression('angry');
 
         setTimeout(() => {
           setIsAngryMode(false);
-          // setEmojiColor(preAngryColor); This should be handled by the parent
           setExpression('neutral');
         }, 2000);
       }
@@ -1067,7 +1042,7 @@ const DesignPageContent = () => {
   };
 
 
-  const handlePanStart = (event: any, info: any) => {
+  const handlePanStart = () => {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current);
     }
@@ -1075,7 +1050,7 @@ const DesignPageContent = () => {
     dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
   };
 
-  const handlePan = (event: any, info: any) => {
+  const handlePan = (_: any, info: any) => {
     if (dragOrigin.current) {
         const boundaryX = 80; 
         const boundaryY = 60;
@@ -1094,7 +1069,7 @@ const DesignPageContent = () => {
     }
   };
 
-  const handlePanEnd = (event: any, info: any) => {
+  const handlePanEnd = () => {
     dragOrigin.current = null;
     if (dragTimeoutRef.current) {
         clearTimeout(dragTimeoutRef.current);

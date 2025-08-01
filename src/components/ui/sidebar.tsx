@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -429,10 +430,10 @@ const SidebarGroup = React.forwardRef<
 SidebarGroup.displayName = "SidebarGroup"
 
 const SidebarGroupLabel = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & { asChild?: boolean }
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement> & { asChild?: boolean }
 >(({ className, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "div"
+  const Comp = asChild ? Slot : "p"
 
   return (
     <Comp
@@ -625,7 +626,7 @@ SidebarMenuAction.displayName = "SidebarMenuAction"
 
 const SidebarMenuBadge = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div">
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}

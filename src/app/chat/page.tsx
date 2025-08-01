@@ -6,7 +6,6 @@ import { ChatHeader } from '@/components/chat-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 const stories = [
