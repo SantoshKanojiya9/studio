@@ -38,7 +38,7 @@ export type EmojiState = {
 };
 
 
-const Face = ({ 
+export const Face = ({ 
     expression, 
     color, 
     showSunglasses, 
