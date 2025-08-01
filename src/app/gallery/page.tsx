@@ -91,7 +91,7 @@ export default function GalleryPage() {
     );
 
     return (
-        <div className="flex h-full w-full flex-col overflow-hidden">
+        <div className="flex h-full w-full flex-col overflow-x-hidden">
            {selectedEmojiId ? (
                 <PostView 
                     emojis={savedEmojis} 
@@ -102,11 +102,11 @@ export default function GalleryPage() {
            ) : (
              <>
                 <ProfileHeader />
-                <div className="flex-1 overflow-x-hidden">
+                <div className="flex-1 overflow-y-auto">
                     <div className="bg-[#2c1f17] rounded-lg m-4 p-4">
-                        <div className="flex items-start gap-4">
-                            <div className="relative h-24 w-24 flex-shrink-0">
-                               <div className="absolute inset-0 scale-[0.35] -top-12 -left-8">
+                        <div className="grid grid-cols-3 gap-2">
+                           <div className="relative h-24 w-24 col-span-1">
+                               <div className="absolute inset-0 scale-[0.35] -top-12 -left-10">
                                     <ClockFace 
                                         expression="neutral"
                                         color="orangered"
@@ -118,12 +118,12 @@ export default function GalleryPage() {
                                     />
                                </div>
                             </div>
-                            <div className="flex flex-col flex-grow mt-2">
+                            <div className="col-span-2 flex flex-col justify-center">
                                 <div className="flex items-center gap-1 font-semibold text-lg">
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
-                                <div className="flex items-center gap-4 text-center mt-2">
+                                <div className="flex items-center justify-between text-center mt-2">
                                     <div>
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
