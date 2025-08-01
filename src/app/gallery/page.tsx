@@ -105,7 +105,7 @@ export default function GalleryPage() {
     if (!isClient) {
         return (
              <div className="flex h-full w-full flex-col">
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto">
                     <div className="flex h-full items-center justify-center">
                         <p className="text-muted-foreground">Loading gallery...</p>
                     </div>
@@ -155,7 +155,7 @@ export default function GalleryPage() {
            ) : (
              <>
                 <ProfileHeader />
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto no-scrollbar">
                     <div className="bg-zinc-800/50 rounded-lg m-4 p-4">
                         <div className="flex items-center gap-2">
                            <div className="w-20 h-20 flex-shrink-0">
