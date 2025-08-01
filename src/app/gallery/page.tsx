@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { MoreVertical, Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
 import { CgClapperBoard } from "react-icons/cg";
 import { BsPersonVcard } from "react-icons/bs";
-import { ClockFace } from '@/app/loki/page';
+import { ClockFace } from '@/app/design/page';
 import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -119,13 +119,8 @@ export default function GalleryPage() {
                                         color="orangered"
                                         showSunglasses={false}
                                         showMustache={false}
-                                        pointerX={pointerX}
-                                        pointerY={pointerY}
-                                        featureOffsetX={featureOffsetX}
-                                        featureOffsetY={featureOffsetY}
-                                        onPan={() => {}}
-                                        onPanStart={() => {}}
-                                        onPanEnd={() => {}}
+                                        animationType='none'
+                                        isDragging={false}
                                         shape="default"
                                     />
                                </div>

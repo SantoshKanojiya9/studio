@@ -16,37 +16,124 @@ import { ChatHeader } from '@/components/chat-header';
 
 
 type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
 
 export const ClockFace = ({ 
-    expression, 
+    expression: initialExpression, 
     color, 
     showSunglasses,
     showMustache,
-    pointerX,
-    pointerY,
-    featureOffsetX,
-    featureOffsetY,
-    onPan,
-    onPanStart,
-    onPanEnd,
     shape,
+    animationType,
+    isDragging,
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
-    pointerX: any,
-    pointerY: any,
-    featureOffsetX: any,
-    featureOffsetY: any,
-    onPan: (event: any, info: any) => void;
-    onPanStart: (event: any, info: any) => void;
-    onPanEnd: (event: any, info: any) => void;
     shape: ShapeType;
+    animationType: AnimationType;
+    isDragging: boolean;
 }) => {
+  const [expression, setExpression] = useState<Expression>(initialExpression);
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
+  const [isAngryMode, setIsAngryMode] = useState(false);
+  const [preAngryColor, setPreAngryColor] = useState(color);
+
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+  const featureOffsetX = useMotionValue(0);
+  const featureOffsetY = useMotionValue(0);
+
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+  const dragOrigin = useRef<{ x: number, y: number } | null>(null);
+  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+
+  useEffect(() => {
+    setExpression(initialExpression);
+  }, [initialExpression]);
+  
+  useEffect(() => {
+    if (isAngryMode || isDragging) return;
+    
+    const stopAnimations = () => {
+        if (animationControlsX.current) animationControlsX.current.stop();
+        if (animationControlsY.current) animationControlsY.current.stop();
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    };
+
+    if (animationType === 'none') {
+        stopAnimations();
+        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        return;
+    }
+    
+    stopAnimations();
+
+    const animationOptions = {
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "mirror" as const,
+        ease: "easeInOut" as const,
+    };
+    
+    const randomAnimation = () => {
+        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
+        setExpression(newExpression);
+        
+        const boundaryX = 40; 
+        const boundaryY = 30;
+        
+        let newX, newY;
+        
+        do {
+            newX = Math.random() * (2 * boundaryX) - boundaryX;
+            newY = Math.random() * (2 * boundaryY) - boundaryY;
+        } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
+
+        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+    };
+
+    switch (animationType) {
+        case 'left-right':
+            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
+            break;
+        case 'right-left':
+            animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
+            break;
+        case 'up-down':
+            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+            break;
+        case 'down-up':
+            animationControlsY.current = animate(featureOffsetY, [25, -25], animationOptions);
+            break;
+        case 'diag-left-right':
+            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+            break;
+        case 'diag-right-left':
+             animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
+             animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+            break;
+        case 'random':
+            animationIntervalRef.current = setInterval(randomAnimation, 3000);
+            randomAnimation();
+            break;
+        default:
+            // Do nothing, animations are already stopped
+    }
+
+    return stopAnimations;
+  }, [animationType, isAngryMode, isDragging]);
+
+
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1, height: '2rem' },
     happy: { y: 2, scaleY: 0.9, height: '1.75rem' },
@@ -137,14 +224,37 @@ export const ClockFace = ({
     )
   });
 
+  const handleTap = () => {
+    if (isAngryMode || isDragging) return;
+
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].slice(-4);
+    setTapTimestamps(newTimestamps);
+
+    if (newTimestamps.length === 4) {
+      const timeDiff = newTimestamps[3] - newTimestamps[0];
+      if (timeDiff < 2000) {
+        setTapTimestamps([]);
+        setPreAngryColor(color);
+        setIsAngryMode(true);
+        // setEmojiColor('red'); This should be handled by the parent
+        setExpression('angry');
+
+        setTimeout(() => {
+          setIsAngryMode(false);
+          // setEmojiColor(preAngryColor); This should be handled by the parent
+          setExpression('neutral');
+        }, 2000);
+      }
+    }
+  };
+
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      onPan={onPan}
-      onPanStart={onPanStart}
-      onPanEnd={onPanEnd}
+      onTap={handleTap}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
@@ -198,7 +308,7 @@ export const ClockFace = ({
         >
             {tickMarks}
             <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative" style={{ borderRadius: getShapeClipPath(shape) }}>
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22%2F%3E%3C%2Fsvg%3E')] opacity-5"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22%2F%3E%3C/svg%3E')] opacity-5"></div>
             
              <motion.div
                 className="absolute top-5 left-5 w-1/2 h-1/4 bg-white/20 rounded-full"
@@ -331,465 +441,3 @@ export const ClockFace = ({
     </motion.div>
   );
 };
-
-
-export default function LokiPage() {
-  const [expression, setExpression] = useState<Expression>('neutral');
-  const [activeMenu, setActiveMenu] = useState<MenuType>('main');
-  
-  const [backgroundColor, setBackgroundColor] = useState('#000000');
-  const [emojiColor, setEmojiColor] = useState('orangered');
-  const [preAngryColor, setPreAngryColor] = useState(emojiColor);
-  const [showSunglasses, setShowSunglasses] = useState(false);
-  const [showMustache, setShowMustache] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [animationType, setAnimationType] = useState<AnimationType>('random');
-  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [isAngryMode, setIsAngryMode] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [shape, setShape] = useState<ShapeType>('default');
-  
-  const featureOffsetX = useMotionValue(0);
-  const featureOffsetY = useMotionValue(0);
-
-  const defaultBackgroundColor = '#000000';
-  const defaultEmojiColor = 'orangered';
-  
-  const pointerX = useMotionValue(0.5);
-  const pointerY = useMotionValue(0.5);
-
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
-  
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-  const dragOrigin = useRef<{ x: number, y: number } | null>(null);
-  const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (isAngryMode || isDragging) return;
-    
-    const stopAnimations = () => {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-    };
-
-    if (animationType === 'none') {
-        stopAnimations();
-        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        return;
-    }
-    
-    stopAnimations();
-
-    const animationOptions = {
-        duration: 2,
-        repeat: Infinity,
-        repeatType: "mirror" as const,
-        ease: "easeInOut" as const,
-    };
-    
-    const randomAnimation = () => {
-        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
-        setExpression(newExpression);
-        
-        const boundaryX = 40; 
-        const boundaryY = 30;
-        
-        let newX, newY;
-        
-        do {
-            newX = Math.random() * (2 * boundaryX) - boundaryX;
-            newY = Math.random() * (2 * boundaryY) - boundaryY;
-        } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
-
-        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
-        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
-    };
-
-    switch (animationType) {
-        case 'left-right':
-            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
-            break;
-        case 'right-left':
-            animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
-            break;
-        case 'up-down':
-            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
-            break;
-        case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [25, -25], animationOptions);
-            break;
-        case 'diag-left-right':
-            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
-            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
-            break;
-        case 'diag-right-left':
-             animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
-             animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
-            break;
-        case 'random':
-            animationIntervalRef.current = setInterval(randomAnimation, 3000);
-            randomAnimation();
-            break;
-        default:
-            // Do nothing, animations are already stopped
-    }
-
-    return stopAnimations;
-  }, [animationType, isAngryMode, isDragging]);
-  
-  const handleReset = () => {
-    setExpression('neutral');
-    setBackgroundColor(defaultBackgroundColor);
-    setEmojiColor(defaultEmojiColor);
-    setShowSunglasses(false);
-    setShowMustache(false);
-    setSelectedFilter(null);
-    setAnimationType('random');
-    setShape('default');
-    featureOffsetX.set(0);
-    featureOffsetY.set(0);
-    setActiveMenu('main');
-  };
-  
-  const handleRandomize = () => {
-    const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
-    setExpression(newExpression);
-  }
-
-  const handleTap = () => {
-    if (isAngryMode || isDragging) return;
-
-    const now = Date.now();
-    const newTimestamps = [...tapTimestamps, now].slice(-4);
-    setTapTimestamps(newTimestamps);
-
-    if (newTimestamps.length === 4) {
-      const timeDiff = newTimestamps[3] - newTimestamps[0];
-      if (timeDiff < 2000) {
-        setTapTimestamps([]);
-        setPreAngryColor(emojiColor);
-        setIsAngryMode(true);
-        setEmojiColor('red');
-        setExpression('angry');
-
-        setTimeout(() => {
-          setIsAngryMode(false);
-          setEmojiColor(preAngryColor);
-          setExpression('neutral');
-        }, 2000);
-      }
-    }
-  };
-
-  const handlePanStart = (event: any, info: any) => {
-    if (dragTimeoutRef.current) {
-      clearTimeout(dragTimeoutRef.current);
-    }
-    setIsDragging(true);
-    dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
-  };
-
-  const handlePan = (event: any, info: any) => {
-    if (dragOrigin.current) {
-        const boundaryX = 40; 
-        const boundaryY = 30;
-        
-        let newX = dragOrigin.current.x + info.offset.x;
-        let newY = dragOrigin.current.y + info.offset.y;
-
-        if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
-            // If outside, find the angle and project back to the boundary
-            const angle = Math.atan2(newY, newX);
-            newX = boundaryX * Math.cos(angle);
-            newY = boundaryY * Math.sin(angle);
-        }
-
-        featureOffsetX.set(newX);
-        featureOffsetY.set(newY);
-    }
-  };
-
-  const handlePanEnd = (event: any, info: any) => {
-    dragOrigin.current = null;
-    if (dragTimeoutRef.current) {
-        clearTimeout(dragTimeoutRef.current);
-    }
-    dragTimeoutRef.current = setTimeout(() => {
-        setIsDragging(false);
-    }, 2000);
-  };
-  
-  const filters = [
-    { name: 'None', style: {} },
-    { name: 'Sepia', style: { background: 'linear-gradient(to right, #704214, #EAE0C8)' } },
-    { name: 'Grayscale', style: { background: 'linear-gradient(to right, #333, #ccc)' } },
-    { name: 'Invert', style: { background: 'linear-gradient(to right, #f00, #0ff)' } },
-    { name: 'Hue-Rotate', style: { background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' } },
-    { name: 'Contrast', style: { background: 'linear-gradient(to right, #000, #fff)' } },
-    { name: 'Saturate', style: { background: 'linear-gradient(to right, gray, red)' } },
-    { name: 'Vintage', style: { background: 'linear-gradient(to right, #6d5a4c, #d5c8b8)' } },
-    { name: 'Cool', style: { background: 'linear-gradient(to right, #3a7bd5, #00d2ff)' } },
-    { name: 'Warm', style: { background: 'linear-gradient(to right, #f7b733, #fc4a1a)' } },
-  ];
-
-  const handleFilterSelect = (filterName: string) => {
-    if (selectedFilter === filterName) {
-      setSelectedFilter(null); // Deselect
-    } else {
-      setSelectedFilter(filterName);
-    }
-  };
-
-  const handleExpressionToggle = (newExpression: Expression) => {
-    if (expression === newExpression) {
-        setExpression('neutral');
-    } else {
-        setExpression(newExpression);
-    }
-  };
-  
-  const handleShapeToggle = (newShape: ShapeType) => {
-    if (shape === newShape) {
-      setShape('default');
-    } else {
-      setShape(newShape);
-    }
-  };
-
-  const renderMenu = () => {
-    switch (activeMenu) {
-      case 'expressions':
-        return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'happy' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('happy')}><Smile className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
-          </>
-        );
-      case 'shapes':
-        const shapes: { name: ShapeType; label: string }[] = [
-          { name: 'default', label: 'Default' },
-          { name: 'square', label: 'Square' },
-          { name: 'squircle', label: 'Squircle' },
-          { name: 'tear', label: 'Tear' },
-        ];
-        return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            {shapes.map(({ name, label }) => (
-                <Tooltip key={name}>
-                    <TooltipTrigger asChild>
-                        <Button variant={shape === name ? 'secondary' : 'ghost'} onClick={() => handleShapeToggle(name)}>
-                            {label}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>{label}</p></TooltipContent>
-                </Tooltip>
-            ))}
-          </>
-        );
-      case 'colors':
-        return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                        <Paintbrush className="h-4 w-4"/>
-                        <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
-                    </Label>
-                </TooltipTrigger>
-                <TooltipContent><p>Background Color</p></TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
-                        <Pipette className="h-4 w-4"/>
-                        <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
-                    </Label>
-                </TooltipTrigger>
-                <TooltipContent><p>Face Color</p></TooltipContent>
-            </Tooltip>
-          </>
-        );
-      case 'accessories':
-        return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showSunglasses && "bg-accent text-accent-foreground")}>
-                        <Glasses className="h-4 w-4" />
-                        <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
-                    </Label>
-                </TooltipTrigger>
-                <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showMustache && "bg-accent text-accent-foreground")}>
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
-                        <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
-                    </Label>
-                </TooltipTrigger>
-                <TooltipContent><p>Toggle Mustache</p></TooltipContent>
-            </Tooltip>
-          </>
-        );
-      case 'filters':
-        return (
-            <div className="flex items-center w-full">
-                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
-                <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
-                <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4">
-                    {filters.map(filter => (
-                        <Tooltip key={filter.name}>
-                            <TooltipTrigger asChild>
-                                <button
-                                    onClick={() => handleFilterSelect(filter.name)}
-                                    className={cn(
-                                        "w-12 h-12 rounded-lg flex-shrink-0 border-2 transition-all duration-200",
-                                        selectedFilter === filter.name ? 'border-primary scale-110' : 'border-border'
-                                    )}
-                                >
-                                    <div className="w-full h-full rounded-md" style={filter.style}></div>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>{filter.name}</p></TooltipContent>
-                        </Tooltip>
-                    ))}
-                </div>
-            </div>
-        );
-        case 'animations':
-             const animations: { name: AnimationType, icon: React.ElementType, label: string }[] = [
-                { name: 'left-right', icon: ArrowRight, label: 'L-R' },
-                { name: 'right-left', icon: ArrowLeft, label: 'R-L' },
-                { name: 'up-down', icon: ArrowDown, label: 'U-D' },
-                { name: 'down-up', icon: ArrowUp, label: 'D-U' },
-                { name: 'diag-left-right', icon: ArrowUpRight, label: 'Diag L-R' },
-                { name: 'diag-right-left', icon: ArrowUpLeft, label: 'Diag R-L' },
-                { name: 'random', icon: Wand2, label: 'Random' },
-            ];
-            return (
-                <div className="flex items-center w-full">
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
-                        {animations.map(({name, icon: Icon, label}) => (
-                            <Tooltip key={name}>
-                                <TooltipTrigger asChild>
-                                    <Button 
-                                        variant={animationType === name ? 'default' : 'outline'}
-                                        size="icon"
-                                        onClick={() => setAnimationType(prev => prev === name ? 'none' : name)}
-                                    >
-                                        <Icon className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{label}</p></TooltipContent>
-                            </Tooltip>
-                        ))}
-                    </div>
-                </div>
-            );
-      default: // 'main'
-        return (
-          <>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
-                <RotateCcw className="h-4 w-4" />
-                <span className="text-xs mt-1">Reset</span>
-            </Button>
-            <Separator orientation="vertical" className="h-full mx-1" />
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
-                <Smile className="h-4 w-4" />
-                <span className="text-xs mt-1">Expressions</span>
-            </Button>
-             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
-                <Sparkles className="h-4 w-4" />
-                <span className="text-xs mt-1">Animations</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('shapes')}>
-                <Square className="h-4 w-4" />
-                <span className="text-xs mt-1">Shapes</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
-                <Palette className="h-4 w-4" />
-                <span className="text-xs mt-1">Colors</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
-                <Glasses className="h-4 w-4" />
-                <span className="text-xs mt-1">Accessories</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
-                <Camera className="h-4 w-4" />
-                <span className="text-xs mt-1">Filters</span>
-            </Button>
-            <Separator orientation="vertical" className="h-full mx-1" />
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
-                <Wand2 className="h-4 w-4" />
-                <span className="text-xs mt-1">Random</span>
-            </Button>
-          </>
-        );
-    }
-  };
-
-
-  return (
-    <div 
-        className="flex h-full w-full flex-col overflow-hidden touch-none transition-colors duration-300"
-        style={{ backgroundColor }}
-    >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 z-0"></div>
-        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '1rem 1rem' }}></div>
-
-      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 z-10">
-        <motion.div
-          className="w-80 h-96 flex items-center justify-center select-none"
-          onTap={handleTap}
-          style={{ 
-            transformStyle: 'preserve-3d',
-            filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
-          }}
-        >
-          <ClockFace 
-              expression={expression} 
-              color={emojiColor} 
-              showSunglasses={showSunglasses} 
-              showMustache={showMustache} 
-              pointerX={pointerX}
-              pointerY={pointerY}
-              featureOffsetX={featureOffsetX}
-              featureOffsetY={featureOffsetY}
-              onPan={handlePan}
-              onPanStart={handlePanStart}
-              onPanEnd={handlePanEnd}
-              shape={shape}
-          />
-        </motion.div>
-      </div>
-
-      <div className="z-20">
-        <TooltipProvider>
-            <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
-                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
-                    {renderMenu()}
-                </div>
-                <ScrollBar orientation="horizontal" className="hidden" />
-            </ScrollArea>
-        </TooltipProvider>
-      </div>
-    </div>
-  );
-}

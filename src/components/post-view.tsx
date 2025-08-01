@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import type { EmojiState } from '@/app/design/page';
-import { Face } from '@/app/design/page';
+import { Face, ClockFace } from '@/app/design/page';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -114,14 +114,22 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
                   filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
                 }}
               >
-                <Face 
-                  {...emoji}
-                  color={emoji.emojiColor}
-                  isDragging={false}
-                  onPan={() => {}}
-                  onPanStart={() => {}}
-                  onPanEnd={() => {}}
-                />
+                {emoji.model === 'loki' ? (
+                   <ClockFace 
+                      {...emoji}
+                      color={emoji.emojiColor}
+                      isDragging={false}
+                    />
+                ) : (
+                   <Face 
+                      {...emoji}
+                      color={emoji.emojiColor}
+                      isDragging={false}
+                      onPan={() => {}}
+                      onPanStart={() => {}}
+                      onPanEnd={() => {}}
+                    />
+                )}
               </div>
 
               <div 

@@ -13,7 +13,6 @@ export function BottomBar() {
     { href: '/chat', label: 'Chat', icon: MessageSquare },
     { href: '/design', label: 'Emoji', icon: Palette },
     { href: '/gallery', label: 'Gallery', icon: LayoutGrid },
-    { href: '/loki', label: 'Loki Clock', icon: Clock },
   ];
 
   return (

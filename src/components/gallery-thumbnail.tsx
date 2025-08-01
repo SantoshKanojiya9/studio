@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { EmojiState } from '@/app/design/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Heart, Edit } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import React from 'react';
 
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
@@ -95,6 +95,23 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
             default: return <motion.div className="absolute -top-1.5 left-0 w-6 h-2 bg-black" style={baseStyle} {...eyebrowMotion} />;
         }
     };
+    
+    const tickMarks = Array.from({ length: 12 }, (_, i) => {
+        const angle = i * 30;
+        const isHour = i % 3 === 0;
+        return (
+            <div 
+                key={i} 
+                className="absolute w-full h-full"
+                style={{ transform: `rotate(${angle}deg)` }}
+            >
+                <div className={cn(
+                    "absolute bg-black/70",
+                    isHour ? "w-px h-1 top-0.5 left-1/2 -ml-px" : "w-px h-0.5 top-0.5 left-1/2 -ml-px"
+                )}></div>
+            </div>
+        )
+    });
 
     return (
         <div 
@@ -103,7 +120,16 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         >
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%2.../%3E%3C/svg%3E')] opacity-10"></div>
             
-                {/* Face Content Scaled Container */}
+            {emoji.model === 'loki' ? (
+                <div className="absolute w-full h-full top-0 left-0 scale-[0.3] flex items-center justify-center">
+                    <div className="relative w-56 h-56 border-2 border-black/70 rounded-full" style={{backgroundColor: emoji.emojiColor}}>
+                        {tickMarks}
+                        <div className="flex items-center justify-center w-full h-full">
+                            {/* Face features would go here, simplified for thumbnail */}
+                        </div>
+                    </div>
+                </div>
+            ) : (
                 <div className="absolute w-full h-full top-0 left-0 scale-[0.35] flex items-center justify-center">
                   <div className="relative w-80 h-96">
                     <motion.div className="flex justify-between w-56 absolute top-40 left-1/2 -translate-x-1/2" variants={blushVariants} animate={emoji.expression} transition={{duration:0}}>
@@ -156,16 +182,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     )}
                   </div>
                 </div>
-
-                {/* Base Shadow */}
-                <div 
-                    className="absolute -bottom-5 w-[80%] h-[40px] left-1/2 -translate-x-1/2" 
-                    style={{ transformStyle: 'preserve-3d', perspective: '100px' }}
-                >
-                    <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gray-700 rounded-full" style={{ transform: 'rotateX(75deg) translateZ(-5px)' }}></div>
-                    <div className="absolute -bottom-1 left-1/2 w-[98%] h-3/4 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-8px)' }}></div>
-                </div>
-            
+            )}
         </div>
     );
 };
