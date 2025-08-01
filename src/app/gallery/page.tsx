@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
 import { CgClapperBoard } from "react-icons/cg";
 import { BsPersonVcard } from "react-icons/bs";
-import { Face } from '@/app/design/page';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -106,23 +105,7 @@ export default function GalleryPage() {
                     <div className="bg-[#2c1f17] rounded-lg m-4 p-6">
                         <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                            <div className="w-24 h-24 flex items-center justify-center">
-                               <div className="scale-[0.33] origin-center">
-                                    <Face 
-                                        expression="neutral"
-                                        color="orangered"
-                                        showSunglasses={false}
-                                        showMustache={false}
-                                        animationType='none'
-                                        isDragging={false}
-                                        shape="default"
-                                        eyeStyle='default'
-                                        mouthStyle='default'
-                                        eyebrowStyle='default'
-                                        onPan={() => {}}
-                                        onPanStart={() => {}}
-                                        onPanEnd={() => {}}
-                                    />
-                               </div>
+                               {/* Emoji removed as requested */}
                             </div>
                             <div className="flex flex-col justify-center">
                                 <div className="flex items-center gap-1 font-semibold text-base">
