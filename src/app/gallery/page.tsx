@@ -25,10 +25,6 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
-    
-    // State for the Loki Clock avatar
-    const featureOffsetX = useMotionValue(0);
-    const featureOffsetY = useMotionValue(0);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -69,8 +65,7 @@ export default function GalleryPage() {
         <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
             <div className="flex items-center gap-1 font-semibold text-lg">
                 <Lock className="h-4 w-4" />
-                <span>santosh.r.k_</span>
-                <ChevronDown className="h-5 w-5" />
+                <span>Profile</span>
             </div>
             <div className="flex items-center gap-2">
                  <Sheet>
@@ -108,8 +103,8 @@ export default function GalleryPage() {
              <>
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto">
-                    <div className="p-4">
-                        <div className="flex items-center justify-between">
+                    <div className="p-4 bg-card/50 rounded-lg m-4">
+                        <div className="flex items-center">
                             <div className="relative h-24 w-24">
                                <div className="absolute inset-0 scale-[0.35] -top-12 -left-8">
                                     <ClockFace 
@@ -122,27 +117,27 @@ export default function GalleryPage() {
                                         shape="default"
                                     />
                                </div>
-                                <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-primary rounded-full flex items-center justify-center border-4 border-background">
-                                    <span className="text-primary-foreground text-lg font-bold">+</span>
+                            </div>
+                            <div className="flex flex-col ml-4">
+                                <div className="flex items-center gap-1 font-semibold text-lg">
+                                    <span>santosh.r.k_</span>
+                                    <ChevronDown className="h-5 w-5" />
+                                </div>
+                                <div className="flex items-center gap-4 text-center mt-2">
+                                    <div>
+                                        <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                        <p className="text-sm text-muted-foreground">posts</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-lg">524</p>
+                                        <p className="text-sm text-muted-foreground">followers</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-lg">65</p>
+                                        <p className="text-sm text-muted-foreground">following</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4 text-center">
-                                <div>
-                                    <p className="font-bold text-lg">{savedEmojis.length}</p>
-                                    <p className="text-sm text-muted-foreground">posts</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg">524</p>
-                                    <p className="text-sm text-muted-foreground">followers</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg">65</p>
-                                    <p className="text-sm text-muted-foreground">following</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-3">
-                            <h2 className="font-semibold">SK</h2>
                         </div>
                         <div className="mt-4 flex gap-2">
                             <Button variant="secondary" className="flex-1">Edit profile</Button>
