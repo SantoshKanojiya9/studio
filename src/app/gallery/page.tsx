@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Face } from '@/app/design/page';
-import { motion, useMotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 export default function GalleryPage() {
@@ -38,13 +38,6 @@ export default function GalleryPage() {
     const [selectedEmoji, setSelectedEmoji] = React.useState<EmojiState | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isAlertOpen, setIsAlertOpen] = React.useState(false);
-
-    // motion values for the preview face
-    const pointerX = useMotionValue(0.5);
-    const pointerY = useMotionValue(0.5);
-    const featureOffsetX = useMotionValue(0);
-    const featureOffsetY = useMotionValue(0);
-
 
     React.useEffect(() => {
         setIsClient(true);
@@ -148,10 +141,7 @@ export default function GalleryPage() {
                                 <Face 
                                   {...selectedEmoji}
                                   color={selectedEmoji.emojiColor}
-                                  pointerX={pointerX}
-                                  pointerY={pointerY}
-                                  featureOffsetX={featureOffsetX}
-                                  featureOffsetY={featureOffsetY}
+                                  isDragging={false}
                                   onPan={() => {}}
                                   onPanStart={() => {}}
                                   onPanEnd={() => {}}

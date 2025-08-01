@@ -16,7 +16,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 
-type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
+export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
@@ -39,38 +39,130 @@ export type EmojiState = {
 
 
 export const Face = ({ 
-    expression, 
+    expression: initialExpression, 
     color, 
     showSunglasses, 
     showMustache,
-    pointerX,
-    pointerY,
-    featureOffsetX,
-    featureOffsetY,
-    onPan,
-    onPanStart,
-    onPanEnd,
     shape,
     eyeStyle,
     mouthStyle,
     eyebrowStyle,
+    animationType,
+    isDragging,
+    onPan,
+    onPanStart,
+    onPanEnd,
 }: { 
     expression: Expression, 
     color: string, 
     showSunglasses: boolean,
     showMustache: boolean,
-    pointerX: any,
-    pointerY: any,
-    featureOffsetX: any,
-    featureOffsetY: any,
-    onPan: (event: any, info: any) => void;
-    onPanStart: (event: any, info: any) => void;
-    onPanEnd: (event: any, info: any) => void;
     shape: ShapeType;
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
     eyebrowStyle: FeatureStyle;
+    animationType: AnimationType;
+    isDragging: boolean;
+    onPan?: (event: any, info: any) => void;
+    onPanStart?: (event: any, info: any) => void;
+    onPanEnd?: (event: any, info: any) => void;
 }) => {
+  const [expression, setExpression] = useState<Expression>(initialExpression);
+  const [isAngryMode, setIsAngryMode] = useState(false);
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
+  const [preAngryColor, setPreAngryColor] = useState(color);
+
+  const pointerX = useMotionValue(0.5);
+  const pointerY = useMotionValue(0.5);
+  const featureOffsetX = useMotionValue(0);
+  const featureOffsetY = useMotionValue(0);
+
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+  
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+
+  useEffect(() => {
+    setExpression(initialExpression);
+  }, [initialExpression]);
+
+  useEffect(() => {
+    if (isAngryMode || isDragging) return;
+    
+    const stopAnimations = () => {
+        if (animationControlsX.current) animationControlsX.current.stop();
+        if (animationControlsY.current) animationControlsY.current.stop();
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+    };
+
+    if (animationType === 'none') {
+        stopAnimations();
+        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
+        return;
+    }
+    
+    stopAnimations();
+
+    const animationOptions = {
+        duration: 2,
+        repeat: Infinity,
+        repeatType: "mirror" as const,
+        ease: "easeInOut" as const,
+    };
+    
+    const randomAnimation = () => {
+        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
+        setExpression(newExpression);
+        
+        const boundaryX = 80; 
+        const boundaryY = 60;
+        
+        let newX, newY;
+        
+        do {
+            newX = Math.random() * (2 * boundaryX) - boundaryX;
+            newY = Math.random() * (2 * boundaryY) - boundaryY;
+        } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
+
+        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+    };
+
+    switch (animationType) {
+        case 'left-right':
+            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
+            break;
+        case 'right-left':
+            animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
+            break;
+        case 'up-down':
+            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'down-up':
+            animationControlsY.current = animate(featureOffsetY, [50, -50], animationOptions);
+            break;
+        case 'diag-left-right':
+            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
+            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'diag-right-left':
+             animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
+             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+            break;
+        case 'random':
+            animationIntervalRef.current = setInterval(randomAnimation, 3000);
+            randomAnimation();
+            break;
+        default:
+            // Do nothing, animations are already stopped
+    }
+
+    return stopAnimations;
+  }, [animationType, isAngryMode, isDragging]);
+
+
   const eyeVariants = {
     neutral: { y: 0, scaleY: 1 },
     happy: { y: 4, scaleY: 0.8 },
@@ -137,6 +229,31 @@ export const Face = ({
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
+  const handleTap = () => {
+    if (isAngryMode || isDragging) return;
+
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].slice(-4);
+    setTapTimestamps(newTimestamps);
+
+    if (newTimestamps.length === 4) {
+      const timeDiff = newTimestamps[3] - newTimestamps[0];
+      if (timeDiff < 2000) {
+        setTapTimestamps([]);
+        setPreAngryColor(color);
+        setIsAngryMode(true);
+        // This is a bit of a hack, we probably want to change the color state in the parent
+        // setEmojiColor('orangered'); 
+        setExpression('angry');
+
+        setTimeout(() => {
+          setIsAngryMode(false);
+          // setEmojiColor(preAngryColor);
+          setExpression('neutral');
+        }, 2000);
+      }
+    }
+  };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.currentTarget) {
@@ -228,6 +345,7 @@ export const Face = ({
       onPan={onPan}
       onPanStart={onPanStart}
       onPanEnd={onPanEnd}
+      onTap={handleTap}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
@@ -365,37 +483,26 @@ const DesignPageContent = () => {
   
   const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
-  const [preAngryColor, setPreAngryColor] = useState(emojiColor);
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [animationType, setAnimationType] = useState<AnimationType>('random');
-  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
-  const [isAngryMode, setIsAngryMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [shape, setShape] = useState<ShapeType>('default');
   const [eyeStyle, setEyeStyle] = useState<FeatureStyle>('default');
   const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
 
-  const featureOffsetX = useMotionValue(0);
-  const featureOffsetY = useMotionValue(0);
-
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
   
-  const pointerX = useMotionValue(0.5);
-  const pointerY = useMotionValue(0.5);
-
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
-  
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const featureOffsetX = useMotionValue(0);
+  const featureOffsetY = useMotionValue(0);
   
   const loadState = (state: EmojiState) => {
+    setId(state.id);
     setExpression(state.expression || 'neutral');
     setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
     setEmojiColor(state.emojiColor || defaultEmojiColor);
@@ -411,16 +518,14 @@ const DesignPageContent = () => {
 
   const handleLoadEmoji = (emojiState: EmojiState) => {
     loadState(emojiState);
-    setId(emojiState.id);
     setActiveMenu('main');
   };
   
-  // Load saved state from localStorage on initial render
   useEffect(() => {
     try {
         const emojiId = searchParams.get('emojiId');
         if (!emojiId) {
-            handleReset(); // Ensure a fresh state if no ID is provided
+            handleReset(); 
             return;
         }
 
@@ -439,81 +544,6 @@ const DesignPageContent = () => {
     }
   }, [searchParams]);
 
-
-  useEffect(() => {
-    if (isAngryMode || isDragging) return;
-    
-    const stopAnimations = () => {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-    };
-
-    if (animationType === 'none') {
-        stopAnimations();
-        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        return;
-    }
-    
-    stopAnimations();
-
-    const animationOptions = {
-        duration: 2,
-        repeat: Infinity,
-        repeatType: "mirror" as const,
-        ease: "easeInOut" as const,
-    };
-    
-    const randomAnimation = () => {
-        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
-        setExpression(newExpression);
-        
-        const boundaryX = 80; 
-        const boundaryY = 60;
-        
-        let newX, newY;
-        
-        do {
-            newX = Math.random() * (2 * boundaryX) - boundaryX;
-            newY = Math.random() * (2 * boundaryY) - boundaryY;
-        } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
-
-        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
-        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
-    };
-
-    switch (animationType) {
-        case 'left-right':
-            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
-            break;
-        case 'right-left':
-            animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
-            break;
-        case 'up-down':
-            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
-            break;
-        case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
-            break;
-        case 'diag-left-right':
-            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
-            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
-            break;
-        case 'diag-right-left':
-             animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
-             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
-            break;
-        case 'random':
-            animationIntervalRef.current = setInterval(randomAnimation, 3000);
-            randomAnimation();
-            break;
-        default:
-            // Do nothing, animations are already stopped
-    }
-
-    return stopAnimations;
-  }, [animationType, isAngryMode, isDragging]);
   
   const handleReset = () => {
     router.push('/design', { scroll: false });
@@ -535,6 +565,7 @@ const DesignPageContent = () => {
   };
   
   const handleRandomize = () => {
+    const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
     const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
     setExpression(newExpression);
   }
@@ -562,11 +593,9 @@ const DesignPageContent = () => {
 
         let newGallery;
         if (existingIndex > -1) {
-            // Update existing emoji
             newGallery = [...existingGallery];
             newGallery[existingIndex] = currentState;
         } else {
-            // Add new emoji
             newGallery = [...existingGallery, currentState];
         }
 
@@ -578,38 +607,13 @@ const DesignPageContent = () => {
     }
   };
 
-
-  const handleTap = () => {
-    if (isAngryMode || isDragging) return;
-
-    const now = Date.now();
-    const newTimestamps = [...tapTimestamps, now].slice(-4);
-    setTapTimestamps(newTimestamps);
-
-    if (newTimestamps.length === 4) {
-      const timeDiff = newTimestamps[3] - newTimestamps[0];
-      if (timeDiff < 2000) {
-        setTapTimestamps([]);
-        setPreAngryColor(emojiColor);
-        setIsAngryMode(true);
-        setEmojiColor('orangered');
-        setExpression('angry');
-
-        setTimeout(() => {
-          setIsAngryMode(false);
-          setEmojiColor(preAngryColor);
-          setExpression('neutral');
-        }, 2000);
-      }
-    }
-  };
-
-  const handlePanStart = () => {
+  const handlePanStart = (event: any, info: any) => {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current);
     }
     setIsDragging(true);
     dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
+    if (onPanStart) onPanStart(event, info);
   };
 
   const handlePan = (event: any, info: any) => {
@@ -621,7 +625,6 @@ const DesignPageContent = () => {
         let newY = dragOrigin.current.y + info.offset.y;
 
         if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
-            // If outside, find the angle and project back to the boundary
             const angle = Math.atan2(newY, newX);
             newX = boundaryX * Math.cos(angle);
             newY = boundaryY * Math.sin(angle);
@@ -632,7 +635,7 @@ const DesignPageContent = () => {
     }
   };
 
-  const handlePanEnd = () => {
+  const handlePanEnd = (event: any, info: any) => {
     dragOrigin.current = null;
     if (dragTimeoutRef.current) {
         clearTimeout(dragTimeoutRef.current);
@@ -951,7 +954,6 @@ const DesignPageContent = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0">
         <motion.div
           className="w-80 h-96 flex items-center justify-center select-none"
-          onTap={handleTap}
           style={{ 
             transformStyle: 'preserve-3d',
             filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
@@ -962,17 +964,15 @@ const DesignPageContent = () => {
               color={emojiColor} 
               showSunglasses={showSunglasses} 
               showMustache={showMustache} 
-              pointerX={pointerX}
-              pointerY={pointerY}
-              featureOffsetX={featureOffsetX}
-              featureOffsetY={featureOffsetY}
-              onPan={handlePan}
-              onPanStart={handlePanStart}
-              onPanEnd={handlePanEnd}
               shape={shape}
               eyeStyle={eyeStyle}
               mouthStyle={mouthStyle}
               eyebrowStyle={eyebrowStyle}
+              animationType={animationType}
+              isDragging={isDragging}
+              onPan={handlePan}
+              onPanStart={handlePanStart}
+              onPanEnd={handlePanEnd}
           />
         </motion.div>
       </div>
