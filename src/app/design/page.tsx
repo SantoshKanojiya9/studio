@@ -1358,7 +1358,6 @@ const DesignPageContent = () => {
                 </div>
             );
       case 'face':
-        if (isLoki) return null;
         return (
             <>
                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
@@ -1390,12 +1389,10 @@ const DesignPageContent = () => {
                 <Smile className="h-4 w-4" />
                 <span className="text-xs mt-1">Expressions</span>
             </Button>
-            {!isLoki && (
-              <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
-                  <UserIcon className="h-4 w-4" />
-                  <span className="text-xs mt-1">Face</span>
-              </Button>
-            )}
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
+                <UserIcon className="h-4 w-4" />
+                <span className="text-xs mt-1">Face</span>
+            </Button>
              <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
                 <Sparkles className="h-4 w-4" />
                 <span className="text-xs mt-1">Animations</span>
