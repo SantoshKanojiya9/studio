@@ -103,10 +103,10 @@ export default function GalleryPage() {
              <>
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto">
-                    <div className="bg-[#2c1f17] rounded-lg m-4 p-4">
+                    <div className="bg-[#2c1f17] rounded-lg m-4 p-6">
                         <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                            <div className="w-24 h-24 flex items-center justify-center">
-                               <div className="scale-[0.35] origin-center">
+                               <div className="scale-[0.33] origin-center">
                                     <Face 
                                         expression="neutral"
                                         color="orangered"
@@ -125,21 +125,21 @@ export default function GalleryPage() {
                                </div>
                             </div>
                             <div className="flex flex-col justify-center">
-                                <div className="flex items-center gap-1 font-semibold text-lg">
+                                <div className="flex items-center gap-1 font-semibold text-base">
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
                                 <div className="flex items-center text-center mt-2 gap-4">
                                     <div>
-                                        <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                        <p className="font-bold text-base">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <div>
-                                        <p className="font-bold text-lg">524</p>
+                                        <p className="font-bold text-base">524</p>
                                         <p className="text-sm text-muted-foreground">followers</p>
                                     </div>
                                     <div>
-                                        <p className="font-bold text-lg">65</p>
+                                        <p className="font-bold text-base">65</p>
                                         <p className="text-sm text-muted-foreground">following</p>
                                     </div>
                                 </div>
