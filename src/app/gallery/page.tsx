@@ -20,6 +20,60 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
+
+const CrownedEggAvatar = () => {
+    return (
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <defs>
+                <radialGradient id="eggGradient" cx="0.5" cy="0.5" r="0.5">
+                    <stop offset="0%" stopColor="#f5f5f5" />
+                    <stop offset="100%" stopColor="#e0e0e0" />
+                </radialGradient>
+                <linearGradient id="crownGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FFD700" />
+                    <stop offset="100%" stopColor="#FFA500" />
+                </linearGradient>
+            </defs>
+
+            {/* Egg Shadow */}
+            <ellipse cx="50" cy="90" rx="35" ry="5" fill="rgba(0,0,0,0.1)" />
+            
+            {/* Egg */}
+            <path 
+                d="M 50,15
+                   C 25,15 15,40 15,60
+                   C 15,85 35,100 50,100
+                   C 65,100 85,85 85,60
+                   C 85,40 75,15 50,15 Z"
+                fill="url(#eggGradient)"
+                transform="translate(0, -10)"
+            />
+
+            {/* Crown */}
+            <g transform="translate(0, -10)">
+                <path 
+                    d="M 25 30 L 75 30 L 70 45 L 30 45 Z"
+                    fill="url(#crownGradient)"
+                    stroke="#DAA520"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                />
+                <path 
+                    d="M 25 30 L 35 15 L 50 25 L 65 15 L 75 30"
+                    fill="url(#crownGradient)"
+                    stroke="#DAA520"
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                />
+                <circle cx="35" cy="18" r="3" fill="#FF4136" />
+                <circle cx="50" cy="28" r="3" fill="#0074D9" />
+                <circle cx="65" cy="18" r="3" fill="#2ECC40" />
+            </g>
+        </svg>
+    );
+};
+
+
 export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
@@ -105,7 +159,7 @@ export default function GalleryPage() {
                     <div className="bg-[#2c1f17] rounded-lg m-4 p-6">
                         <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                            <div className="w-24 h-24 flex items-center justify-center">
-                               {/* Emoji removed as requested */}
+                                <CrownedEggAvatar />
                             </div>
                             <div className="flex flex-col justify-center">
                                 <div className="flex items-center gap-1 font-semibold text-base">
