@@ -1,17 +1,13 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { ChatHeader } from '@/components/chat-header';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -31,16 +27,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Face } from '@/app/design/page'; // We will need to export Face component
-import { motion } from 'framer-motion';
+import { Face } from '@/app/design/page';
+import { motion, useMotionValue } from 'framer-motion';
 
 export default function GalleryPage() {
-    const [savedEmojis, setSavedEmojis] = useState<EmojiState[]>([]);
-    const [selectedEmoji, setSelectedEmoji] = useState<EmojiState | null>(null);
-    const [isClient, setIsClient] = useState(false);
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
+    const [selectedEmoji, setSelectedEmoji] = React.useState<EmojiState | null>(null);
+    const [isClient, setIsClient] = React.useState(false);
+    const [isAlertOpen, setIsAlertOpen] = React.useState(false);
 
-    useEffect(() => {
+    // motion values for the preview face
+    const pointerX = useMotionValue(0.5);
+    const pointerY = useMotionValue(0.5);
+    const featureOffsetX = useMotionValue(0);
+    const featureOffsetY = useMotionValue(0);
+
+
+    React.useEffect(() => {
         setIsClient(true);
         try {
             const savedGallery = localStorage.getItem('savedEmojiGallery');
@@ -131,10 +134,10 @@ export default function GalleryPage() {
                             >
                                 <Face 
                                   {...selectedEmoji}
-                                  pointerX={motion(0.5)}
-                                  pointerY={motion(0.5)}
-                                  featureOffsetX={motion(0)}
-                                  featureOffsetY={motion(0)}
+                                  pointerX={pointerX}
+                                  pointerY={pointerY}
+                                  featureOffsetX={featureOffsetX}
+                                  featureOffsetY={featureOffsetY}
                                   onPan={() => {}}
                                   onPanStart={() => {}}
                                   onPanEnd={() => {}}
