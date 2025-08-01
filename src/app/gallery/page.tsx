@@ -31,7 +31,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Face } from '@/app/design/page';
-import { motion } from 'framer-motion';
+import { ClockFace } from '@/app/loki/page';
+import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -48,6 +49,10 @@ export default function GalleryPage() {
     const [selectedEmoji, setSelectedEmoji] = React.useState<EmojiState | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+    
+    // State for the Loki Clock avatar
+    const featureOffsetX = useMotionValue(0);
+    const featureOffsetY = useMotionValue(0);
 
     React.useEffect(() => {
         setIsClient(true);
@@ -126,11 +131,23 @@ export default function GalleryPage() {
             <div className="flex-1 overflow-y-auto">
                 <div className="p-4">
                     <div className="flex items-center justify-between">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24 border-2 border-background">
-                                <AvatarImage src="https://placehold.co/96x96.png" alt="santosh.r.k_" data-ai-hint="profile picture" />
-                                <AvatarFallback>SRK</AvatarFallback>
-                            </Avatar>
+                        <div className="relative h-24 w-24">
+                           <div className="absolute inset-0 scale-[0.35] -top-12 -left-8">
+                                <ClockFace 
+                                    expression="neutral"
+                                    color="orangered"
+                                    showSunglasses={false}
+                                    showMustache={false}
+                                    pointerX={useMotionValue(0.5)}
+                                    pointerY={useMotionValue(0.5)}
+                                    featureOffsetX={featureOffsetX}
+                                    featureOffsetY={featureOffsetY}
+                                    onPan={() => {}}
+                                    onPanStart={() => {}}
+                                    onPanEnd={() => {}}
+                                    shape="default"
+                                />
+                           </div>
                             <div className="absolute -bottom-1 -right-1 h-7 w-7 bg-primary rounded-full flex items-center justify-center border-4 border-background">
                                 <span className="text-primary-foreground text-lg font-bold">+</span>
                             </div>
@@ -197,8 +214,8 @@ export default function GalleryPage() {
             {selectedEmoji && (
                 <Dialog open={!!selectedEmoji} onOpenChange={(isOpen) => !isOpen && setSelectedEmoji(null)}>
                     <DialogContent className="p-0 border-0 bg-transparent shadow-none w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                        <DialogHeader className="sr-only">
-                          <DialogTitle>Emoji Preview</DialogTitle>
+                        <DialogHeader>
+                          <DialogTitle className="sr-only">Emoji Preview</DialogTitle>
                         </DialogHeader>
                         <div 
                             className="relative w-full h-full flex items-center justify-center transition-colors duration-300"
@@ -240,6 +257,9 @@ export default function GalleryPage() {
                                   {...selectedEmoji}
                                   color={selectedEmoji.emojiColor}
                                   isDragging={false}
+                                  onPan={() => {}}
+                                  onPanStart={() => {}}
+                                  onPanEnd={() => {}}
                                 />
                            </motion.div>
                         </div>

@@ -20,7 +20,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear';
 
-const ClockFace = ({ 
+export const ClockFace = ({ 
     expression, 
     color, 
     showSunglasses,
@@ -485,7 +485,7 @@ export default function LokiPage() {
     }
   };
 
-  const handlePanStart = () => {
+  const handlePanStart = (event: any, info: any) => {
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current);
     }
@@ -513,7 +513,7 @@ export default function LokiPage() {
     }
   };
 
-  const handlePanEnd = () => {
+  const handlePanEnd = (event: any, info: any) => {
     dragOrigin.current = null;
     if (dragTimeoutRef.current) {
         clearTimeout(dragTimeoutRef.current);
