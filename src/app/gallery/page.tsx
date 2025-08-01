@@ -103,8 +103,8 @@ export default function GalleryPage() {
              <>
                 <ProfileHeader />
                 <div className="flex-1 overflow-x-hidden">
-                    <div className="p-4 bg-gradient-to-tr from-amber-900/30 to-amber-800/20 rounded-lg m-4">
-                        <div className="flex items-center">
+                    <div className="bg-[#2c1f17] rounded-lg m-4 p-4">
+                        <div className="flex items-start gap-4">
                             <div className="relative h-24 w-24 flex-shrink-0">
                                <div className="absolute inset-0 scale-[0.35] -top-12 -left-8">
                                     <ClockFace 
@@ -118,7 +118,7 @@ export default function GalleryPage() {
                                     />
                                </div>
                             </div>
-                            <div className="flex flex-col flex-grow ml-4">
+                            <div className="flex flex-col flex-grow mt-2">
                                 <div className="flex items-center gap-1 font-semibold text-lg">
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
