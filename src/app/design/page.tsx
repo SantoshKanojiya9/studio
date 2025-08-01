@@ -14,6 +14,17 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -476,6 +487,7 @@ export const Face = ({
 const DesignPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   const [id, setId] = useState<string>(Date.now().toString());
   const [expression, setExpression] = useState<Expression>('neutral');
@@ -492,6 +504,7 @@ const DesignPageContent = () => {
   const [eyeStyle, setEyeStyle] = useState<FeatureStyle>('default');
   const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -571,6 +584,10 @@ const DesignPageContent = () => {
   }
 
   const handleSave = () => {
+    setShowSaveConfirm(true);
+  };
+  
+  const confirmSave = () => {
     const currentState: EmojiState = {
       id,
       expression,
@@ -600,12 +617,21 @@ const DesignPageContent = () => {
         }
 
         localStorage.setItem('savedEmojiGallery', JSON.stringify(newGallery));
-        alert('Emoji saved!');
+        toast({
+            title: "Your emoji has been saved.",
+            variant: "success",
+        });
     } catch (error) {
         console.error("Failed to save state to localStorage", error);
-        alert('Failed to save emoji.');
+        toast({
+            title: "Failed to save emoji.",
+            description: "There was an error while trying to save your creation.",
+            variant: "destructive",
+        });
     }
+    setShowSaveConfirm(false);
   };
+
 
   const handlePanStart = (event: any, info: any) => {
     if (dragTimeoutRef.current) {
@@ -986,6 +1012,22 @@ const DesignPageContent = () => {
             </ScrollArea>
         </TooltipProvider>
       </div>
+      
+      <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Emoji</AlertDialogTitle>
+            <AlertDialogDescription>
+              Do you want to save this emoji to your gallery?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSave}>Yes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
