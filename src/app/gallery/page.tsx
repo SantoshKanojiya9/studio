@@ -189,41 +189,31 @@ export default function GalleryPage() {
                         </div>
                     </div>
 
-                    <Tabs defaultValue="grid" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 bg-transparent">
-                            <TabsTrigger value="grid" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
-                                <Grid3x3 />
-                            </TabsTrigger>
-                            <TabsTrigger value="reels" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
-                                <CgClapperBoard size={24} />
-                            </TabsTrigger>
-                            <TabsTrigger value="tagged" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none">
-                                <BsPersonVcard size={24} />
-                            </TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="grid" className="p-1">
-                            {savedEmojis.length > 0 ? (
-                                <motion.div 
-                                    layout
-                                    className="grid grid-cols-3 gap-1"
-                                >
-                                    {savedEmojis.map(emoji => (
-                                        <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
-                                    ))}
-                                </motion.div>
-                            ) : (
-                                 <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
-                                    <div className="border-2 border-foreground rounded-full p-4">
-                                        <Grid3x3 className="h-12 w-12" />
-                                     </div>
-                                    <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
-                                    <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
-                                </div>
-                            )}
-                        </TabsContent>
-                        <TabsContent value="reels" className="flex items-center justify-center p-8 text-muted-foreground">Reels coming soon!</TabsContent>
-                        <TabsContent value="tagged" className="flex items-center justify-center p-8 text-muted-foreground">Tagged posts coming soon!</TabsContent>
-                    </Tabs>
+                    <div className="border-t border-b border-border">
+                        <div className="flex items-center justify-center p-2 text-primary border-b-2 border-primary">
+                             <Grid3x3 />
+                        </div>
+                    </div>
+                    <div className="p-1">
+                        {savedEmojis.length > 0 ? (
+                            <motion.div 
+                                layout
+                                className="grid grid-cols-3 gap-1"
+                            >
+                                {savedEmojis.map(emoji => (
+                                    <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
+                                ))}
+                            </motion.div>
+                        ) : (
+                             <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
+                                <div className="border-2 border-foreground rounded-full p-4">
+                                    <Grid3x3 className="h-12 w-12" />
+                                 </div>
+                                <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
+                                <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </>
            )}
