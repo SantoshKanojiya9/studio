@@ -92,7 +92,7 @@ export const Face = ({
   };
 
   const expressionMouthVariants = {
-    neutral: { d: mouthVariants[mouthStyle].d },
+    neutral: { d: mouthVariants[mouthStyle]?.d || mouthVariants.default.d },
     happy: { d: "M 30 50 Q 50 70 70 50" },
     angry: { d: "M 25 60 Q 50 35 75 60" },
     sad: { d: "M 30 60 Q 50 50 70 60" },
@@ -162,54 +162,61 @@ export const Face = ({
   };
 
   const getShapeClipPath = (s: ShapeType) => {
-    const paths = {
-      default: '50% 50% 40% 40% / 60% 60% 40% 40%',
-      square: '10%',
-      squircle: '30%',
-      tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-      blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
+    const paths: Record<ShapeType, string> = {
+        default: '50% 50% 40% 40% / 60% 60% 40% 40%',
+        square: '10%',
+        squircle: '30%',
+        tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
+        blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };
   
-    const renderEye = (style: FeatureStyle) => {
+  const renderEye = (style: FeatureStyle) => {
     const eyeBase = (
-      <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden">
+      <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden">
         <motion.div
           className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
         >
-          <motion.div animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
+          <motion.div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/80 rounded-full"/>
+          <motion.div className="flex items-center justify-center w-full h-full" animate={{ opacity: expression === 'love' ? 1 : 0 }} transition={{ duration: 0.1 }}>
             <Heart className="w-5 h-5 text-red-500 fill-current" />
           </motion.div>
         </motion.div>
       </div>
     );
     switch (style) {
-      case 'male-1': return <div className="w-12 h-8 bg-fuchsia-200 rounded-lg relative overflow-hidden">{eyeBase}</div>;
-      case 'male-2': return <div className="w-12 h-10 bg-fuchsia-200 rounded-t-full relative overflow-hidden">{eyeBase}</div>;
-      case 'male-3': return <div className="w-10 h-10 bg-fuchsia-200 rounded-md relative overflow-hidden">{eyeBase}</div>;
-      case 'female-1': return <div className="w-12 h-10 bg-fuchsia-200 rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-fuchsia-200" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase}</div>;
-      case 'female-2': return <div className="w-12 h-12 bg-fuchsia-200 rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase}</div>;
-      case 'female-3': return <div className="w-14 h-8 bg-fuchsia-200 rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBase}</div>;
+      case 'male-1': return <div className="w-12 h-8 bg-white rounded-lg relative overflow-hidden">{eyeBase}</div>;
+      case 'male-2': return <div className="w-12 h-10 bg-white rounded-t-full relative overflow-hidden">{eyeBase}</div>;
+      case 'male-3': return <div className="w-10 h-10 bg-white rounded-md relative overflow-hidden">{eyeBase}</div>;
+      case 'female-1': return <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-white" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase}</div>;
+      case 'female-2': return <div className="w-12 h-12 bg-white rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase}</div>;
+      case 'female-3': return <div className="w-14 h-8 bg-white rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBase}</div>;
       default: return eyeBase;
     }
   };
 
   const renderEyebrow = (style: FeatureStyle, isRight?: boolean) => {
-    const baseStyle = {
+    const baseStyle: React.CSSProperties = {
       clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)',
       transformOrigin: 'center',
       transform: isRight ? 'scaleX(-1)' : 'none',
     };
+    const eyebrowMotion = {
+        variants: eyebrowVariants,
+        animate: expression,
+        transition: { duration: 0.3, type: "spring", stiffness: 300, damping: 15 }
+    };
+
     switch (style) {
-      case 'male-1': return <motion.div className="absolute -top-3 left-0 w-14 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} variants={eyebrowVariants} animate={expression} />;
-      case 'male-2': return <motion.div className="absolute -top-4 left-0 w-12 h-5 bg-black" style={{ ...baseStyle, borderRadius: '4px' }} variants={eyebrowVariants} animate={expression} />;
-      case 'male-3': return <motion.div className="absolute -top-2 left-0 w-12 h-3 bg-black" style={baseStyle} variants={eyebrowVariants} animate={expression} />;
-      case 'female-1': return <motion.div className="absolute -top-4 left-0 w-12 h-3 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,10 C10,0 40,0 50,10")' }} variants={eyebrowVariants} animate={expression} />;
-      case 'female-2': return <motion.div className="absolute -top-3 left-0 w-12 h-2.5 bg-black" style={{ ...baseStyle }} variants={eyebrowVariants} animate={expression} />;
-      case 'female-3': return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} variants={eyebrowVariants} animate={expression} />;
-      default: return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={baseStyle} variants={eyebrowVariants} animate={expression} transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 15 }} />;
+      case 'male-1': return <motion.div className="absolute -top-3 left-0 w-14 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} {...eyebrowMotion} />;
+      case 'male-2': return <motion.div className="absolute -top-4 left-0 w-12 h-5 bg-black" style={{ ...baseStyle, borderRadius: '4px' }} {...eyebrowMotion} />;
+      case 'male-3': return <motion.div className="absolute -top-2 left-0 w-12 h-3 bg-black" style={baseStyle} {...eyebrowMotion} />;
+      case 'female-1': return <motion.div className="absolute -top-4 left-0 w-12 h-3 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,10 C10,0 40,0 50,10")' }} {...eyebrowMotion} />;
+      case 'female-2': return <motion.div className="absolute -top-3 left-0 w-12 h-2.5 bg-black" style={{ ...baseStyle }} {...eyebrowMotion} />;
+      case 'female-3': return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} {...eyebrowMotion} />;
+      default: return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={baseStyle} {...eyebrowMotion} />;
     }
   };
 
@@ -388,7 +395,7 @@ const DesignPageContent = () => {
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  const loadState = (state: Omit<EmojiState, 'id'>) => {
+  const loadState = (state: EmojiState) => {
     setExpression(state.expression || 'neutral');
     setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
     setEmojiColor(state.emojiColor || defaultEmojiColor);
@@ -412,15 +419,16 @@ const DesignPageContent = () => {
   useEffect(() => {
     try {
         const emojiId = searchParams.get('emojiId');
+        if (!emojiId) {
+            handleReset(); // Ensure a fresh state if no ID is provided
+            return;
+        }
+
         const savedGallery = localStorage.getItem('savedEmojiGallery');
 
         if (savedGallery) {
             const gallery = JSON.parse(savedGallery) as EmojiState[];
-            let emojiToLoad: EmojiState | undefined;
-
-            if (emojiId) {
-                emojiToLoad = gallery.find(e => e.id === emojiId);
-            }
+            const emojiToLoad = gallery.find(e => e.id === emojiId);
 
             if (emojiToLoad) {
                 handleLoadEmoji(emojiToLoad);
@@ -508,7 +516,7 @@ const DesignPageContent = () => {
   }, [animationType, isAngryMode, isDragging]);
   
   const handleReset = () => {
-    router.push('/design'); // Navigate to clear query params
+    router.push('/design', { scroll: false });
     setId(Date.now().toString());
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);

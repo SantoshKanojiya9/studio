@@ -64,6 +64,7 @@ export default function GalleryPage() {
             setSavedEmojis(updatedEmojis);
             localStorage.setItem('savedEmojiGallery', JSON.stringify(updatedEmojis));
             setSelectedEmoji(null); // Close the preview
+            setIsAlertOpen(false); // Close the alert dialog
         } catch (error) {
             console.error("Failed to delete emoji from localStorage", error);
         }
