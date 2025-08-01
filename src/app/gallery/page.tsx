@@ -6,11 +6,11 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { MoreVertical, Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
+import { Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
 import { CgClapperBoard } from "react-icons/cg";
 import { BsPersonVcard } from "react-icons/bs";
 import { ClockFace } from '@/app/design/page';
-import { motion, useMotionValue } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -103,9 +103,9 @@ export default function GalleryPage() {
              <>
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto">
-                    <div className="p-4 bg-card/50 rounded-lg m-4">
+                    <div className="p-4 bg-gradient-to-tr from-amber-900/30 to-amber-800/20 rounded-lg m-4">
                         <div className="flex items-center">
-                            <div className="relative h-24 w-24">
+                            <div className="relative h-24 w-24 flex-shrink-0">
                                <div className="absolute inset-0 scale-[0.35] -top-12 -left-8">
                                     <ClockFace 
                                         expression="neutral"
@@ -118,7 +118,7 @@ export default function GalleryPage() {
                                     />
                                </div>
                             </div>
-                            <div className="flex flex-col ml-4">
+                            <div className="flex flex-col flex-grow ml-4">
                                 <div className="flex items-center gap-1 font-semibold text-lg">
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
