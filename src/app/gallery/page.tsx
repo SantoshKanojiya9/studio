@@ -139,6 +139,7 @@ export default function GalleryPage() {
                             >
                                 <Face 
                                   {...selectedEmoji}
+                                  color={selectedEmoji.emojiColor}
                                   pointerX={pointerX}
                                   pointerY={pointerY}
                                   featureOffsetX={featureOffsetX}
