@@ -5,8 +5,26 @@ import Link from 'next/link';
 import type { EmojiState } from '@/app/design/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Heart, X } from 'lucide-react';
+import { Heart, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import React from 'react';
 
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     const eyeVariants = {
@@ -183,36 +201,59 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
 
 export const GalleryThumbnail = ({ emoji, onDelete }: { emoji: EmojiState; onDelete: (id: string) => void; }) => {
     
-    const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault(); // Prevent Link navigation
-        e.stopPropagation(); // Stop event bubbling
+    const handleDeleteClick = () => {
         onDelete(emoji.id);
     };
 
     return (
-        <div className="relative group aspect-square">
-             <Link 
-                href={`/design?emojiId=${emoji.id}`}
-                className="aspect-square w-full rounded-md overflow-hidden relative block"
-                style={{ backgroundColor: emoji.backgroundColor }}
-            >
-                <div className={cn(
-                    "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
-                )}>
-                    <MiniFace emoji={emoji} />
-                </div>
-                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </Link>
-            <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                onClick={handleDeleteClick}
-                aria-label="Delete emoji"
-            >
-                <X className="h-4 w-4" />
-            </Button>
-        </div>
+        <AlertDialog>
+            <div className="relative group aspect-square">
+                <Link 
+                    href={`/design?emojiId=${emoji.id}`}
+                    className="aspect-square w-full rounded-md overflow-hidden relative block"
+                    style={{ backgroundColor: emoji.backgroundColor }}
+                >
+                    <div className={cn(
+                        "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                    )}>
+                        <MiniFace emoji={emoji} />
+                    </div>
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </Link>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1 right-1 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                            aria-label="More options"
+                        >
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                        <AlertDialogTrigger asChild>
+                           <DropdownMenuItem className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                            </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+             <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Do you want to delete this emoji? This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>No</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteClick}>Yes</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 };
 
