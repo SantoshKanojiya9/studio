@@ -190,8 +190,8 @@ export default function GalleryPage() {
                     </div>
 
                     <div className="border-t border-b border-border">
-                        <div className="flex items-center justify-center p-2 text-primary border-b-2 border-primary">
-                             <Grid3x3 />
+                        <div className="flex items-center justify-center p-2">
+                             <span className="font-semibold text-sm">Collections</span>
                         </div>
                     </div>
                     <div className="p-1">
