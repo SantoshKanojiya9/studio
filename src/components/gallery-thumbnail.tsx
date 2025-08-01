@@ -5,25 +5,7 @@ import Link from 'next/link';
 import type { EmojiState } from '@/app/design/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Heart, MoreVertical, Trash2 } from 'lucide-react';
-import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { Heart } from 'lucide-react';
 import React from 'react';
 
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
@@ -198,65 +180,30 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     );
 };
 
-
-export const GalleryThumbnail = ({ emoji, onDelete }: { emoji: EmojiState; onDelete: (id: string) => void; }) => {
-    
-    const handleDeleteClick = () => {
-        onDelete(emoji.id);
-    };
-
+export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
     return (
-        <AlertDialog>
-            <div className="relative group aspect-square">
-                <Link 
-                    href={`/design?emojiId=${emoji.id}`}
-                    className="aspect-square w-full rounded-md overflow-hidden relative block"
-                    style={{ backgroundColor: emoji.backgroundColor }}
-                >
-                    <div className={cn(
-                        "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
-                    )}>
-                        <MiniFace emoji={emoji} />
-                    </div>
-                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </Link>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1 right-1 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                            aria-label="More options"
-                        >
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <AlertDialogTrigger asChild>
-                           <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                            </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+        <div 
+            className="relative group aspect-square cursor-pointer" 
+            onClick={onSelect}
+            style={{ backgroundColor: emoji.backgroundColor }}
+        >
+            <div className={cn(
+                "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+            )}>
+                <MiniFace emoji={emoji} />
             </div>
-             <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Do you want to delete this emoji? This action cannot be undone.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>No</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteClick}>Yes</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <Link 
+                href={`/design?emojiId=${emoji.id}`}
+                className="absolute bottom-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 bg-black/20 rounded-full flex items-center justify-center text-white hover:bg-black/40"
+                aria-label="Edit emoji"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </Link>
+        </div>
     );
 };
-
 
 function getShapeClipPath(shape: EmojiState['shape']) {
     const paths = {
