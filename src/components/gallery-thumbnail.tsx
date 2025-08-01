@@ -21,36 +21,33 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
-    };
-
-    const faceMotionProps = {
-        transition: { duration: 0 }
+        justifyContent: 'center',
+        overflow: 'hidden'
     };
     
     const eyeVariants = {
-        neutral: { y: 0, scaleY: 1 }, happy: { y: 4, scaleY: 0.8 }, angry: { y: 2, scaleY: 0.8, rotate: -2 },
-        sad: { y: 6, scaleY: 0.9 }, surprised: { y: -3, scaleY: 1.1 }, scared: { y: -4, scaleY: 1.2, scaleX: 1.1 },
-        love: { y: 2, scaleY: 1 },
+        neutral: { y: 0, scaleY: 1 }, happy: { y: 1, scaleY: 0.8 }, angry: { y: 0, scaleY: 0.8, rotate: -2 },
+        sad: { y: 2, scaleY: 0.9 }, surprised: { y: -1, scaleY: 1.1 }, scared: { y: -1, scaleY: 1.2, scaleX: 1.1 },
+        love: { y: 1, scaleY: 1 },
     };
 
     const mouthVariants: Record<string, any> = {
-        default: { d: "M 30 50 Q 50 60 70 50" }, 'male-1': { d: "M 30 55 H 70" }, 'male-2': { d: "M 30 50 Q 50 40 70 50" },
-        'male-3': { d: "M 30 60 Q 50 70 70 60" }, 'female-1': { d: "M 30 55 Q 50 70 70 55" }, 'female-2': { d: "M 25 50 C 35 60, 65 60, 75 50" },
-        'female-3': { d: "M 40 55 A 10 5 0 0 0 60 55" },
+        default: { d: "M 15 25 Q 25 30 35 25" }, 'male-1': { d: "M 15 27 H 35" }, 'male-2': { d: "M 15 25 Q 25 20 35 25" },
+        'male-3': { d: "M 15 30 Q 25 35 35 30" }, 'female-1': { d: "M 15 27 Q 25 35 35 27" }, 'female-2': { d: "M 12 25 C 17 30, 33 30, 38 25" },
+        'female-3': { d: "M 20 27 A 5 2.5 0 0 0 30 27" },
     };
 
     const expressionMouthVariants = {
-        neutral: { d: mouthVariants[emoji.mouthStyle]?.d || mouthVariants.default.d }, happy: { d: "M 30 50 Q 50 70 70 50" },
-        angry: { d: "M 25 60 Q 50 35 75 60" }, sad: { d: "M 30 60 Q 50 50 70 60" },
-        surprised: { d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55" }, scared: { d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50" },
-        love: { d: "M 30 50 Q 50 75 70 50" },
+        neutral: { d: mouthVariants[emoji.mouthStyle]?.d || mouthVariants.default.d }, happy: { d: "M 15 25 Q 25 35 35 25" },
+        angry: { d: "M 12 30 Q 25 18 38 30" }, sad: { d: "M 15 30 Q 25 25 35 30" },
+        surprised: { d: "M 20 27 Q 25 35 30 27 A 5 5 0 0 1 20 27" }, scared: { d: "M 18 25 Q 25 32 32 25 A 7 7 0 0 1 18 25" },
+        love: { d: "M 15 25 Q 25 37 35 25" },
     };
   
     const eyebrowVariants = {
-        neutral: { y: 0, rotate: 0 }, happy: { y: -4, rotate: -5 }, angry: { y: 4, rotate: 20 },
-        sad: { y: 2, rotate: -10 }, surprised: { y: -6, rotate: 5 }, scared: { y: -8, rotate: 3 },
-        love: { y: -5, rotate: -5 },
+        neutral: { y: 0, rotate: 0 }, happy: { y: -2, rotate: -5 }, angry: { y: 2, rotate: 20 },
+        sad: { y: 1, rotate: -10 }, surprised: { y: -3, rotate: 5 }, scared: { y: -4, rotate: 3 },
+        love: { y: -2, rotate: -5 },
     };
 
     const blushVariants = {
@@ -58,23 +55,23 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         angry: { opacity: 0 }, sad: { opacity: 0 }, surprised: { opacity: 0 },
         scared: { opacity: 0 },
     };
-    
+
     const renderEye = (style: typeof emoji.eyeStyle) => {
         const eyeBase = (
-            <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full" style={{ transform: 'translate(-50%, -50%)' }}>
-                    <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-white/80 rounded-full"/>
-                    {emoji.expression === 'love' && <div className="flex items-center justify-center w-full h-full"><Heart className="w-5 h-5 text-red-500 fill-current" /></div>}
+            <div className="w-6 h-5 bg-white rounded-full relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-black rounded-full" style={{ transform: 'translate(-50%, -50%)' }}>
+                    <div className="absolute top-0.5 left-0.5 w-0.5 h-0.5 bg-white/80 rounded-full"/>
+                    {emoji.expression === 'love' && <div className="flex items-center justify-center w-full h-full"><Heart className="w-2.5 h-2.5 text-red-500 fill-current" /></div>}
                 </div>
             </div>
         );
          switch (style) {
-            case 'male-1': return <div className="w-12 h-8 bg-white rounded-lg relative overflow-hidden">{eyeBase}</div>;
-            case 'male-2': return <div className="w-12 h-10 bg-white rounded-t-full relative overflow-hidden">{eyeBase}</div>;
-            case 'male-3': return <div className="w-10 h-10 bg-white rounded-md relative overflow-hidden">{eyeBase}</div>;
-            case 'female-1': return <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-white" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase}</div>;
-            case 'female-2': return <div className="w-12 h-12 bg-white rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase}</div>;
-            case 'female-3': return <div className="w-14 h-8 bg-white rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBase}</div>;
+            case 'male-1': return <div className="w-6 h-4 bg-white rounded-sm relative overflow-hidden">{eyeBase}</div>;
+            case 'male-2': return <div className="w-6 h-5 bg-white rounded-t-full relative overflow-hidden">{eyeBase}</div>;
+            case 'male-3': return <div className="w-5 h-5 bg-white rounded-sm relative overflow-hidden">{eyeBase}</div>;
+            case 'female-1': return <div className="w-6 h-5 bg-white rounded-full relative overflow-hidden border border-black"><div className="absolute -top-0.5 right-0 w-2 h-2 bg-white" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase}</div>;
+            case 'female-2': return <div className="w-6 h-6 bg-white rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase}</div>;
+            case 'female-3': return <div className="w-7 h-4 bg-white rounded-tl-lg rounded-br-lg relative overflow-hidden">{eyeBase}</div>;
             default: return eyeBase;
         }
     };
@@ -89,54 +86,58 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         };
 
         switch (style) {
-            case 'male-1': return <motion.div className="absolute -top-3 left-0 w-14 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} {...eyebrowMotion} />;
-            case 'male-2': return <motion.div className="absolute -top-4 left-0 w-12 h-5 bg-black" style={{ ...baseStyle, borderRadius: '4px' }} {...eyebrowMotion} />;
-            case 'male-3': return <motion.div className="absolute -top-2 left-0 w-12 h-3 bg-black" style={baseStyle} {...eyebrowMotion} />;
-            case 'female-1': return <motion.div className="absolute -top-4 left-0 w-12 h-3 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,10 C10,0 40,0 50,10")' }} {...eyebrowMotion} />;
-            case 'female-2': return <motion.div className="absolute -top-3 left-0 w-12 h-2.5 bg-black" style={{ ...baseStyle }} {...eyebrowMotion} />;
-            case 'female-3': return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} {...eyebrowMotion} />;
-            default: return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={baseStyle} {...eyebrowMotion} />;
+            case 'male-1': return <motion.div className="absolute -top-1.5 left-0 w-7 h-2 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} {...eyebrowMotion} />;
+            case 'male-2': return <motion.div className="absolute -top-2 left-0 w-6 h-2.5 bg-black" style={{ ...baseStyle, borderRadius: '2px' }} {...eyebrowMotion} />;
+            case 'male-3': return <motion.div className="absolute -top-1 left-0 w-6 h-1.5 bg-black" style={baseStyle} {...eyebrowMotion} />;
+            case 'female-1': return <motion.div className="absolute -top-2 left-0 w-6 h-1.5 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,5 C5,0 20,0 25,5")' }} {...eyebrowMotion} />;
+            case 'female-2': return <motion.div className="absolute -top-1.5 left-0 w-6 h-1 bg-black" style={{ ...baseStyle }} {...eyebrowMotion} />;
+            case 'female-3': return <motion.div className="absolute -top-1.5 left-0 w-6 h-2 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} {...eyebrowMotion} />;
+            default: return <motion.div className="absolute -top-1.5 left-0 w-6 h-2 bg-black" style={baseStyle} {...eyebrowMotion} />;
         }
     };
 
     return (
         <div 
-            className="w-full h-full shadow-[inset_0_-8px_12px_rgba(0,0,0,0.2),_0_4px_8px_rgba(0,0,0,0.3)]"
+            className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.2),_0_2px_4px_rgba(0,0,0,0.3)]"
             style={shapeStyle}
         >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
-            <div className="relative w-full h-full flex items-center justify-center" style={{ transform: 'scale(0.35)'}}>
-                <div className="absolute inset-0 top-[20%]">
-                    <motion.div className="flex justify-between w-56 absolute top-40" variants={blushVariants} animate={emoji.expression} {...faceMotionProps}>
-                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
-                        <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%2.../%3E%3C/svg%3E')] opacity-10"></div>
+            <div className="relative w-full h-full">
+                {/* Face Content Scaled Container */}
+                <div className="absolute w-full h-full top-0 left-0" style={{ transform: 'scale(0.8) translateY(10%)' }}>
+                    <motion.div className="flex justify-between w-28 absolute top-20 left-1/2 -translate-x-1/2" variants={blushVariants} animate={emoji.expression} transition={{duration:0}}>
+                        <motion.div className="w-6 h-3 bg-pink-400 rounded-full" />
+                        <motion.div className="w-6 h-3 bg-pink-400 rounded-full" />
                     </motion.div>
-                    <motion.div className="flex gap-20 absolute top-28">
-                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                    
+                    <motion.div className="flex gap-10 absolute top-12 left-1/2 -translate-x-1/2 items-center">
+                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} transition={{duration:0}}>
                             {renderEye(emoji.eyeStyle)}
                             {renderEyebrow(emoji.eyebrowStyle)}
                         </motion.div>
-                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} {...faceMotionProps}>
+                        <motion.div className="relative" variants={eyeVariants} animate={emoji.expression} transition={{duration:0}}>
                             {renderEye(emoji.eyeStyle)}
                             {renderEyebrow(emoji.eyebrowStyle, true)}
                         </motion.div>
                     </motion.div>
-                    <motion.div className="absolute bottom-12">
-                        <svg width="100" height="40" viewBox="0 0 100 80">
+                    
+                    <motion.div className="absolute top-24 left-1/2 -translate-x-1/2">
+                        <svg width="50" height="20" viewBox="0 0 50 40">
                             <motion.path
                                 fill="transparent"
                                 stroke="black"
-                                strokeWidth={5}
+                                strokeWidth={2.5}
                                 strokeLinecap="round"
                                 variants={expressionMouthVariants}
                                 animate={emoji.expression}
-                                {...faceMotionProps}
+                                transition={{duration:0}}
                             />
                         </svg>
                     </motion.div>
+
                     {emoji.showSunglasses && (
-                        <div className="absolute flex justify-center w-full" style={{ top: '110px', transform: 'translateZ(30px)' }}>
-                            <div className="relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-[-10px]" style={{ transform: 'translate(-50%, -50%) scale(0.4) translateY(-80px)' }}>
+                             <div className="relative">
                                 <div className="flex justify-between items-center w-[180px] h-[45px]">
                                     <div className="w-[70px] h-full bg-black/80 rounded-2xl border-2 border-gray-700"></div>
                                     <div className="h-1 w-4 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
@@ -146,19 +147,22 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                         </div>
                     )}
                     {emoji.showMustache && (
-                        <div className="absolute flex justify-center w-full" style={{ top: '170px', transform: 'translateZ(25px)' }}>
-                            <svg width="100" height="30" viewBox="0 0 100 30">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-[20px]" style={{ transform: 'translate(-50%, -50%) scale(0.4) translateY(20px)' }}>
+                             <svg width="100" height="30" viewBox="0 0 100 30">
                                 <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
                             </svg>
                         </div>
                     )}
                 </div>
-                 <motion.div 
-                    className="absolute bottom-[-110px] w-[90%] pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', perspective: '1000px' }}
-                    >
-                    <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
-                    <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
-                </motion.div>
+
+                {/* Base Shadow */}
+                <div 
+                    className="absolute bottom-[-20px] w-[80%] h-[40px] left-1/2 -translate-x-1/2" 
+                    style={{ transformStyle: 'preserve-3d', perspective: '100px' }}
+                >
+                    <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gray-700 rounded-full" style={{ transform: 'rotateX(75deg) translateZ(-5px)' }}></div>
+                    <div className="absolute bottom-[-5px] left-1/2 w-[98%] h-3/4 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-8px)' }}></div>
+                </div>
             </div>
         </div>
     );
