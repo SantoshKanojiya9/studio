@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
 import { CgClapperBoard } from "react-icons/cg";
 import { BsPersonVcard } from "react-icons/bs";
-import { ClockFace } from '@/app/design/page';
+import { Face } from '@/app/design/page';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -107,7 +107,7 @@ export default function GalleryPage() {
                         <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                            <div className="w-24 h-24 flex items-center justify-center">
                                <div className="scale-[0.35] origin-center">
-                                    <ClockFace 
+                                    <Face 
                                         expression="neutral"
                                         color="orangered"
                                         showSunglasses={false}
@@ -115,6 +115,12 @@ export default function GalleryPage() {
                                         animationType='none'
                                         isDragging={false}
                                         shape="default"
+                                        eyeStyle='default'
+                                        mouthStyle='default'
+                                        eyebrowStyle='default'
+                                        onPan={() => {}}
+                                        onPanStart={() => {}}
+                                        onPanEnd={() => {}}
                                     />
                                </div>
                             </div>
@@ -123,7 +129,7 @@ export default function GalleryPage() {
                                     <span>santosh.r.k_</span>
                                     <ChevronDown className="h-5 w-5" />
                                 </div>
-                                <div className="flex items-center justify-around text-center mt-2 gap-4">
+                                <div className="flex items-center text-center mt-2 gap-4">
                                     <div>
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
