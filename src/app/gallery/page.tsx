@@ -102,7 +102,7 @@ export default function GalleryPage() {
            ) : (
              <>
                 <ProfileHeader />
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-x-hidden">
                     <div className="p-4 bg-gradient-to-tr from-amber-900/30 to-amber-800/20 rounded-lg m-4">
                         <div className="flex items-center">
                             <div className="relative h-24 w-24 flex-shrink-0">
