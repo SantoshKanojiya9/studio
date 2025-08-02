@@ -703,7 +703,7 @@ export const ClockFace = ({
       setIsAngryMode(true);
       setExpression('angry');
       const originalColor = color;
-      setColor('hotpink');
+      setColor('red');
       setTapTimestamps([]);
       
       setTimeout(() => {
