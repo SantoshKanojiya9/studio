@@ -80,7 +80,6 @@ export default function LoginPage() {
             signInDiv.current,
             { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
         );
-        window.google.accounts.id.prompt();
     }
   }, [user, router]);
 
