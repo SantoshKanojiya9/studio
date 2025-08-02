@@ -119,20 +119,29 @@ export default function GalleryPage() {
             url: profileUrl,
         };
 
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.error('Error sharing profile:', err);
-            }
-        } else {
-            // Fallback for browsers that don't support the Web Share API
+        const copyToClipboard = () => {
             navigator.clipboard.writeText(profileUrl);
             toast({
                 title: 'Profile link copied!',
                 description: 'The link to your profile has been copied to your clipboard.',
                 variant: 'success'
             });
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err: any) {
+                // If sharing fails (e.g., user cancels, or permission is denied),
+                // fall back to copying the link.
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing profile:', err);
+                }
+                copyToClipboard();
+            }
+        } else {
+            // Fallback for browsers that don't support the Web Share API
+            copyToClipboard();
         }
     };
     
