@@ -53,7 +53,8 @@ export type EmojiState = {
 
 export const Face = ({ 
     expression: initialExpression, 
-    color, 
+    color,
+    setColor,
     showSunglasses, 
     showMustache,
     shape,
@@ -70,6 +71,7 @@ export const Face = ({
 }: { 
     expression: Expression, 
     color: string, 
+    setColor: (color: string) => void,
     showSunglasses: boolean,
     showMustache: boolean,
     shape: ShapeType;
@@ -98,8 +100,11 @@ export const Face = ({
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
-    setExpression(initialExpression);
-  }, [initialExpression]);
+    // Don't update expression if angry mode is active
+    if (!isAngryMode) {
+      setExpression(initialExpression);
+    }
+  }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
     if (isAngryMode || isDragging) return;
@@ -239,8 +244,26 @@ export const Face = ({
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
   const handleTap = () => {
-    // This function is intentionally left simple now, only handling pointer tracking.
-    // The complex logic for angry mode etc. will be added later based on user request.
+    if (isAngryMode) return;
+  
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].filter(t => now - t < 2000);
+    setTapTimestamps(newTimestamps);
+  
+    if (newTimestamps.length >= 4) {
+      setIsAngryMode(true);
+      setExpression('angry');
+      const originalColor = color;
+      setColor('orangered');
+      setTapTimestamps([]);
+  
+      setTimeout(() => {
+        setIsAngryMode(false);
+        setColor(originalColor);
+        // The useEffect for initialExpression will reset the expression
+        setExpression(initialExpression);
+      }, 2000);
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -456,7 +479,8 @@ export const Face = ({
 
 export const ClockFace = ({ 
     expression: initialExpression, 
-    color, 
+    color,
+    setColor,
     showSunglasses,
     showMustache,
     shape,
@@ -470,6 +494,7 @@ export const ClockFace = ({
 }: { 
     expression: Expression, 
     color: string, 
+    setColor: (color: string) => void,
     showSunglasses: boolean,
     showMustache: boolean,
     shape: ShapeType;
@@ -495,8 +520,10 @@ export const ClockFace = ({
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
-    setExpression(initialExpression);
-  }, [initialExpression]);
+    if (!isAngryMode) {
+      setExpression(initialExpression);
+    }
+  }, [initialExpression, isAngryMode]);
   
   useEffect(() => {
     if (isAngryMode || isDragging) return;
@@ -666,8 +693,25 @@ export const ClockFace = ({
   });
 
   const handleTap = () => {
-    // This function is intentionally left simple now, only handling pointer tracking.
-    // The complex logic for angry mode etc. will be added later based on user request.
+    if (isAngryMode) return;
+
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].filter(t => now - t < 2000);
+    setTapTimestamps(newTimestamps);
+
+    if (newTimestamps.length >= 4) {
+      setIsAngryMode(true);
+      setExpression('angry');
+      const originalColor = color;
+      setColor('orangered');
+      setTapTimestamps([]);
+      
+      setTimeout(() => {
+        setIsAngryMode(false);
+        setColor(originalColor);
+        setExpression(initialExpression);
+      }, 2000);
+    }
   };
 
   return (
@@ -1420,6 +1464,7 @@ const DesignPageContent = () => {
                 <Face 
                     expression={expression} 
                     color={emojiColor} 
+                    setColor={setEmojiColor}
                     showSunglasses={showSunglasses} 
                     showMustache={showMustache} 
                     shape={shape}
@@ -1438,6 +1483,7 @@ const DesignPageContent = () => {
                 <ClockFace 
                     expression={expression} 
                     color={emojiColor} 
+                    setColor={setEmojiColor}
                     showSunglasses={showSunglasses} 
                     showMustache={showMustache} 
                     shape={shape}
@@ -1488,5 +1534,3 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
-
-    
