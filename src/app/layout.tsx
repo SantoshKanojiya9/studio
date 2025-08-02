@@ -7,6 +7,8 @@ import { BottomBar } from '@/components/bottom-bar';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 import { Inter, Kalam } from 'next/font/google'
+import { AuthProvider } from '@/context/AuthContext';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-kalam' })
@@ -18,9 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const isHomePage = pathname === '/';
-  // We hide the bottom bar on the landing page
-  const showBottomBar = !isHomePage;
+  const isLoginPage = pathname === '/';
+  const showBottomBar = !isLoginPage;
 
   return (
     <html lang="en" className={cn("dark", inter.variable, kalam.variable)}>
@@ -32,11 +33,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased bg-background")}>
+        <AuthProvider>
             <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
               <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
               {showBottomBar && <BottomBar />}
             </div>
             <Toaster />
+        </AuthProvider>
+        <Script src="https://accounts.google.com/gsi/client" async defer />
       </body>
     </html>
   );

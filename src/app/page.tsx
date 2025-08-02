@@ -1,44 +1,19 @@
 
 'use client';
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { jwtDecode } from 'jwt-decode';
+import type { CredentialResponse } from 'google-one-tap';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
-    const svgVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.3,
-                duration: 0.5,
-            }
-        }
-    };
-    const pathVariants = {
-        hidden: { pathLength: 0, opacity: 0 },
-        visible: {
-            pathLength: 1,
-            opacity: 1,
-            transition: {
-                duration: 1.5,
-                ease: "easeInOut"
-            }
-        }
-    };
-
     return (
-        <motion.svg 
+        <svg 
             viewBox="0 0 100 100" 
-            className={cn("h-16 w-16", className)}
+            className={className || "h-16 w-16"}
             xmlns="http://www.w3.org/2000/svg"
-            variants={svgVariants}
-            initial="hidden"
-            animate="visible"
         >
             <defs>
                 <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -52,28 +27,63 @@ const EdengramLogo = ({ className }: { className?: string }) => {
                 stroke="url(#grad1)" 
                 strokeWidth="8"
                 fill="none"
-                variants={pathVariants}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
             />
              <motion.path 
                 d="M 35 35 L 65 35 L 65 65 L 35 65 Z" 
                 stroke="url(#grad1)" 
                 strokeWidth="6"
                 fill="none"
-                variants={pathVariants}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
             />
-        </motion.svg>
+        </svg>
     )
 };
 
-export default function Home() {
+
+export default function LoginPage() {
   const router = useRouter();
+  const { user, setUser } = useAuth();
+  const signInDiv = useRef<HTMLDivElement>(null);
+
+  const handleSignIn = (response: CredentialResponse) => {
+    if (!response.credential) {
+      console.error("No credential returned from Google");
+      return;
+    }
+    const decoded: { name: string, email: string, picture: string, sub: string } = jwtDecode(response.credential);
+    setUser({
+        id: decoded.sub,
+        name: decoded.name,
+        email: decoded.email,
+        picture: decoded.picture
+    });
+    router.push('/mood');
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/mood');
-    }, 3000); // 3 seconds
-    return () => clearTimeout(timer);
-  }, [router]);
+    if (user) {
+        router.push('/mood');
+        return;
+    }
+    
+    if (window.google && signInDiv.current) {
+        window.google.accounts.id.initialize({
+            client_id: '921829623696-p08b2g0c2kp2dbf2i6odk05gmk5u45up.apps.googleusercontent.com',
+            callback: handleSignIn
+        });
+        window.google.accounts.id.renderButton(
+            signInDiv.current,
+            { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
+        );
+        window.google.accounts.id.prompt();
+    }
+  }, [user, router]);
+
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -116,6 +126,10 @@ export default function Home() {
           >
             Edengram
           </motion.h1>
+
+        <motion.div variants={itemVariants} className="mt-8">
+            <div ref={signInDiv}></div>
+        </motion.div>
       </motion.div>
     </div>
   );

@@ -1,31 +1,55 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
+interface UserProfile {
+    id: string;
+    name: string;
+    email: string;
+    picture: string;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
+  setUser: (user: UserProfile | null) => void;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    const storedUser = localStorage.getItem('userProfile');
+    if (storedUser) {
+        setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (user) {
+        localStorage.setItem('userProfile', JSON.stringify(user));
+    } else {
+        localStorage.removeItem('userProfile');
+    }
+
+    if (!loading && !user && pathname !== '/') {
+        router.push('/');
+    }
+  }, [user, loading, pathname, router]);
+
+  const handleSetUser = (userProfile: UserProfile | null) => {
+    setUser(userProfile);
+  };
+  
   if (loading) {
     return (
         <div className="flex items-center justify-center h-screen">
@@ -35,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, setUser: handleSetUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

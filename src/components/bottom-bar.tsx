@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, PlusSquare, Clapperboard, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { useAuth } from '@/context/AuthContext';
 
 
 export function BottomBar() {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const navItems = [
     { href: '/mood', label: 'Home', icon: Home },
@@ -40,8 +42,8 @@ export function BottomBar() {
                             "h-7 w-7",
                              isActive && "outline outline-2 outline-offset-2 outline-primary"
                         )}>
-                            <AvatarImage src="https://placehold.co/64x64.png" alt="profile" data-ai-hint="profile picture" />
-                            <AvatarFallback>U</AvatarFallback>
+                            <AvatarImage src={user?.picture} alt={user?.name || 'profile'} data-ai-hint="profile picture" />
+                            <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                     </Link>
                 )
