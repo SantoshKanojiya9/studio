@@ -169,7 +169,7 @@ export default function GalleryPage() {
                            <div className="w-20 h-20 flex-shrink-0">
                                 <CrownedEggAvatar />
                             </div>
-                            <div className="flex-1 grid grid-cols-3 text-center">
+                            <div className="flex-1 grid grid-cols-2 text-center">
                                 <div>
                                     <p className="font-bold text-lg">{savedEmojis.length}</p>
                                     <p className="text-sm text-muted-foreground">posts</p>
@@ -177,10 +177,6 @@ export default function GalleryPage() {
                                 <div>
                                     <p className="font-bold text-lg">0</p>
                                     <p className="text-sm text-muted-foreground">subscribers</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-lg">0</p>
-                                    <p className="text-sm text-muted-foreground">subscribed</p>
                                 </div>
                             </div>
                         </div>
