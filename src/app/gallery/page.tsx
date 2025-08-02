@@ -120,11 +120,19 @@ export default function GalleryPage() {
         };
 
         const copyToClipboard = () => {
-            navigator.clipboard.writeText(profileUrl);
-            toast({
-                title: 'Profile link copied!',
-                description: 'The link to your profile has been copied to your clipboard.',
-                variant: 'success'
+            navigator.clipboard.writeText(profileUrl).then(() => {
+                toast({
+                    title: 'Profile link copied!',
+                    description: 'The link to your profile has been copied to your clipboard.',
+                    variant: 'success'
+                });
+            }).catch(err => {
+                console.error("Could not copy text: ", err);
+                toast({
+                    title: 'Error',
+                    description: 'Could not copy link to clipboard.',
+                    variant: 'destructive'
+                });
             });
         };
 
