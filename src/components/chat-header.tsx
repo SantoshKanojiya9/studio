@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useAuth } from '@/context/AuthContext';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -43,6 +44,11 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
+  const { setUser } = useAuth();
+  
+  const handleSignOut = () => {
+    setUser(null);
+  };
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
@@ -67,6 +73,10 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                 </div>
 
                 <div className="mt-auto">
+                   <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                   </Button>
                 </div>
             </SheetContent>
         </Sheet>

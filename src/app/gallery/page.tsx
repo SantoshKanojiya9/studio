@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, UserPlus, Grid3x3, Menu } from 'lucide-react';
+import { Lock, UserPlus, Grid3x3, Menu, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -16,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useAuth } from '@/context/AuthContext';
 
 
 const CrownedEggAvatar = () => {
@@ -75,6 +76,7 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
+    const { setUser } = useAuth();
 
     React.useEffect(() => {
         setIsClient(true);
@@ -98,6 +100,10 @@ export default function GalleryPage() {
         } catch (error) {
             console.error("Failed to delete emoji from localStorage", error);
         }
+    };
+    
+    const handleSignOut = () => {
+        setUser(null);
     };
 
     if (!isClient) {
@@ -134,6 +140,10 @@ export default function GalleryPage() {
                         </div>
         
                         <div className="mt-auto">
+                           <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Sign Out
+                           </Button>
                         </div>
                     </SheetContent>
                 </Sheet>
