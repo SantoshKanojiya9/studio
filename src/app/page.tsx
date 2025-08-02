@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 import { jwtDecode } from 'jwt-decode';
 import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';

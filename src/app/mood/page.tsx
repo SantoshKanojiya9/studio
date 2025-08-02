@@ -2,11 +2,91 @@
 'use client';
 
 import React from 'react';
-import { MoodHeader } from '@/components/mood-header';
+import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus } from 'lucide-react';
-import Image from 'next/image';
+import { Plus, Menu, LogOut } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/use-auth';
+
+
+const EdengramLogo = ({ className }: { className?: string }) => (
+    <svg 
+        viewBox="0 0 100 100" 
+        className={cn("h-8 w-8", className)}
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style={{stopColor: '#8A2BE2', stopOpacity:1}} />
+                <stop offset="50%" style={{stopColor: '#FF1493', stopOpacity:1}} />
+                <stop offset="100%" style={{stopColor: '#00BFFF', stopOpacity:1}} />
+            </linearGradient>
+        </defs>
+        <path 
+            d="M 20 20 L 80 20 L 80 80 L 20 80 Z" 
+            stroke="url(#grad1)" 
+            strokeWidth="8"
+            fill="none"
+        />
+         <path 
+            d="M 35 35 L 65 35 L 65 65 L 35 65 Z" 
+            stroke="url(#grad1)" 
+            strokeWidth="6"
+            fill="none"
+        />
+    </svg>
+  );
+  
+export function MoodHeader({ children }: { children?: React.ReactNode }) {
+  const { setUser } = useAuth();
+  
+  const handleSignOut = () => {
+    setUser(null);
+  };
+
+  return (
+    <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
+      <div className="flex items-center gap-2">
+        <EdengramLogo />
+        <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
+      </div>
+      <div className="flex items-center gap-2">
+        {children}
+        <Sheet>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                    <Menu />
+                    <span className="sr-only">Open menu</span>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-sm flex flex-col">
+                <SheetHeader className="text-left">
+                    <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1">
+                </div>
+
+                <div className="mt-auto">
+                   <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
+                   </Button>
+                </div>
+            </SheetContent>
+        </Sheet>
+      </div>
+    </header>
+  );
+}
+
 
 const stories = [
   { id: 1, username: 'Neil', avatar: 'https://placehold.co/64x64.png', hasStory: true, isMe: true },

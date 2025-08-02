@@ -25,7 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 
 
 interface PostViewProps {

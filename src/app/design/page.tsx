@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';

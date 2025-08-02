@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, PlusSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 
 
 export function BottomBar() {
