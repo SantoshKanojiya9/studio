@@ -4,6 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -34,21 +35,49 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 );
 
 export default function Home() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        type: 'spring',
+        damping: 15,
+        stiffness: 100,
+      }
+    },
+  };
+
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
-      <div className="flex flex-col items-center justify-center gap-8">
-        <div className="flex items-center justify-center gap-2">
+      <motion.div 
+        className="flex flex-col items-center justify-center gap-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div className="flex items-center justify-center gap-2" variants={itemVariants}>
           <EdengramLogo className="h-16 w-16" />
           <h1 className="text-5xl font-logo font-normal">Edengram</h1>
-        </div>
-        <div>
+        </motion.div>
+        <motion.div variants={itemVariants}>
           <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
             <Link href="/design">
               Get Started
             </Link>
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
