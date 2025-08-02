@@ -1470,7 +1470,7 @@ const DesignPageContent = () => {
           </motion.div>
         </div>
 
-        <div className="z-20">
+        <div className="fixed bottom-[56px] left-0 right-0 z-20">
               <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
                   <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
                       {renderMenu()}
