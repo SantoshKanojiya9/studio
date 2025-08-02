@@ -1,7 +1,6 @@
 
 'use client';
 
-import Link from 'next/link';
 import type { EmojiState } from '@/app/design/page';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -115,22 +114,22 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
 
     return (
         <div 
-            className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.2),_0_2px_4px_rgba(0,0,0,0.3)] relative"
+            className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] relative"
             style={shapeStyle}
         >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%2.../%3E%3C/svg%3E')] opacity-10"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             
             {emoji.model === 'loki' ? (
-                <div className="absolute w-full h-full top-0 left-0 scale-[0.3] flex items-center justify-center">
+                 <div className="absolute w-full h-full scale-[0.35] flex items-center justify-center">
                     <div className="relative w-56 h-56 border-2 border-black/70 rounded-full" style={{backgroundColor: emoji.emojiColor}}>
                         {tickMarks}
-                        <div className="flex items-center justify-center w-full h-full">
-                            {/* Face features would go here, simplified for thumbnail */}
+                        <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative rounded-full">
+                           {/* Simplified Loki face for thumbnail */}
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="absolute w-full h-full top-0 left-0 scale-[0.35] flex items-center justify-center">
+                <div className="relative w-full h-full scale-[0.35] flex items-center justify-center">
                   <div className="relative w-80 h-96">
                     <motion.div className="flex justify-between w-56 absolute top-40 left-1/2 -translate-x-1/2" variants={blushVariants} animate={emoji.expression} transition={{duration:0}}>
                         <motion.div className="w-12 h-6 bg-pink-400 rounded-full" />

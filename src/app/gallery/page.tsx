@@ -153,30 +153,28 @@ export default function GalleryPage() {
              <>
                 <ProfileHeader />
                 <div className="flex-1 overflow-y-auto no-scrollbar">
-                    <div className="bg-zinc-800/50 rounded-lg m-4 p-4">
-                        <div className="flex items-center gap-2">
+                    <div className="p-4">
+                        <div className="flex items-center gap-4">
                            <div className="w-20 h-20 flex-shrink-0">
                                 <CrownedEggAvatar />
                             </div>
-                            <div className="flex-1 flex flex-col justify-center">
-                                <div className="flex items-center gap-1 text-lg font-semibold">
-                                    <span>santosh.r.k_</span>
+                            <div className="flex-1 grid grid-cols-3 text-center">
+                                <div>
+                                    <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                    <p className="text-sm text-muted-foreground">posts</p>
                                 </div>
-                                <div className="flex flex-1 items-center justify-around text-center mt-2">
-                                    <div>
-                                        <p className="font-bold text-base">{savedEmojis.length}</p>
-                                        <p className="text-sm text-muted-foreground">posts</p>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-base">0</p>
-                                        <p className="text-sm text-muted-foreground">followers</p>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-base">0</p>
-                                        <p className="text-sm text-muted-foreground">following</p>
-                                    </div>
+                                <div>
+                                    <p className="font-bold text-lg">0</p>
+                                    <p className="text-sm text-muted-foreground">followers</p>
+                                </div>
+                                <div>
+                                    <p className="font-bold text-lg">0</p>
+                                    <p className="text-sm text-muted-foreground">following</p>
                                 </div>
                             </div>
+                        </div>
+                        <div className="mt-4">
+                            <h2 className="font-semibold">santosh.r.k_</h2>
                         </div>
                         <div className="mt-4 flex gap-2">
                             <Button variant="secondary" className="flex-1">Edit profile</Button>
