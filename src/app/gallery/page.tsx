@@ -81,7 +81,8 @@ export default function GalleryPage() {
         try {
             const savedGallery = localStorage.getItem('savedEmojiGallery');
             if (savedGallery) {
-                setSavedEmojis(JSON.parse(savedGallery));
+                const gallery = JSON.parse(savedGallery) as EmojiState[];
+                setSavedEmojis(gallery.sort((a, b) => parseInt(b.id) - parseInt(a.id)));
             }
         } catch (error) {
             console.error("Failed to load or parse saved state from localStorage", error);
