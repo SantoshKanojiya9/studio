@@ -106,11 +106,31 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
             >
                 <div className={cn(
                     "absolute bg-black/70",
-                    isHour ? "w-px h-1 top-0.5 left-1/2 -ml-px" : "w-px h-0.5 top-0.5 left-1/2 -ml-px"
+                    isHour ? "w-0.5 h-2 top-1 left-1/2 -ml-px" : "w-px h-1 top-1 left-1/2 -ml-px"
                 )}></div>
             </div>
         )
     });
+
+    const lokiEyeVariants = {
+        neutral: { y: 0, height: '1.25rem' }, happy: { y: 1, height: '1.1rem' },
+        angry: { y: -1, height: '1rem' }, sad: { y: 2, height: '1.1rem' },
+        surprised: { y: -1, height: '1.4rem' }, scared: { y: -2, height: '1.5rem' },
+        love: { y: 1, height: '1.25rem' },
+    };
+
+    const lokiEyelidVariants = {
+        neutral: { y: 0, rotate: 0 }, happy: { y: 1, rotate: -5 }, angry: { y: -1, rotate: 5 },
+        sad: { y: 2, rotate: 5 }, surprised: { y: -2, rotate: 2 }, scared: { y: -3, rotate: 4 },
+        love: { y: -1, rotate: -3 },
+    };
+
+    const lokiMouthVariants = {
+        neutral: { d: "M 15 25 Q 25 25 35 25" }, happy: { d: "M 15 25 Q 25 32 35 25" },
+        angry: { d: "M 15 27 Q 25 20 35 27" }, sad: { d: "M 15 30 Q 25 25 35 30" },
+        surprised: { d: "M 20 27 Q 25 35 30 27 A 5 5 0 0 1 20 27" },
+        scared: { d: "M 18 25 Q 25 32 32 25 A 7 7 0 0 1 18 25" }, love: { d: "M 15 25 Q 25 37 35 25" },
+    };
 
     return (
         <div 
@@ -120,11 +140,51 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             
             {emoji.model === 'loki' ? (
-                 <div className="absolute w-full h-full scale-[0.35] flex items-center justify-center">
-                    <div className="relative w-56 h-56 border-2 border-black/70 rounded-full" style={{backgroundColor: emoji.emojiColor}}>
-                        {tickMarks}
-                        <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative rounded-full">
-                           {/* Simplified Loki face for thumbnail */}
+                 <div className="absolute w-full h-full scale-[0.4] flex items-center justify-center">
+                    <div className="relative w-56 h-56">
+                         {/* Arms */}
+                        <div className="absolute top-1/2 -translate-y-1/2 -left-12 w-16 h-8 z-0">
+                            <div className="w-12 h-1 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full bg-orange-500"></div>
+                            <div className="w-6 h-6 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border border-black/70"></div>
+                        </div>
+                        <div className="absolute top-1/2 -translate-y-1/2 -right-12 w-16 h-8 z-0">
+                            <div className="w-12 h-1 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full bg-orange-500"></div>
+                            <div className="w-6 h-6 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border border-black/70"></div>
+                        </div>
+
+                         {/* Legs */}
+                        <div className="absolute bottom-[-22px] left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 z-0">
+                            <div className="flex gap-3"><div className="w-2 h-6 bg-[#4a2c0f]"></div><div className="w-2 h-6 bg-[#4a2c0f]"></div></div>
+                            <div className="flex -mt-px gap-1.5"><div className="w-6 h-3 rounded-t-sm border border-black/70 bg-orange-500"></div><div className="w-6 h-3 rounded-t-sm border border-black/70 bg-orange-500"></div></div>
+                        </div>
+
+                        <div className="relative w-full h-full border-2 border-black/70 rounded-full" style={{backgroundColor: emoji.emojiColor}}>
+                            {tickMarks}
+                            <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative rounded-full">
+                                <div className="absolute inset-0 scale-[0.5] flex items-center justify-center">
+                                    <motion.div className="flex gap-6 absolute top-1/2 -translate-y-[calc(50%_+_10px)] items-end">
+                                        <motion.div className="relative" style={{height: '1.25rem'}} variants={lokiEyeVariants} animate={emoji.expression} transition={{duration:0}}>
+                                            <div className="w-4 h-full bg-white rounded-t-full rounded-b-sm relative overflow-hidden border border-black/70">
+                                                <div className="absolute top-1/2 left-1/2 w-2.5 h-2.5 bg-black rounded-full" style={{transform: 'translate(-50%, -50%)'}}>
+                                                    {emoji.expression === 'love' && <Heart className="w-2 h-2 text-red-500 fill-current" />}
+                                                </div>
+                                            </div>
+                                            <motion.div className="absolute -top-1 left-px w-3.5 h-1.5 bg-black/80" style={{clipPath:'path("M0,3 C3,0, 11,0, 14,3")'}} variants={lokiEyelidVariants} animate={emoji.expression} transition={{duration:0}} />
+                                        </motion.div>
+                                        <motion.div className="relative" style={{height: '1.25rem'}} variants={lokiEyeVariants} animate={emoji.expression} transition={{duration:0}}>
+                                            <div className="w-4 h-full bg-white rounded-t-full rounded-b-sm relative overflow-hidden border border-black/70">
+                                                <div className="absolute top-1/2 left-1/2 w-2.5 h-2.5 bg-black rounded-full" style={{transform: 'translate(-50%, -50%)'}}>
+                                                    {emoji.expression === 'love' && <Heart className="w-2 h-2 text-red-500 fill-current" />}
+                                                </div>
+                                            </div>
+                                            <motion.div className="absolute -top-1 left-px w-3.5 h-1.5 bg-black/80" style={{clipPath:'path("M0,3 C3,0, 11,0, 14,3")'}} variants={lokiEyelidVariants} animate={emoji.expression} transition={{duration:0}} />
+                                        </motion.div>
+                                    </motion.div>
+                                    <motion.div className="absolute top-1/2 -translate-y-1/2 mt-3">
+                                        <svg width="32" height="14" viewBox="0 0 50 40"><motion.path fill="transparent" stroke="black" strokeWidth={2} strokeLinecap="round" variants={lokiMouthVariants} animate={emoji.expression} transition={{duration:0}} /></svg>
+                                    </motion.div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -211,5 +271,11 @@ function getShapeClipPath(shape: EmojiState['shape']) {
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
         blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
-    return paths[shape] || paths.default;
+    if (shape === 'default') {
+        return '50% 50% 40% 40% / 60% 60% 40% 40%';
+    }
+     if (shape === 'blob') {
+        return '40% 60% 40% 60% / 60% 40% 60% 40%';
+    }
+    return paths[shape] || '50%';
 };
