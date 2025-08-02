@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, UserPlus, Grid3x3, Menu, LogOut } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
