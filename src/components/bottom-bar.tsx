@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, PlusSquare, Clapperboard, User } from 'lucide-react';
+import { Home, Search, PlusSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { useAuth } from '@/context/AuthContext';
@@ -17,7 +17,7 @@ export function BottomBar() {
     { href: '/mood', label: 'Home', icon: Home },
     { href: '/explore', label: 'Search', icon: Search },
     { href: '/design', label: 'Create', icon: PlusSquare },
-    { href: '/reels', label: 'Reels', icon: Clapperboard },
+    { href: '/notifications', label: 'Notifications', icon: Bell },
     { href: '/gallery', label: 'Profile', icon: User, isProfile: true },
   ];
 
