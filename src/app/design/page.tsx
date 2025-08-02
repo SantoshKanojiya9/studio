@@ -1,12 +1,12 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Download } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -24,7 +24,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { toPng } from 'html-to-image';
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -933,9 +932,7 @@ const DesignPageContent = () => {
   const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
-
-  const emojiRef = useRef<HTMLDivElement>(null);
-
+  
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
@@ -1151,29 +1148,6 @@ const DesignPageContent = () => {
         setEyebrowStyle(prev => prev === style ? 'default' : style);
     }
   };
-
-  const handleDownload = useCallback(() => {
-    if (emojiRef.current === null) {
-      return;
-    }
-
-    toPng(emojiRef.current, { cacheBust: true, })
-      .then((dataUrl) => {
-        const link = document.createElement('a');
-        link.download = `edengram-emoji-${Date.now()}.png`;
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        console.error(err);
-        toast({
-          title: "Download failed",
-          description: "Could not generate an image of the emoji.",
-          variant: "destructive"
-        });
-      });
-  }, [emojiRef, toast]);
-
 
   const renderFeatureMenu = (
     type: 'eye' | 'mouth' | 'eyebrow', 
@@ -1404,10 +1378,6 @@ const DesignPageContent = () => {
                 <Save className="h-4 w-4" />
                 <span className="text-xs mt-1">Save</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleDownload}>
-                <Download className="h-4 w-4" />
-                <span className="text-xs mt-1">Download</span>
-            </Button>
             <Separator orientation="vertical" className="h-full mx-1" />
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
@@ -1483,7 +1453,6 @@ const DesignPageContent = () => {
           </div>
           
           <motion.div
-            ref={emojiRef}
             className="w-80 h-96 flex items-center justify-center select-none"
             style={{ 
               transformStyle: 'preserve-3d',
