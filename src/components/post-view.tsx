@@ -23,27 +23,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
-import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+
 
 interface PostViewProps {
-  emojis: EmojiState[];
-  selectedId: string;
+  emoji: EmojiState;
   onClose: () => void;
   onDelete: (id: string) => void;
 }
 
-export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+export function PostView({ emoji, onClose, onDelete }: PostViewProps) {
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
-
-  useEffect(() => {
-    const postElement = document.getElementById(`post-${selectedId}`);
-    if (postElement) {
-      postElement.scrollIntoView({ behavior: 'auto', block: 'start' });
-    }
-  }, [selectedId]);
-
+  const { user } = useAuth();
+  
   const handleDeleteClick = (id: string) => {
     setEmojiToDelete(id);
   };
@@ -59,6 +53,7 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
 
+  if (!emoji) return null;
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
@@ -66,100 +61,99 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
         <Button variant="ghost" size="icon" onClick={onClose}>
           <ArrowLeft />
         </Button>
-        <h2 className="font-semibold">Posts</h2>
+        <h2 className="font-semibold">Post</h2>
         <div className="w-10"></div> {/* Spacer */}
       </header>
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto snap-y snap-mandatory">
-        <AnimatePresence>
-          {emojis.map((emoji) => (
-            <motion.div
-              key={emoji.id}
-              id={`post-${emoji.id}`}
-              className="h-full w-full flex-shrink-0 snap-start flex flex-col"
-              layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div 
-                className="flex items-center px-4 py-2"
-                style={{ backgroundColor: emoji.backgroundColor }}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/64x64.png" alt="@sk" data-ai-hint="male profile" />
-                  <AvatarFallback>SK</AvatarFallback>
-                </Avatar>
-                <span className="ml-3 font-semibold text-sm">santosh.r.k_</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                       <Link href={`/design?emojiId=${emoji.id}`}>
-                         <Edit className="mr-2 h-4 w-4" />
-                         <span>Edit</span>
-                       </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(emoji.id)}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+      <div className="flex-1 overflow-y-auto flex flex-col">
+        <motion.div
+            key={emoji.id}
+            id={`post-${emoji.id}`}
+            className="w-full flex-shrink-0 flex flex-col"
+            layout
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+        >
+          <div 
+            className="flex items-center px-4 py-2"
+            style={{ backgroundColor: emoji.backgroundColor }}
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.picture || "https://placehold.co/64x64.png"} alt={user?.name} data-ai-hint="profile picture" />
+              <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+            <span className="ml-3 font-semibold text-sm">{user?.name || 'User'}</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                   <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                     <Edit className="mr-2 h-4 w-4" />
+                     <span>Edit</span>
+                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-              <div 
-                className="flex-1 flex items-center justify-center min-h-0"
-                style={{ 
-                  backgroundColor: emoji.backgroundColor,
-                  filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
-                }}
-              >
-                {emoji.model === 'loki' ? (
-                   <ClockFace 
-                      {...emoji}
-                      color={emoji.emojiColor}
-                      isDragging={false}
-                      featureOffsetX={featureOffsetX}
-                      featureOffsetY={featureOffsetY}
-                    />
-                ) : (
-                   <Face 
-                      {...emoji}
-                      color={emoji.emojiColor}
-                      isDragging={false}
-                      onPan={() => {}}
-                      onPanStart={() => {}}
-                      onPanEnd={() => {}}
-                      featureOffsetX={featureOffsetX}
-                      featureOffsetY={featureOffsetY}
-                    />
-                )}
-              </div>
+          <div 
+            className="flex-1 flex items-center justify-center min-h-0 aspect-square"
+            style={{ 
+              backgroundColor: emoji.backgroundColor,
+              filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
+            }}
+          >
+            {emoji.model === 'loki' ? (
+               <ClockFace 
+                  {...emoji}
+                  shape={emoji.shape === 'blob' ? 'default' : emoji.shape}
+                  color={emoji.emojiColor}
+                  isDragging={false}
+                  featureOffsetX={featureOffsetX}
+                  featureOffsetY={featureOffsetY}
+                  setColor={() => {}}
+                />
+            ) : (
+               <Face 
+                  {...emoji}
+                  color={emoji.emojiColor}
+                  isDragging={false}
+                  onPan={() => {}}
+                  onPanStart={() => {}}
+                  onPanEnd={() => {}}
+                  featureOffsetX={featureOffsetX}
+                  featureOffsetY={featureOffsetY}
+                  setColor={() => {}}
+                />
+            )}
+          </div>
 
-              <div 
-                className="px-4 pt-2 pb-4"
-                style={{ backgroundColor: emoji.backgroundColor }}
-              >
-                  <div className="flex items-center gap-4">
-                    <Heart className="h-6 w-6 cursor-pointer" />
-                    <MessageCircle className="h-6 w-6 cursor-pointer" />
-                    <Send className="h-6 w-6 cursor-router" />
-                    <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
-                  </div>
-                  <p className="text-sm font-semibold mt-2">1,234 likes</p>
-                  <p className="text-sm mt-1">
-                    <span className="font-semibold">santosh.r.k_</span>
-                    {' '}My new creation!
-                  </p>
+          <div 
+            className="px-4 pt-2 pb-4"
+            style={{ backgroundColor: emoji.backgroundColor }}
+          >
+              <div className="flex items-center gap-4">
+                <Heart className="h-6 w-6 cursor-pointer" />
+                <MessageCircle className="h-6 w-6 cursor-pointer" />
+                <Send className="h-6 w-6 cursor-pointer" />
+                <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              <p className="text-sm font-semibold mt-2">1,234 likes</p>
+              <p className="text-sm mt-1">
+                <span className="font-semibold">{user?.name || 'User'}</span>
+                {' '}My new creation!
+              </p>
+          </div>
+        </motion.div>
       </div>
       
       {emojiToDelete && (
@@ -173,7 +167,7 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete}>Yes</AlertDialogAction>
+                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -670,11 +671,14 @@ export const ClockFace = ({
       square: '10%',
       squircle: '30%',
       tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-      blob: '50%' // blob not supported for loki
+      blob: '50%' // blob not supported for loki, will default
     };
     return paths[s] || paths.default;
   };
   
+  // Ensure blob shape is not used for loki
+  const currentShape = shape === 'blob' ? 'default' : shape;
+
   const tickMarks = Array.from({ length: 12 }, (_, i) => {
     const angle = i * 30;
     const isHour = i % 3 === 0;
@@ -771,11 +775,11 @@ export const ClockFace = ({
          
         <motion.div 
           className="w-full h-full shadow-[inset_0_-10px_12px_rgba(0,0,0,0.15),_0_5px_10px_rgba(0,0,0,0.25)] relative overflow-hidden border-4 border-black/70" 
-          animate={{ borderRadius: getShapeClipPath(shape), backgroundColor: color }}
+          animate={{ borderRadius: getShapeClipPath(currentShape), backgroundColor: color }}
           transition={{ duration: 0.3 }}
         >
             {tickMarks}
-            <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative" style={{ borderRadius: getShapeClipPath(shape) }}>
+            <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative" style={{ borderRadius: getShapeClipPath(currentShape) }}>
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22%2F%3E%3C/svg%3E')] opacity-5"></div>
             
              <motion.div
@@ -914,6 +918,7 @@ const DesignPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [id, setId] = useState<string>(Date.now().toString());
   const [model, setModel] = useState<ModelType>('emoji');
@@ -966,7 +971,7 @@ const DesignPageContent = () => {
   useEffect(() => {
     try {
         const emojiId = searchParams.get('emojiId');
-        if (!emojiId) {
+        if (!emojiId || !user) {
             handleReset(); 
             return;
         }
@@ -979,12 +984,16 @@ const DesignPageContent = () => {
 
             if (emojiToLoad) {
                 handleLoadEmoji(emojiToLoad);
+            } else {
+                 handleReset();
             }
         }
     } catch (error) {
         console.error("Failed to load or parse saved state from localStorage", error);
+        handleReset();
     }
-  }, [searchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user]);
 
   
   const handleReset = () => {
@@ -1014,6 +1023,13 @@ const DesignPageContent = () => {
   }
 
   const handleSave = () => {
+    if (!user) {
+        toast({
+            title: "Please sign in to save.",
+            variant: "destructive",
+        });
+        return;
+    }
     setShowSaveConfirm(true);
   };
   
@@ -1191,9 +1207,12 @@ const DesignPageContent = () => {
   const handleModelChange = (newModel: ModelType) => {
     if (model === newModel) return;
     setModel(newModel);
-    // Reset colors to default for the new model
+    
     if (newModel === 'loki') {
         setEmojiColor(defaultLokiColor);
+        if (shape === 'blob') {
+            setShape('default');
+        }
     } else {
         setEmojiColor(defaultEmojiColor);
     }

@@ -53,11 +53,18 @@ export default function ExplorePage() {
   }, [searchQuery]);
 
   const handleDelete = (emojiId: string) => {
-    // This is a simplified delete for the explore page.
-    // It only removes from the view, and doesn't persist across reloads
-    // as it doesn't know which user's gallery to modify.
     const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
     setAllEmojis(updatedEmojis);
+    
+    try {
+      // Also update the master gallery in localStorage
+      const existingGallery = getAllSavedEmojis();
+      const newGallery = existingGallery.filter(emoji => emoji.id !== emojiId);
+      localStorage.setItem('savedEmojiGallery', JSON.stringify(newGallery));
+    } catch (error) {
+      console.error("Failed to delete emoji from localStorage", error);
+    }
+    
     setSelectedEmojiId(null);
   };
   
@@ -76,10 +83,15 @@ export default function ExplorePage() {
   }
 
   if (selectedEmojiId) {
+    const selectedEmoji = allEmojis.find(e => e.id === selectedEmojiId);
+    if (!selectedEmoji) {
+        // Handle case where emoji is not found (e.g., after deletion)
+        setSelectedEmojiId(null);
+        return null;
+    }
     return (
         <PostView 
-            emojis={allEmojis} 
-            selectedId={selectedEmojiId}
+            emoji={selectedEmoji} 
             onClose={() => setSelectedEmojiId(null)}
             onDelete={handleDelete}
         />

@@ -76,7 +76,7 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
-    const { setUser } = useAuth();
+    const { user, setUser } = useAuth();
 
     React.useEffect(() => {
         setIsClient(true);
@@ -122,7 +122,7 @@ export default function GalleryPage() {
         <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
             <div className="flex items-center gap-1 font-semibold text-lg">
                 <Lock className="h-4 w-4" />
-                <span>Profile</span>
+                <span>{user?.name || 'Profile'}</span>
             </div>
             <div className="flex items-center gap-2">
                  <Sheet>
@@ -150,13 +150,14 @@ export default function GalleryPage() {
             </div>
         </header>
     );
+    
+    const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
 
     return (
         <div className="flex h-full w-full flex-col overflow-x-hidden">
-           {selectedEmojiId ? (
+           {selectedEmoji ? (
                 <PostView 
-                    emojis={savedEmojis} 
-                    selectedId={selectedEmojiId}
+                    emoji={selectedEmoji} 
                     onClose={() => setSelectedEmojiId(null)}
                     onDelete={handleDelete}
                 />
@@ -181,7 +182,7 @@ export default function GalleryPage() {
                             </div>
                         </div>
                         <div className="mt-4">
-                            <h2 className="font-semibold">santosh.r.k_</h2>
+                            <h2 className="font-semibold">{user?.name || 'User'}</h2>
                         </div>
                         <div className="mt-4 flex gap-2">
                             <Button variant="secondary" className="flex-1">Edit profile</Button>
