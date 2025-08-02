@@ -140,12 +140,13 @@ export default function GalleryPage() {
             try {
                 await navigator.share(shareData);
             } catch (err: any) {
-                // Only fall back to clipboard copy if the error is NOT an AbortError
-                if (err.name !== 'AbortError') {
-                    console.error('Share failed, falling back to clipboard:', err);
-                    copyToClipboard();
+                // If the user cancels the share dialog or permission is denied, do nothing.
+                if (err.name === 'AbortError' || err.name === 'PermissionDeniedError') {
+                    return; 
                 }
-                // If it is an AbortError, the user canceled, so we do nothing.
+                // For other errors, you might want to log them or show a message,
+                // but for now we'll just prevent a crash.
+                console.error('Share failed for a reason other than cancel/deny:', err);
             }
         } else {
             // Fallback for browsers that don't support the Web Share API
