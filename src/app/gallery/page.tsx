@@ -132,12 +132,12 @@ export default function GalleryPage() {
             try {
                 await navigator.share(shareData);
             } catch (err: any) {
-                // If sharing fails (e.g., user cancels, or permission is denied),
-                // fall back to copying the link.
+                // Only fall back to clipboard copy if the error is NOT an AbortError
                 if (err.name !== 'AbortError') {
-                    console.error('Error sharing profile:', err);
+                    console.error('Share failed, falling back to clipboard:', err);
+                    copyToClipboard();
                 }
-                copyToClipboard();
+                // If it is an AbortError, the user canceled, so we do nothing.
             }
         } else {
             // Fallback for browsers that don't support the Web Share API
