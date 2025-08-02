@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import type { CredentialResponse } from 'google-one-tap';
+import { Button } from '@/components/ui/button';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -61,6 +62,16 @@ export default function LoginPage() {
         name: decoded.name,
         email: decoded.email,
         picture: decoded.picture
+    });
+    router.push('/mood');
+  };
+  
+  const handleGuestSignIn = () => {
+    setUser({
+        id: 'guest',
+        name: 'Guest User',
+        email: 'guest@example.com',
+        picture: 'https://placehold.co/64x64.png'
     });
     router.push('/mood');
   };
@@ -126,8 +137,11 @@ export default function LoginPage() {
             Edengram
           </motion.h1>
 
-        <motion.div variants={itemVariants} className="mt-8">
+        <motion.div variants={itemVariants} className="mt-8 flex flex-col items-center gap-4">
             <div ref={signInDiv}></div>
+            <Button variant="link" onClick={handleGuestSignIn}>
+                Continue as Guest
+            </Button>
         </motion.div>
       </motion.div>
     </div>
