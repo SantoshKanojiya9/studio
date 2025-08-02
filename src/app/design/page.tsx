@@ -65,6 +65,8 @@ export const Face = ({
     onPan,
     onPanStart,
     onPanEnd,
+    featureOffsetX,
+    featureOffsetY,
 }: { 
     expression: Expression, 
     color: string, 
@@ -79,6 +81,8 @@ export const Face = ({
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
+    featureOffsetX: import('framer-motion').MotionValue<number>;
+    featureOffsetY: import('framer-motion').MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
@@ -86,8 +90,6 @@ export const Face = ({
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
-  const featureOffsetX = useMotionValue(0);
-  const featureOffsetY = useMotionValue(0);
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
@@ -172,7 +174,7 @@ export const Face = ({
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode, isDragging]);
+  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
 
 
   const eyeVariants = {
@@ -237,25 +239,8 @@ export const Face = ({
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
   const handleTap = () => {
-    if (isAngryMode || isDragging) return;
-
-    const now = Date.now();
-    const newTimestamps = [...tapTimestamps, now].slice(-4);
-    setTapTimestamps(newTimestamps);
-
-    if (newTimestamps.length === 4) {
-      const timeDiff = newTimestamps[3] - newTimestamps[0];
-      if (timeDiff < 2000) {
-        setTapTimestamps([]);
-        setIsAngryMode(true);
-        setExpression('angry');
-
-        setTimeout(() => {
-          setIsAngryMode(false);
-          setExpression('neutral');
-        }, 2000);
-      }
-    }
+    // This function is intentionally left simple now, only handling pointer tracking.
+    // The complex logic for angry mode etc. will be added later based on user request.
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -477,6 +462,11 @@ export const ClockFace = ({
     shape,
     animationType,
     isDragging,
+    onPan,
+    onPanStart,
+    onPanEnd,
+    featureOffsetX,
+    featureOffsetY,
 }: { 
     expression: Expression, 
     color: string, 
@@ -485,6 +475,11 @@ export const ClockFace = ({
     shape: ShapeType;
     animationType: AnimationType;
     isDragging: boolean;
+    onPan?: (event: any, info: any) => void;
+    onPanStart?: (event: any, info: any) => void;
+    onPanEnd?: (event: any, info: any) => void;
+    featureOffsetX: import('framer-motion').MotionValue<number>;
+    featureOffsetY: import('framer-motion').MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -492,8 +487,6 @@ export const ClockFace = ({
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
-  const featureOffsetX = useMotionValue(0);
-  const featureOffsetY = useMotionValue(0);
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
@@ -578,7 +571,7 @@ export const ClockFace = ({
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode, isDragging]);
+  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
 
 
   const eyeVariants = {
@@ -673,25 +666,8 @@ export const ClockFace = ({
   });
 
   const handleTap = () => {
-    if (isAngryMode || isDragging) return;
-
-    const now = Date.now();
-    const newTimestamps = [...tapTimestamps, now].slice(-4);
-    setTapTimestamps(newTimestamps);
-
-    if (newTimestamps.length === 4) {
-      const timeDiff = newTimestamps[3] - newTimestamps[0];
-      if (timeDiff < 2000) {
-        setTapTimestamps([]);
-        setIsAngryMode(true);
-        setExpression('angry');
-
-        setTimeout(() => {
-          setIsAngryMode(false);
-          setExpression('neutral');
-        }, 2000);
-      }
-    }
+    // This function is intentionally left simple now, only handling pointer tracking.
+    // The complex logic for angry mode etc. will be added later based on user request.
   };
 
   return (
@@ -699,6 +675,9 @@ export const ClockFace = ({
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
+      onPan={onPan}
+      onPanStart={onPanStart}
+      onPanEnd={onPanEnd}
       onTap={handleTap}
       style={{ transformStyle: 'preserve-3d' }}
     >
@@ -1052,16 +1031,18 @@ const DesignPageContent = () => {
 
   const handlePan = (_: any, info: any) => {
     if (dragOrigin.current) {
-        const boundaryX = 80; 
-        const boundaryY = 60;
+        const boundaryX = model === 'emoji' ? 80 : 40; 
+        const boundaryY = model === 'emoji' ? 60 : 30;
         
         let newX = dragOrigin.current.x + info.offset.x;
         let newY = dragOrigin.current.y + info.offset.y;
 
         if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
             const angle = Math.atan2(newY, newX);
-            newX = boundaryX * Math.cos(angle);
-            newY = boundaryY * Math.sin(angle);
+            const a = boundaryX;
+            const b = boundaryY;
+            newX = a * b / Math.sqrt(b**2 + a**2 * Math.tan(angle)**2) * (newX > 0 ? 1 : -1);
+            newY = newX * Math.tan(angle);
         }
 
         featureOffsetX.set(newX);
@@ -1101,11 +1082,7 @@ const DesignPageContent = () => {
   };
 
   const handleExpressionToggle = (newExpression: Expression) => {
-    if (expression === newExpression) {
-        setExpression('neutral');
-    } else {
-        setExpression(newExpression);
-    }
+    setExpression(newExpression);
   };
   
   const handleShapeToggle = (newShape: ShapeType) => {
@@ -1455,6 +1432,8 @@ const DesignPageContent = () => {
                     onPan={handlePan}
                     onPanStart={handlePanStart}
                     onPanEnd={handlePanEnd}
+                    featureOffsetX={featureOffsetX}
+                    featureOffsetY={featureOffsetY}
                 />
             ) : (
                 <ClockFace 
@@ -1465,6 +1444,11 @@ const DesignPageContent = () => {
                     shape={shape}
                     animationType={animationType}
                     isDragging={isDragging}
+                    onPan={handlePan}
+                    onPanStart={handlePanStart}
+                    onPanEnd={handlePanEnd}
+                    featureOffsetX={featureOffsetX}
+                    featureOffsetY={featureOffsetY}
                 />
             )}
           </motion.div>
