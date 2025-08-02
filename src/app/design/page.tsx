@@ -830,34 +830,6 @@ export const ClockFace = ({
                         </svg>
                     </motion.div>
 
-                    <motion.div
-                        className="absolute flex justify-center w-full"
-                        style={{ top: '60px', transform: 'translateZ(30px) scale(0.8)' }}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    >
-                        <div className="relative">
-                            <div className="flex justify-between items-center w-[140px] h-[35px]">
-                                <div className="w-[55px] h-full bg-black/80 rounded-xl border-2 border-gray-700"></div>
-                                <div className="h-1 w-3 border-b-2 border-x-2 border-gray-700 rounded-b-sm self-center"></div>
-                                <div className="w-[55px] h-full bg-black/80 rounded-xl border-2 border-gray-700"></div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="absolute flex justify-center w-full"
-                        style={{ top: '105px', transform: 'translateZ(25px) scale(0.7)' }}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <svg width="100" height="30" viewBox="0 0 100 30">
-                            <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
-                        </svg>
-                    </motion.div>
-
                 </motion.div>
             </div>
         </motion.div>
@@ -1489,3 +1461,5 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
+    
