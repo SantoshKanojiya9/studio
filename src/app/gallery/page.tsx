@@ -176,11 +176,11 @@ export default function GalleryPage() {
                                 </div>
                                 <div>
                                     <p className="font-bold text-lg">0</p>
-                                    <p className="text-sm text-muted-foreground">followers</p>
+                                    <p className="text-sm text-muted-foreground">subscribers</p>
                                 </div>
                                 <div>
                                     <p className="font-bold text-lg">0</p>
-                                    <p className="text-sm text-muted-foreground">following</p>
+                                    <p className="text-sm text-muted-foreground">subscribed</p>
                                 </div>
                             </div>
                         </div>

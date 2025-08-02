@@ -34,7 +34,7 @@ export default function NotificationsPage() {
               <div className="flex-1 text-sm">
                 <span className="font-semibold">{notification.user}</span>
                 {notification.type === 'follow' ? (
-                  <span> 🔥 started following you.</span>
+                  <span> 🔥 just subscribed to you!</span>
                 ) : (
                   <span> 💬 reacted to your emoji.</span>
                 )}
