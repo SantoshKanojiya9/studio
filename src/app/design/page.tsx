@@ -830,6 +830,33 @@ export const ClockFace = ({
                         </svg>
                     </motion.div>
 
+                    <motion.div
+                        className="absolute flex justify-center w-full"
+                        style={{ top: '48px', transform: 'translateZ(30px)' }}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    >
+                        <div className="relative">
+                            <div className="flex justify-between items-center w-[130px] h-[30px]">
+                                <div className="w-[50px] h-full bg-black/60 rounded-xl border border-gray-700"></div>
+                                <div className="h-0.5 w-3 border-b border-x border-gray-700 rounded-b-sm self-center"></div>
+                                <div className="w-[50px] h-full bg-black/60 rounded-xl border border-gray-700"></div>
+                            </div>
+                        </div>
+                    </motion.div>
+                    <motion.div
+                        className="absolute flex justify-center w-full"
+                        style={{ top: '92px', transform: 'translateZ(25px)', opacity: 0.6 }}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: showMustache ? 0.6 : 0, scale: showMustache ? 1 : 0.5 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <svg width="60" height="20" viewBox="0 0 100 30">
+                            <path d="M 10 15 C 20 -5, 80 -5, 90 15 Q 50 10, 10 15" fill="#4a2c0f" />
+                        </svg>
+                    </motion.div>
+
                 </motion.div>
             </div>
         </motion.div>
@@ -1329,7 +1356,7 @@ const DesignPageContent = () => {
                 <Palette className="h-4 w-4" />
                 <span className="text-xs mt-1">Colors</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')} disabled={model === 'loki'}>
                 <Glasses className="h-4 w-4" />
                 <span className="text-xs mt-1">Accessories</span>
             </Button>
