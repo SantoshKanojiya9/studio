@@ -3,14 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Palette, LayoutGrid } from 'lucide-react';
+import { Smile, Palette, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function BottomBar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/chat', label: 'Chat', icon: MessageSquare },
+    { href: '/mood', label: 'Mood', icon: Smile },
     { href: '/design', label: 'Emoji', icon: Palette },
     { href: '/gallery', label: 'Gallery', icon: LayoutGrid },
   ];

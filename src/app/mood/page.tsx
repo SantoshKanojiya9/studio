@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { ChatHeader } from '@/components/chat-header';
+import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus } from 'lucide-react';
@@ -33,10 +33,10 @@ const StoryRing = ({ hasStory, children }: { hasStory: boolean; children: React.
 };
 
 
-export default function ChatPage() {
+export default function MoodPage() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <ChatHeader />
+      <MoodHeader />
       
       <div className="border-b border-border/40">
         <ScrollArea className="w-full whitespace-nowrap">
