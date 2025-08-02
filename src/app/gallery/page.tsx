@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, ChevronDown, UserPlus, Grid3x3, Menu } from 'lucide-react';
+import { Lock, UserPlus, Grid3x3, Menu } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -161,19 +161,18 @@ export default function GalleryPage() {
                             <div className="flex-1 flex flex-col justify-center">
                                 <div className="flex items-center gap-1 text-lg font-semibold">
                                     <span>santosh.r.k_</span>
-                                    <ChevronDown className="h-5 w-5" />
                                 </div>
                                 <div className="flex flex-1 items-center justify-around text-center mt-2">
                                     <div>
-                                        <p className="font-bold text-base">3</p>
+                                        <p className="font-bold text-base">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <div>
-                                        <p className="font-bold text-base">524</p>
+                                        <p className="font-bold text-base">0</p>
                                         <p className="text-sm text-muted-foreground">followers</p>
                                     </div>
                                     <div>
-                                        <p className="font-bold text-base">65</p>
+                                        <p className="font-bold text-base">0</p>
                                         <p className="text-sm text-muted-foreground">following</p>
                                     </div>
                                 </div>
@@ -182,7 +181,6 @@ export default function GalleryPage() {
                         <div className="mt-4 flex gap-2">
                             <Button variant="secondary" className="flex-1">Edit profile</Button>
                             <Button variant="secondary" className="flex-1">Share profile</Button>
-                            <Button variant="secondary" size="icon"><UserPlus className="h-4 w-4" /></Button>
                         </div>
                     </div>
 
