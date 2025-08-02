@@ -184,11 +184,6 @@ export default function GalleryPage() {
                         </div>
                     </div>
 
-                    <div className="border-t border-b border-border">
-                        <div className="flex items-center justify-center p-2">
-                             <span className="font-semibold text-sm">Collections</span>
-                        </div>
-                    </div>
                     <div className="p-1">
                         {savedEmojis.length > 0 ? (
                             <motion.div 
