@@ -61,8 +61,8 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
 
 
   return (
-    <div className="relative h-full w-full flex flex-col bg-background">
-      <header className="absolute top-0 left-0 right-0 z-10 flex h-16 items-center justify-between bg-background/80 px-4 backdrop-blur-sm">
+    <div className="h-full w-full flex flex-col bg-background">
+      <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4">
         <Button variant="ghost" size="icon" onClick={onClose}>
           <ArrowLeft />
         </Button>
@@ -70,7 +70,7 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
         <div className="w-10"></div> {/* Spacer */}
       </header>
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-16 snap-y snap-mandatory">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto snap-y snap-mandatory">
         <AnimatePresence>
           {emojis.map((emoji) => (
             <motion.div
@@ -148,7 +148,7 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
                   <div className="flex items-center gap-4">
                     <Heart className="h-6 w-6 cursor-pointer" />
                     <MessageCircle className="h-6 w-6 cursor-pointer" />
-                    <Send className="h-6 w-6 cursor-pointer" />
+                    <Send className="h-6 w-6 cursor-router" />
                     <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
                   </div>
                   <p className="text-sm font-semibold mt-2">1,234 likes</p>
