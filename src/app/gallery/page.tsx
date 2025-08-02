@@ -17,6 +17,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 
 const CrownedEggAvatar = () => {
@@ -77,19 +78,22 @@ export default function GalleryPage() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
     const { user, setUser } = useAuth();
+    const { toast } = useToast();
 
     React.useEffect(() => {
         setIsClient(true);
-        try {
-            const savedGallery = localStorage.getItem('savedEmojiGallery');
-            if (savedGallery) {
-                const gallery = JSON.parse(savedGallery) as EmojiState[];
-                setSavedEmojis(gallery.sort((a, b) => parseInt(b.id) - parseInt(a.id)));
+        if (user) {
+            try {
+                const savedGallery = localStorage.getItem('savedEmojiGallery');
+                if (savedGallery) {
+                    const gallery = JSON.parse(savedGallery) as EmojiState[];
+                    setSavedEmojis(gallery.sort((a, b) => parseInt(b.id) - parseInt(a.id)));
+                }
+            } catch (error) {
+                console.error("Failed to load or parse saved state from localStorage", error);
             }
-        } catch (error) {
-            console.error("Failed to load or parse saved state from localStorage", error);
         }
-    }, []);
+    }, [user]);
 
     const handleDelete = (emojiId: string) => {
         try {
@@ -106,6 +110,32 @@ export default function GalleryPage() {
         setUser(null);
     };
 
+    const handleShareProfile = async () => {
+        if (!user) return;
+        const profileUrl = `${window.location.origin}/gallery?userId=${user.id}`;
+        const shareData = {
+            title: 'Check out my profile on Edengram!',
+            text: `See all my creations on Edengram.`,
+            url: profileUrl,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing profile:', err);
+            }
+        } else {
+            // Fallback for browsers that don't support the Web Share API
+            navigator.clipboard.writeText(profileUrl);
+            toast({
+                title: 'Profile link copied!',
+                description: 'The link to your profile has been copied to your clipboard.',
+                variant: 'success'
+            });
+        }
+    };
+    
     if (!isClient) {
         return (
              <div className="flex h-full w-full flex-col">
@@ -153,6 +183,21 @@ export default function GalleryPage() {
     
     const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
 
+    if (!user) {
+        // This case should ideally be handled by the AuthProvider redirecting to login.
+        // But as a safeguard:
+        return (
+            <div className="flex h-full w-full flex-col items-center justify-center text-center p-8">
+                <Lock className="h-16 w-16 text-muted-foreground" />
+                <h2 className="mt-4 text-2xl font-bold">Please sign in</h2>
+                <p className="text-muted-foreground">You need to be signed in to view your gallery.</p>
+                <Button asChild className="mt-4">
+                    <Link href="/">Go to Sign In</Link>
+                </Button>
+            </div>
+        );
+    }
+    
     return (
         <div className="flex h-full w-full flex-col overflow-x-hidden">
            {selectedEmoji ? (
@@ -186,7 +231,7 @@ export default function GalleryPage() {
                         </div>
                         <div className="mt-4 flex gap-2">
                             <Button variant="secondary" className="flex-1">Edit profile</Button>
-                            <Button variant="secondary" className="flex-1">Share profile</Button>
+                            <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
                         </div>
                     </div>
 
