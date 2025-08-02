@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 
 interface PostViewProps {
@@ -54,6 +54,11 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
       setEmojiToDelete(null);
     }
   };
+  
+  // Initialize motion values required by Face/ClockFace components
+  const featureOffsetX = useMotionValue(0);
+  const featureOffsetY = useMotionValue(0);
+
 
   return (
     <div className="relative h-full w-full flex flex-col bg-background">
@@ -119,6 +124,8 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
                       {...emoji}
                       color={emoji.emojiColor}
                       isDragging={false}
+                      featureOffsetX={featureOffsetX}
+                      featureOffsetY={featureOffsetY}
                     />
                 ) : (
                    <Face 
@@ -128,6 +135,8 @@ export function PostView({ emojis, selectedId, onClose, onDelete }: PostViewProp
                       onPan={() => {}}
                       onPanStart={() => {}}
                       onPanEnd={() => {}}
+                      featureOffsetX={featureOffsetX}
+                      featureOffsetY={featureOffsetY}
                     />
                 )}
               </div>

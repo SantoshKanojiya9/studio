@@ -4,7 +4,7 @@
 import type { EmojiState } from '@/app/design/page';
 import { Face, ClockFace } from '@/app/design/page';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 import React from 'react';
 
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
@@ -22,6 +22,10 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         justifyContent: 'center',
         overflow: 'hidden'
     };
+
+    // Initialize motion values required by Face/ClockFace components
+    const featureOffsetX = useMotionValue(0);
+    const featureOffsetY = useMotionValue(0);
 
     return (
         <div 
@@ -41,6 +45,8 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     {...emoji}
                     color={emoji.emojiColor}
                     isDragging={false}
+                    featureOffsetX={featureOffsetX}
+                    featureOffsetY={featureOffsetY}
                 />
             ) : (
                 <Face 
@@ -50,6 +56,8 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     onPan={() => {}}
                     onPanStart={() => {}}
                     onPanEnd={() => {}}
+                    featureOffsetX={featureOffsetX}
+                    featureOffsetY={featureOffsetY}
                 />
             )}
             </motion.div>
