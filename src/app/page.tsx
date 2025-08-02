@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     const svgVariants = {
@@ -64,12 +66,21 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 };
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push('/mood');
+    }, 3000); // 3 seconds
+    return () => clearTimeout(timer);
+  }, [router]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        delayChildren: 1,
+        delayChildren: 0.5,
         staggerChildren: 0.2,
       },
     },
@@ -98,22 +109,13 @@ export default function Home() {
       >
         <div className="flex items-center justify-center gap-2">
           <EdengramLogo className="h-16 w-16" />
-          <motion.h1 
+        </div>
+        <motion.h1 
             className="text-5xl font-logo font-normal"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
+            variants={itemVariants}
           >
             Edengram
           </motion.h1>
-        </div>
-        <motion.div variants={itemVariants}>
-          <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg hover:shadow-primary/50 transition-all duration-300 transform hover:scale-105">
-            <Link href="/design">
-              Get Started
-            </Link>
-          </Button>
-        </motion.div>
       </motion.div>
     </div>
   );

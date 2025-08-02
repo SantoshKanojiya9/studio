@@ -19,6 +19,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  // We hide the bottom bar on the landing page
   const showBottomBar = !isHomePage;
 
   return (
@@ -31,7 +32,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased bg-background")}>
-            <div className="relative h-screen">
+            <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
               <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
               {showBottomBar && <BottomBar />}
             </div>
