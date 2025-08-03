@@ -48,7 +48,7 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const signInDiv = useRef<HTMLDivElement>(null);
 
   const handleSignIn = async (response: CredentialResponse) => {
@@ -75,18 +75,40 @@ export default function LoginPage() {
         picture: data.user.user_metadata.picture,
       };
       
-      // Upsert the user profile into the 'users' table
       const { error: upsertError } = await supabase.from('users').upsert(userProfile);
 
       if (upsertError) {
         console.error('Error upserting user profile', upsertError);
-        // Optionally sign out the user if the profile can't be saved
         await supabase.auth.signOut();
         return;
       }
       
-      // The onAuthStateChange listener in useAuth will handle setting the user state
       router.push('/mood');
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+        console.error('Error signing in anonymously', error);
+        return;
+    }
+    if (data.user) {
+         const guestProfile = {
+            id: data.user.id,
+            name: `Guest-${data.user.id.substring(0, 6)}`,
+            email: data.user.email || '', // Anonymous users may not have an email
+            picture: `https://placehold.co/64x64.png?text=G`,
+        };
+        
+        const { error: upsertError } = await supabase.from('users').upsert(guestProfile);
+        if (upsertError) {
+            console.error('Error creating guest profile', upsertError);
+            await supabase.auth.signOut();
+            return;
+        }
+
+        router.push('/mood');
     }
   };
   
@@ -153,6 +175,9 @@ export default function LoginPage() {
 
         <motion.div variants={itemVariants} className="mt-8 flex flex-col items-center gap-4">
             <div ref={signInDiv}></div>
+            <Button variant="link" onClick={handleGuestSignIn}>
+                Continue as Guest
+            </Button>
         </motion.div>
       </motion.div>
     </div>
