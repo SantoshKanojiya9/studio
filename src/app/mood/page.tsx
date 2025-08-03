@@ -76,11 +76,10 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        // Directly call the RPC. Supabase client handles the rest.
-        const { error } = await supabase.rpc('delete_user');
+        const { error } = await supabase.functions.invoke('delete-user');
         
         if (error) {
-            console.error("Error from delete_user rpc:", error);
+            console.error("Error from delete_user function:", error);
             throw error;
         }
 

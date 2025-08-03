@@ -57,7 +57,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
@@ -72,6 +72,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
 
   const handleDeleteAccount = async () => {
     setShowDeleteConfirm(false);
+    if (!user) return;
     try {
         const { error } = await supabase.functions.invoke('delete-user');
         if (error) throw error;
