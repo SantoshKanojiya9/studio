@@ -28,20 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const { data: { session } } = supabase.auth.getSessionFromUrl({
-      storeSession: true,
-    });
-    
-    if (session) {
-      const userProfile = {
-        id: session.user.id,
-        name: session.user.user_metadata.name,
-        email: session.user.email!,
-        picture: session.user.user_metadata.picture,
-      };
-      setUserState(userProfile);
-    }
-    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session) {
@@ -71,6 +57,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const setUser = (userProfile: UserProfile | null) => {
+    // This function can be used for manual sign-out or guest mode
+    if (userProfile === null) {
+      supabase.auth.signOut();
+    }
     setUserState(userProfile);
   };
   

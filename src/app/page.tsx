@@ -5,7 +5,6 @@ import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import { jwtDecode } from 'jwt-decode';
 import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
@@ -57,22 +56,32 @@ export default function LoginPage() {
       console.error("No credential returned from Google");
       return;
     }
-    const decoded: { name: string, email: string, picture: string, sub: string } = jwtDecode(response.credential);
-    const userProfile = {
-        id: decoded.sub,
-        name: decoded.name,
-        email: decoded.email,
-        picture: decoded.picture
-    };
     
-    // Save user profile to Supabase
-    const { error } = await supabase.from('users').upsert(userProfile, { onConflict: 'id' });
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential,
+    });
+
     if (error) {
-        console.error('Error saving user to Supabase', error);
+      console.error('Error signing in with Supabase', error);
+      return;
     }
-    
-    setUser(userProfile);
-    router.push('/mood');
+
+    if (data.user) {
+      const userProfile = {
+        id: data.user.id,
+        name: data.user.user_metadata.name,
+        email: data.user.email!,
+        picture: data.user.user_metadata.picture,
+      };
+      
+      // The user profile is already in the 'users' table via the session,
+      // but you can upsert here if you have extra profile fields to manage.
+      await supabase.from('users').upsert(userProfile, { onConflict: 'id' });
+
+      setUser(userProfile);
+      router.push('/mood');
+    }
   };
   
   const handleGuestSignIn = () => {
