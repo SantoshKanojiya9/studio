@@ -192,7 +192,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Do you want to delete this emoji? This action cannot be undone.
-                    </CADDescription>
+                    </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
