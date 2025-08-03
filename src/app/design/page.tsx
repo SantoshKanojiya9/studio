@@ -490,6 +490,7 @@ export const ClockFace = ({
     eyebrowStyle,
     animationType,
     isDragging,
+    isInteractive = true,
     onPan,
     onPanStart,
     onPanEnd,
@@ -507,6 +508,7 @@ export const ClockFace = ({
     eyebrowStyle: FeatureStyle;
     animationType: AnimationType;
     isDragging: boolean;
+    isInteractive?: boolean;
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
@@ -716,7 +718,7 @@ export const ClockFace = ({
   });
 
   const handleTap = () => {
-    if (isAngryMode) return;
+    if (!isInteractive || isAngryMode) return;
 
     const now = Date.now();
     const newTimestamps = [...tapTimestamps, now].filter(t => now - t < 2000);
@@ -1557,6 +1559,7 @@ const DesignPageContent = () => {
                     eyebrowStyle={eyebrowStyle}
                     animationType={animationType}
                     isDragging={isDragging}
+                    isInteractive={true}
                     onPan={handlePan}
                     onPanStart={handlePanStart}
                     onPanEnd={handlePanEnd}

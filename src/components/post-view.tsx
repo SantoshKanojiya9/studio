@@ -201,6 +201,7 @@ export function PostView({
                           {...emojiToRender}
                           color={emojiToRender.emojiColor}
                           isDragging={false}
+                          isInteractive={false}
                           featureOffsetX={featureOffsetX}
                           featureOffsetY={featureOffsetY}
                           setColor={() => {}}

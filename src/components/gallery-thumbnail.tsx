@@ -50,6 +50,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     {...emojiToRender}
                     color={emojiToRender.emojiColor}
                     isDragging={false}
+                    isInteractive={false}
                     featureOffsetX={featureOffsetX}
                     featureOffsetY={featureOffsetY}
                     setColor={() => {}}
