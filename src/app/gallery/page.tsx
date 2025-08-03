@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, UserPlus, Share2 } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -77,7 +77,6 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
-    const [isPrivate, setIsPrivate] = React.useState(true);
     const { user, setUser } = useAuth();
     const { toast } = useToast();
 
@@ -141,15 +140,12 @@ export default function GalleryPage() {
             try {
                 await navigator.share(shareData);
             } catch (err: any) {
-                // If the user cancels the share dialog or permission is denied, do nothing.
-                if (err.name === 'AbortError' || err.name === 'PermissionDeniedError') {
-                    return; 
+                if (err.name !== 'AbortError' && err.name !== 'PermissionDeniedError') {
+                    console.error('Share failed, falling back to copy:', err);
+                    copyToClipboard();
                 }
-                console.error('Share failed, falling back to copy:', err);
-                copyToClipboard();
             }
         } else {
-            // Fallback for browsers that don't support the Web Share API
             copyToClipboard();
         }
     };
@@ -173,10 +169,6 @@ export default function GalleryPage() {
                 <span>{user?.name || 'Profile'}</span>
             </div>
             <div className="flex items-center gap-2">
-                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
-                    <UserPlus className="h-5 w-5" />
-                    <span className="sr-only">Add friend</span>
-                 </Button>
                  <Sheet>
                     <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
@@ -204,11 +196,8 @@ export default function GalleryPage() {
     );
     
     const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
-    const initialIndex = selectedEmoji ? savedEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
-
+    
     if (!user) {
-        // This case should ideally be handled by the AuthProvider redirecting to login.
-        // But as a safeguard:
         return (
             <div className="flex h-full w-full flex-col items-center justify-center text-center p-8">
                 <Lock className="h-16 w-16 text-muted-foreground" />
@@ -223,10 +212,10 @@ export default function GalleryPage() {
     
     return (
         <div className="flex h-full w-full flex-col overflow-x-hidden">
-           {selectedEmojiId && initialIndex > -1 ? (
+           {selectedEmoji ? (
                 <PostView 
                     emojis={savedEmojis}
-                    initialIndex={initialIndex}
+                    initialIndex={savedEmojis.findIndex(e => e.id === selectedEmojiId)}
                     onClose={() => setSelectedEmojiId(null)}
                     onDelete={handleDelete}
                     onShare={() => handleShareProfile()}

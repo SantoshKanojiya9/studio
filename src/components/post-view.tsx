@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Share2 } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -57,7 +57,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
             }
         };
 
-        container.addEventListener('scroll', handleScroll);
+        container.addEventListener('scroll', handleScroll, { passive: true });
         return () => container.removeEventListener('scroll', handleScroll);
     }
   }, [initialIndex]);
@@ -125,10 +125,6 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
                          <span>Edit</span>
                        </Link>
                     </DropdownMenuItem>
-                     <DropdownMenuItem onClick={() => onShare(emoji)}>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        <span>Share</span>
-                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
                       <Trash2 className="mr-2 h-4 w-4" />
                       <span>Delete</span>
@@ -176,7 +172,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
                   <div className="flex items-center gap-4">
                     <Heart className="h-6 w-6 cursor-pointer" />
                     <MessageCircle className="h-6 w-6 cursor-pointer" />
-                    <Send className="h-6 w-6 cursor-pointer" />
+                    <Send className="h-6 w-6 cursor-pointer" onClick={() => onShare(emoji)} />
                     <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
                   </div>
                   <p className="text-sm font-semibold mt-2">1,234 likes</p>
@@ -196,7 +192,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Do you want to delete this emoji? This action cannot be undone.
-                    </AlertDialogDescription>
+                    </CADDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
