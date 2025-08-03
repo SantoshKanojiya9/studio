@@ -26,6 +26,11 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     // Initialize motion values required by Face/ClockFace components
     const featureOffsetX = useMotionValue(0);
     const featureOffsetY = useMotionValue(0);
+    
+    const emojiToRender = { ...emoji };
+    if (emojiToRender.model === 'loki' && emojiToRender.shape === 'blob') {
+        emojiToRender.shape = 'default';
+    }
 
     return (
         <div 
@@ -40,24 +45,26 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                 animate={{ scale: 0.35 }}
                 transition={{ duration: 0 }}
             >
-             {emoji.model === 'loki' ? (
+             {emojiToRender.model === 'loki' ? (
                 <ClockFace 
-                    {...emoji}
-                    color={emoji.emojiColor}
+                    {...emojiToRender}
+                    color={emojiToRender.emojiColor}
                     isDragging={false}
                     featureOffsetX={featureOffsetX}
                     featureOffsetY={featureOffsetY}
+                    setColor={() => {}}
                 />
             ) : (
                 <Face 
-                    {...emoji}
-                    color={emoji.emojiColor}
+                    {...emojiToRender}
+                    color={emojiToRender.emojiColor}
                     isDragging={false}
                     onPan={() => {}}
                     onPanStart={() => {}}
                     onPanEnd={() => {}}
                     featureOffsetX={featureOffsetX}
                     featureOffsetY={featureOffsetY}
+                    setColor={() => {}}
                 />
             )}
             </motion.div>

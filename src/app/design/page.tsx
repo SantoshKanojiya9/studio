@@ -524,7 +524,7 @@ export const ClockFace = ({
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+  const nonAngryExpressions: Expression[] = ['neutral', 'happy', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
     if (!isAngryMode) {
@@ -558,7 +558,7 @@ export const ClockFace = ({
     };
     
     const randomAnimation = () => {
-        const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
+        const newExpression = nonAngryExpressions[Math.floor(Math.random() * nonAngryExpressions.length)];
         setExpression(newExpression);
         
         const boundaryX = 40; 
