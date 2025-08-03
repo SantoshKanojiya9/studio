@@ -90,16 +90,6 @@ export default function LoginPage() {
     }
   };
   
-  const handleGuestSignIn = () => {
-    setUser({
-        id: 'guest',
-        name: 'Guest User',
-        email: 'guest@example.com',
-        picture: 'https://placehold.co/64x64.png'
-    });
-    router.push('/mood');
-  };
-
   useEffect(() => {
     if (user) {
         router.push('/mood');
@@ -163,9 +153,6 @@ export default function LoginPage() {
 
         <motion.div variants={itemVariants} className="mt-8 flex flex-col items-center gap-4">
             <div ref={signInDiv}></div>
-            <Button variant="link" onClick={handleGuestSignIn}>
-                Continue as Guest
-            </Button>
         </motion.div>
       </motion.div>
     </div>
