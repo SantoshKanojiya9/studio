@@ -31,8 +31,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 
 interface PostViewProps {
-  emoji?: EmojiState;
-  emojis?: EmojiState[];
+  emojis: EmojiState[];
   initialIndex?: number;
   onClose: () => void;
   onDelete?: (id: string) => void;
@@ -40,15 +39,13 @@ interface PostViewProps {
 }
 
 export function PostView({ 
-    emoji: singleEmoji, 
-    emojis: emojiList,
+    emojis,
     initialIndex = 0, 
     onClose, 
     onDelete, 
     onShare 
 }: PostViewProps) {
   
-  const emojis = emojiList || (singleEmoji ? [singleEmoji] : []);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
   const { user } = useAuth();
@@ -57,7 +54,7 @@ export function PostView({
 
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (container && emojiList) { // Only handle scroll logic if it's a list
+    if (container && emojis) { // Only handle scroll logic if it's a list
         container.scrollTo({
             top: container.offsetHeight * initialIndex,
             behavior: 'auto'
@@ -66,14 +63,16 @@ export function PostView({
         const handleScroll = () => {
             if (scrollContainerRef.current) {
                 const newIndex = Math.round(scrollContainerRef.current.scrollTop / scrollContainerRef.current.offsetHeight);
-                setCurrentIndex(newIndex);
+                if (newIndex < emojis.length) {
+                    setCurrentIndex(newIndex);
+                }
             }
         };
 
         container.addEventListener('scroll', handleScroll, { passive: true });
         return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [initialIndex, emojiList]);
+  }, [initialIndex, emojis]);
 
   const handleDeleteClick = (id: string) => {
     if (!onDelete) return;
@@ -128,13 +127,16 @@ export function PostView({
   const currentEmoji = emojis[currentIndex];
   
   if (!currentEmoji) {
-    if (emojis.length > 0) {
+    if (emojis.length > 0 && currentIndex >= emojis.length) {
       setCurrentIndex(0); // Reset to first if current is invalid
+    } else if (emojis.length === 0) {
+      onClose(); // Close if there are no emojis left to display
+      return null;
     }
     return null;
   }
   
-  const {user: author} = (currentEmoji as any);
+  const author = currentEmoji.user;
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
@@ -160,6 +162,8 @@ export function PostView({
             featureOffsetX.set(emojiToRender.featureOffsetX || 0);
             featureOffsetY.set(emojiToRender.featureOffsetY || 0);
 
+            const postAuthor = emoji.user;
+
             return (
                 <motion.div
                     key={emoji.id}
@@ -175,11 +179,11 @@ export function PostView({
                     style={{ backgroundColor: emojiToRender.backgroundColor }}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={author?.picture || "https://placehold.co/64x64.png"} alt={author?.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{author?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                      <AvatarImage src={postAuthor?.picture || "https://placehold.co/64x64.png"} alt={postAuthor?.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{postAuthor?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
-                    <span className="ml-3 font-semibold text-sm">{author?.name || 'User'}</span>
-                    {onDelete && user && author && user.id === author.id && (
+                    <span className="ml-3 font-semibold text-sm">{postAuthor?.name || 'User'}</span>
+                    {onDelete && user && postAuthor && user.id === postAuthor.id && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
@@ -246,7 +250,7 @@ export function PostView({
                       </div>
                       <p className="text-sm font-semibold mt-2">1,234 likes</p>
                       <p className="text-sm mt-1">
-                        <span className="font-semibold">{author?.name || 'User'}</span>
+                        <span className="font-semibold">{postAuthor?.name || 'User'}</span>
                         {' '}My new creation!
                       </p>
                   </div>

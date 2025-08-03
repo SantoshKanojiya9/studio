@@ -51,8 +51,13 @@ export type EmojiState = {
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
     eyebrowStyle: FeatureStyle;
-    featureOffsetX?: number;
-    featureOffsetY?: number;
+    featureOffsetX: number;
+    featureOffsetY: number;
+    user?: {
+      id: string;
+      name: string;
+      picture: string;
+    }
 };
 
 
@@ -112,7 +117,7 @@ export const Face = ({
   }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
-    if (isAngryMode || isDragging || animationType === 'none') {
+    if (isAngryMode || isDragging || animationType === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
@@ -124,9 +129,6 @@ export const Face = ({
         return;
     };
     
-    // Only start animation if the face is centered
-    if(featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0) return;
-
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
@@ -545,7 +547,7 @@ export const ClockFace = ({
   }, [initialExpression, isAngryMode]);
   
   useEffect(() => {
-    if (isAngryMode || isDragging || animationType === 'none') {
+    if (!isInteractive || isAngryMode || isDragging || animationType === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
@@ -556,8 +558,6 @@ export const ClockFace = ({
         }
         return;
     };
-
-    if (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0) return;
     
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
@@ -622,7 +622,7 @@ export const ClockFace = ({
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
+  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY, isInteractive]);
 
 
   const eyeVariants = {
@@ -1112,7 +1112,7 @@ const DesignPageContent = () => {
         currentShape = 'default';
     }
 
-    const currentState: Omit<EmojiState, 'id'> & { user_id: string; id?: string } = {
+    const currentState: Omit<EmojiState, 'id' | 'user'> & { user_id: string; id?: string } = {
       user_id: user.id,
       model,
       expression,

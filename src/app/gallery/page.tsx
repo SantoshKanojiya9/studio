@@ -92,7 +92,7 @@ export default function GalleryPage() {
             try {
                 const { data, error } = await supabase
                     .from('emojis')
-                    .select('*')
+                    .select('*, user:user_id(id, name, picture)')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 

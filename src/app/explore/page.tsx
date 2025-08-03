@@ -97,16 +97,12 @@ export default function ExplorePage() {
       )
   }
 
-  if (selectedEmojiId) {
-    const selectedEmoji = allEmojis.find(e => e.id === selectedEmojiId);
-    if (!selectedEmoji) {
-        // Handle case where emoji is not found (e.g., after deletion)
-        setSelectedEmojiId(null);
-        return null;
-    }
+  const selectedEmoji = selectedEmojiId ? allEmojis.find(e => e.id === selectedEmojiId) : null;
+  
+  if (selectedEmoji) {
     return (
         <PostView 
-            emoji={selectedEmoji} 
+            emojis={[selectedEmoji]}
             onClose={() => setSelectedEmojiId(null)}
             onDelete={handleDelete}
         />
