@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -77,6 +77,7 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isClient, setIsClient] = React.useState(false);
+    const [isPrivate, setIsPrivate] = React.useState(true);
     const { user, setUser } = useAuth();
     const { toast } = useToast();
 
@@ -173,6 +174,10 @@ export default function GalleryPage() {
                 <span>{user?.name || 'Profile'}</span>
             </div>
             <div className="flex items-center gap-2">
+                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                    <UserPlus className="h-5 w-5" />
+                    <span className="sr-only">Add friend</span>
+                 </Button>
                  <Sheet>
                     <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
@@ -200,6 +205,7 @@ export default function GalleryPage() {
     );
     
     const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
+    const initialIndex = selectedEmoji ? savedEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
 
     if (!user) {
         // This case should ideally be handled by the AuthProvider redirecting to login.
@@ -218,11 +224,13 @@ export default function GalleryPage() {
     
     return (
         <div className="flex h-full w-full flex-col overflow-x-hidden">
-           {selectedEmoji ? (
+           {selectedEmojiId && initialIndex > -1 ? (
                 <PostView 
-                    emoji={selectedEmoji} 
+                    emojis={savedEmojis}
+                    initialIndex={initialIndex}
                     onClose={() => setSelectedEmojiId(null)}
                     onDelete={handleDelete}
+                    onShare={handleShareProfile}
                 />
            ) : (
              <>

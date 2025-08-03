@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face, ClockFace } from '@/app/design/page';
 import {
@@ -22,22 +22,46 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Share2 } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 
 
 interface PostViewProps {
-  emoji: EmojiState;
+  emojis: EmojiState[];
+  initialIndex: number;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onShare: (emoji: EmojiState) => void;
 }
 
-export function PostView({ emoji, onClose, onDelete }: PostViewProps) {
+export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: PostViewProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
   const { user } = useAuth();
-  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({
+            left: scrollContainerRef.current.offsetWidth * initialIndex,
+            behavior: 'auto'
+        });
+    }
+
+    const handleScroll = () => {
+        if (scrollContainerRef.current) {
+            const newIndex = Math.round(scrollContainerRef.current.scrollLeft / scrollContainerRef.current.offsetWidth);
+            setCurrentIndex(newIndex);
+        }
+    };
+
+    const container = scrollContainerRef.current;
+    container?.addEventListener('scroll', handleScroll);
+    return () => container?.removeEventListener('scroll', handleScroll);
+  }, [initialIndex]);
+
   const handleDeleteClick = (id: string) => {
     setEmojiToDelete(id);
   };
@@ -49,11 +73,11 @@ export function PostView({ emoji, onClose, onDelete }: PostViewProps) {
     }
   };
   
-  // Initialize motion values required by Face/ClockFace components
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
-
-  if (!emoji) return null;
+  
+  const currentEmoji = emojis[currentIndex];
+  if (!currentEmoji) return null;
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
@@ -65,95 +89,104 @@ export function PostView({ emoji, onClose, onDelete }: PostViewProps) {
         <div className="w-10"></div> {/* Spacer */}
       </header>
 
-      <div className="flex-1 overflow-y-auto flex flex-col">
-        <motion.div
-            key={emoji.id}
-            id={`post-${emoji.id}`}
-            className="w-full flex-shrink-0 flex flex-col"
-            layout
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-        >
-          <div 
-            className="flex items-center px-4 py-2"
-            style={{ backgroundColor: emoji.backgroundColor }}
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.picture || "https://placehold.co/64x64.png"} alt={user?.name} data-ai-hint="profile picture" />
-              <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-            </Avatar>
-            <span className="ml-3 font-semibold text-sm">{user?.name || 'User'}</span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                   <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
-                     <Edit className="mr-2 h-4 w-4" />
-                     <span>Edit</span>
-                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div 
-            className="flex-1 flex items-center justify-center min-h-0 aspect-square"
-            style={{ 
-              backgroundColor: emoji.backgroundColor,
-              filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
-            }}
-          >
-            {emoji.model === 'loki' ? (
-               <ClockFace 
-                  {...emoji}
-                  shape={emoji.shape === 'blob' ? 'default' : emoji.shape}
-                  color={emoji.emojiColor}
-                  isDragging={false}
-                  featureOffsetX={featureOffsetX}
-                  featureOffsetY={featureOffsetY}
-                  setColor={() => {}}
-                />
-            ) : (
-               <Face 
-                  {...emoji}
-                  color={emoji.emojiColor}
-                  isDragging={false}
-                  onPan={() => {}}
-                  onPanStart={() => {}}
-                  onPanEnd={() => {}}
-                  featureOffsetX={featureOffsetX}
-                  featureOffsetY={featureOffsetY}
-                  setColor={() => {}}
-                />
-            )}
-          </div>
-
-          <div 
-            className="px-4 pt-2 pb-4"
-            style={{ backgroundColor: emoji.backgroundColor }}
-          >
-              <div className="flex items-center gap-4">
-                <Heart className="h-6 w-6 cursor-pointer" />
-                <MessageCircle className="h-6 w-6 cursor-pointer" />
-                <Send className="h-6 w-6 cursor-pointer" />
-                <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+      >
+        {emojis.map((emoji) => (
+            <motion.div
+                key={emoji.id}
+                id={`post-${emoji.id}`}
+                className="w-full flex-shrink-0 flex flex-col snap-center"
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+            >
+              <div 
+                className="flex items-center px-4 py-2"
+                style={{ backgroundColor: emoji.backgroundColor }}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.picture || "https://placehold.co/64x64.png"} alt={user?.name} data-ai-hint="profile picture" />
+                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+                <span className="ml-3 font-semibold text-sm">{user?.name || 'User'}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                       <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                         <Edit className="mr-2 h-4 w-4" />
+                         <span>Edit</span>
+                       </Link>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem onClick={() => onShare(emoji)}>
+                        <Share2 className="mr-2 h-4 w-4" />
+                        <span>Share</span>
+                     </DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <p className="text-sm font-semibold mt-2">1,234 likes</p>
-              <p className="text-sm mt-1">
-                <span className="font-semibold">{user?.name || 'User'}</span>
-                {' '}My new creation!
-              </p>
-          </div>
-        </motion.div>
+
+              <div 
+                className="flex-1 flex items-center justify-center min-h-0 aspect-square"
+                style={{ 
+                  backgroundColor: emoji.backgroundColor,
+                  filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
+                }}
+              >
+                {emoji.model === 'loki' ? (
+                   <ClockFace 
+                      {...emoji}
+                      shape={emoji.shape === 'blob' ? 'default' : emoji.shape}
+                      color={emoji.emojiColor}
+                      isDragging={false}
+                      featureOffsetX={featureOffsetX}
+                      featureOffsetY={featureOffsetY}
+                      setColor={() => {}}
+                    />
+                ) : (
+                   <Face 
+                      {...emoji}
+                      color={emoji.emojiColor}
+                      isDragging={false}
+                      onPan={() => {}}
+                      onPanStart={() => {}}
+                      onPanEnd={() => {}}
+                      featureOffsetX={featureOffsetX}
+                      featureOffsetY={featureOffsetY}
+                      setColor={() => {}}
+                    />
+                )}
+              </div>
+
+              <div 
+                className="px-4 pt-2 pb-4"
+                style={{ backgroundColor: emoji.backgroundColor }}
+              >
+                  <div className="flex items-center gap-4">
+                    <Heart className="h-6 w-6 cursor-pointer" />
+                    <MessageCircle className="h-6 w-6 cursor-pointer" />
+                    <Send className="h-6 w-6 cursor-pointer" />
+                    <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
+                  </div>
+                  <p className="text-sm font-semibold mt-2">1,234 likes</p>
+                  <p className="text-sm mt-1">
+                    <span className="font-semibold">{user?.name || 'User'}</span>
+                    {' '}My new creation!
+                  </p>
+              </div>
+            </motion.div>
+          ))}
       </div>
       
       {emojiToDelete && (
