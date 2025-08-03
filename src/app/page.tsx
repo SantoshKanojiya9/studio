@@ -100,10 +100,11 @@ export default function LoginPage() {
          const guestProfile = {
             id: data.user.id,
             name: `Guest-${data.user.id.substring(0, 6)}`,
-            email: data.user.email || '', 
+            email: data.user.email || `guest_${data.user.id}@example.com`,
             picture: `https://placehold.co/64x64.png?text=G`,
         };
         
+        // Ensure the guest profile is created before navigating
         const { error: upsertError } = await supabase.from('users').upsert(guestProfile, {
           onConflict: 'id'
         });
