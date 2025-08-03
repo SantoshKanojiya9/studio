@@ -43,23 +43,23 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTo({
-            left: scrollContainerRef.current.offsetWidth * initialIndex,
+    const container = scrollContainerRef.current;
+    if (container) {
+        container.scrollTo({
+            top: container.offsetHeight * initialIndex,
             behavior: 'auto'
         });
+
+        const handleScroll = () => {
+            if (scrollContainerRef.current) {
+                const newIndex = Math.round(scrollContainerRef.current.scrollTop / scrollContainerRef.current.offsetHeight);
+                setCurrentIndex(newIndex);
+            }
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
     }
-
-    const handleScroll = () => {
-        if (scrollContainerRef.current) {
-            const newIndex = Math.round(scrollContainerRef.current.scrollLeft / scrollContainerRef.current.offsetWidth);
-            setCurrentIndex(newIndex);
-        }
-    };
-
-    const container = scrollContainerRef.current;
-    container?.addEventListener('scroll', handleScroll);
-    return () => container?.removeEventListener('scroll', handleScroll);
   }, [initialIndex]);
 
   const handleDeleteClick = (id: string) => {
@@ -81,7 +81,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
-      <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4">
+      <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
         <Button variant="ghost" size="icon" onClick={onClose}>
           <ArrowLeft />
         </Button>
@@ -91,13 +91,13 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
 
       <div 
         ref={scrollContainerRef}
-        className="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+        className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
       >
         {emojis.map((emoji) => (
             <motion.div
                 key={emoji.id}
                 id={`post-${emoji.id}`}
-                className="w-full flex-shrink-0 flex flex-col snap-center"
+                className="w-full h-full flex-shrink-0 flex flex-col snap-center"
                 layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -138,7 +138,7 @@ export function PostView({ emojis, initialIndex, onClose, onDelete, onShare }: P
               </div>
 
               <div 
-                className="flex-1 flex items-center justify-center min-h-0 aspect-square"
+                className="flex-1 flex items-center justify-center min-h-0"
                 style={{ 
                   backgroundColor: emoji.backgroundColor,
                   filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',

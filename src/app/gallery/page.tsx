@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, UserPlus } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, UserPlus, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -136,7 +136,7 @@ export default function GalleryPage() {
                 });
             });
         };
-
+        
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
@@ -145,9 +145,8 @@ export default function GalleryPage() {
                 if (err.name === 'AbortError' || err.name === 'PermissionDeniedError') {
                     return; 
                 }
-                // For other errors, you might want to log them or show a message,
-                // but for now we'll just prevent a crash.
-                console.error('Share failed for a reason other than cancel/deny:', err);
+                console.error('Share failed, falling back to copy:', err);
+                copyToClipboard();
             }
         } else {
             // Fallback for browsers that don't support the Web Share API
@@ -230,7 +229,7 @@ export default function GalleryPage() {
                     initialIndex={initialIndex}
                     onClose={() => setSelectedEmojiId(null)}
                     onDelete={handleDelete}
-                    onShare={handleShareProfile}
+                    onShare={() => handleShareProfile()}
                 />
            ) : (
              <>
