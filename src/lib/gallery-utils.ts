@@ -1,5 +1,4 @@
 
-
 import type { EmojiState } from "@/app/design/page";
 import { supabase } from "./supabaseClient";
 
@@ -8,29 +7,47 @@ import { supabase } from "./supabaseClient";
  */
 export async function getAllSavedEmojis(): Promise<EmojiState[]> {
     try {
-        const { data, error } = await supabase
+        const { data: emojis, error: emojisError } = await supabase
             .from('emojis')
-            .select(`
-                *,
-                user:users (
-                    id,
-                    name,
-                    picture
-                )
-            `)
+            .select('*')
             .order('created_at', { ascending: false });
 
-        if (error) {
-            console.error('Supabase error in getAllSavedEmojis:', error);
-            throw new Error(error.message);
+        if (emojisError) {
+            console.error('Supabase error fetching emojis:', emojisError);
+            throw new Error(emojisError.message);
         }
-        
-        // Supabase returns the joined user data in a nested object. We need to handle the case where it might be an array.
-        const emojisWithUsers = (data || []).map(emoji => {
+
+        if (!emojis) {
+            return [];
+        }
+
+        // Get all unique user IDs from the emojis
+        const userIds = [...new Set(emojis.map(e => e.user_id).filter(id => id))];
+
+        if (userIds.length === 0) {
+            return emojis as EmojiState[];
+        }
+
+        // Fetch user profiles for those user IDs
+        const { data: users, error: usersError } = await supabase
+            .from('users')
+            .select('id, name, picture')
+            .in('id', userIds);
+
+        if (usersError) {
+            console.error('Supabase error fetching users:', usersError);
+            throw new Error(usersError.message);
+        }
+
+        // Create a map of user profiles for easy lookup
+        const userMap = new Map(users.map(u => [u.id, u]));
+
+        // Combine emojis with their user profiles
+        const emojisWithUsers = emojis.map(emoji => {
             return {
                 ...emoji,
-                user: Array.isArray(emoji.user) ? emoji.user[0] : emoji.user
-            }
+                user: userMap.get(emoji.user_id) || null
+            };
         });
 
         return (emojisWithUsers as EmojiState[]) || [];
@@ -39,4 +56,3 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
         throw error;
     }
 }
-
