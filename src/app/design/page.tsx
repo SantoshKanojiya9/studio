@@ -717,6 +717,8 @@ export const ClockFace = ({
       }, 2000);
     }
   };
+  
+  const armColor = expression === 'angry' ? 'red' : 'orangered';
 
   return (
     <motion.div 
@@ -740,7 +742,11 @@ export const ClockFace = ({
          animate={{ rotate: expression === 'happy' ? -25 : (expression === 'angry' ? -30 : -10), x: expression === 'angry' ? -5 : 0 }}
          transition={{ type: 'spring', stiffness: 200, damping: 10}}
         >
-            <div className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full bg-orange-500"></div>
+            <motion.div 
+                className="w-12 h-2 absolute top-1/2 right-0 -translate-y-1/2 rounded-l-full"
+                animate={{ backgroundColor: armColor }}
+                transition={{ duration: 0.2 }}
+            ></motion.div>
             <div className="w-8 h-8 bg-white rounded-full absolute left-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="relative w-5 h-4 flex items-center justify-center gap-px">
                     <div className="w-2 h-0.5 bg-black/70 rounded-full"></div>
@@ -752,7 +758,11 @@ export const ClockFace = ({
           animate={{ rotate: expression === 'surprised' ? 25 : (expression === 'sad' ? 40 : 10), x: expression === 'angry' ? 5 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 10}}
          >
-            <div className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full bg-orange-500"></div>
+            <motion.div 
+                className="w-12 h-2 absolute top-1/2 left-0 -translate-y-1/2 rounded-r-full"
+                animate={{ backgroundColor: armColor }}
+                transition={{ duration: 0.2 }}
+            ></motion.div>
              <div className="w-8 h-8 bg-white rounded-full absolute right-0 top-1/2 -translate-y-1/2 border-2 border-black/70 flex items-center justify-center">
                 <div className="relative w-5 h-4 flex items-center justify-center gap-px">
                     <div className="w-2 h-0.5 bg-black/70 rounded-full"></div>
@@ -780,7 +790,7 @@ export const ClockFace = ({
         >
             {tickMarks}
             <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative" style={{ borderRadius: getShapeClipPath(currentShape) }}>
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22%2F%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22%2F%3E%3C/svg%3E')] opacity-5"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
             
              <motion.div
                 className="absolute top-5 left-5 w-1/2 h-1/4 bg-white/20 rounded-full"
@@ -1552,3 +1562,4 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
