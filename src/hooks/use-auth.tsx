@@ -4,6 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
 
 interface UserProfile {
     id: string;
@@ -21,33 +22,56 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUserState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('userProfile');
-    if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const { data: { session } } = supabase.auth.getSessionFromUrl({
+      storeSession: true,
+    });
+    
+    if (session) {
+      const userProfile = {
+        id: session.user.id,
+        name: session.user.user_metadata.name,
+        email: session.user.email!,
+        picture: session.user.user_metadata.picture,
+      };
+      setUserState(userProfile);
     }
-    setLoading(false);
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) {
+            const userProfile = {
+                id: session.user.id,
+                name: session.user.user_metadata.name,
+                email: session.user.email!,
+                picture: session.user.user_metadata.picture,
+            };
+            setUserState(userProfile);
+        } else {
+            setUserState(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
-    if (user) {
-        localStorage.setItem('userProfile', JSON.stringify(user));
-    } else {
-        localStorage.removeItem('userProfile');
-    }
-
     if (!loading && !user && pathname !== '/') {
         router.push('/');
     }
   }, [user, loading, pathname, router]);
 
-  const handleSetUser = (userProfile: UserProfile | null) => {
-    setUser(userProfile);
+  const setUser = (userProfile: UserProfile | null) => {
+    setUserState(userProfile);
   };
   
   if (loading) {
@@ -59,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser: handleSetUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

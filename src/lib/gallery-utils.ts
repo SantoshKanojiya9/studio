@@ -11,7 +11,7 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
             .from('emojis')
             .select(`
                 *,
-                user:user_id (
+                user:users (
                     id,
                     name,
                     picture
@@ -20,19 +20,13 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
             .order('created_at', { ascending: false });
 
         if (error) {
-            throw error;
+            console.error('Supabase error in getAllSavedEmojis:', error);
+            throw new Error(error.message);
         }
         
-        // Supabase returns the foreign table data inside a nested object.
-        // We need to flatten it slightly to match the EmojiState type.
-        const formattedData = data.map(item => {
-            const { user, ...rest } = item;
-            return { ...rest, user: Array.isArray(user) ? user[0] : user };
-        });
-
-        return (formattedData as EmojiState[]) || [];
+        return (data as EmojiState[]) || [];
     } catch (error) {
         console.error("Failed to fetch all saved emojis from Supabase", error);
-        return [];
+        throw error;
     }
 }

@@ -92,11 +92,14 @@ export default function GalleryPage() {
             try {
                 const { data, error } = await supabase
                     .from('emojis')
-                    .select('*, user:user_id(id, name, picture)')
+                    .select('*, user:users(id, name, picture)')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase error in gallery:', error);
+                    throw new Error(error.message);
+                };
                 setSavedEmojis(data as EmojiState[]);
             } catch (error: any) {
                 console.error("Failed to load emojis from Supabase", error);
@@ -135,8 +138,14 @@ export default function GalleryPage() {
         }
     };
     
-    const handleSignOut = () => {
-        setUser(null);
+    const handleSignOut = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Error signing out:', error);
+            toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
+        } else {
+            setUser(null);
+        }
     };
 
     const handleShareProfile = async () => {

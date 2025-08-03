@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { jwtDecode } from 'jwt-decode';
 import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabaseClient';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -51,18 +52,26 @@ export default function LoginPage() {
   const { user, setUser } = useAuth();
   const signInDiv = useRef<HTMLDivElement>(null);
 
-  const handleSignIn = (response: CredentialResponse) => {
+  const handleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
       console.error("No credential returned from Google");
       return;
     }
     const decoded: { name: string, email: string, picture: string, sub: string } = jwtDecode(response.credential);
-    setUser({
+    const userProfile = {
         id: decoded.sub,
         name: decoded.name,
         email: decoded.email,
         picture: decoded.picture
-    });
+    };
+    
+    // Save user profile to Supabase
+    const { error } = await supabase.from('users').upsert(userProfile, { onConflict: 'id' });
+    if (error) {
+        console.error('Error saving user to Supabase', error);
+    }
+    
+    setUser(userProfile);
     router.push('/mood');
   };
   
@@ -92,7 +101,7 @@ export default function LoginPage() {
             { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
         );
     }
-  }, [user, router]);
+  }, [user, router, setUser]);
 
 
   const containerVariants = {

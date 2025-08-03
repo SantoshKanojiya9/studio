@@ -14,15 +14,15 @@ import { supabase } from '@/lib/supabaseClient';
 
 // Dummy users for search results
 const allUsers = [
-  { id: 2, username: 'Alice', avatar: 'https://placehold.co/64x64.png', hint: 'woman smiling' },
-  { id: 3, username: 'Bob', avatar: 'https://placehold.co/64x64.png', hint: 'man glasses' },
-  { id: 4, username: 'Charlie', avatar: 'https://placehold.co/64x64.png', hint: 'man beard' },
-  { id: 5, username: 'David', avatar: 'https://placehold.co/64x64.png', hint: 'boy smiling' },
-  { id: 6, username: 'Eve', avatar: 'https://placehold.co/64x64.png', hint: 'woman glasses' },
-  { id: 7, username: 'Frank', avatar: 'https://placehold.co/64x64.png', hint: 'man suit' },
-  { id: 8, username: 'Grace', avatar: 'https://placehold.co/64x64.png', hint: 'woman long hair' },
-  { id: 9, username: 'Heidi', avatar: 'https://placehold.co/64x64.png', hint: 'girl smiling' },
-  { id: 10, username: 'Ivan', avatar: 'https://placehold.co/64x64.png', hint: 'man short hair' },
+  { id: '2', name: 'Alice', picture: 'https://placehold.co/64x64.png', hint: 'woman smiling' },
+  { id: '3', name: 'Bob', picture: 'https://placehold.co/64x64.png', hint: 'man glasses' },
+  { id: '4', name: 'Charlie', picture: 'https://placehold.co/64x64.png', hint: 'man beard' },
+  { id: '5', name: 'David', picture: 'https://placehold.co/64x64.png', hint: 'boy smiling' },
+  { id: '6', name: 'Eve', picture: 'https://placehold.co/64x64.png', hint: 'woman glasses' },
+  { id: '7', name: 'Frank', picture: 'https://placehold.co/64x64.png', hint: 'man suit' },
+  { id: '8', name: 'Grace', picture: 'https://placehold.co/64x64.png', hint: 'woman long hair' },
+  { id: '9', name: 'Heidi', picture: 'https://placehold.co/64x64.png', hint: 'girl smiling' },
+  { id: '10', name: 'Ivan', picture: 'https://placehold.co/64x64.png', hint: 'man short hair' },
 ];
 
 export default function ExplorePage() {
@@ -58,7 +58,7 @@ export default function ExplorePage() {
       const lowercasedQuery = searchQuery.toLowerCase();
       setFilteredUsers(
         allUsers.filter(user =>
-          user.username.toLowerCase().includes(lowercasedQuery)
+          user.name.toLowerCase().includes(lowercasedQuery)
         )
       );
     } else {
@@ -103,6 +103,7 @@ export default function ExplorePage() {
     return (
         <PostView 
             emojis={[selectedEmoji]}
+            initialIndex={0}
             onClose={() => setSelectedEmojiId(null)}
             onDelete={handleDelete}
         />
@@ -129,10 +130,10 @@ export default function ExplorePage() {
                  filteredUsers.map(user => (
                     <div key={user.id} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
                         <Avatar className="h-12 w-12">
-                            <AvatarImage src={user.avatar} alt={user.username} data-ai-hint={user.hint} />
-                            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint={user.hint} />
+                            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className="font-semibold">{user.username}</span>
+                        <span className="font-semibold">{user.name}</span>
                     </div>
                  ))
              ) : (
