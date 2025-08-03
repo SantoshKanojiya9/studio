@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, Share2 } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 
 const CrownedEggAvatar = () => {
@@ -76,33 +77,61 @@ const CrownedEggAvatar = () => {
 export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
-    const [isClient, setIsClient] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
     const { user, setUser } = useAuth();
     const { toast } = useToast();
 
     React.useEffect(() => {
-        setIsClient(true);
-        if (user) {
-            try {
-                const savedGallery = localStorage.getItem('savedEmojiGallery');
-                if (savedGallery) {
-                    const gallery = JSON.parse(savedGallery) as EmojiState[];
-                    setSavedEmojis(gallery.sort((a, b) => parseInt(b.id) - parseInt(a.id)));
-                }
-            } catch (error) {
-                console.error("Failed to load or parse saved state from localStorage", error);
-            }
-        }
-    }, [user]);
+        const fetchEmojis = async () => {
+            if (!user) {
+                setIsLoading(false);
+                return;
+            };
 
-    const handleDelete = (emojiId: string) => {
+            setIsLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('emojis')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setSavedEmojis(data as EmojiState[]);
+            } catch (error: any) {
+                console.error("Failed to load emojis from Supabase", error);
+                toast({
+                    title: "Could not load gallery",
+                    description: error.message,
+                    variant: 'destructive',
+                })
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEmojis();
+    }, [user, toast]);
+
+    const handleDelete = async (emojiId: string) => {
         try {
+            const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
+            if (error) throw error;
+
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
-            localStorage.setItem('savedEmojiGallery', JSON.stringify(updatedEmojis));
             setSelectedEmojiId(null);
-        } catch (error) {
-            console.error("Failed to delete emoji from localStorage", error);
+            toast({
+                title: 'Post deleted',
+                variant: 'success'
+            })
+        } catch (error: any) {
+            console.error("Failed to delete emoji from Supabase", error);
+            toast({
+                title: 'Error deleting post',
+                description: error.message,
+                variant: 'destructive'
+            })
         }
     };
     
@@ -150,12 +179,12 @@ export default function GalleryPage() {
         }
     };
     
-    if (!isClient) {
+    if (isLoading) {
         return (
              <div className="flex h-full w-full flex-col">
                 <div className="flex-1 overflow-y-auto">
                     <div className="flex h-full items-center justify-center">
-                        <p className="text-muted-foreground">Loading gallery...</p>
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                 </div>
             </div>

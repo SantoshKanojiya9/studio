@@ -3,12 +3,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, User } from 'lucide-react';
+import { Search, User, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
-import { getAllSavedEmojis } from '@/lib/gallery-utils';
 import { PostView } from '@/components/post-view';
+import { getAllSavedEmojis } from '@/lib/gallery-utils';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 // Dummy users for search results
 const allUsers = [
@@ -28,16 +30,28 @@ export default function ExplorePage() {
   const [filteredUsers, setFilteredUsers] = useState(allUsers);
   const [allEmojis, setAllEmojis] = useState<EmojiState[]>([]);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setIsClient(true);
-    try {
-        setAllEmojis(getAllSavedEmojis());
-    } catch (error) {
-        console.error("Failed to load emojis for explore page", error);
-    }
-  }, []);
+    const fetchAllEmojis = async () => {
+        setIsLoading(true);
+        try {
+            const emojis = await getAllSavedEmojis();
+            setAllEmojis(emojis);
+        } catch (error: any) {
+            console.error("Failed to load emojis for explore page", error);
+            toast({
+                title: "Failed to load content",
+                description: error.message,
+                variant: 'destructive',
+            })
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    fetchAllEmojis();
+  }, [toast]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -52,17 +66,18 @@ export default function ExplorePage() {
     }
   }, [searchQuery]);
 
-  const handleDelete = (emojiId: string) => {
-    const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
-    setAllEmojis(updatedEmojis);
-    
+  const handleDelete = async (emojiId: string) => {
     try {
-      // Also update the master gallery in localStorage
-      const existingGallery = getAllSavedEmojis();
-      const newGallery = existingGallery.filter(emoji => emoji.id !== emojiId);
-      localStorage.setItem('savedEmojiGallery', JSON.stringify(newGallery));
-    } catch (error) {
-      console.error("Failed to delete emoji from localStorage", error);
+        const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
+        if (error) throw error;
+        
+        const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
+        setAllEmojis(updatedEmojis);
+        
+        toast({ title: "Post deleted", variant: "success" });
+    } catch (error: any) {
+      console.error("Failed to delete emoji from Supabase", error);
+      toast({ title: "Error deleting post", description: error.message, variant: "destructive" });
     }
     
     setSelectedEmojiId(null);
@@ -70,12 +85,12 @@ export default function ExplorePage() {
   
   const showSearchResults = searchQuery.length > 0;
 
-  if (!isClient) {
+  if (isLoading) {
       return (
            <div className="flex h-full w-full flex-col">
               <div className="flex-1 overflow-y-auto">
                   <div className="flex h-full items-center justify-center">
-                      <p className="text-muted-foreground">Loading...</p>
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
               </div>
           </div>

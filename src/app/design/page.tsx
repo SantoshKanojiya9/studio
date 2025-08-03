@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabaseClient';
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
@@ -37,6 +38,7 @@ type ModelType = 'emoji' | 'loki';
 
 export type EmojiState = {
     id: string;
+    user_id?: string;
     model: ModelType;
     expression: Expression;
     backgroundColor: string;
@@ -49,6 +51,8 @@ export type EmojiState = {
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
     eyebrowStyle: FeatureStyle;
+    featureOffsetX?: number;
+    featureOffsetY?: number;
 };
 
 
@@ -108,20 +112,26 @@ export const Face = ({
   }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
-    if (isAngryMode || isDragging) return;
+    if (isAngryMode || isDragging || animationType === 'none') {
+        if (animationControlsX.current) animationControlsX.current.stop();
+        if (animationControlsY.current) animationControlsY.current.stop();
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+        
+        if (animationType === 'none' && !isDragging) {
+             animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+        }
+        return;
+    };
     
+    // Only start animation if the face is centered
+    if(featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0) return;
+
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
-
-    if (animationType === 'none') {
-        stopAnimations();
-        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        return;
-    }
     
     stopAnimations();
 
@@ -535,7 +545,19 @@ export const ClockFace = ({
   }, [initialExpression, isAngryMode]);
   
   useEffect(() => {
-    if (isAngryMode || isDragging) return;
+    if (isAngryMode || isDragging || animationType === 'none') {
+        if (animationControlsX.current) animationControlsX.current.stop();
+        if (animationControlsY.current) animationControlsY.current.stop();
+        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+        
+        if (animationType === 'none' && !isDragging) {
+             animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+        }
+        return;
+    };
+
+    if (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0) return;
     
     const stopAnimations = () => {
         if (animationControlsX.current) animationControlsX.current.stop();
@@ -543,13 +565,6 @@ export const ClockFace = ({
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    if (animationType === 'none') {
-        stopAnimations();
-        animate(featureOffsetX, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        animate(featureOffsetY, 0, { type: 'spring', stiffness: 200, damping: 20 });
-        return;
-    }
-    
     stopAnimations();
 
     const animationOptions = {
@@ -1005,6 +1020,8 @@ const DesignPageContent = () => {
     setEyeStyle(state.eyeStyle || 'default');
     setMouthStyle(state.mouthStyle || 'default');
     setEyebrowStyle(state.eyebrowStyle || 'default');
+    featureOffsetX.set(state.featureOffsetX || 0);
+    featureOffsetY.set(state.featureOffsetY || 0);
   };
 
   const handleLoadEmoji = (emojiState: EmojiState) => {
@@ -1013,28 +1030,38 @@ const DesignPageContent = () => {
   };
   
   useEffect(() => {
-    try {
-        const emojiId = searchParams.get('emojiId');
-        if (!emojiId || !user) {
-            handleReset(); 
-            return;
+    const fetchAndLoadEmoji = async (emojiId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('emojis')
+          .select('*, user:user_id(id, name, picture)')
+          .eq('id', emojiId)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          // The data from the DB is the emoji state
+          handleLoadEmoji(data as EmojiState);
+        } else {
+          handleReset();
         }
-
-        const savedGallery = localStorage.getItem('savedEmojiGallery');
-
-        if (savedGallery) {
-            const gallery = JSON.parse(savedGallery) as EmojiState[];
-            const emojiToLoad = gallery.find(e => e.id === emojiId);
-
-            if (emojiToLoad) {
-                handleLoadEmoji(emojiToLoad);
-            } else {
-                 handleReset();
-            }
-        }
-    } catch (error) {
-        console.error("Failed to load or parse saved state from localStorage", error);
+      } catch (error) {
+        console.error("Failed to load emoji from Supabase", error);
+        toast({
+          title: "Error loading emoji",
+          description: "Could not find or load the requested emoji.",
+          variant: "destructive",
+        });
         handleReset();
+      }
+    };
+
+    const emojiId = searchParams.get('emojiId');
+    if (emojiId) {
+      fetchAndLoadEmoji(emojiId);
+    } else {
+      handleReset();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user]);
@@ -1077,14 +1104,16 @@ const DesignPageContent = () => {
     setShowSaveConfirm(true);
   };
   
-  const confirmSave = () => {
+  const confirmSave = async () => {
+    if (!user) return;
+
     let currentShape = shape;
     if (model === 'loki' && shape === 'blob') {
         currentShape = 'default';
     }
 
-    const currentState: EmojiState = {
-      id,
+    const currentState: Omit<EmojiState, 'id'> & { user_id: string; id?: string } = {
+      user_id: user.id,
       model,
       expression,
       backgroundColor,
@@ -1097,31 +1126,33 @@ const DesignPageContent = () => {
       eyeStyle,
       mouthStyle,
       eyebrowStyle,
+      featureOffsetX: featureOffsetX.get(),
+      featureOffsetY: featureOffsetY.get(),
     };
 
     try {
-        const existingGallery = JSON.parse(localStorage.getItem('savedEmojiGallery') || '[]') as EmojiState[];
+        const { data, error } = await supabase
+            .from('emojis')
+            .upsert({ ...currentState, id }) // upsert will insert or update
+            .select()
+            .single();
+
+        if (error) throw error;
         
-        const existingIndex = existingGallery.findIndex(emoji => emoji.id === id);
-
-        let newGallery;
-        if (existingIndex > -1) {
-            newGallery = [...existingGallery];
-            newGallery[existingIndex] = currentState;
-        } else {
-            newGallery = [...existingGallery, currentState];
-        }
-
-        localStorage.setItem('savedEmojiGallery', JSON.stringify(newGallery));
         toast({
             title: "Your emoji has been saved.",
             variant: "success",
         });
-    } catch (error) {
-        console.error("Failed to save state to localStorage", error);
+        // Update the id in case it was a new insert, and update URL
+        if (data) {
+          setId(data.id);
+          router.push(`/design?emojiId=${data.id}`, { scroll: false });
+        }
+    } catch (error: any) {
+        console.error("Failed to save state to Supabase", error);
         toast({
             title: "Failed to save emoji.",
-            description: "There was an error while trying to save your creation.",
+            description: error.message || "There was an error while trying to save your creation.",
             variant: "destructive",
         });
     }

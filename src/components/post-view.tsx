@@ -27,6 +27,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 
 interface PostViewProps {
@@ -93,7 +94,7 @@ export function PostView({
     }
     
     // Fallback share for explore page
-    const url = `${window.location.origin}/gallery?userId=${user?.id}`; // A bit of a guess, but better than nothing
+    const url = `${window.location.origin}/design?emojiId=${emoji.id}`;
     const shareData = {
       title: 'Check out this creation on Edengram!',
       text: `I made this cool emoji on Edengram.`,
@@ -125,7 +126,15 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   const currentEmoji = emojis[currentIndex];
-  if (!currentEmoji) return null;
+  
+  if (!currentEmoji) {
+    if (emojis.length > 0) {
+      setCurrentIndex(0); // Reset to first if current is invalid
+    }
+    return null;
+  }
+  
+  const {user: author} = (currentEmoji as any);
 
   return (
     <div className="h-full w-full flex flex-col bg-background">
@@ -142,10 +151,14 @@ export function PostView({
         className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
       >
         {emojis.map((emoji) => {
-            const emojiToRender = { ...emoji };
+            let emojiToRender: EmojiState = { ...emoji };
             if (emojiToRender.model === 'loki' && emojiToRender.shape === 'blob') {
               emojiToRender.shape = 'default';
             }
+
+            // Set initial position for rendering
+            featureOffsetX.set(emojiToRender.featureOffsetX || 0);
+            featureOffsetY.set(emojiToRender.featureOffsetY || 0);
 
             return (
                 <motion.div
@@ -162,11 +175,11 @@ export function PostView({
                     style={{ backgroundColor: emojiToRender.backgroundColor }}
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.picture || "https://placehold.co/64x64.png"} alt={user?.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                      <AvatarImage src={author?.picture || "https://placehold.co/64x64.png"} alt={author?.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{author?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
-                    <span className="ml-3 font-semibold text-sm">{user?.name || 'User'}</span>
-                    {onDelete && (
+                    <span className="ml-3 font-semibold text-sm">{author?.name || 'User'}</span>
+                    {onDelete && user && author && user.id === author.id && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
@@ -233,7 +246,7 @@ export function PostView({
                       </div>
                       <p className="text-sm font-semibold mt-2">1,234 likes</p>
                       <p className="text-sm mt-1">
-                        <span className="font-semibold">{user?.name || 'User'}</span>
+                        <span className="font-semibold">{author?.name || 'User'}</span>
                         {' '}My new creation!
                       </p>
                   </div>
