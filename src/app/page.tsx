@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
+import { useToast } from '@/hooks/use-toast';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -50,11 +51,12 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 export default function LoginPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
 
   const handleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
-      console.error("No credential returned from Google");
+      toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
       return;
     }
     
@@ -64,7 +66,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      console.error('Error signing in with Supabase', error);
+      toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
       return;
     }
 
@@ -79,7 +81,7 @@ export default function LoginPage() {
       const { error: upsertError } = await supabase.from('users').upsert(userProfile);
 
       if (upsertError) {
-        console.error('Error upserting user profile', upsertError);
+        toast({ title: 'Profile Error', description: upsertError.message, variant: 'destructive' });
         await supabase.auth.signOut();
         return;
       }
@@ -91,20 +93,23 @@ export default function LoginPage() {
   const handleGuestSignIn = async () => {
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) {
-        console.error('Error signing in anonymously', error);
+        toast({ title: 'Guest Sign-in Error', description: error.message, variant: 'destructive' });
         return;
     }
     if (data.user) {
          const guestProfile = {
             id: data.user.id,
             name: `Guest-${data.user.id.substring(0, 6)}`,
-            email: data.user.email || '', // Anonymous users may not have an email
+            email: data.user.email || '', 
             picture: `https://placehold.co/64x64.png?text=G`,
         };
         
-        const { error: upsertError } = await supabase.from('users').upsert(guestProfile);
+        const { error: upsertError } = await supabase.from('users').upsert(guestProfile, {
+          onConflict: 'id'
+        });
+
         if (upsertError) {
-            console.error('Error creating guest profile', upsertError);
+            toast({ title: 'Guest Profile Error', description: upsertError.message, variant: 'destructive' });
             await supabase.auth.signOut();
             return;
         }
@@ -184,4 +189,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
