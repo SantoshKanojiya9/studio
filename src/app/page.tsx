@@ -75,11 +75,17 @@ export default function LoginPage() {
         picture: data.user.user_metadata.picture,
       };
       
-      // The user profile is already in the 'users' table via the session,
-      // but you can upsert here if you have extra profile fields to manage.
-      await supabase.from('users').upsert(userProfile, { onConflict: 'id' });
+      // Upsert the user profile into the 'users' table
+      const { error: upsertError } = await supabase.from('users').upsert(userProfile);
 
-      setUser(userProfile);
+      if (upsertError) {
+        console.error('Error upserting user profile', upsertError);
+        // Optionally sign out the user if the profile can't be saved
+        await supabase.auth.signOut();
+        return;
+      }
+      
+      // The onAuthStateChange listener in useAuth will handle setting the user state
       router.push('/mood');
     }
   };
@@ -110,7 +116,7 @@ export default function LoginPage() {
             { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
         );
     }
-  }, [user, router, setUser]);
+  }, [user, router]);
 
 
   const containerVariants = {

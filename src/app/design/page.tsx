@@ -38,6 +38,7 @@ type ModelType = 'emoji' | 'loki';
 
 export type EmojiState = {
     id: string;
+    created_at?: string;
     user_id?: string;
     model: ModelType;
     expression: Expression;
@@ -1034,7 +1035,7 @@ const DesignPageContent = () => {
       try {
         const { data, error } = await supabase
           .from('emojis')
-          .select('*, user:user_id(id, name, picture)')
+          .select('*, user:user_id(*)')
           .eq('id', emojiId)
           .single();
 
