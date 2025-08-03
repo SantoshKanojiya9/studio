@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     }
 
     // 2. Delete the user from the auth schema using the admin client
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id, true); // Set shouldSoftDelete to true initially if needed
     if (deleteError) {
       console.error('Error deleting user:', deleteError);
       throw deleteError;
