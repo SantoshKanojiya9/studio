@@ -57,7 +57,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const { toast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
@@ -72,24 +72,31 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   
   const handleDeleteAccount = async () => {
     setShowDeleteConfirm(false);
+    if (!user) return;
+
     try {
-        const { error } = await supabase.functions.invoke('delete-user');
-        if (error) throw error;
+        // Directly call the RPC. Supabase client handles the rest.
+        const { error } = await supabase.rpc('delete_user');
+        
+        if (error) {
+            console.error("Error from delete_user rpc:", error);
+            throw error;
+        }
 
         toast({
             title: "Account Deleted",
             description: "Your account and all data have been deleted.",
             variant: "success",
         });
-        handleSignOut();
+        await handleSignOut();
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
         toast({
             title: "Error deleting account",
-            description: error.message,
+            description: "There was an issue deleting your account. " + error.message,
             variant: 'destructive'
-        })
+        });
     }
   };
 

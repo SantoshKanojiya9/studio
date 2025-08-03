@@ -4,12 +4,14 @@ import { supabase } from "./supabaseClient";
 
 /**
  * Fetches all emoji posts from the database, along with their author's info.
+ * This function now filters out emojis from users who have been soft-deleted.
  */
 export async function getAllSavedEmojis(): Promise<EmojiState[]> {
     try {
         const { data: emojis, error: emojisError } = await supabase
             .from('emojis')
-            .select('*')
+            .select('*, user:users!inner(*)') // Use inner join to only get emojis with users
+            .is('user.deleted_at', null) // Filter out users who have a `deleted_at` timestamp
             .order('created_at', { ascending: false });
 
         if (emojisError) {
@@ -17,40 +19,7 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
             throw new Error(emojisError.message);
         }
 
-        if (!emojis) {
-            return [];
-        }
-
-        // Get all unique user IDs from the emojis
-        const userIds = [...new Set(emojis.map(e => e.user_id).filter(id => id))];
-
-        if (userIds.length === 0) {
-            return emojis as EmojiState[];
-        }
-
-        // Fetch user profiles for those user IDs
-        const { data: users, error: usersError } = await supabase
-            .from('users')
-            .select('id, name, picture')
-            .in('id', userIds);
-
-        if (usersError) {
-            console.error('Supabase error fetching users:', usersError);
-            throw new Error(usersError.message);
-        }
-
-        // Create a map of user profiles for easy lookup
-        const userMap = new Map(users.map(u => [u.id, u]));
-
-        // Combine emojis with their user profiles
-        const emojisWithUsers = emojis.map(emoji => {
-            return {
-                ...emoji,
-                user: userMap.get(emoji.user_id) || null
-            };
-        });
-
-        return (emojisWithUsers as EmojiState[]) || [];
+        return (emojis as EmojiState[]) || [];
     } catch (error) {
         console.error("Failed to fetch all saved emojis from Supabase", error);
         throw error;

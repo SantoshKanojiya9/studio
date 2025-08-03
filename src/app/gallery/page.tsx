@@ -103,8 +103,9 @@ export default function GalleryPage() {
             try {
                 const { data, error } = await supabase
                     .from('emojis')
-                    .select('*')
+                    .select('*, user:users!inner(*)')
                     .eq('user_id', user.id)
+                    .is('user.deleted_at', null) // Filter out soft-deleted users
                     .order('created_at', { ascending: false });
 
                 if (error) {
@@ -112,15 +113,7 @@ export default function GalleryPage() {
                     throw new Error(error.message);
                 };
                 
-                // Since we are fetching only the current user's emojis, 
-                // we can attach the current user object to each emoji.
-                const emojisWithUser = (data || []).map(emoji => ({
-                    ...emoji,
-                    user: user
-                }));
-
-
-                setSavedEmojis(emojisWithUser as EmojiState[]);
+                setSavedEmojis(data as EmojiState[]);
             } catch (error: any) {
                 console.error("Failed to load emojis from Supabase", error);
                 toast({
@@ -174,24 +167,32 @@ export default function GalleryPage() {
     
     const handleDeleteAccount = async () => {
         setShowDeleteConfirm(false);
+        if (!user) return;
+
         try {
+            // We invoke the 'delete-user' function which now performs a soft delete.
             const { error } = await supabase.functions.invoke('delete-user');
-            if (error) throw error;
+            
+            if (error) {
+                console.error("Error from delete_user function:", error);
+                throw error;
+            }
 
             toast({
                 title: "Account Deleted",
                 description: "Your account and all data have been deleted.",
                 variant: "success",
             });
-            handleSignOut();
+            // The function handles signing the user out. The auth listener will update the state.
+             setUser(null);
 
         } catch (error: any) {
             console.error("Failed to delete account", error);
             toast({
                 title: "Error deleting account",
-                description: error.message,
+                description: "There was an issue deleting your account. " + error.message,
                 variant: 'destructive'
-            })
+            });
         }
     };
 
@@ -369,7 +370,7 @@ export default function GalleryPage() {
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         This action cannot be undone. This will permanently delete your
-                        account and remove all your data from our servers.
+                        account and remove all your data from our servers. This is a soft delete.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

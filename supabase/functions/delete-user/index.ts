@@ -9,7 +9,6 @@ const supabaseAdmin = createClient(
 );
 
 Deno.serve(async (req) => {
-  // This is needed if you're planning to invoke your function from a browser.
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -23,28 +22,21 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     ).auth.getUser();
 
-    if (userError) {
-      console.error('Error getting user:', userError);
-      throw userError;
-    }
-    if (!user) {
-      throw new Error('User not found.');
-    }
+    if (userError) throw userError;
+    if (!user) throw new Error('User not found.');
 
-    // 2. Delete the user from the auth schema using the admin client
-    // The second argument `true` ensures it's a hard delete.
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id, true);
-    if (deleteError) {
-      console.error('Error deleting user:', deleteError);
-      throw deleteError;
-    }
+    // 2. "Soft delete" the user by updating their profile in the public.users table
+    const { error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', user.id);
 
-    // Note: The `users` and `emojis` table have a CASCADE delete rule.
-    // Deleting the user from `auth.users` will automatically trigger
-    // the deletion of their profile in `public.users` and all their
-    // posts in `public.emojis`. No extra manual deletion is needed.
+    if (updateError) throw updateError;
+    
+    // 3. Sign the user out. The client will handle redirecting.
+    await supabaseAdmin.auth.admin.signOut(user.id);
 
-    return new Response(JSON.stringify({ message: `User ${user.id} deleted successfully.` }), {
+    return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
