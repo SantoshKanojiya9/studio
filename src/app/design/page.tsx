@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -381,7 +382,7 @@ export const Face = ({
                 animate={{ backgroundColor: color, borderRadius: getShapeClipPath(shape) }}
                 transition={{ duration: 0.2 }}
             >
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
 
                 <motion.div
                     className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
@@ -874,7 +875,7 @@ export const ClockFace = ({
         >
             {tickMarks}
             <div className="w-full h-full bg-gradient-to-br from-white/20 to-transparent flex items-center justify-center relative" style={{ borderRadius: getShapeClipPath(currentShape) }}>
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.8%22%20numOctaves%3D%222%22%20stitchTiles%3D%22stitch%22/%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
             
              <motion.div
                 className="absolute top-5 left-5 w-1/2 h-1/4 bg-white/20 rounded-full"
@@ -980,7 +981,7 @@ const DesignPageContent = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const [id, setId] = useState<string>(Date.now().toString());
+  const [id, setId] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<ModelType>('emoji');
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
@@ -1035,7 +1036,7 @@ const DesignPageContent = () => {
       try {
         const { data, error } = await supabase
           .from('emojis')
-          .select('*, user:user_id(*)')
+          .select('*, user:users(*)')
           .eq('id', emojiId)
           .single();
 
@@ -1070,7 +1071,7 @@ const DesignPageContent = () => {
   
   const handleReset = () => {
     router.push('/design', { scroll: false });
-    setId(Date.now().toString());
+    setId(undefined);
     setModel('emoji');
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
@@ -1113,7 +1114,7 @@ const DesignPageContent = () => {
         currentShape = 'default';
     }
 
-    const currentState: Omit<EmojiState, 'id' | 'user'> & { user_id: string; id?: string } = {
+    const currentState: Omit<EmojiState, 'id' | 'user' | 'created_at'> & { user_id: string; id?: string } = {
       user_id: user.id,
       model,
       expression,
@@ -1130,11 +1131,17 @@ const DesignPageContent = () => {
       featureOffsetX: featureOffsetX.get(),
       featureOffsetY: featureOffsetY.get(),
     };
+    
+    // if there is an id, add it to the state
+    if(id) {
+        currentState.id = id;
+    }
+
 
     try {
         const { data, error } = await supabase
             .from('emojis')
-            .upsert({ ...currentState, id }) // upsert will insert or update
+            .upsert(currentState) // upsert will insert or update
             .select()
             .single();
 
@@ -1637,3 +1644,4 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+

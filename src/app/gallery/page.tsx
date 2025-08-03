@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -92,7 +93,7 @@ export default function GalleryPage() {
             try {
                 const { data, error } = await supabase
                     .from('emojis')
-                    .select('*, user:user_id(*)')
+                    .select('*, user:users(*)')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false });
 
@@ -100,7 +101,15 @@ export default function GalleryPage() {
                     console.error('Supabase error in gallery:', error);
                     throw new Error(error.message);
                 };
-                setSavedEmojis(data as EmojiState[]);
+                
+                const emojisWithUsers = (data || []).map(emoji => {
+                    return {
+                        ...emoji,
+                        user: Array.isArray(emoji.user) ? emoji.user[0] : emoji.user
+                    }
+                });
+
+                setSavedEmojis(emojisWithUsers as EmojiState[]);
             } catch (error: any) {
                 console.error("Failed to load emojis from Supabase", error);
                 toast({
@@ -313,3 +322,4 @@ export default function GalleryPage() {
         </div>
     );
 }
+

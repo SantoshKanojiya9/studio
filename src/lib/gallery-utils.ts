@@ -1,4 +1,5 @@
 
+
 import type { EmojiState } from "@/app/design/page";
 import { supabase } from "./supabaseClient";
 
@@ -24,9 +25,18 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
             throw new Error(error.message);
         }
         
-        return (data as EmojiState[]) || [];
+        // Supabase returns the joined user data in a nested object. We need to handle the case where it might be an array.
+        const emojisWithUsers = (data || []).map(emoji => {
+            return {
+                ...emoji,
+                user: Array.isArray(emoji.user) ? emoji.user[0] : emoji.user
+            }
+        });
+
+        return (emojisWithUsers as EmojiState[]) || [];
     } catch (error) {
         console.error("Failed to fetch all saved emojis from Supabase", error);
         throw error;
     }
 }
+
