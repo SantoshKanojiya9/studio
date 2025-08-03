@@ -21,13 +21,13 @@ export function Toaster() {
         return (
           <Toast key={id} variant={variant} {...props}>
             <div className="flex items-start gap-3">
-                {variant === "success" && <CheckCircle className="h-6 w-6 text-green-500 mt-0.5" />}
-                <div className="grid gap-1">
+              {variant === "success" && <CheckCircle className="h-6 w-6 text-green-500 mt-0.5" />}
+              <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}
                 {description && (
-                    <ToastDescription>{description}</ToastDescription>
+                  <ToastDescription>{description}</ToastDescription>
                 )}
-                </div>
+              </div>
             </div>
             {action}
             <ToastClose />
