@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -11,7 +11,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
+import React from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -45,42 +58,98 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
   const { setUser } = useAuth();
-  
-  const handleSignOut = () => {
-    setUser(null);
+  const { toast } = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
+    } else {
+        setUser(null);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setShowDeleteConfirm(false);
+    try {
+        const { error } = await supabase.functions.invoke('delete-user');
+        if (error) throw error;
+
+        toast({
+            title: "Account Deleted",
+            description: "Your account and all data have been deleted.",
+            variant: "success",
+        });
+        handleSignOut();
+
+    } catch (error: any) {
+        console.error("Failed to delete account", error);
+        toast({
+            title: "Error deleting account",
+            description: error.message,
+            variant: 'destructive'
+        })
+    }
   };
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
-      <div className="flex items-center gap-2">
-        <EdengramLogo />
-        <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        {children}
-        <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
-                    <Menu />
-                    <span className="sr-only">Open menu</span>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full max-w-sm flex flex-col">
-                <SheetHeader className="text-left">
-                    <SheetTitle>Menu</SheetTitle>
-                </SheetHeader>
-                <div className="flex-1">
-                </div>
+    <>
+      <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
+        <div className="flex items-center gap-2">
+          <EdengramLogo />
+          <h1 className="text-xl font-logo font-normal -mb-1">Edengram</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {children}
+          <Sheet>
+              <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                      <Menu />
+                      <span className="sr-only">Open menu</span>
+                  </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full max-w-sm flex flex-col">
+                  <SheetHeader className="text-left">
+                      <SheetTitle>Menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex-1">
+                  </div>
 
-                <div className="mt-auto">
-                   <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                   </Button>
-                </div>
-            </SheetContent>
-        </Sheet>
-      </div>
-    </header>
+                  <div className="mt-auto">
+                    <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign Out
+                    </Button>
+                    <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Account
+                      </Button>
+                  </div>
+              </SheetContent>
+          </Sheet>
+        </div>
+      </header>
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove all your data from our servers.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                onClick={handleDeleteAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+                Yes, delete account
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -5,7 +5,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Menu, LogOut } from 'lucide-react';
+import { Plus, Menu, LogOut, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -14,7 +14,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabaseClient';
+import { useToast } from '@/hooks/use-toast';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -47,12 +59,43 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
   const { setUser } = useAuth();
+  const { toast } = useToast();
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
-  const handleSignOut = () => {
-    setUser(null);
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
+    } else {
+        setUser(null);
+    }
+  };
+  
+  const handleDeleteAccount = async () => {
+    setShowDeleteConfirm(false);
+    try {
+        const { error } = await supabase.functions.invoke('delete-user');
+        if (error) throw error;
+
+        toast({
+            title: "Account Deleted",
+            description: "Your account and all data have been deleted.",
+            variant: "success",
+        });
+        handleSignOut();
+
+    } catch (error: any) {
+        console.error("Failed to delete account", error);
+        toast({
+            title: "Error deleting account",
+            description: error.message,
+            variant: 'destructive'
+        })
+    }
   };
 
   return (
+    <>
     <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
       <div className="flex items-center gap-2">
         <EdengramLogo />
@@ -79,11 +122,36 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign Out
                    </Button>
+                   <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                    </Button>
                 </div>
             </SheetContent>
         </Sheet>
       </div>
     </header>
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove all your data from our servers.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                onClick={handleDeleteAccount}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+                Yes, delete account
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 

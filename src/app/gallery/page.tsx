@@ -6,7 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2 } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -16,6 +16,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
@@ -78,6 +88,7 @@ export default function GalleryPage() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     const { user, setUser } = useAuth();
     const { toast } = useToast();
 
@@ -160,6 +171,29 @@ export default function GalleryPage() {
             setUser(null);
         }
     };
+    
+    const handleDeleteAccount = async () => {
+        setShowDeleteConfirm(false);
+        try {
+            const { error } = await supabase.functions.invoke('delete-user');
+            if (error) throw error;
+
+            toast({
+                title: "Account Deleted",
+                description: "Your account and all data have been deleted.",
+                variant: "success",
+            });
+            handleSignOut();
+
+        } catch (error: any) {
+            console.error("Failed to delete account", error);
+            toast({
+                title: "Error deleting account",
+                description: error.message,
+                variant: 'destructive'
+            })
+        }
+    };
 
     const handleShareProfile = async () => {
         if (!user) return;
@@ -239,6 +273,10 @@ export default function GalleryPage() {
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Sign Out
                            </Button>
+                           <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Account
+                           </Button>
                         </div>
                     </SheetContent>
                 </Sheet>
@@ -262,67 +300,89 @@ export default function GalleryPage() {
     }
     
     return (
-        <div className="flex h-full w-full flex-col overflow-x-hidden">
-           {selectedEmoji ? (
-                <PostView 
-                    emojis={savedEmojis}
-                    initialIndex={savedEmojis.findIndex(e => e.id === selectedEmojiId)}
-                    onClose={() => setSelectedEmojiId(null)}
-                    onDelete={handleDelete}
-                    onShare={() => handleShareProfile()}
-                />
-           ) : (
-             <>
-                <ProfileHeader />
-                <div className="flex-1 overflow-y-auto no-scrollbar">
-                    <div className="p-4">
-                        <div className="flex items-center gap-4">
-                           <div className="w-20 h-20 flex-shrink-0">
-                                <CrownedEggAvatar />
-                            </div>
-                            <div className="flex-1 grid grid-cols-2 text-center">
-                                <div>
-                                    <p className="font-bold text-lg">{savedEmojis.length}</p>
-                                    <p className="text-sm text-muted-foreground">posts</p>
+        <>
+            <div className="flex h-full w-full flex-col overflow-x-hidden">
+            {selectedEmoji ? (
+                    <PostView 
+                        emojis={savedEmojis}
+                        initialIndex={savedEmojis.findIndex(e => e.id === selectedEmojiId)}
+                        onClose={() => setSelectedEmojiId(null)}
+                        onDelete={handleDelete}
+                        onShare={() => handleShareProfile()}
+                    />
+            ) : (
+                <>
+                    <ProfileHeader />
+                    <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="p-4">
+                            <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 flex-shrink-0">
+                                    <CrownedEggAvatar />
                                 </div>
-                                <div>
-                                    <p className="font-bold text-lg">0</p>
-                                    <p className="text-sm text-muted-foreground">subscribers</p>
+                                <div className="flex-1 grid grid-cols-2 text-center">
+                                    <div>
+                                        <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                        <p className="text-sm text-muted-foreground">posts</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-lg">0</p>
+                                        <p className="text-sm text-muted-foreground">subscribers</p>
+                                    </div>
                                 </div>
                             </div>
+                            <div className="mt-4">
+                                <h2 className="font-semibold">{user?.name || 'User'}</h2>
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                                <Button variant="secondary" className="flex-1">Edit profile</Button>
+                                <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
+                            </div>
                         </div>
-                        <div className="mt-4">
-                            <h2 className="font-semibold">{user?.name || 'User'}</h2>
-                        </div>
-                        <div className="mt-4 flex gap-2">
-                            <Button variant="secondary" className="flex-1">Edit profile</Button>
-                            <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
-                        </div>
-                    </div>
 
-                    <div className="p-1">
-                        {savedEmojis.length > 0 ? (
-                            <motion.div 
-                                layout
-                                className="grid grid-cols-3 gap-1"
-                            >
-                                {savedEmojis.map(emoji => (
-                                    <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
-                                ))}
-                            </motion.div>
-                        ) : (
-                             <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
-                                <div className="border-2 border-foreground rounded-full p-4">
-                                    <Grid3x3 className="h-12 w-12" />
-                                 </div>
-                                <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
-                                <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
-                            </div>
-                        )}
+                        <div className="p-1">
+                            {savedEmojis.length > 0 ? (
+                                <motion.div 
+                                    layout
+                                    className="grid grid-cols-3 gap-1"
+                                >
+                                    {savedEmojis.map(emoji => (
+                                        <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
+                                    ))}
+                                </motion.div>
+                            ) : (
+                                <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
+                                    <div className="border-2 border-foreground rounded-full p-4">
+                                        <Grid3x3 className="h-12 w-12" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
+                                    <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            </>
-           )}
-        </div>
+                </>
+            )}
+            </div>
+            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your
+                        account and remove all your data from our servers.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                        Yes, delete account
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
