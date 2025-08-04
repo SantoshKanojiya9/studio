@@ -204,7 +204,7 @@ const DesignPageContent = () => {
         currentShape = 'default';
     }
 
-    const currentState: Omit<EmojiState, 'id' | 'user' | 'created_at'> & { user_id: string; id?: string } = {
+    const emojiData: Omit<EmojiState, 'id' | 'user' | 'created_at'> = {
       user_id: user.id,
       model,
       expression,
@@ -222,18 +222,25 @@ const DesignPageContent = () => {
       feature_offset_y: feature_offset_y.get(),
     };
     
-    // if there is an id, add it to the state
-    if(id) {
-        currentState.id = id;
-    }
-
-
     try {
-        const { data, error } = await supabase
-            .from('emojis')
-            .upsert(currentState) // upsert will insert or update
-            .select()
-            .single();
+        let data, error;
+
+        if (id) {
+            // Update existing emoji
+            ({ data, error } = await supabase
+                .from('emojis')
+                .update(emojiData)
+                .eq('id', id)
+                .select()
+                .single());
+        } else {
+            // Create new emoji
+            ({ data, error } = await supabase
+                .from('emojis')
+                .insert(emojiData)
+                .select()
+                .single());
+        }
 
         if (error) throw error;
         
@@ -241,13 +248,13 @@ const DesignPageContent = () => {
             title: "Your emoji has been saved.",
             variant: "success",
         });
-        // Update the id in case it was a new insert, and update URL
+        
         if (data) {
           setId(data.id);
           router.push(`/design?emojiId=${data.id}`, { scroll: false });
         }
     } catch (error: any) {
-        console.error("Failed to save state to Supabase", error);
+        console.error("Failed to save state to Supabase", { error });
         toast({
             title: "Failed to save emoji.",
             description: error.message || "There was an error while trying to save your creation.",
