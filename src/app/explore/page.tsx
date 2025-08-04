@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Input } from '@/components/ui/input';
 import { Search, User, Loader2 } from 'lucide-react';
@@ -20,22 +20,35 @@ const PostView = dynamic(() =>
   }
 );
 
-// Dummy users for search results
-const allUsers = [
-  { id: '2', name: 'Alice', picture: 'https://placehold.co/64x64.png', hint: 'woman smiling' },
-  { id: '3', name: 'Bob', picture: 'https://placehold.co/64x64.png', hint: 'man glasses' },
-  { id: '4', name: 'Charlie', picture: 'https://placehold.co/64x64.png', hint: 'man beard' },
-  { id: '5', name: 'David', picture: 'https://placehold.co/64x64.png', hint: 'boy smiling' },
-  { id: '6', name: 'Eve', picture: 'https://placehold.co/64x64.png', hint: 'woman glasses' },
-  { id: '7', name: 'Frank', picture: 'https://placehold.co/64x64.png', hint: 'man suit' },
-  { id: '8', name: 'Grace', picture: 'https://placehold.co/64x64.png', hint: 'woman long hair' },
-  { id: '9', name: 'Heidi', picture: 'https://placehold.co/64x64.png', hint: 'girl smiling' },
-  { id: '10', name: 'Ivan', picture: 'https://placehold.co/64x64.png', hint: 'man short hair' },
-];
+interface SearchedUser {
+  id: string;
+  name: string;
+  picture: string;
+}
+
+// Debounce function
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState(allUsers);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms delay
+  const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
   const [allEmojis, setAllEmojis] = useState<EmojiState[]>([]);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,18 +74,41 @@ export default function ExplorePage() {
     fetchAllEmojis();
   }, [toast]);
 
-  useEffect(() => {
-    if (searchQuery) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      setFilteredUsers(
-        allUsers.filter(user =>
-          user.name.toLowerCase().includes(lowercasedQuery)
-        )
-      );
-    } else {
-      setFilteredUsers([]); // Show no users if search is empty
+  const searchUsers = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchedUsers([]);
+      setIsSearching(false);
+      return;
     }
-  }, [searchQuery]);
+    
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, name, picture')
+        .ilike('name', `%${query}%`) // Case-insensitive search
+        .limit(10);
+
+      if (error) throw error;
+      
+      setSearchedUsers(data as SearchedUser[]);
+
+    } catch (error: any) {
+      console.error("Failed to search users:", error);
+      toast({
+        title: "Search failed",
+        description: "Could not fetch user search results.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  }, [toast]);
+  
+  useEffect(() => {
+    searchUsers(debouncedSearchQuery);
+  }, [debouncedSearchQuery, searchUsers]);
+
 
   const handleDelete = async (emojiId: string) => {
     try {
@@ -93,7 +129,7 @@ export default function ExplorePage() {
   
   const showSearchResults = searchQuery.length > 0;
 
-  if (isLoading) {
+  if (isLoading && !showSearchResults) { // Only show main loader if not searching
       return (
            <div className="flex h-full w-full flex-col">
               <div className="flex-1 overflow-y-auto">
@@ -129,25 +165,30 @@ export default function ExplorePage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
+           {isSearching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
+           )}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {showSearchResults ? (
           <div className="flex flex-col">
-             {filteredUsers.length > 0 ? (
-                 filteredUsers.map(user => (
+             {searchedUsers.length > 0 ? (
+                 searchedUsers.map(user => (
                     <div key={user.id} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
                         <Avatar className="h-12 w-12">
-                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint={user.hint} />
+                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
                             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <span className="font-semibold">{user.name}</span>
                     </div>
                  ))
              ) : (
-                <div className="text-center p-8 text-muted-foreground">
-                    <p>No users found for "{searchQuery}"</p>
-                </div>
+                !isSearching && (
+                    <div className="text-center p-8 text-muted-foreground">
+                        <p>No users found for "{searchQuery}"</p>
+                    </div>
+                )
              )}
           </div>
         ) : (
