@@ -30,15 +30,13 @@ function createSupabaseServerClient() {
 
 export async function deleteUserAccount() {
   const supabase = createSupabaseServerClient();
+  const { data: { user }, error: getUserError } = await supabase.auth.getUser();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (getUserError || !user) {
     throw new Error('User not found or not authenticated.');
   }
 
   // Use the service role key to perform admin actions
-  // NOTE: This requires you to have SUPABASE_SERVICE_ROLE_KEY in your environment variables
   const supabaseAdmin = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -48,8 +46,7 @@ export async function deleteUserAccount() {
         persistSession: false,
       },
     }
-  )
-
+  );
 
   // 1. Soft delete the user in the public.users table
   const { error: updateError } = await supabaseAdmin
@@ -61,20 +58,20 @@ export async function deleteUserAccount() {
     console.error('Error soft-deleting user:', updateError);
     throw new Error('Failed to update user profile for deletion.');
   }
-
-  // 2. Sign out the user from all sessions
+  
+  // 2. Sign out the user from all sessions on the server
   const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(user.id);
 
-  if (signOutError) {
-    console.error('Error signing out user:', signOutError);
-    // Non-fatal, we can continue
+   if (signOutError) {
+    console.error('Error signing out user from all sessions:', signOutError);
+    // This is not fatal, we can proceed.
   }
-  
-  // 3. Clear the session cookie on the client side
-  await supabase.auth.signOut();
 
-  revalidatePath('/gallery');
-  revalidatePath('/');
+  // 3. Clear the session cookie on the client side
+  // This is a crucial step to ensure the client knows it's logged out.
+  await supabase.auth.signOut();
+  
+  revalidatePath('/', 'layout');
   
   return { success: true };
 }

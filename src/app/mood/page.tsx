@@ -27,6 +27,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -76,28 +77,24 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-      const { error } = await supabase.functions.invoke('delete-user', {
-        method: 'POST',
-      });
+        const result = await deleteUserAccount();
+        if (!result.success) {
+            throw new Error("Failed to delete account from server action.");
+        }
 
-      if (error) {
-          console.error("Error from delete_user function:", error);
-          throw error;
-      }
-
-      toast({
-          title: "Account Deleted",
-          description: "Your account and all data have been marked for deletion.",
-          variant: "success",
-      });
-      
-      await handleSignOut();
+        toast({
+            title: "Account Deleted",
+            description: "Your account and all data have been marked for deletion.",
+            variant: "success",
+        });
+        
+        setUser(null);
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
         toast({
             title: "Error deleting account",
-            description: "There was an issue deleting your account. " + error.message,
+            description: error.message || "There was an issue deleting your account. ",
             variant: 'destructive'
         });
     }

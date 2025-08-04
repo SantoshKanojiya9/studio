@@ -30,7 +30,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
-import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -236,13 +236,10 @@ function GalleryPageContent() {
         if (!authUser) return;
 
         try {
-            const { error } = await supabase.functions.invoke('delete-user', {
-              method: 'POST',
-            });
+            const result = await deleteUserAccount();
     
-            if (error) {
-                console.error("Error from delete_user function:", error);
-                throw error;
+            if (!result.success) {
+                throw new Error("Failed to delete account from server action.");
             }
 
             toast({
@@ -251,13 +248,14 @@ function GalleryPageContent() {
                 variant: "success",
             });
             
-            await handleSignOut();
+            // The AuthProvider will handle redirecting to '/' after user is null
+            setAuthUser(null);
 
         } catch (error: any) {
             console.error("Failed to delete account", error);
             toast({
                 title: "Error deleting account",
-                description: "There was an issue deleting your account. " + error.message,
+                description: error.message || "There was an issue deleting your account. ",
                 variant: 'destructive'
             });
         }
