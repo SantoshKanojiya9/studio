@@ -10,7 +10,7 @@ import React from 'react';
 const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     
     const containerStyle: React.CSSProperties = {
-        backgroundColor: emoji.backgroundColor,
+        backgroundColor: emoji.background_color,
         filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' 
             ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` 
             : 'none',
@@ -80,7 +80,7 @@ export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSel
         <div 
             className="relative group aspect-square cursor-pointer overflow-hidden rounded-md" 
             onClick={onSelect}
-            style={{ backgroundColor: emoji.backgroundColor }}
+            style={{ backgroundColor: emoji.background_color }}
         >
             <div className={cn(
                 "w-full h-full flex items-center justify-center transform transition-transform duration-300 ease-in-out group-hover:scale-105"
@@ -92,3 +92,6 @@ export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSel
     );
 };
 
+
+
+    

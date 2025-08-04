@@ -43,7 +43,7 @@ export type EmojiState = {
     user_id?: string;
     model: ModelType;
     expression: Expression;
-    backgroundColor: string;
+    background_color: string;
     emojiColor: string;
     showSunglasses: boolean;
     showMustache: boolean;
@@ -986,7 +986,7 @@ const DesignPageContent = () => {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
-  const [backgroundColor, setBackgroundColor] = useState('#0a0a0a');
+  const [background_color, setBackgroundColor] = useState('#0a0a0a');
   const [emojiColor, setEmojiColor] = useState('#ffb300');
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
@@ -1012,7 +1012,7 @@ const DesignPageContent = () => {
     setId(state.id);
     setModel(state.model || 'emoji');
     setExpression(state.expression || 'neutral');
-    setBackgroundColor(state.backgroundColor || defaultBackgroundColor);
+    setBackgroundColor(state.background_color || defaultBackgroundColor);
     setEmojiColor(state.emojiColor || (state.model === 'loki' ? defaultLokiColor : defaultEmojiColor));
     setShowSunglasses(state.showSunglasses || false);
     setShowMustache(state.showMustache || false);
@@ -1118,7 +1118,7 @@ const DesignPageContent = () => {
       user_id: user.id,
       model,
       expression,
-      backgroundColor,
+      background_color,
       emojiColor,
       showSunglasses,
       showMustache,
@@ -1360,7 +1360,7 @@ const DesignPageContent = () => {
                 <TooltipTrigger asChild>
                     <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
                         <Paintbrush className="h-4 w-4"/>
-                        <Input id="bg-color-input" type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
+                        <Input id="bg-color-input" type="color" value={background_color} onChange={(e) => setBackgroundColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
                 <TooltipContent><p>Background Color</p></TooltipContent>
@@ -1528,7 +1528,7 @@ const DesignPageContent = () => {
     <TooltipProvider>
       <div 
           className="flex h-full w-full flex-col overflow-hidden touch-none transition-colors duration-300"
-          style={{ backgroundColor }}
+          style={{ backgroundColor: background_color }}
       >
         <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
           {/* Model Switcher */}
@@ -1646,3 +1646,5 @@ export default function DesignPage() {
 }
 
 
+
+    

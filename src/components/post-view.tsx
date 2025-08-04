@@ -176,7 +176,7 @@ export function PostView({
                 >
                   <div 
                     className="flex items-center px-4 py-2"
-                    style={{ backgroundColor: emojiToRender.backgroundColor }}
+                    style={{ backgroundColor: emojiToRender.background_color }}
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={postAuthor?.picture || "https://placehold.co/64x64.png"} alt={postAuthor?.name} data-ai-hint="profile picture" />
@@ -209,7 +209,7 @@ export function PostView({
                   <div 
                     className="flex-1 flex items-center justify-center min-h-0"
                     style={{ 
-                      backgroundColor: emojiToRender.backgroundColor,
+                      backgroundColor: emojiToRender.background_color,
                       filter: emojiToRender.selectedFilter && emojiToRender.selectedFilter !== 'None' ? `${emojiToRender.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
                     }}
                   >
@@ -242,7 +242,7 @@ export function PostView({
 
                   <div 
                     className="px-4 pt-2 pb-4"
-                    style={{ backgroundColor: emojiToRender.backgroundColor }}
+                    style={{ backgroundColor: emojiToRender.background_color }}
                   >
                       <div className="flex items-center gap-4">
                         <Heart className="h-6 w-6 cursor-pointer" />
@@ -281,3 +281,6 @@ export function PostView({
   );
 }
 
+
+
+    
