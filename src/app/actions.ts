@@ -73,3 +73,109 @@ export async function deleteUserAccount() {
   
   return { success: true };
 }
+
+
+// --- Subscription Actions ---
+
+async function getSupabaseClient() {
+    const cookieStore = cookies();
+    return createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                get: (name) => cookieStore.get(name)?.value,
+                set: (name, value, options) => cookieStore.set({ name, value, ...options }),
+                remove: (name, options) => cookieStore.set({ name, value: '', ...options }),
+            },
+        }
+    );
+}
+
+export async function subscribe(subscribeeId: string) {
+    const supabase = await getSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('You must be logged in to subscribe.');
+    }
+
+    if (user.id === subscribeeId) {
+        throw new Error('You cannot subscribe to yourself.');
+    }
+
+    const { error } = await supabase
+        .from('subscriptions')
+        .insert({
+            subscriber_id: user.id,
+            subscribee_id: subscribeeId,
+        });
+
+    if (error) {
+        console.error('Error subscribing:', error);
+        throw new Error('Could not subscribe to the user.');
+    }
+
+    revalidatePath(`/gallery?userId=${subscribeeId}`);
+}
+
+export async function unsubscribe(subscribeeId: string) {
+    const supabase = await getSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('You must be logged in to unsubscribe.');
+    }
+
+    const { error } = await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('subscriber_id', user.id)
+        .eq('subscribee_id', subscribeeId);
+
+    if (error) {
+        console.error('Error unsubscribing:', error);
+        throw new Error('Could not unsubscribe from the user.');
+    }
+
+    revalidatePath(`/gallery?userId=${subscribeeId}`);
+}
+
+export async function getSubscribersCount(userId: string) {
+    const supabase = await getSupabaseClient();
+    const { count, error } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('subscribee_id', userId);
+
+    if (error) {
+        console.error('Error getting subscribers count:', error);
+        return 0;
+    }
+
+    return count ?? 0;
+}
+
+
+export async function getSubscriptionStatus(subscribeeId: string) {
+    const supabase = await getSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return false;
+    }
+    
+    const { data, error } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('subscriber_id', user.id)
+        .eq('subscribee_id', subscribeeId)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error getting subscription status:', error);
+        return false;
+    }
+
+    return !!data;
+}

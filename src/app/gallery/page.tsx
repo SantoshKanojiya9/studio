@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2, ArrowLeft, UserPlus } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2, ArrowLeft, UserPlus, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +30,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -99,6 +100,10 @@ function GalleryPageContent() {
     const [isLoading, setIsLoading] = React.useState(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     
+    const [subscribersCount, setSubscribersCount] = React.useState(0);
+    const [isSubscribed, setIsSubscribed] = React.useState(false);
+    const [isSubscribing, setIsSubscribing] = React.useState(false);
+
     const { user: authUser, setUser: setAuthUser } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
@@ -141,6 +146,16 @@ function GalleryPageContent() {
                 };
                 
                 setSavedEmojis(data as EmojiState[]);
+
+                // Fetch subscription data
+                const count = await getSubscribersCount(viewingUserId);
+                setSubscribersCount(count);
+
+                if (authUser && !isOwnProfile) {
+                    const status = await getSubscriptionStatus(viewingUserId);
+                    setIsSubscribed(status);
+                }
+
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
                 toast({
@@ -154,7 +169,34 @@ function GalleryPageContent() {
         };
 
         fetchProfileData();
-    }, [viewingUserId, toast]);
+    }, [viewingUserId, toast, authUser, isOwnProfile]);
+
+    const handleSubscription = async () => {
+        if (!authUser || isOwnProfile || !viewingUserId) return;
+        
+        setIsSubscribing(true);
+        try {
+            if (isSubscribed) {
+                await unsubscribe(viewingUserId);
+                setSubscribersCount(prev => prev - 1);
+                setIsSubscribed(false);
+                toast({ title: "Unsubscribed", variant: "success" });
+            } else {
+                await subscribe(viewingUserId);
+                setSubscribersCount(prev => prev + 1);
+                setIsSubscribed(true);
+                toast({ title: "Subscribed!", variant: "success" });
+            }
+        } catch (error: any) {
+            toast({
+                title: "Something went wrong",
+                description: error.message,
+                variant: "destructive"
+            });
+        } finally {
+            setIsSubscribing(false);
+        }
+    };
 
     const handleDelete = async (emojiId: string) => {
         try {
@@ -357,7 +399,7 @@ function GalleryPageContent() {
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <div>
-                                        <p className="font-bold text-lg">0</p>
+                                        <p className="font-bold text-lg">{subscribersCount}</p>
                                         <p className="text-sm text-muted-foreground">subscribers</p>
                                     </div>
                                 </div>
@@ -373,7 +415,16 @@ function GalleryPageContent() {
                                     </>
                                 ) : (
                                     <>
-                                        <Button className="flex-1"><UserPlus className="mr-2 h-4 w-4" />Subscribe</Button>
+                                        <Button className="flex-1" onClick={handleSubscription} disabled={isSubscribing}>
+                                          {isSubscribing ? (
+                                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          ) : isSubscribed ? (
+                                              <UserCheck className="mr-2 h-4 w-4" />
+                                          ) : (
+                                              <UserPlus className="mr-2 h-4 w-4" />
+                                          )}
+                                          {isSubscribed ? 'Subscribed' : 'Subscribe'}
+                                        </Button>
                                         <Button variant="secondary" className="flex-1">Message</Button>
                                     </>
                                 )}
