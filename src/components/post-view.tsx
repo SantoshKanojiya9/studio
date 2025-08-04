@@ -216,6 +216,7 @@ export function PostView({
                     {emojiToRender.model === 'loki' ? (
                        <ClockFace 
                           {...emojiToRender}
+                          animation_type={emojiToRender.animation_type}
                           color={emojiToRender.emojiColor}
                           isDragging={false}
                           isInteractive={false}
@@ -226,6 +227,7 @@ export function PostView({
                     ) : (
                        <Face 
                           {...emojiToRender}
+                          animation_type={emojiToRender.animation_type}
                           color={emojiToRender.emojiColor}
                           isDragging={false}
                           onPan={() => {}}
@@ -278,3 +280,4 @@ export function PostView({
     </div>
   );
 }
+

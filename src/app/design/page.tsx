@@ -48,7 +48,7 @@ export type EmojiState = {
     showSunglasses: boolean;
     showMustache: boolean;
     selectedFilter: string | null;
-    animationType: AnimationType;
+    animation_type: AnimationType;
     shape: ShapeType;
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
@@ -73,7 +73,7 @@ export const Face = ({
     eyeStyle,
     mouthStyle,
     eyebrowStyle,
-    animationType,
+    animation_type,
     isDragging,
     onPan,
     onPanStart,
@@ -90,7 +90,7 @@ export const Face = ({
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
     eyebrowStyle: FeatureStyle;
-    animationType: AnimationType;
+    animation_type: AnimationType;
     isDragging: boolean;
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
@@ -119,12 +119,12 @@ export const Face = ({
   }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
-    if (isAngryMode || isDragging || animationType === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
+    if (isAngryMode || isDragging || animation_type === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         
-        if (animationType === 'none' && !isDragging) {
+        if (animation_type === 'none' && !isDragging) {
              animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
              animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
         }
@@ -164,7 +164,7 @@ export const Face = ({
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
-    switch (animationType) {
+    switch (animation_type) {
         case 'left-right':
             animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
             break;
@@ -194,7 +194,7 @@ export const Face = ({
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
+  }, [animation_type, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
 
 
   const eyeVariants = {
@@ -502,7 +502,7 @@ export const ClockFace = ({
     eyeStyle,
     mouthStyle,
     eyebrowStyle,
-    animationType,
+    animation_type,
     isDragging,
     isInteractive = true,
     onPan,
@@ -520,7 +520,7 @@ export const ClockFace = ({
     eyeStyle: FeatureStyle;
     mouthStyle: FeatureStyle;
     eyebrowStyle: FeatureStyle;
-    animationType: AnimationType;
+    animation_type: AnimationType;
     isDragging: boolean;
     isInteractive?: boolean;
     onPan?: (event: any, info: any) => void;
@@ -549,12 +549,12 @@ export const ClockFace = ({
   }, [initialExpression, isAngryMode]);
   
   useEffect(() => {
-    if (!isInteractive || isAngryMode || isDragging || animationType === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
+    if (!isInteractive || isAngryMode || isDragging || animation_type === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         
-        if (animationType === 'none' && !isDragging) {
+        if (animation_type === 'none' && !isDragging) {
              animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
              animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
         }
@@ -594,7 +594,7 @@ export const ClockFace = ({
         animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
-    switch (animationType) {
+    switch (animation_type) {
         case 'left-right':
             animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
             break;
@@ -624,7 +624,7 @@ export const ClockFace = ({
     }
 
     return stopAnimations;
-  }, [animationType, isAngryMode, isDragging, featureOffsetX, featureOffsetY, isInteractive]);
+  }, [animation_type, isAngryMode, isDragging, featureOffsetX, featureOffsetY, isInteractive]);
 
 
   const eyeVariants = {
@@ -991,7 +991,7 @@ const DesignPageContent = () => {
   const [showSunglasses, setShowSunglasses] = useState(false);
   const [showMustache, setShowMustache] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [animationType, setAnimationType] = useState<AnimationType>('random');
+  const [animation_type, setAnimationType] = useState<AnimationType>('random');
   const [isDragging, setIsDragging] = useState(false);
   const [shape, setShape] = useState<ShapeType>('default');
   const [eyeStyle, setEyeStyle] = useState<FeatureStyle>('default');
@@ -1017,7 +1017,7 @@ const DesignPageContent = () => {
     setShowSunglasses(state.showSunglasses || false);
     setShowMustache(state.showMustache || false);
     setSelectedFilter(state.selectedFilter || null);
-    setAnimationType(state.animationType || 'random');
+    setAnimationType(state.animation_type || 'random');
     setShape(state.shape || 'default');
     setEyeStyle(state.eyeStyle || 'default');
     setMouthStyle(state.mouthStyle || 'default');
@@ -1123,7 +1123,7 @@ const DesignPageContent = () => {
       showSunglasses,
       showMustache,
       selectedFilter,
-      animationType,
+      animation_type,
       shape: currentShape,
       eyeStyle,
       mouthStyle,
@@ -1445,7 +1445,7 @@ const DesignPageContent = () => {
                             <Tooltip key={name}>
                                 <TooltipTrigger asChild>
                                     <Button 
-                                        variant={animationType === name ? 'default' : 'outline'}
+                                        variant={animation_type === name ? 'default' : 'outline'}
                                         size="icon"
                                         onClick={() => setAnimationType(prev => prev === name ? 'none' : name)}
                                     >
@@ -1577,7 +1577,7 @@ const DesignPageContent = () => {
                     eyeStyle={eyeStyle}
                     mouthStyle={mouthStyle}
                     eyebrowStyle={eyebrowStyle}
-                    animationType={animationType}
+                    animation_type={animation_type}
                     isDragging={isDragging}
                     onPan={handlePan}
                     onPanStart={handlePanStart}
@@ -1596,7 +1596,7 @@ const DesignPageContent = () => {
                     eyeStyle={eyeStyle}
                     mouthStyle={mouthStyle}
                     eyebrowStyle={eyebrowStyle}
-                    animationType={animationType}
+                    animation_type={animation_type}
                     isDragging={isDragging}
                     isInteractive={true}
                     onPan={handlePan}
@@ -1644,4 +1644,5 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
 
