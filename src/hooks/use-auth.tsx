@@ -30,7 +30,7 @@ const upsertUserProfile = async (user: User): Promise<UserProfile> => {
         id: user.id,
         name: user.user_metadata.name || `Guest-${user.id.substring(0, 6)}`,
         email: user.email!,
-        picture: user.user_metadata.picture || `https://placehold.co/64x64.png?text=G`,
+        picture: user.user_metadata.picture || `https://placehold.co/64x64.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`,
     };
 
     const { data, error } = await supabase
@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        setLoading(true);
         if (session && session.user) {
             try {
                 // Check if user profile exists
@@ -64,9 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     .from('users')
                     .select('*')
                     .eq('id', session.user.id)
-                    .single();
+                    .maybeSingle(); // Use maybeSingle to avoid error when no row is found
                 
-                if (fetchError && fetchError.code !== 'PGRST116') { // 'PGRST116' is "PostgREST error: No rows found"
+                if (fetchError) {
                      console.error("Error fetching user profile:", fetchError);
                 }
 
@@ -94,8 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!loading && !user && pathname !== '/') {
+    if (!loading) {
+      if (user && pathname === '/') {
+        router.push('/mood');
+      } else if (!user && pathname !== '/') {
         router.push('/');
+      }
     }
   }, [user, loading, pathname, router]);
 

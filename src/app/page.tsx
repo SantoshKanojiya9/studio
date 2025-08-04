@@ -97,6 +97,7 @@ export default function LoginPage() {
         password,
       }));
     } else {
+      // The useAuth hook now handles profile creation, so we can simplify this.
       ({ data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -117,10 +118,10 @@ export default function LoginPage() {
     }
   
     if (data.user) {
-      if (!isLoginView) {
+      if (!isLoginView && !data.session) {
         toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
       }
-      router.push('/mood');
+      // The useAuth hook will redirect to /mood on successful login
     }
   };
   
@@ -132,7 +133,7 @@ export default function LoginPage() {
     
     if (window.google && signInDiv.current) {
         window.google.accounts.id.initialize({
-            client_id: '921829623696-p08b2g0c2kp2dbf2i6odk05gmk5u45up.apps.googleusercontent.com',
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
             callback: handleGoogleSignIn
         });
         window.google.accounts.id.renderButton(
