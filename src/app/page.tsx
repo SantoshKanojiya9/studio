@@ -1,15 +1,18 @@
 
-
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -53,17 +56,24 @@ export default function LoginPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
+  
+  const [isLoginView, setIsLoginView] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async (response: CredentialResponse) => {
+  const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
       toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
       return;
     }
     
+    setLoading(true);
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: response.credential,
     });
+    setLoading(false);
 
     if (error) {
       toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
@@ -75,15 +85,36 @@ export default function LoginPage() {
     }
   };
 
-  const handleGuestSignIn = async () => {
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) {
-        toast({ title: 'Guest Sign-in Error', description: error.message, variant: 'destructive' });
-        return;
-    }
-    if (data.user) {
-        router.push('/mood');
-    }
+  const handleEmailAuth = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      
+      const authMethod = isLoginView ? supabase.auth.signInWithPassword : supabase.auth.signUp;
+      
+      const { data, error } = await authMethod({
+        email,
+        password,
+        options: {
+          data: {
+            name: isLoginView ? undefined : (email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`),
+            picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
+          }
+        }
+      });
+
+      setLoading(false);
+
+      if (error) {
+          toast({ title: isLoginView ? 'Sign-in Error' : 'Sign-up Error', description: error.message, variant: 'destructive' });
+          return;
+      }
+
+      if (data.user) {
+          if (!isLoginView) {
+              toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
+          }
+          router.push('/mood');
+      }
   };
   
   useEffect(() => {
@@ -95,7 +126,7 @@ export default function LoginPage() {
     if (window.google && signInDiv.current) {
         window.google.accounts.id.initialize({
             client_id: '921829623696-p08b2g0c2kp2dbf2i6odk05gmk5u45up.apps.googleusercontent.com',
-            callback: handleSignIn
+            callback: handleGoogleSignIn
         });
         window.google.accounts.id.renderButton(
             signInDiv.current,
@@ -110,8 +141,8 @@ export default function LoginPage() {
     visible: {
       opacity: 1,
       transition: {
-        delayChildren: 0.5,
-        staggerChildren: 0.2,
+        delayChildren: 0.3,
+        staggerChildren: 0.15,
       },
     },
   };
@@ -130,28 +161,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-4">
+    <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
       <motion.div 
-        className="flex flex-col items-center justify-center gap-8"
+        className="flex flex-col items-center justify-center gap-6 w-full max-w-sm"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
       >
-        <div className="flex items-center justify-center gap-2">
-          <EdengramLogo className="h-16 w-16" />
-        </div>
+        <motion.div variants={itemVariants} className="flex items-center justify-center gap-2">
+          <EdengramLogo className="h-12 w-12" />
+        </motion.div>
         <motion.h1 
-            className="text-5xl font-logo font-normal"
+            className="text-4xl font-logo font-normal"
             variants={itemVariants}
           >
             Edengram
-          </motion.h1>
+        </motion.h1>
 
-        <motion.div variants={itemVariants} className="mt-8 flex flex-col items-center gap-4">
-            <div ref={signInDiv}></div>
-            <Button variant="link" onClick={handleGuestSignIn}>
-                Continue as Guest
+        <motion.form variants={itemVariants} className="w-full flex flex-col gap-4 text-left" onSubmit={handleEmailAuth}>
+            <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input type="email" id="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="password">Password</Label>
+                <Input type="password" id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : (isLoginView ? 'Sign In' : 'Sign Up')}
             </Button>
+        </motion.form>
+
+        <motion.div variants={itemVariants} className="text-sm">
+            <Button variant="link" onClick={() => setIsLoginView(!isLoginView)}>
+                {isLoginView ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+            </Button>
+        </motion.div>
+        
+        <motion.div variants={itemVariants} className="relative w-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/50"></span>
+          </div>
+          <span className="relative px-2 bg-background text-xs uppercase text-muted-foreground">Or continue with</span>
+        </motion.div>
+        
+        <motion.div variants={itemVariants} className="flex flex-col items-center">
+            <div ref={signInDiv}></div>
         </motion.div>
       </motion.div>
     </div>
