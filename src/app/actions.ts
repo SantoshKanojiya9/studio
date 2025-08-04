@@ -1,14 +1,14 @@
 
 'use server';
 
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
-export async function deleteUserAccount() {
+// Helper function to create a Supabase client for server actions
+function createSupabaseServerClient() {
   const cookieStore = cookies();
-
-  const supabase = createServerClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -16,15 +16,20 @@ export async function deleteUserAccount() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options) {
+        set(name: string, value: string, options: CookieOptions) {
           cookieStore.set({ name, value, ...options });
         },
-        remove(name: string, options) {
+        remove(name: string, options: CookieOptions) {
           cookieStore.set({ name, value: '', ...options });
         },
       },
     }
   );
+}
+
+
+export async function deleteUserAccount() {
+  const supabase = createSupabaseServerClient();
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -77,23 +82,8 @@ export async function deleteUserAccount() {
 
 // --- Subscription Actions ---
 
-async function getSupabaseClient() {
-    const cookieStore = cookies();
-    return createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get: (name) => cookieStore.get(name)?.value,
-                set: (name, value, options) => cookieStore.set({ name, value, ...options }),
-                remove: (name, options) => cookieStore.set({ name, value: '', ...options }),
-            },
-        }
-    );
-}
-
 export async function subscribe(subscribeeId: string) {
-    const supabase = await getSupabaseClient();
+    const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -120,7 +110,7 @@ export async function subscribe(subscribeeId: string) {
 }
 
 export async function unsubscribe(subscribeeId: string) {
-    const supabase = await getSupabaseClient();
+    const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -142,7 +132,7 @@ export async function unsubscribe(subscribeeId: string) {
 }
 
 export async function getSubscribersCount(userId: string) {
-    const supabase = await getSupabaseClient();
+    const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
         .from('subscriptions')
         .select('*', { count: 'exact', head: true })
@@ -158,7 +148,7 @@ export async function getSubscribersCount(userId: string) {
 
 
 export async function getSubscriptionStatus(subscribeeId: string) {
-    const supabase = await getSupabaseClient();
+    const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
