@@ -44,17 +44,17 @@ export type EmojiState = {
     model: ModelType;
     expression: Expression;
     background_color: string;
-    emojiColor: string;
-    showSunglasses: boolean;
-    showMustache: boolean;
-    selectedFilter: string | null;
+    emoji_color: string;
+    show_sunglasses: boolean;
+    show_mustache: boolean;
+    selected_filter: string | null;
     animation_type: AnimationType;
     shape: ShapeType;
-    eyeStyle: FeatureStyle;
-    mouthStyle: FeatureStyle;
-    eyebrowStyle: FeatureStyle;
-    featureOffsetX: number;
-    featureOffsetY: number;
+    eye_style: FeatureStyle;
+    mouth_style: FeatureStyle;
+    eyebrow_style: FeatureStyle;
+    feature_offset_x: number;
+    feature_offset_y: number;
     user?: {
       id: string;
       name: string;
@@ -67,36 +67,36 @@ export const Face = ({
     expression: initialExpression, 
     color,
     setColor,
-    showSunglasses, 
-    showMustache,
+    show_sunglasses, 
+    show_mustache,
     shape,
-    eyeStyle,
-    mouthStyle,
-    eyebrowStyle,
+    eye_style,
+    mouth_style,
+    eyebrow_style,
     animation_type,
     isDragging,
     onPan,
     onPanStart,
     onPanEnd,
-    featureOffsetX,
-    featureOffsetY,
+    feature_offset_x,
+    feature_offset_y,
 }: { 
     expression: Expression, 
     color: string, 
     setColor: (color: string) => void,
-    showSunglasses: boolean,
-    showMustache: boolean,
+    show_sunglasses: boolean,
+    show_mustache: boolean,
     shape: ShapeType;
-    eyeStyle: FeatureStyle;
-    mouthStyle: FeatureStyle;
-    eyebrowStyle: FeatureStyle;
+    eye_style: FeatureStyle;
+    mouth_style: FeatureStyle;
+    eyebrow_style: FeatureStyle;
     animation_type: AnimationType;
     isDragging: boolean;
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
-    featureOffsetX: import('framer-motion').MotionValue<number>;
-    featureOffsetY: import('framer-motion').MotionValue<number>;
+    feature_offset_x: import('framer-motion').MotionValue<number>;
+    feature_offset_y: import('framer-motion').MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
@@ -119,14 +119,14 @@ export const Face = ({
   }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
-    if (isAngryMode || isDragging || animation_type === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
+    if (isAngryMode || isDragging || animation_type === 'none' || (feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         
         if (animation_type === 'none' && !isDragging) {
-             animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-             animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(feature_offset_x, feature_offset_x.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(feature_offset_y, feature_offset_y.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
         }
         return;
     };
@@ -160,30 +160,30 @@ export const Face = ({
             newY = Math.random() * (2 * boundaryY) - boundaryY;
         } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
 
-        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
-        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(feature_offset_x, newX, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
     switch (animation_type) {
         case 'left-right':
-            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
             break;
         case 'right-left':
-            animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [60, -60], animationOptions);
             break;
         case 'up-down':
-            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [50, 50], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
-            animationControlsX.current = animate(featureOffsetX, [-60, 60], animationOptions);
-            animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'diag-right-left':
-             animationControlsX.current = animate(featureOffsetX, [60, -60], animationOptions);
-             animationControlsY.current = animate(featureOffsetY, [-50, 50], animationOptions);
+             animationControlsX.current = animate(feature_offset_x, [60, -60], animationOptions);
+             animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'random':
             animationIntervalRef.current = setInterval(randomAnimation, 3000);
@@ -194,7 +194,7 @@ export const Face = ({
     }
 
     return stopAnimations;
-  }, [animation_type, isAngryMode, isDragging, featureOffsetX, featureOffsetY]);
+  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y]);
 
 
   const eyeVariants = {
@@ -218,7 +218,7 @@ export const Face = ({
   };
 
   const expressionMouthVariants = {
-    neutral: { d: mouthVariants[mouthStyle]?.d || mouthVariants.default.d },
+    neutral: { d: mouthVariants[mouth_style]?.d || mouthVariants.default.d },
     happy: { d: "M 30 50 Q 50 70 70 50" },
     angry: { d: "M 25 60 Q 50 35 75 60" },
     sad: { d: "M 30 60 Q 50 50 70 60" },
@@ -253,8 +253,8 @@ export const Face = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
   
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.2);
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.2);
+  const pupilX = useTransform(() => pupilXFromPointer.get() + feature_offset_x.get() * 0.2);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + feature_offset_y.get() * 0.2);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
   
@@ -396,7 +396,7 @@ export const Face = ({
                 <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: getShapeClipPath(shape) }}>
                     <motion.div
                         className="absolute inset-0 flex items-center justify-center"
-                        style={{ x: featureOffsetX, y: featureOffsetY }}
+                        style={{ x: feature_offset_x, y: feature_offset_y }}
                         transition={{ duration: 1.5, type: 'spring' }}
                     >
                         <motion.div 
@@ -421,12 +421,12 @@ export const Face = ({
                             style={{ transform: 'translateZ(20px)' }}
                         >
                             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                {renderEye(eyeStyle)}
-                                {renderEyebrow(eyebrowStyle)}
+                                {renderEye(eye_style)}
+                                {renderEyebrow(eyebrow_style)}
                             </motion.div>
                             <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                {renderEye(eyeStyle)}
-                                {renderEyebrow(eyebrowStyle, true)}
+                                {renderEye(eye_style)}
+                                {renderEyebrow(eyebrow_style, true)}
                             </motion.div>
                         </motion.div>
                         <motion.div 
@@ -450,7 +450,7 @@ export const Face = ({
                             className="absolute flex justify-center w-full"
                             style={{ top: '110px', transform: 'translateZ(30px)' }}
                             initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
+                            animate={{ opacity: show_sunglasses ? 1 : 0, y: show_sunglasses ? 0 : -20 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                         >
                             <div className="relative">
@@ -465,7 +465,7 @@ export const Face = ({
                             className="absolute flex justify-center w-full"
                             style={{ top: '170px', transform: 'translateZ(25px)' }}
                             initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: showMustache ? 1 : 0, scale: showMustache ? 1 : 0.5 }}
+                            animate={{ opacity: show_mustache ? 1 : 0, scale: show_mustache ? 1 : 0.5 }}
                             transition={{ duration: 0.2 }}
                         >
                             <svg width="100" height="30" viewBox="0 0 100 30">
@@ -496,38 +496,38 @@ export const ClockFace = ({
     expression: initialExpression, 
     color,
     setColor,
-    showSunglasses,
-    showMustache,
+    show_sunglasses,
+    show_mustache,
     shape,
-    eyeStyle,
-    mouthStyle,
-    eyebrowStyle,
+    eye_style,
+    mouth_style,
+    eyebrow_style,
     animation_type,
     isDragging,
     isInteractive = true,
     onPan,
     onPanStart,
     onPanEnd,
-    featureOffsetX,
-    featureOffsetY,
+    feature_offset_x,
+    feature_offset_y,
 }: { 
     expression: Expression, 
     color: string, 
     setColor: (color: string) => void,
-    showSunglasses: boolean,
-    showMustache: boolean,
+    show_sunglasses: boolean,
+    show_mustache: boolean,
     shape: ShapeType;
-    eyeStyle: FeatureStyle;
-    mouthStyle: FeatureStyle;
-    eyebrowStyle: FeatureStyle;
+    eye_style: FeatureStyle;
+    mouth_style: FeatureStyle;
+    eyebrow_style: FeatureStyle;
     animation_type: AnimationType;
     isDragging: boolean;
     isInteractive?: boolean;
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
-    featureOffsetX: import('framer-motion').MotionValue<number>;
-    featureOffsetY: import('framer-motion').MotionValue<number>;
+    feature_offset_x: import('framer-motion').MotionValue<number>;
+    feature_offset_y: import('framer-motion').MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -549,14 +549,14 @@ export const ClockFace = ({
   }, [initialExpression, isAngryMode]);
   
   useEffect(() => {
-    if (!isInteractive || isAngryMode || isDragging || animation_type === 'none' || (featureOffsetX.get() !== 0 || featureOffsetY.get() !== 0)) {
+    if (!isInteractive || isAngryMode || isDragging || animation_type === 'none' || (feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
         
         if (animation_type === 'none' && !isDragging) {
-             animate(featureOffsetX, featureOffsetX.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-             animate(featureOffsetY, featureOffsetY.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(feature_offset_x, feature_offset_x.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
+             animate(feature_offset_y, feature_offset_y.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
         }
         return;
     };
@@ -590,30 +590,30 @@ export const ClockFace = ({
             newY = Math.random() * (2 * boundaryY) - boundaryY;
         } while ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1);
 
-        animate(featureOffsetX, newX, { type: 'spring', stiffness: 50, damping: 20 });
-        animate(featureOffsetY, newY, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(feature_offset_x, newX, { type: 'spring', stiffness: 50, damping: 20 });
+        animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
     switch (animation_type) {
         case 'left-right':
-            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [-30, 30], animationOptions);
             break;
         case 'right-left':
-            animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [30, -30], animationOptions);
             break;
         case 'up-down':
-            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [-25, 25], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(featureOffsetY, [25, -25], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [25, -25], animationOptions);
             break;
         case 'diag-left-right':
-            animationControlsX.current = animate(featureOffsetX, [-30, 30], animationOptions);
-            animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+            animationControlsX.current = animate(feature_offset_x, [-30, 30], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [-25, 25], animationOptions);
             break;
         case 'diag-right-left':
-             animationControlsX.current = animate(featureOffsetX, [30, -30], animationOptions);
-             animationControlsY.current = animate(featureOffsetY, [-25, 25], animationOptions);
+             animationControlsX.current = animate(feature_offset_x, [30, -30], animationOptions);
+             animationControlsY.current = animate(feature_offset_y, [-25, 25], animationOptions);
             break;
         case 'random':
             animationIntervalRef.current = setInterval(randomAnimation, 3000);
@@ -624,7 +624,7 @@ export const ClockFace = ({
     }
 
     return stopAnimations;
-  }, [animation_type, isAngryMode, isDragging, featureOffsetX, featureOffsetY, isInteractive]);
+  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y, isInteractive]);
 
 
   const eyeVariants = {
@@ -648,7 +648,7 @@ export const ClockFace = ({
   };
 
   const expressionMouthVariants = {
-    neutral: { d: mouthVariants[mouthStyle]?.d || mouthVariants.default.d },
+    neutral: { d: mouthVariants[mouth_style]?.d || mouthVariants.default.d },
     happy: { d: "M 30 50 Q 50 65 70 50" },
     angry: { d: "M 30 55 Q 50 40 70 55" },
     sad: { d: "M 30 60 Q 50 50 70 60" },
@@ -683,8 +683,8 @@ export const ClockFace = ({
   const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-5, 5]);
   const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-4, 4]);
 
-  const pupilX = useTransform(() => pupilXFromPointer.get() + featureOffsetX.get() * 0.2);
-  const pupilY = useTransform(() => pupilYFromPointer.get() + featureOffsetY.get() * 0.2);
+  const pupilX = useTransform(() => pupilXFromPointer.get() + feature_offset_x.get() * 0.2);
+  const pupilY = useTransform(() => pupilYFromPointer.get() + feature_offset_y.get() * 0.2);
 
   const pupilScale = useSpring(expression === 'scared' ? 0.8 : 1, { stiffness: 400, damping: 20 });
   
@@ -883,7 +883,7 @@ export const ClockFace = ({
               />
                 <motion.div
                     className="absolute inset-0 flex items-center justify-center"
-                    style={{ x: featureOffsetX, y: featureOffsetY }}
+                    style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
 
@@ -910,13 +910,13 @@ export const ClockFace = ({
                         className="flex gap-12 absolute top-1/2 -translate-y-[calc(50%_+_20px)] items-end" 
                     >
                         <motion.div className="relative" style={{ height: '2rem' }} variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                          {renderEye(eyeStyle)}
-                          {renderEyebrow(eyebrowStyle)}
+                          {renderEye(eye_style)}
+                          {renderEyebrow(eyebrow_style)}
                         </motion.div>
 
                         <motion.div className="relative" style={{ height: '2rem' }} variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                          {renderEye(eyeStyle)}
-                          {renderEyebrow(eyebrowStyle, true)}
+                          {renderEye(eye_style)}
+                          {renderEyebrow(eyebrow_style, true)}
                         </motion.div>
                     </motion.div>
 
@@ -943,7 +943,7 @@ export const ClockFace = ({
                         className="absolute flex justify-center w-full"
                         style={{ top: '48px', transform: 'translateZ(30px)' }}
                         initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: showSunglasses ? 1 : 0, y: showSunglasses ? 0 : -20 }}
+                        animate={{ opacity: show_sunglasses ? 1 : 0, y: show_sunglasses ? 0 : -20 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
                         <div className="relative">
@@ -958,7 +958,7 @@ export const ClockFace = ({
                         className="absolute flex justify-center w-full"
                         style={{ top: '92px', transform: 'translateZ(25px)', opacity: 0.6 }}
                         initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: showMustache ? 0.6 : 0, scale: showMustache ? 1 : 0.5 }}
+                        animate={{ opacity: show_mustache ? 0.6 : 0, scale: show_mustache ? 1 : 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
                         <svg width="60" height="20" viewBox="0 0 100 30">
@@ -987,16 +987,16 @@ const DesignPageContent = () => {
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
   const [background_color, setBackgroundColor] = useState('#0a0a0a');
-  const [emojiColor, setEmojiColor] = useState('#ffb300');
-  const [showSunglasses, setShowSunglasses] = useState(false);
-  const [showMustache, setShowMustache] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [emoji_color, setEmojiColor] = useState('#ffb300');
+  const [show_sunglasses, setShowSunglasses] = useState(false);
+  const [show_mustache, setShowMustache] = useState(false);
+  const [selected_filter, setSelectedFilter] = useState<string | null>(null);
   const [animation_type, setAnimationType] = useState<AnimationType>('random');
   const [isDragging, setIsDragging] = useState(false);
   const [shape, setShape] = useState<ShapeType>('default');
-  const [eyeStyle, setEyeStyle] = useState<FeatureStyle>('default');
-  const [mouthStyle, setMouthStyle] = useState<FeatureStyle>('default');
-  const [eyebrowStyle, setEyebrowStyle] = useState<FeatureStyle>('default');
+  const [eye_style, setEyeStyle] = useState<FeatureStyle>('default');
+  const [mouth_style, setMouthStyle] = useState<FeatureStyle>('default');
+  const [eyebrow_style, setEyebrowStyle] = useState<FeatureStyle>('default');
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   
   const defaultBackgroundColor = '#0a0a0a';
@@ -1005,25 +1005,25 @@ const DesignPageContent = () => {
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const featureOffsetX = useMotionValue(0);
-  const featureOffsetY = useMotionValue(0);
+  const feature_offset_x = useMotionValue(0);
+  const feature_offset_y = useMotionValue(0);
   
   const loadState = (state: EmojiState) => {
     setId(state.id);
     setModel(state.model || 'emoji');
     setExpression(state.expression || 'neutral');
     setBackgroundColor(state.background_color || defaultBackgroundColor);
-    setEmojiColor(state.emojiColor || (state.model === 'loki' ? defaultLokiColor : defaultEmojiColor));
-    setShowSunglasses(state.showSunglasses || false);
-    setShowMustache(state.showMustache || false);
-    setSelectedFilter(state.selectedFilter || null);
+    setEmojiColor(state.emoji_color || (state.model === 'loki' ? defaultLokiColor : defaultEmojiColor));
+    setShowSunglasses(state.show_sunglasses || false);
+    setShowMustache(state.show_mustache || false);
+    setSelectedFilter(state.selected_filter || null);
     setAnimationType(state.animation_type || 'random');
     setShape(state.shape || 'default');
-    setEyeStyle(state.eyeStyle || 'default');
-    setMouthStyle(state.mouthStyle || 'default');
-    setEyebrowStyle(state.eyebrowStyle || 'default');
-    featureOffsetX.set(state.featureOffsetX || 0);
-    featureOffsetY.set(state.featureOffsetY || 0);
+    setEyeStyle(state.eye_style || 'default');
+    setMouthStyle(state.mouth_style || 'default');
+    setEyebrowStyle(state.eyebrow_style || 'default');
+    feature_offset_x.set(state.feature_offset_x || 0);
+    feature_offset_y.set(state.feature_offset_y || 0);
   };
 
   const handleLoadEmoji = (emojiState: EmojiState) => {
@@ -1084,8 +1084,8 @@ const DesignPageContent = () => {
     setEyeStyle('default');
     setMouthStyle('default');
     setEyebrowStyle('default');
-    featureOffsetX.set(0);
-    featureOffsetY.set(0);
+    feature_offset_x.set(0);
+    feature_offset_y.set(0);
     setActiveMenu('main');
   };
   
@@ -1119,17 +1119,17 @@ const DesignPageContent = () => {
       model,
       expression,
       background_color,
-      emojiColor,
-      showSunglasses,
-      showMustache,
-      selectedFilter,
+      emoji_color,
+      show_sunglasses,
+      show_mustache,
+      selected_filter,
       animation_type,
       shape: currentShape,
-      eyeStyle,
-      mouthStyle,
-      eyebrowStyle,
-      featureOffsetX: featureOffsetX.get(),
-      featureOffsetY: featureOffsetY.get(),
+      eye_style,
+      mouth_style,
+      eyebrow_style,
+      feature_offset_x: feature_offset_x.get(),
+      feature_offset_y: feature_offset_y.get(),
     };
     
     // if there is an id, add it to the state
@@ -1173,7 +1173,7 @@ const DesignPageContent = () => {
       clearTimeout(dragTimeoutRef.current);
     }
     setIsDragging(true);
-    dragOrigin.current = { x: featureOffsetX.get(), y: featureOffsetY.get() };
+    dragOrigin.current = { x: feature_offset_x.get(), y: feature_offset_y.get() };
   };
 
   const handlePan = (_: any, info: any) => {
@@ -1192,8 +1192,8 @@ const DesignPageContent = () => {
             newY = newX * Math.tan(angle);
         }
 
-        featureOffsetX.set(newX);
-        featureOffsetY.set(newY);
+        feature_offset_x.set(newX);
+        feature_offset_y.set(newY);
     }
   };
 
@@ -1221,7 +1221,7 @@ const DesignPageContent = () => {
   ];
 
   const handleFilterSelect = (filterName: string) => {
-    if (selectedFilter === filterName) {
+    if (selected_filter === filterName) {
       setSelectedFilter(null); // Deselect
     } else {
       setSelectedFilter(filterName);
@@ -1369,7 +1369,7 @@ const DesignPageContent = () => {
                 <TooltipTrigger asChild>
                     <Label htmlFor="face-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
                         <Pipette className="h-4 w-4"/>
-                        <Input id="face-color-input" type="color" value={emojiColor} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
+                        <Input id="face-color-input" type="color" value={emoji_color} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
                 <TooltipContent><p>Face Color</p></TooltipContent>
@@ -1383,18 +1383,18 @@ const DesignPageContent = () => {
             <Separator orientation="vertical" className="h-6 mx-2" />
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showSunglasses && "bg-accent text-accent-foreground")}>
+                    <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", show_sunglasses && "bg-accent text-accent-foreground")}>
                         <Glasses className="h-4 w-4" />
-                        <Switch id="sunglasses-switch" checked={showSunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
+                        <Switch id="sunglasses-switch" checked={show_sunglasses} onCheckedChange={setShowSunglasses} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
                 <TooltipContent><p>Toggle Sunglasses</p></TooltipContent>
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", showMustache && "bg-accent text-accent-foreground")}>
+                    <Label htmlFor="mustache-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", show_mustache && "bg-accent text-accent-foreground")}>
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25,12.05c0,5.65-4.14,7.2-9.25,7.2S3.75,17.7,3.75,12.05c0-4.06,2.23-5.23,3.73-6.23C8.5,5,9.5,2,13,2s4.5,3,5.5,3.82C20,6.82,22.25,7.99,22.25,12.05Z"/></svg>
-                        <Switch id="mustache-switch" checked={showMustache} onCheckedChange={setShowMustache} className="sr-only" />
+                        <Switch id="mustache-switch" checked={show_mustache} onCheckedChange={setShowMustache} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
                 <TooltipContent><p>Toggle Mustache</p></TooltipContent>
@@ -1414,7 +1414,7 @@ const DesignPageContent = () => {
                                     onClick={() => handleFilterSelect(filter.name)}
                                     className={cn(
                                         "w-12 h-12 rounded-lg flex-shrink-0 border-2 transition-all duration-200",
-                                        selectedFilter === filter.name ? 'border-primary scale-110' : 'border-border'
+                                        selected_filter === filter.name ? 'border-primary scale-110' : 'border-border'
                                     )}
                                 >
                                     <div className="w-full h-full rounded-md" style={filter.style}></div>
@@ -1469,11 +1469,11 @@ const DesignPageContent = () => {
             </>
         )
       case 'eyes':
-        return renderFeatureMenu('eye', eyeStyle);
+        return renderFeatureMenu('eye', eye_style);
       case 'mouth':
-        return renderFeatureMenu('mouth', mouthStyle);
+        return renderFeatureMenu('mouth', mouth_style);
       case 'eyebrows':
-        return renderFeatureMenu('eyebrow', eyebrowStyle);
+        return renderFeatureMenu('eyebrow', eyebrow_style);
       default: // 'main'
         return (
           <>
@@ -1563,47 +1563,47 @@ const DesignPageContent = () => {
             className="w-80 h-96 flex items-center justify-center select-none"
             style={{ 
               transformStyle: 'preserve-3d',
-              filter: selectedFilter && selectedFilter !== 'None' ? `${selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
+              filter: selected_filter && selected_filter !== 'None' ? `${selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
             }}
           >
             {model === 'emoji' ? (
                 <Face 
                     expression={expression} 
-                    color={emojiColor} 
+                    color={emoji_color} 
                     setColor={setEmojiColor}
-                    showSunglasses={showSunglasses} 
-                    showMustache={showMustache} 
+                    show_sunglasses={show_sunglasses} 
+                    show_mustache={show_mustache} 
                     shape={shape}
-                    eyeStyle={eyeStyle}
-                    mouthStyle={mouthStyle}
-                    eyebrowStyle={eyebrowStyle}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
                     animation_type={animation_type}
                     isDragging={isDragging}
                     onPan={handlePan}
                     onPanStart={handlePanStart}
                     onPanEnd={handlePanEnd}
-                    featureOffsetX={featureOffsetX}
-                    featureOffsetY={featureOffsetY}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
                 />
             ) : (
                 <ClockFace 
                     expression={expression} 
-                    color={emojiColor} 
+                    color={emoji_color} 
                     setColor={setEmojiColor}
-                    showSunglasses={showSunglasses} 
-                    showMustache={showMustache} 
+                    show_sunglasses={show_sunglasses} 
+                    show_mustache={show_mustache} 
                     shape={shape}
-                    eyeStyle={eyeStyle}
-                    mouthStyle={mouthStyle}
-                    eyebrowStyle={eyebrowStyle}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
                     animation_type={animation_type}
                     isDragging={isDragging}
                     isInteractive={true}
                     onPan={handlePan}
                     onPanStart={handlePanStart}
                     onPanEnd={handlePanEnd}
-                    featureOffsetX={featureOffsetX}
-                    featureOffsetY={featureOffsetY}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
                 />
             )}
           </motion.div>
@@ -1646,5 +1646,7 @@ export default function DesignPage() {
 }
 
 
+
+    
 
     
