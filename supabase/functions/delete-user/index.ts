@@ -9,29 +9,29 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+
+    // Create a Supabase client with the user's token to verify their identity
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    
+    if (userError) throw userError;
+    if (!user) throw new Error('User not found.');
+
     // Create a Supabase client with the service_role key to perform admin actions
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
-
-    // Create a client to get the user from the authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing authorization header');
-    }
-    
-    const userClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
-    )
-
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
-    
-    if (userError) throw userError;
-    if (!user) throw new Error('User not found.');
 
     // Soft delete the user by updating their profile in the public.users table
     const { error: updateError } = await supabaseAdmin
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
     
-    // Sign the user out of all sessions
+    // It's good practice to sign the user out of all sessions after deletion
     await supabaseAdmin.auth.admin.signOut(user.id);
 
     return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
