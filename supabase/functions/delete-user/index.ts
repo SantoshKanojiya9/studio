@@ -2,18 +2,18 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.4';
 import { corsHeaders } from '../_shared/cors.ts';
 
-// Create a Supabase client with the SERVICE_ROLE_KEY to perform admin actions
-const supabaseAdmin = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
-
 Deno.serve(async (req) => {
+  // This is needed to handle CORS preflight requests.
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
     // 1. Get the user from the request's authorization header
     const authHeader = req.headers.get('Authorization')!;
     const { data: { user }, error: userError } = await createClient(
