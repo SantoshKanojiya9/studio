@@ -6,12 +6,14 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import type { User } from '@supabase/supabase-js';
 
 interface UserProfile {
     id: string;
     name: string;
     email: string;
     picture: string;
+    deleted_at?: string | null;
 }
 
 interface AuthContextType {
@@ -22,6 +24,30 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const upsertUserProfile = async (user: User): Promise<UserProfile> => {
+    console.log("Upserting profile for user:", user.id);
+    const profileData = {
+        id: user.id,
+        name: user.user_metadata.name || `Guest-${user.id.substring(0, 6)}`,
+        email: user.email!,
+        picture: user.user_metadata.picture || `https://placehold.co/64x64.png?text=G`,
+    };
+
+    const { data, error } = await supabase
+        .from('users')
+        .upsert(profileData, { onConflict: 'id' })
+        .select()
+        .single();
+    
+    if (error) {
+        console.error("Error upserting user profile:", error);
+        throw error;
+    }
+    
+    console.log("Profile upserted successfully:", data);
+    return data;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,15 +56,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session) {
-            const userProfile = {
-                id: session.user.id,
-                name: session.user.user_metadata.name,
-                email: session.user.email!,
-                picture: session.user.user_metadata.picture,
-            };
-            setUserState(userProfile);
+      async (_event, session) => {
+        if (session && session.user) {
+            try {
+                // Check if user profile exists
+                const { data: existingProfile, error: fetchError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (fetchError && fetchError.code !== 'PGRST116') { // 'PGRST116' is "PostgREST error: No rows found"
+                     console.error("Error fetching user profile:", fetchError);
+                }
+
+                if (existingProfile) {
+                    setUserState(existingProfile);
+                } else {
+                    // if not, create it
+                    const newProfile = await upsertUserProfile(session.user);
+                    setUserState(newProfile);
+                }
+            } catch (e) {
+                console.error("Auth state change profile handling error:", e);
+                setUserState(null);
+            }
         } else {
             setUserState(null);
         }
@@ -58,7 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const setUser = (userProfile: UserProfile | null) => {
-    // This function can be used for manual sign-out or guest mode
     if (userProfile === null) {
       supabase.auth.signOut();
     }
@@ -87,4 +128,3 @@ export function useAuth() {
   }
   return context;
 }
-

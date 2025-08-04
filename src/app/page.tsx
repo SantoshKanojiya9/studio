@@ -71,21 +71,6 @@ export default function LoginPage() {
     }
 
     if (data.user) {
-      const userProfile = {
-        id: data.user.id,
-        name: data.user.user_metadata.name,
-        email: data.user.email!,
-        picture: data.user.user_metadata.picture,
-      };
-      
-      const { error: upsertError } = await supabase.from('users').upsert(userProfile);
-
-      if (upsertError) {
-        toast({ title: 'Profile Error', description: upsertError.message, variant: 'destructive' });
-        await supabase.auth.signOut();
-        return;
-      }
-      
       router.push('/mood');
     }
   };
@@ -97,24 +82,6 @@ export default function LoginPage() {
         return;
     }
     if (data.user) {
-         const guestProfile = {
-            id: data.user.id,
-            name: `Guest-${data.user.id.substring(0, 6)}`,
-            email: data.user.email || `guest_${data.user.id}@example.com`,
-            picture: `https://placehold.co/64x64.png?text=G`,
-        };
-        
-        // Ensure the guest profile is created before navigating
-        const { error: upsertError } = await supabase.from('users').upsert(guestProfile, {
-          onConflict: 'id'
-        });
-
-        if (upsertError) {
-            toast({ title: 'Guest Profile Error', description: upsertError.message, variant: 'destructive' });
-            await supabase.auth.signOut();
-            return;
-        }
-
         router.push('/mood');
     }
   };
