@@ -159,8 +159,8 @@ export function PostView({
             }
 
             // Set initial position for rendering
-            featureOffsetX.set(emojiToRender.featureOffsetX || 0);
-            featureOffsetY.set(emojiToRender.featureOffsetY || 0);
+            featureOffsetX.set(emojiToRender.feature_offset_x || 0);
+            featureOffsetY.set(emojiToRender.feature_offset_y || 0);
 
             const postAuthor = emoji.user;
 
@@ -210,31 +210,31 @@ export function PostView({
                     className="flex-1 flex items-center justify-center min-h-0"
                     style={{ 
                       backgroundColor: emojiToRender.background_color,
-                      filter: emojiToRender.selectedFilter && emojiToRender.selectedFilter !== 'None' ? `${emojiToRender.selectedFilter.toLowerCase().replace('-', '')}(1)` : 'none',
+                      filter: emojiToRender.selected_filter && emojiToRender.selected_filter !== 'None' ? `${emojiToRender.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
                     }}
                   >
                     {emojiToRender.model === 'loki' ? (
                        <ClockFace 
                           {...emojiToRender}
                           animation_type={emojiToRender.animation_type}
-                          color={emojiToRender.emojiColor}
+                          color={emojiToRender.emoji_color}
                           isDragging={false}
                           isInteractive={false}
-                          featureOffsetX={featureOffsetX}
-                          featureOffsetY={featureOffsetY}
+                          feature_offset_x={featureOffsetX}
+                          feature_offset_y={featureOffsetY}
                           setColor={() => {}}
                         />
                     ) : (
                        <Face 
                           {...emojiToRender}
                           animation_type={emojiToRender.animation_type}
-                          color={emojiToRender.emojiColor}
+                          color={emojiToRender.emoji_color}
                           isDragging={false}
                           onPan={() => {}}
                           onPanStart={() => {}}
                           onPanEnd={() => {}}
-                          featureOffsetX={featureOffsetX}
-                          featureOffsetY={featureOffsetY}
+                          feature_offset_x={featureOffsetX}
+                          feature_offset_y={featureOffsetY}
                           setColor={() => {}}
                         />
                     )}

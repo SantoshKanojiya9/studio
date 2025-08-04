@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring, animate, MotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock } from 'lucide-react';
@@ -95,8 +95,8 @@ export const Face = ({
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
-    feature_offset_x: import('framer-motion').MotionValue<number>;
-    feature_offset_y: import('framer-motion').MotionValue<number>;
+    feature_offset_x: MotionValue<number>;
+    feature_offset_y: MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
@@ -526,8 +526,8 @@ export const ClockFace = ({
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
-    feature_offset_x: import('framer-motion').MotionValue<number>;
-    feature_offset_y: import('framer-motion').MotionValue<number>;
+    feature_offset_x: MotionValue<number>;
+    feature_offset_y: MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);

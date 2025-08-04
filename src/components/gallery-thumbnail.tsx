@@ -11,8 +11,8 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     
     const containerStyle: React.CSSProperties = {
         backgroundColor: emoji.background_color,
-        filter: emoji.selectedFilter && emoji.selectedFilter !== 'None' 
-            ? `${emoji.selectedFilter.toLowerCase().replace('-', '')}(1)` 
+        filter: emoji.selected_filter && emoji.selected_filter !== 'None' 
+            ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` 
             : 'none',
         width: '100%',
         height: '100%',
@@ -24,8 +24,8 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
     };
 
     // Initialize motion values required by Face/ClockFace components
-    const featureOffsetX = useMotionValue(0);
-    const featureOffsetY = useMotionValue(0);
+    const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
+    const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
     
     const emojiToRender = { ...emoji };
     if (emojiToRender.model === 'loki' && emojiToRender.shape === 'blob') {
@@ -49,24 +49,24 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                 <ClockFace 
                     {...emojiToRender}
                     animation_type={emojiToRender.animation_type}
-                    color={emojiToRender.emojiColor}
+                    color={emojiToRender.emoji_color}
                     isDragging={false}
                     isInteractive={false}
-                    featureOffsetX={featureOffsetX}
-                    featureOffsetY={featureOffsetY}
+                    feature_offset_x={featureOffsetX}
+                    feature_offset_y={featureOffsetY}
                     setColor={() => {}}
                 />
             ) : (
                 <Face 
                     {...emojiToRender}
                     animation_type={emojiToRender.animation_type}
-                    color={emojiToRender.emojiColor}
+                    color={emojiToRender.emoji_color}
                     isDragging={false}
                     onPan={() => {}}
                     onPanStart={() => {}}
                     onPanEnd={() => {}}
-                    featureOffsetX={featureOffsetX}
-                    featureOffsetY={featureOffsetY}
+                    feature_offset_x={featureOffsetX}
+                    feature_offset_y={featureOffsetY}
                     setColor={() => {}}
                 />
             )}
