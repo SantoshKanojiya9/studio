@@ -1,12 +1,15 @@
 
+'use client';
+
 import type { EmojiState } from "@/app/design/page";
-import { supabase } from "./supabaseClient";
+import { createSupabaseBrowserClient } from "./supabaseClient";
 
 /**
  * Fetches all emoji posts from the database, along with their author's info.
  * This function now filters out emojis from users who have been soft-deleted.
  */
 export async function getAllSavedEmojis(): Promise<EmojiState[]> {
+    const supabase = createSupabaseBrowserClient();
     try {
         const { data: emojis, error: emojisError } = await supabase
             .from('emojis')

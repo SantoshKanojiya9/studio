@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
+import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -57,7 +57,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
-  const { user, setUser } = useAuth();
+  const { user, setUser, supabase } = useAuth();
   const { toast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
@@ -74,13 +74,11 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     setShowDeleteConfirm(false);
     if (!user) return;
     try {
-        // Soft delete the user by updating their profile
-        const { error: updateError } = await supabase
-            .from('users')
-            .update({ deleted_at: new Date().toISOString() })
-            .eq('id', user.id);
-
-        if (updateError) throw updateError;
+        const result = await deleteUserAccount();
+        
+        if (!result.success) {
+            throw new Error("Failed to delete account from server action.");
+        }
 
         toast({
             title: "Account Deleted",
@@ -88,8 +86,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
             variant: "success",
         });
         
-        // Sign the user out after successful soft delete
-        await handleSignOut();
+        setUser(null);
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
