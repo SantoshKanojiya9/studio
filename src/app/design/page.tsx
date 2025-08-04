@@ -160,7 +160,7 @@ const DesignPageContent = () => {
 
   
   const handleReset = () => {
-    router.push('/design', { scroll: false });
+    window.history.pushState({}, '', '/design');
     setId(undefined);
     setModel('emoji');
     setExpression('neutral');
@@ -251,7 +251,9 @@ const DesignPageContent = () => {
         
         if (data) {
           setId(data.id);
-          router.push(`/design?emojiId=${data.id}`, { scroll: false });
+          // Use window.history.pushState to avoid Next.js router issues on same-page nav
+          const newUrl = `/design?emojiId=${data.id}`;
+          window.history.pushState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
         }
     } catch (error: any) {
         console.error("Failed to save state to Supabase", { error });
@@ -742,5 +744,7 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
+    
 
     
