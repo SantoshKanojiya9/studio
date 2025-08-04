@@ -2,7 +2,8 @@
 'use client';
 
 import type { EmojiState } from '@/app/design/page';
-import { Face, ClockFace } from '@/app/design/page';
+import { Face } from '@/components/emoji-face';
+import { ClockFace } from '@/components/loki-face';
 import { cn } from '@/lib/utils';
 import { motion, useMotionValue } from 'framer-motion';
 import React from 'react';
