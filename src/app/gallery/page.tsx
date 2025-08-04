@@ -6,9 +6,10 @@ import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2 } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2, ArrowLeft, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Sheet,
   SheetContent,
@@ -52,11 +53,7 @@ const CrownedEggAvatar = () => {
                     <stop offset="100%" stopColor="#FFA500" />
                 </linearGradient>
             </defs>
-
-            {/* Egg Shadow */}
             <ellipse cx="50" cy="90" rx="35" ry="5" fill="rgba(0,0,0,0.1)" />
-            
-            {/* Egg */}
             <path 
                 d="M 50,15
                    C 25,15 15,40 15,60
@@ -66,8 +63,6 @@ const CrownedEggAvatar = () => {
                 fill="url(#eggGradient)"
                 transform="translate(0, -10)"
             />
-
-            {/* Crown */}
             <g transform="translate(0, -10)">
                 <path 
                     d="M 25 30 L 75 30 L 70 45 L 30 45 Z"
@@ -91,29 +86,53 @@ const CrownedEggAvatar = () => {
     );
 };
 
+interface ProfileUser {
+    id: string;
+    name: string;
+    picture: string;
+}
 
-export default function GalleryPage() {
+function GalleryPageContent() {
     const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
+    const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-    const { user, setUser } = useAuth();
+    
+    const { user: authUser, setUser: setAuthUser } = useAuth();
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const userId = searchParams.get('userId');
+
+    const isOwnProfile = !userId || (authUser && userId === authUser.id);
+    const viewingUserId = isOwnProfile ? authUser?.id : userId;
 
     React.useEffect(() => {
-        const fetchEmojis = async () => {
-            if (!user) {
+        const fetchProfileData = async () => {
+            if (!viewingUserId) {
                 setIsLoading(false);
                 return;
-            };
+            }
 
             setIsLoading(true);
             try {
+                // Fetch user profile
+                const { data: userProfile, error: userError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', viewingUserId)
+                    .single();
+
+                if (userError) throw userError;
+                setProfileUser(userProfile);
+
+                // Fetch user emojis
                 const { data, error } = await supabase
                     .from('emojis')
                     .select('*, user:users!inner(*)')
-                    .eq('user_id', user.id)
-                    .is('user.deleted_at', null) // Filter out soft-deleted users
+                    .eq('user_id', viewingUserId)
+                    .is('user.deleted_at', null)
                     .order('created_at', { ascending: false });
 
                 if (error) {
@@ -123,9 +142,9 @@ export default function GalleryPage() {
                 
                 setSavedEmojis(data as EmojiState[]);
             } catch (error: any) {
-                console.error("Failed to load emojis from Supabase", error);
+                console.error("Failed to load profile data from Supabase", error);
                 toast({
-                    title: "Could not load gallery",
+                    title: "Could not load profile",
                     description: error.message,
                     variant: 'destructive',
                 })
@@ -134,12 +153,8 @@ export default function GalleryPage() {
             }
         };
 
-        if (user) {
-            fetchEmojis();
-        } else {
-            setIsLoading(false);
-        }
-    }, [user, toast]);
+        fetchProfileData();
+    }, [viewingUserId, toast]);
 
     const handleDelete = async (emojiId: string) => {
         try {
@@ -169,13 +184,14 @@ export default function GalleryPage() {
             console.error('Error signing out:', error);
             toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
         } else {
-            setUser(null);
+            setAuthUser(null);
+            router.push('/');
         }
     };
     
     const handleDeleteAccount = async () => {
         setShowDeleteConfirm(false);
-        if (!user) return;
+        if (!authUser) return;
 
         try {
             const { error } = await supabase.functions.invoke('delete-user', {
@@ -206,11 +222,11 @@ export default function GalleryPage() {
     };
 
     const handleShareProfile = async () => {
-        if (!user) return;
-        const profileUrl = `${window.location.origin}/gallery?userId=${user.id}`;
+        if (!profileUser) return;
+        const profileUrl = `${window.location.origin}/gallery?userId=${profileUser.id}`;
         const shareData = {
-            title: 'Check out my profile on Edengram!',
-            text: `See all my creations on Edengram.`,
+            title: `Check out ${profileUser.name}'s profile on Edengram!`,
+            text: `See all of ${profileUser.name}'s creations on Edengram.`,
             url: profileUrl,
         };
 
@@ -218,7 +234,7 @@ export default function GalleryPage() {
             navigator.clipboard.writeText(profileUrl).then(() => {
                 toast({
                     title: 'Profile link copied!',
-                    description: 'The link to your profile has been copied to your clipboard.',
+                    description: 'The link to the profile has been copied to your clipboard.',
                     variant: 'success'
                 });
             }).catch(err => {
@@ -260,9 +276,16 @@ export default function GalleryPage() {
     const ProfileHeader = () => (
         <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
             <div className="flex items-center gap-1 font-semibold text-lg">
-                <Lock className="h-4 w-4" />
-                <span>{user?.name || 'Profile'}</span>
+                {!isOwnProfile ? (
+                    <Button variant="ghost" size="icon" className="mr-2" onClick={() => router.back()}>
+                        <ArrowLeft />
+                    </Button>
+                ) : (
+                    <Lock className="h-4 w-4" />
+                )}
+                <span>{profileUser?.name || 'Profile'}</span>
             </div>
+            {isOwnProfile && (
             <div className="flex items-center gap-2">
                  <Sheet>
                     <SheetTrigger asChild>
@@ -277,7 +300,6 @@ export default function GalleryPage() {
                         </SheetHeader>
                         <div className="flex-1">
                         </div>
-        
                         <div className="mt-auto">
                            <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
                                 <LogOut className="mr-2 h-4 w-4" />
@@ -291,12 +313,13 @@ export default function GalleryPage() {
                     </SheetContent>
                 </Sheet>
             </div>
+            )}
         </header>
     );
     
     const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
     
-    if (!user) {
+    if (!authUser && !userId) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center text-center p-8">
                 <Lock className="h-16 w-16 text-muted-foreground" />
@@ -317,8 +340,7 @@ export default function GalleryPage() {
                         emojis={savedEmojis}
                         initialIndex={savedEmojis.findIndex(e => e.id === selectedEmojiId)}
                         onClose={() => setSelectedEmojiId(null)}
-                        onDelete={handleDelete}
-                        onShare={() => handleShareProfile()}
+                        onDelete={isOwnProfile ? handleDelete : undefined}
                     />
             ) : (
                 <>
@@ -341,11 +363,20 @@ export default function GalleryPage() {
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <h2 className="font-semibold">{user?.name || 'User'}</h2>
+                                <h2 className="font-semibold">{profileUser?.name || 'User'}</h2>
                             </div>
                             <div className="mt-4 flex gap-2">
-                                <Button variant="secondary" className="flex-1">Edit profile</Button>
-                                <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
+                                {isOwnProfile ? (
+                                    <>
+                                        <Button variant="secondary" className="flex-1">Edit profile</Button>
+                                        <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button className="flex-1"><UserPlus className="mr-2 h-4 w-4" />Subscribe</Button>
+                                        <Button variant="secondary" className="flex-1">Message</Button>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -365,7 +396,7 @@ export default function GalleryPage() {
                                         <Grid3x3 className="h-12 w-12" />
                                     </div>
                                     <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
-                                    <Link href="/design" className="text-primary font-semibold">Create your first post</Link>
+                                    {isOwnProfile && <Link href="/design" className="text-primary font-semibold">Create your first post</Link>}
                                 </div>
                             )}
                         </div>
@@ -394,5 +425,13 @@ export default function GalleryPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </>
+    );
+}
+
+export default function GalleryPage() {
+    return (
+        <React.Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <GalleryPageContent />
+        </React.Suspense>
     );
 }

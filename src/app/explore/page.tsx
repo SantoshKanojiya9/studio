@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Search, User, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -175,13 +176,13 @@ export default function ExplorePage() {
           <div className="flex flex-col">
              {searchedUsers.length > 0 ? (
                  searchedUsers.map(user => (
-                    <div key={user.id} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
+                    <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
                         <Avatar className="h-12 w-12">
                             <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
                             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <span className="font-semibold">{user.name}</span>
-                    </div>
+                    </Link>
                  ))
              ) : (
                 !isSearching && (

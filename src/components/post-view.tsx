@@ -36,7 +36,6 @@ interface PostViewProps {
   initialIndex?: number;
   onClose: () => void;
   onDelete?: (id: string) => void;
-  onShare?: (emoji: EmojiState) => void;
 }
 
 export function PostView({ 
@@ -44,7 +43,6 @@ export function PostView({
     initialIndex = 0, 
     onClose, 
     onDelete, 
-    onShare 
 }: PostViewProps) {
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -88,12 +86,6 @@ export function PostView({
   };
 
   const handleShareClick = async (emoji: EmojiState) => {
-    if (onShare) {
-      onShare(emoji);
-      return;
-    }
-    
-    // Fallback share for explore page
     const url = `${window.location.origin}/design?emojiId=${emoji.id}`;
     const shareData = {
       title: 'Check out this creation on Edengram!',
@@ -137,8 +129,6 @@ export function PostView({
     return null;
   }
   
-  const author = currentEmoji.user;
-
   return (
     <div className="h-full w-full flex flex-col bg-background">
       <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
@@ -281,7 +271,3 @@ export function PostView({
     </div>
   );
 }
-
-
-
-    
