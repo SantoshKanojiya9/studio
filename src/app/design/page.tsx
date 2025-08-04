@@ -204,7 +204,7 @@ const DesignPageContent = () => {
         currentShape = 'default';
     }
 
-    const emojiData: Omit<EmojiState, 'id' | 'user' | 'created_at'> = {
+    const emojiData = {
       user_id: user.id,
       model,
       expression,
@@ -742,3 +742,5 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
+    
