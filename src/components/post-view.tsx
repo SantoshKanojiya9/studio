@@ -219,9 +219,7 @@ export function PostView({
                           animation_type={emojiToRender.animation_type}
                           color={emojiToRender.emoji_color}
                           isDragging={false}
-                          onPan={() => {}}
-                          onPanStart={() => {}}
-                          onPanEnd={() => {}}
+                          isInteractive={false}
                           feature_offset_x={featureOffsetX}
                           feature_offset_y={featureOffsetY}
                           setColor={() => {}}

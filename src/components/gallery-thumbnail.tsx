@@ -38,7 +38,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
             className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] relative"
             style={containerStyle}
         >
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
             
             <motion.div 
                 className="origin-center" 
@@ -63,9 +63,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                     animation_type={emojiToRender.animation_type}
                     color={emojiToRender.emoji_color}
                     isDragging={false}
-                    onPan={() => {}}
-                    onPanStart={() => {}}
-                    onPanEnd={() => {}}
+                    isInteractive={false}
                     feature_offset_x={featureOffsetX}
                     feature_offset_y={featureOffsetY}
                     setColor={() => {}}

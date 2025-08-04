@@ -669,6 +669,7 @@ const DesignPageContent = () => {
                     eyebrow_style={eyebrow_style}
                     animation_type={animation_type}
                     isDragging={isDragging}
+                    isInteractive={true}
                     onPan={handlePan}
                     onPanStart={handlePanStart}
                     onPanEnd={handlePanEnd}

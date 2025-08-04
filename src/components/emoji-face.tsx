@@ -18,6 +18,7 @@ export const Face = ({
     eyebrow_style,
     animation_type,
     isDragging,
+    isInteractive = true,
     onPan,
     onPanStart,
     onPanEnd,
@@ -35,6 +36,7 @@ export const Face = ({
     eyebrow_style: FeatureStyle;
     animation_type: AnimationType;
     isDragging: boolean;
+    isInteractive?: boolean;
     onPan?: (event: any, info: any) => void;
     onPanStart?: (event: any, info: any) => void;
     onPanEnd?: (event: any, info: any) => void;
@@ -62,7 +64,9 @@ export const Face = ({
   }, [initialExpression, isAngryMode]);
 
   useEffect(() => {
-    if (isAngryMode || isDragging || animation_type === 'none' || (feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0)) {
+    const hasBeenMoved = feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0;
+
+    if (isAngryMode || isDragging || animation_type === 'none' || (isInteractive && hasBeenMoved)) {
         if (animationControlsX.current) animationControlsX.current.stop();
         if (animationControlsY.current) animationControlsY.current.stop();
         if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
@@ -137,7 +141,7 @@ export const Face = ({
     }
 
     return stopAnimations;
-  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y]);
+  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y, isInteractive]);
 
 
   const eyeVariants = {
@@ -301,12 +305,12 @@ export const Face = ({
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onPan={onPan}
-      onPanStart={onPanStart}
-      onPanEnd={onPanEnd}
-      onTap={handleTap}
+      onPointerMove={isInteractive ? handlePointerMove : undefined}
+      onPointerLeave={isInteractive ? handlePointerLeave : undefined}
+      onPan={isInteractive ? onPan : undefined}
+      onPanStart={isInteractive ? onPanStart : undefined}
+      onPanEnd={isInteractive ? onPanEnd : undefined}
+      onTap={isInteractive ? handleTap : undefined}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 
