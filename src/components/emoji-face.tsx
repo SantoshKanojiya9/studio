@@ -52,6 +52,11 @@ export const Face = ({
 
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
+  // Refs for managing animations must be at the top level
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+
   useEffect(() => {
     // Don't update expression if angry mode is active
     if (!isAngryMode) {
@@ -61,10 +66,6 @@ export const Face = ({
 
   // Dedicated effect for animations
   useEffect(() => {
-    const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-    const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-
     const stopAnimations = () => {
       if (animationControlsX.current) animationControlsX.current.stop();
       if (animationControlsY.current) animationControlsY.current.stop();
@@ -126,8 +127,8 @@ export const Face = ({
              animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'random':
-            animationIntervalRef.current = setInterval(randomAnimation, 3000);
             randomAnimation();
+            animationIntervalRef.current = setInterval(randomAnimation, 3000);
             break;
         default:
              // 'none' or other cases, do nothing

@@ -53,6 +53,11 @@ export const ClockFace = ({
   
   const nonAngryExpressions: Expression[] = ['neutral', 'happy', 'sad', 'surprised', 'scared', 'love'];
 
+  // Refs for managing animations must be at the top level
+  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+
   useEffect(() => {
     if (!isAngryMode) {
       setExpression(initialExpression);
@@ -61,10 +66,6 @@ export const ClockFace = ({
   
   // Dedicated effect for animations
   useEffect(() => {
-    const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-    const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-    
     const stopAnimations = () => {
       if (animationControlsX.current) animationControlsX.current.stop();
       if (animationControlsY.current) animationControlsY.current.stop();
@@ -125,8 +126,8 @@ export const ClockFace = ({
              animationControlsY.current = animate(feature_offset_y, [-25, 25], animationOptions);
             break;
         case 'random':
-            animationIntervalRef.current = setInterval(randomAnimation, 3000);
             randomAnimation();
+            animationIntervalRef.current = setInterval(randomAnimation, 3000);
             break;
         default:
             // 'none' or other cases
