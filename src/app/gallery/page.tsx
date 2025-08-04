@@ -170,13 +170,14 @@ export default function GalleryPage() {
         if (!user) return;
 
         try {
-            // Soft delete the user by updating their profile
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({ deleted_at: new Date().toISOString() })
-                .eq('id', user.id);
-
-            if (updateError) throw updateError;
+            const { error } = await supabase.functions.invoke('delete-user', {
+              method: 'POST',
+            });
+    
+            if (error) {
+                console.error("Error from delete_user function:", error);
+                throw error;
+            }
 
             toast({
                 title: "Account Deleted",
@@ -184,7 +185,6 @@ export default function GalleryPage() {
                 variant: "success",
             });
             
-            // Sign the user out after successful soft delete
             await handleSignOut();
 
         } catch (error: any) {
