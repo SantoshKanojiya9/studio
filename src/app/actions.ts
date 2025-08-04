@@ -103,6 +103,19 @@ export async function subscribe(subscribeeId: string) {
         throw new Error('Could not subscribe to the user.');
     }
 
+    // Create a notification for the user being followed
+    const { error: notificationError } = await supabase.from('notifications').insert({
+      recipient_id: subscribeeId,
+      sender_id: user.id,
+      type: 'follow'
+    });
+
+    if (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Not a critical error, so we don't throw
+    }
+
+
     revalidatePath(`/gallery?userId=${subscribeeId}`);
 }
 
@@ -165,4 +178,53 @@ export async function getSubscriptionStatus(subscribeeId: string) {
     }
 
     return !!data;
+}
+
+
+// --- Notification Actions ---
+export async function getNotifications() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return [];
+    }
+
+    const { data, error } = await supabase
+        .from('notifications')
+        .select(`
+            id,
+            type,
+            created_at,
+            sender:sender_id (
+                id,
+                name,
+                picture
+            ),
+            emoji:emoji_id (
+                id,
+                background_color,
+                emoji_color,
+                expression,
+                model,
+                shape,
+                eye_style,
+                mouth_style,
+                eyebrow_style,
+                show_sunglasses,
+                show_mustache,
+                animation_type,
+                selected_filter,
+                feature_offset_x,
+                feature_offset_y
+            )
+        `)
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+    return data;
 }
