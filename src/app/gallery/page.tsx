@@ -2,9 +2,9 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
-import { PostView } from '@/components/post-view';
 import { Button } from '@/components/ui/button';
 import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -29,6 +29,14 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
+
+const PostView = dynamic(() => 
+  import('@/components/post-view').then(mod => mod.PostView),
+  {
+    loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>,
+    ssr: false 
+  }
+);
 
 
 const CrownedEggAvatar = () => {

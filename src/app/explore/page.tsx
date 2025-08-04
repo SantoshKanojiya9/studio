@@ -1,17 +1,24 @@
 
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Input } from '@/components/ui/input';
 import { Search, User, Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
-import { PostView } from '@/components/post-view';
 import { getAllSavedEmojis } from '@/lib/gallery-utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
+
+const PostView = dynamic(() => 
+  import('@/components/post-view').then(mod => mod.PostView),
+  {
+    loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>,
+    ssr: false 
+  }
+);
 
 // Dummy users for search results
 const allUsers = [
@@ -164,4 +171,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-

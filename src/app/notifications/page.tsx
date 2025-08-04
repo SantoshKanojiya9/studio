@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Image from 'next/image';
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -41,7 +42,7 @@ export default function NotificationsPage() {
                  <span className="text-muted-foreground ml-2">{notification.time}</span>
               </div>
               {notification.type === 'reaction' && (
-                <img src={notification.emojiPreview} alt="Emoji preview" className="h-12 w-12 rounded-md" data-ai-hint="emoji" />
+                <Image src={notification.emojiPreview!} alt="Emoji preview" width={48} height={48} className="h-12 w-12 rounded-md" data-ai-hint="emoji" />
               )}
             </li>
           ))}
