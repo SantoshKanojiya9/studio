@@ -9,23 +9,31 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Create a Supabase client with the service_role key to perform admin actions
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
     );
 
-    // 1. Get the user from the request's authorization header
-    const authHeader = req.headers.get('Authorization')!;
-    const { data: { user }, error: userError } = await createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    ).auth.getUser();
+    // Create a client to get the user from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing authorization header');
+    }
+    
+    const userClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+    )
 
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    
     if (userError) throw userError;
     if (!user) throw new Error('User not found.');
 
-    // 2. "Soft delete" the user by updating their profile in the public.users table
+    // Soft delete the user by updating their profile in the public.users table
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({ deleted_at: new Date().toISOString() })
@@ -33,13 +41,14 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
     
-    // 3. Sign the user out. The client will handle redirecting.
+    // Sign the user out
     await supabaseAdmin.auth.admin.signOut(user.id);
 
     return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
+
   } catch (error) {
     console.error('An unexpected error occurred:', error);
     return new Response(JSON.stringify({ error: error.message }), {
