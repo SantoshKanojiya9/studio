@@ -86,35 +86,42 @@ export default function LoginPage() {
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setLoading(true);
-      
-      const authMethod = isLoginView ? supabase.auth.signInWithPassword : supabase.auth.signUp;
-      
-      const { data, error } = await authMethod({
+    e.preventDefault();
+    setLoading(true);
+  
+    let data, error;
+  
+    if (isLoginView) {
+      ({ data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      }));
+    } else {
+      ({ data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name: isLoginView ? undefined : (email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`),
+            name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
             picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
           }
         }
-      });
-
-      setLoading(false);
-
-      if (error) {
-          toast({ title: isLoginView ? 'Sign-in Error' : 'Sign-up Error', description: error.message, variant: 'destructive' });
-          return;
+      }));
+    }
+  
+    setLoading(false);
+  
+    if (error) {
+      toast({ title: isLoginView ? 'Sign-in Error' : 'Sign-up Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+  
+    if (data.user) {
+      if (!isLoginView) {
+        toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
       }
-
-      if (data.user) {
-          if (!isLoginView) {
-              toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
-          }
-          router.push('/mood');
-      }
+      router.push('/mood');
+    }
   };
   
   useEffect(() => {
