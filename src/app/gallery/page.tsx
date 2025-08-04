@@ -29,8 +29,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
+import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -104,7 +104,7 @@ function GalleryPageContent() {
     const [isSubscribed, setIsSubscribed] = React.useState(false);
     const [isSubscribing, setIsSubscribing] = React.useState(false);
 
-    const { user: authUser, setUser: setAuthUser } = useAuth();
+    const { user: authUser, setUser: setAuthUser, supabase } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -169,7 +169,7 @@ function GalleryPageContent() {
         };
 
         fetchProfileData();
-    }, [viewingUserId, toast, authUser, isOwnProfile]);
+    }, [viewingUserId, toast, authUser, isOwnProfile, supabase]);
 
     const handleSubscription = async () => {
         if (!authUser || isOwnProfile || !viewingUserId) return;

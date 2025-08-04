@@ -5,8 +5,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import type { User } from '@supabase/supabase-js';
+import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
+import type { User, SupabaseClient } from '@supabase/supabase-js';
 
 interface UserProfile {
     id: string;
@@ -20,11 +20,12 @@ interface AuthContextType {
   user: UserProfile | null;
   setUser: (user: UserProfile | null) => void;
   loading: boolean;
+  supabase: SupabaseClient;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const upsertUserProfile = async (user: User): Promise<UserProfile> => {
+const upsertUserProfile = async (supabase: SupabaseClient, user: User): Promise<UserProfile> => {
     console.log("Upserting profile for user:", user.id);
     const profileData = {
         id: user.id,
@@ -53,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -75,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setUserState(existingProfile);
                 } else {
                     // if not, create it
-                    const newProfile = await upsertUserProfile(session.user);
+                    const newProfile = await upsertUserProfile(supabase, session.user);
                     setUserState(newProfile);
                 }
             } catch (e) {
@@ -92,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription?.unsubscribe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -106,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setUser = (userProfile: UserProfile | null) => {
     if (userProfile === null) {
-      supabase.auth.signOut();
+      supabase.auth.signOut().then(() => router.refresh());
     }
     setUserState(userProfile);
   };
@@ -120,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, supabase }}>
       {children}
     </AuthContext.Provider>
   );

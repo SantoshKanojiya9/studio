@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/lib/supabaseClient';
+import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 
@@ -69,6 +69,7 @@ const DesignPageContent = () => {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuth();
+  const supabase = createSupabaseBrowserClient();
 
   const [id, setId] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<ModelType>('emoji');

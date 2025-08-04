@@ -24,7 +24,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
 import { deleteUserAccount } from '@/app/actions';
 
 
@@ -58,7 +57,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { user, setUser } = useAuth();
+  const { user, setUser, supabase } = useAuth();
   const { toast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   

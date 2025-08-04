@@ -9,7 +9,7 @@ import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabaseClient';
+import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -61,6 +61,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const supabase = createSupabaseBrowserClient();
 
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
@@ -122,6 +124,7 @@ export default function LoginPage() {
         toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
       }
       // The useAuth hook will redirect to /mood on successful login
+      router.refresh();
     }
   };
   
@@ -141,6 +144,7 @@ export default function LoginPage() {
             { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
         );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, router]);
 
 

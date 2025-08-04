@@ -28,8 +28,6 @@ import { motion, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
-
 
 interface PostViewProps {
   emojis: EmojiState[];
