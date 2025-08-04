@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     if (updateError) throw updateError;
     
-    // Sign the user out
+    // Sign the user out of all sessions
     await supabaseAdmin.auth.admin.signOut(user.id);
 
     return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
@@ -50,7 +50,6 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('An unexpected error occurred:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
