@@ -50,11 +50,7 @@ export const ClockFace = ({
 
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
-
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-
+  
   const nonAngryExpressions: Expression[] = ['neutral', 'happy', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
@@ -63,26 +59,22 @@ export const ClockFace = ({
     }
   }, [initialExpression, isAngryMode]);
   
+  // Dedicated effect for animations
   useEffect(() => {
-    if (!isInteractive || isAngryMode || isDragging || animation_type === 'none' || (feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0)) {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-        
-        if (animation_type === 'none' && !isDragging) {
-             animate(feature_offset_x, feature_offset_x.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-             animate(feature_offset_y, feature_offset_y.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-        }
-        return;
-    };
+    const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+    const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
     
     const stopAnimations = () => {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+      if (animationControlsX.current) animationControlsX.current.stop();
+      if (animationControlsY.current) animationControlsY.current.stop();
+      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    stopAnimations();
+    if (isDragging || animation_type === 'none') {
+      stopAnimations();
+      return;
+    }
 
     const animationOptions = {
         duration: 2,
@@ -108,6 +100,8 @@ export const ClockFace = ({
         animate(feature_offset_x, newX, { type: 'spring', stiffness: 50, damping: 20 });
         animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
+
+    stopAnimations();
 
     switch (animation_type) {
         case 'left-right':
@@ -135,11 +129,11 @@ export const ClockFace = ({
             randomAnimation();
             break;
         default:
-            // Do nothing, animations are already stopped
+            // 'none' or other cases
     }
 
     return stopAnimations;
-  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y, isInteractive]);
+  }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
 
   const eyeVariants = {
@@ -323,12 +317,12 @@ export const ClockFace = ({
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onPan={onPan}
-      onPanStart={onPanStart}
-      onPanEnd={onPanEnd}
-      onTap={handleTap}
+      onPointerMove={isInteractive ? handlePointerMove : undefined}
+      onPointerLeave={isInteractive ? handlePointerLeave : undefined}
+      onPan={isInteractive ? onPan : undefined}
+      onPanStart={isInteractive ? onPanStart : undefined}
+      onPanEnd={isInteractive ? onPanEnd : undefined}
+      onTap={isInteractive ? handleTap : undefined}
       style={{ transformStyle: 'preserve-3d' }}
     >
       <motion.div 

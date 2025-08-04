@@ -50,10 +50,6 @@ export const Face = ({
   const pointerX = useMotionValue(0.5);
   const pointerY = useMotionValue(0.5);
 
-  const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
-  const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
-  
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
@@ -63,29 +59,23 @@ export const Face = ({
     }
   }, [initialExpression, isAngryMode]);
 
+  // Dedicated effect for animations
   useEffect(() => {
-    const hasBeenMoved = feature_offset_x.get() !== 0 || feature_offset_y.get() !== 0;
+    const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+    const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
-    if (isAngryMode || isDragging || animation_type === 'none' || (isInteractive && hasBeenMoved)) {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
-        
-        if (animation_type === 'none' && !isDragging) {
-             animate(feature_offset_x, feature_offset_x.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-             animate(feature_offset_y, feature_offset_y.get() || 0, { type: 'spring', stiffness: 200, damping: 20 });
-        }
-        return;
-    };
-    
     const stopAnimations = () => {
-        if (animationControlsX.current) animationControlsX.current.stop();
-        if (animationControlsY.current) animationControlsY.current.stop();
-        if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+      if (animationControlsX.current) animationControlsX.current.stop();
+      if (animationControlsY.current) animationControlsY.current.stop();
+      if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
-    
-    stopAnimations();
 
+    if (isDragging || animation_type === 'none') {
+      stopAnimations();
+      return;
+    }
+    
     const animationOptions = {
         duration: 2,
         repeat: Infinity,
@@ -111,6 +101,9 @@ export const Face = ({
         animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
+    // Stop any existing animations before starting new ones
+    stopAnimations();
+
     switch (animation_type) {
         case 'left-right':
             animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
@@ -122,7 +115,7 @@ export const Face = ({
             animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(feature_offset_y, [50, 50], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [50, -50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
@@ -137,11 +130,12 @@ export const Face = ({
             randomAnimation();
             break;
         default:
-            // Do nothing, animations are already stopped
+             // 'none' or other cases, do nothing
     }
 
+    // Cleanup function to stop animations when the component unmounts or dependencies change
     return stopAnimations;
-  }, [animation_type, isAngryMode, isDragging, feature_offset_x, feature_offset_y, isInteractive]);
+  }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
 
   const eyeVariants = {
