@@ -54,7 +54,7 @@ export default function ChatPage() {
                     )}
                   </Avatar>
                 </StoryRing>
-                <span className="text-xs font-medium text-muted-foreground">{story.isMe ? "Mood" : story.username}</span>
+                <span className="text-xs font-medium text-muted-foreground">{story.isMe ? "Your Story" : story.username}</span>
               </div>
             ))}
           </div>

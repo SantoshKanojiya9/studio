@@ -74,15 +74,22 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     setShowDeleteConfirm(false);
     if (!user) return;
     try {
-        const { error } = await supabase.functions.invoke('delete-user');
-        if (error) throw error;
+        // Soft delete the user by updating their profile
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', user.id);
+
+        if (updateError) throw updateError;
 
         toast({
             title: "Account Deleted",
-            description: "Your account and all data have been deleted.",
+            description: "Your account and all data have been marked for deletion.",
             variant: "success",
         });
-        handleSignOut();
+        
+        // Sign the user out after successful soft delete
+        await handleSignOut();
 
     } catch (error: any) {
         console.error("Failed to delete account", error);

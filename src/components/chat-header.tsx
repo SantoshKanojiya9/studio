@@ -75,18 +75,21 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        const { error } = await supabase.functions.invoke('delete-user');
-        
-        if (error) {
-            console.error("Error from delete_user function:", error);
-            throw error;
-        }
+        // Soft delete the user by updating their profile
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', user.id);
+
+        if (updateError) throw updateError;
 
         toast({
             title: "Account Deleted",
-            description: "Your account and all data have been deleted.",
+            description: "Your account and all data have been marked for deletion.",
             variant: "success",
         });
+        
+        // Sign the user out after successful soft delete
         await handleSignOut();
 
     } catch (error: any) {
@@ -142,7 +145,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete your
-                  account and remove all your data from our servers.
+                  account and remove all your data from our servers. This is a soft delete.
               </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

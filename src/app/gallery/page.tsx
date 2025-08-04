@@ -170,21 +170,22 @@ export default function GalleryPage() {
         if (!user) return;
 
         try {
-            // We invoke the 'delete-user' function which now performs a soft delete.
-            const { error } = await supabase.functions.invoke('delete-user');
-            
-            if (error) {
-                console.error("Error from delete_user function:", error);
-                throw error;
-            }
+            // Soft delete the user by updating their profile
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ deleted_at: new Date().toISOString() })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
 
             toast({
                 title: "Account Deleted",
-                description: "Your account and all data have been deleted.",
+                description: "Your account and all data have been marked for deletion.",
                 variant: "success",
             });
-            // The function handles signing the user out. The auth listener will update the state.
-             setUser(null);
+            
+            // Sign the user out after successful soft delete
+            await handleSignOut();
 
         } catch (error: any) {
             console.error("Failed to delete account", error);
