@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUserAccount } from '@/app/actions';
+import { useRouter } from 'next/navigation';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -59,6 +59,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
   const { user, setUser, supabase } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const handleSignOut = async () => {
@@ -67,6 +68,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
         toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
     } else {
         setUser(null);
+        router.push('/');
     }
   };
 
@@ -74,19 +76,23 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     setShowDeleteConfirm(false);
     if (!user) return;
     try {
-        const result = await deleteUserAccount();
+        const { error: deleteError } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', user.id);
         
-        if (!result.success) {
-            throw new Error("Failed to delete account from server action.");
-        }
+        if (deleteError) throw deleteError;
+
+        await supabase.auth.signOut();
 
         toast({
             title: "Account Deleted",
-            description: "Your account and all data have been marked for deletion.",
+            description: "Your account and all data have been deleted.",
             variant: "success",
         });
         
         setUser(null);
+        router.push('/');
 
     } catch (error: any) {
         console.error("Failed to delete account", error);

@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUserAccount } from '@/app/actions';
+import { useRouter } from 'next/navigation';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -59,6 +59,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const { user, setUser, supabase } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
   const handleSignOut = async () => {
@@ -67,6 +68,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
         toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
     } else {
         setUser(null);
+        router.push('/');
     }
   };
   
@@ -75,18 +77,23 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        const result = await deleteUserAccount();
-        if (!result.success) {
-            throw new Error("Failed to delete account from server action.");
-        }
+        const { error: deleteError } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', user.id);
+        
+        if (deleteError) throw deleteError;
+
+        await supabase.auth.signOut();
 
         toast({
             title: "Account Deleted",
-            description: "Your account and all data have been marked for deletion.",
+            description: "Your account and all data have been deleted.",
             variant: "success",
         });
         
         setUser(null);
+        router.push('/');
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
@@ -141,7 +148,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
                   This action cannot be undone. This will permanently delete your
-                  account and remove all your data from our servers. This is a soft delete.
+                  account and remove all your data from our servers.
               </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
