@@ -1,4 +1,3 @@
-
 'use server';
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
@@ -25,51 +24,6 @@ function createSupabaseServerClient() {
       },
     }
   );
-}
-
-// This is the new server action that will perform the soft delete.
-// It uses an admin client to securely update the user's profile.
-export async function deleteUserAccount() {
-    const supabase = createSupabaseServerClient();
-
-    // First, get the current user from the session
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-        // Throw an error that will be caught by the calling component
-        throw new Error('User not found or not authenticated.');
-    }
-
-    // Create a Supabase client with the service_role key to perform admin actions
-    // This client can bypass RLS policies.
-    const supabaseAdmin = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false
-            }
-        }
-    );
-    
-    // Soft delete the user by updating their profile in the public.users table
-    const { error: updateError } = await supabaseAdmin
-      .from('users')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', user.id);
-
-    if (updateError) {
-        console.error('Error soft deleting user:', updateError);
-        // Throw an error to be caught by the UI
-        throw new Error('Could not update user profile for deletion.');
-    }
-
-    // It's good practice to sign the user out of all sessions after deletion
-    await supabase.auth.signOut();
-    
-    // Return a success object instead of null for clarity
-    return { success: true, error: null };
 }
 
 

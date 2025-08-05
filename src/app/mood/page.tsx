@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -71,14 +70,15 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-      await deleteUserAccount();
-      // The useAuth hook will handle redirection on auth state change (sign out).
-      // We show a toast here to inform the user.
+      const { error } = await supabase.rpc('soft_delete_user');
+      if (error) throw error;
+
       toast({
         title: "Account Deletion Initiated",
         description: "Your account has been successfully marked for deletion.",
         variant: "success",
       });
+      await supabase.auth.signOut();
     } catch (error: any) {
       console.error("Failed to delete account:", error);
       toast({
