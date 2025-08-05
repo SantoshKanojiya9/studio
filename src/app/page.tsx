@@ -13,6 +13,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -60,6 +61,9 @@ export default function LoginPage() {
   const [isLoginView, setIsLoginView] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const supabase = createSupabaseBrowserClient();
@@ -99,7 +103,6 @@ export default function LoginPage() {
         password,
       }));
     } else {
-      // The useAuth hook now handles profile creation, so we can simplify this.
       ({ data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -123,8 +126,40 @@ export default function LoginPage() {
       if (!isLoginView && !data.session) {
         toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
       }
-      // The useAuth hook will redirect to /mood on successful login
       router.refresh();
+    }
+  };
+
+  const handlePhoneSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      phone: phone,
+    });
+    setLoading(false);
+
+    if (error) {
+      toast({ title: 'Error sending OTP', description: error.message, variant: 'destructive' });
+    } else {
+      setOtpSent(true);
+      toast({ title: 'OTP Sent', description: 'Check your phone for the one-time password.', variant: 'success' });
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone: phone,
+      token: otp,
+      type: 'sms',
+    });
+    setLoading(false);
+
+    if (error) {
+      toast({ title: 'Error verifying OTP', description: error.message, variant: 'destructive' });
+    } else if (data.user) {
+      router.push('/mood');
     }
   };
   
@@ -190,24 +225,51 @@ export default function LoginPage() {
             Edengram
         </motion.h1>
 
-        <motion.form variants={itemVariants} className="w-full flex flex-col gap-4 text-left" onSubmit={handleEmailAuth}>
-            <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-            <Button type="submit" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" /> : (isLoginView ? 'Sign In' : 'Sign Up')}
-            </Button>
-        </motion.form>
-
-        <motion.div variants={itemVariants} className="text-sm">
-            <Button variant="link" onClick={() => setIsLoginView(!isLoginView)}>
-                {isLoginView ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-            </Button>
+        <motion.div variants={itemVariants} className="w-full">
+            <Tabs defaultValue="email" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="email">Email</TabsTrigger>
+                    <TabsTrigger value="phone">Phone</TabsTrigger>
+                </TabsList>
+                <TabsContent value="email">
+                    <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="email">Email</Label>
+                            <Input type="email" id="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        </div>
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="password">Password</Label>
+                            <Input type="password" id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        </div>
+                        <Button type="submit" disabled={loading}>
+                          {loading ? <Loader2 className="animate-spin" /> : (isLoginView ? 'Sign In' : 'Sign Up')}
+                        </Button>
+                        <div className="text-sm">
+                            <Button variant="link" type="button" onClick={() => setIsLoginView(!isLoginView)}>
+                                {isLoginView ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+                            </Button>
+                        </div>
+                    </form>
+                </TabsContent>
+                <TabsContent value="phone">
+                     <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={otpSent ? handleVerifyOtp : handlePhoneSignIn}>
+                        <div className="grid w-full items-center gap-1.5">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input type="tel" id="phone" placeholder="+1234567890" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={otpSent} />
+                        </div>
+                        {otpSent && (
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="otp">One-Time Password</Label>
+                                <Input type="text" id="otp" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+                            </div>
+                        )}
+                        <Button type="submit" disabled={loading}>
+                            {loading ? <Loader2 className="animate-spin" /> : (otpSent ? 'Verify OTP & Sign In' : 'Send OTP')}
+                        </Button>
+                        {otpSent && <Button variant="link" type="button" onClick={() => setOtpSent(false)}>Use a different number</Button>}
+                    </form>
+                </TabsContent>
+            </Tabs>
         </motion.div>
         
         <motion.div variants={itemVariants} className="relative w-full flex items-center justify-center">
