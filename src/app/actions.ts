@@ -39,26 +39,15 @@ export async function deleteUserAccount() {
         throw new Error('User not found or not authenticated.');
     }
 
-    // Create a client with the service_role key to perform admin actions
-    const supabaseAdmin = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-          },
-        }
-    );
-
-    // Call the RPC function to soft delete the user
-    const { error: rpcError } = await supabaseAdmin.rpc('soft_delete_user', { user_id: user.id });
+    // Call the RPC function to soft delete the user.
+    // This function is defined in the new migration and runs with security definer privileges.
+    const { error: rpcError } = await supabase.rpc('soft_delete_user', { user_id_input: user.id });
 
     if (rpcError) {
         console.error('Error calling soft_delete_user RPC:', rpcError);
         throw new Error(`Database error: ${rpcError.message}`);
     }
-    
+
     // Sign the user out after successful deletion marking
     await supabase.auth.signOut();
 

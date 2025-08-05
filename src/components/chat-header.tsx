@@ -68,13 +68,15 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const handleDeleteAccount = async () => {
     setShowDeleteConfirm(false);
     try {
-      await deleteUserAccount();
-      toast({
-        title: "Account Deletion Initiated",
-        description: "Your account has been successfully marked for deletion.",
-        variant: "success",
-      });
-
+      const result = await deleteUserAccount();
+      if (result.success) {
+        toast({
+          title: "Account Deletion Initiated",
+          description: "Your account has been successfully marked for deletion.",
+          variant: "success",
+        });
+        // The auth listener in use-auth will handle the redirect.
+      }
     } catch (error: any) {
         console.error("Caught exception while deleting account:", error);
         toast({

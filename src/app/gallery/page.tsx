@@ -224,22 +224,25 @@ function GalleryPageContent() {
     };
     
     const handleDeleteAccount = async () => {
-        setShowDeleteConfirm(false);
-        try {
-            await deleteUserAccount();
-            toast({
-                title: "Account Deletion Initiated",
-                description: "Your account has been successfully marked for deletion.",
-                variant: "success",
-            });
-        } catch (error: any) {
-            console.error("Caught exception while deleting account:", error);
-            toast({
-                title: "Error Deleting Account",
-                description: error.message || "An unexpected error occurred.",
-                variant: 'destructive'
-            });
+      setShowDeleteConfirm(false);
+      try {
+        const result = await deleteUserAccount();
+        if (result.success) {
+           toast({
+            title: "Account Deletion Initiated",
+            description: "Your account has been successfully marked for deletion.",
+            variant: "success",
+          });
+          // The auth listener in use-auth will handle the redirect.
         }
+      } catch (error: any) {
+        console.error("Caught exception while deleting account:", error);
+        toast({
+          title: "Error Deleting Account",
+          description: error.message || "An unexpected error occurred.",
+          variant: 'destructive'
+        });
+      }
     };
 
     const handleShareProfile = async () => {
