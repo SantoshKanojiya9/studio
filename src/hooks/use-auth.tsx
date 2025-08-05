@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { upsertUserProfile } from '@/app/actions';
 
 interface UserProfile {
     id: string;
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         if (session && session.user) {
             try {
-                // First, check if a profile already exists.
+                // First, check if a profile already exists on the client.
                 let { data: profile, error: fetchError } = await supabase
                     .from('users')
                     .select('*')
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 if (!profile) {
-                    // Profile does not exist, so create it directly from the client.
+                    // Profile does not exist, so create it using a secure server action.
                     const profileData = {
                         id: session.user.id,
                         name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
@@ -58,17 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
                     };
                     
-                    const { data: newProfile, error: insertError } = await supabase
-                        .from('users')
-                        .insert(profileData)
-                        .select()
-                        .single();
-                    
-                    if (insertError) {
-                        console.error('Error creating profile:', insertError);
-                        throw new Error("Could not create user profile.");
-                    }
-                    profile = newProfile;
+                    // Call the secure server action to create the profile.
+                    profile = await upsertUserProfile(profileData);
                 }
 
                 if (profile.deleted_at) {
