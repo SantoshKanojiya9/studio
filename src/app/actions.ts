@@ -36,7 +36,7 @@ export async function deleteUserAccount() {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
-        throw new Error('User not found or not authenticated.');
+        return { error: 'User not found or not authenticated.' };
     }
 
     // Create a Supabase client with the service_role key to perform admin actions
@@ -61,11 +61,12 @@ export async function deleteUserAccount() {
 
     if (updateError) {
         console.error('Error soft deleting user:', updateError);
-        throw new Error('Could not update user profile for deletion.');
+        return { error: 'Could not update user profile for deletion.' };
     }
 
     // It's good practice to sign the user out of all sessions after deletion
     await supabase.auth.signOut();
+    return { error: null };
 }
 
 

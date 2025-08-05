@@ -228,7 +228,10 @@ function GalleryPageContent() {
         if (!authUser) return;
     
         try {
-            await deleteUserAccount();
+            const result = await deleteUserAccount();
+            if (result?.error) {
+                throw new Error(result.error);
+            }
             toast({
                 title: "Account Deletion Initiated",
                 description: "Your account will be permanently deleted in 30 minutes.",
