@@ -4,9 +4,8 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
-  // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/mood'
 
   if (code) {
@@ -30,10 +29,27 @@ export async function GET(request: Request) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Use a client-side redirect to break out of the server-side rendering
+      // and ensure the new session is picked up by the client.
+      return new NextResponse(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Redirecting...</title>
+            <script>
+              window.location.replace("${next}");
+            </script>
+          </head>
+          <body>
+            Redirecting...
+          </body>
+        </html>
+      `, {
+        headers: { 'Content-Type': 'text/html' }
+      });
     }
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  return NextResponse.redirect('/auth/auth-code-error');
 }
