@@ -4,7 +4,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import type { User } from '@supabase/supabase-js';
 
 // Helper function to create a Supabase client for server actions
 function createSupabaseServerClient() {
@@ -29,42 +28,8 @@ function createSupabaseServerClient() {
 }
 
 // --- User Profile Actions ---
-// This function is no longer called from the client for sign-ups,
-// but can be used for other server-side operations if needed.
-export async function upsertUserProfile(profileData: { id: string; name: string; email: string; picture: string; }) {
-    const supabaseAdmin = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false,
-            },
-        }
-    );
-
-    const { data, error } = await supabaseAdmin
-        .from('users')
-        .upsert(profileData, { onConflict: 'id' })
-        .select()
-        .single();
-    
-    if (error) {
-        console.error("Error upserting user profile:", error);
-        throw new Error("Could not save user profile.");
-    }
-
-    return data;
-}
-
-
-export async function deleteUserAccount() {
+export async function deleteUserAccount(userId: string) {
   const supabase = createSupabaseServerClient();
-  const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-
-  if (getUserError || !user) {
-    throw new Error('User not found or not authenticated.');
-  }
 
   // Use the service role key to perform admin actions
   const supabaseAdmin = createServerClient(
@@ -82,7 +47,7 @@ export async function deleteUserAccount() {
   const { error: updateError } = await supabaseAdmin
     .from('users')
     .update({ deleted_at: new Date().toISOString() })
-    .eq('id', user.id);
+    .eq('id', userId);
 
   if (updateError) {
     console.error('Error soft-deleting user:', updateError);
@@ -90,7 +55,7 @@ export async function deleteUserAccount() {
   }
   
   // 2. Sign out the user from all sessions on the server
-  const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(user.id);
+  const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(userId);
 
    if (signOutError) {
     console.error('Error signing out user from all sessions:', signOutError);

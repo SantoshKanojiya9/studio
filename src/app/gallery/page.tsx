@@ -236,7 +236,7 @@ function GalleryPageContent() {
         if (!authUser) return;
 
         try {
-            const result = await deleteUserAccount();
+            const result = await deleteUserAccount(authUser.id);
     
             if (!result.success) {
                 throw new Error("Failed to delete account from server action.");
