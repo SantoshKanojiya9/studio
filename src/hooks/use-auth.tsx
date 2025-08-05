@@ -7,6 +7,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import type { User, SupabaseClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 interface UserProfile {
     id: string;
@@ -34,7 +35,21 @@ const upsertUserProfile = async (supabase: SupabaseClient, user: User): Promise<
         picture: user.user_metadata.picture || `https://placehold.co/64x64.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`,
     };
 
-    const { data, error } = await supabase
+    // Use the service role key to perform this action.
+    // This is necessary because the user is not fully authenticated yet,
+    // and RLS policies would block this operation on the client-side.
+    const supabaseAdmin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    const { data, error } = await supabaseAdmin
         .from('users')
         .upsert(profileData, { onConflict: 'id' })
         .select()
@@ -74,7 +89,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 if (existingProfile) {
-                    setUserState(existingProfile);
+                    if (existingProfile.deleted_at) {
+                        // User is soft-deleted, sign them out.
+                        await supabase.auth.signOut();
+                        setUserState(null);
+                    } else {
+                        setUserState(existingProfile);
+                    }
                 } else {
                     // if not, create it
                     const newProfile = await upsertUserProfile(supabase, session.user);
@@ -102,7 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user && pathname === '/') {
         router.push('/mood');
       } else if (!user && pathname !== '/') {
-        router.push('/');
+        // Only redirect to login if not already on a public page or callback
+        const publicPaths = ['/', '/auth/callback'];
+        if (!publicPaths.includes(pathname)) {
+            router.push('/');
+        }
       }
     }
   }, [user, loading, pathname, router]);

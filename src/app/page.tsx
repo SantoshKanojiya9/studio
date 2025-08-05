@@ -110,7 +110,8 @@ export default function LoginPage() {
           data: {
             name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
             picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
-          }
+          },
+          // We remove the hardcoded emailRedirectTo so Supabase uses the default Site URL
         }
       }));
     }
@@ -126,7 +127,8 @@ export default function LoginPage() {
       if (!isLoginView && !data.session) {
         toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
       }
-      router.refresh();
+      // The onAuthStateChange listener in useAuth will handle redirection
+      // after the user confirms their email or logs in.
     }
   };
 
