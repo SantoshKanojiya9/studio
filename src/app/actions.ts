@@ -46,7 +46,6 @@ export async function deleteUserAccount() {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
-            cookies: {}, // No need for cookies for admin client
             auth: {
                 autoRefreshToken: false,
                 persistSession: false
