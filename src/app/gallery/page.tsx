@@ -30,7 +30,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
-import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -104,7 +103,7 @@ function GalleryPageContent() {
     const [isSubscribed, setIsSubscribed] = React.useState(false);
     const [isSubscribing, setIsSubscribing] = React.useState(false);
 
-    const { user: authUser, setUser: setAuthUser, supabase } = useAuth();
+    const { user: authUser, supabase } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -225,9 +224,6 @@ function GalleryPageContent() {
         if (error) {
             console.error('Error signing out:', error);
             toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
-        } else {
-            setAuthUser(null);
-            router.push('/');
         }
     };
     
@@ -236,8 +232,7 @@ function GalleryPageContent() {
         if (!authUser) return;
 
         try {
-            // RLS policies now allow users to delete their own records.
-            // We can perform this action directly from the client.
+            // RLS policies allow users to delete their own records from the client.
             const { error: deleteError } = await supabase
                 .from('users')
                 .delete()
@@ -245,17 +240,14 @@ function GalleryPageContent() {
             
             if (deleteError) throw deleteError;
 
-            // After successful DB deletion, sign out the user.
-            await supabase.auth.signOut();
-
             toast({
                 title: "Account Deleted",
                 description: "Your account and all data have been deleted.",
                 variant: "success",
             });
-            
-            setAuthUser(null);
-            router.push('/'); // Redirect to login page
+
+            // After successful DB deletion, sign out. The `useAuth` hook will handle redirection.
+            await supabase.auth.signOut();
 
         } catch (error: any) {
             console.error("Failed to delete account", error);

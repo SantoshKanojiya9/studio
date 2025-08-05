@@ -58,18 +58,14 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   );
   
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
-  const { user, setUser, supabase } = useAuth();
+  const { user, supabase } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
         toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
-    } else {
-        setUser(null);
-        router.push('/');
     }
   };
   
@@ -85,16 +81,13 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
         
         if (deleteError) throw deleteError;
 
-        await supabase.auth.signOut();
-
         toast({
             title: "Account Deleted",
             description: "Your account and all data have been deleted.",
             variant: "success",
         });
         
-        setUser(null);
-        router.push('/');
+        await supabase.auth.signOut();
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
