@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -69,10 +69,8 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     setShowDeleteConfirm(false);
     if (!user) return;
     try {
-        const { error: functionError } = await supabase.functions.invoke('delete-user');
+        await deleteUserAccount();
         
-        if (functionError) throw functionError;
-
         toast({
             title: "Account Deletion Initiated",
             description: "Your account will be permanently deleted in 30 minutes.",
