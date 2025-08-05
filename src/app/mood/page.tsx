@@ -71,7 +71,15 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
 
     try {
       const { error } = await supabase.rpc('soft_delete_user', { user_id: user.id });
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to delete account:", error);
+        toast({
+          title: "Error Deleting Account",
+          description: error.message || "There was an issue deleting your account.",
+          variant: 'destructive'
+        });
+        return;
+      }
 
       toast({
         title: "Account Deletion Initiated",
@@ -80,12 +88,12 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
       });
       await supabase.auth.signOut();
     } catch (error: any) {
-      console.error("Failed to delete account:", error);
-      toast({
-        title: "Error Deleting Account",
-        description: error.message || "There was an issue deleting your account.",
-        variant: 'destructive'
-      });
+        console.error("Caught exception while deleting account:", error);
+        toast({
+            title: "Error Deleting Account",
+            description: "An unexpected error occurred.",
+            variant: 'destructive'
+        });
     }
   };
 

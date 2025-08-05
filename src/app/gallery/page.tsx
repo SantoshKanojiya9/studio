@@ -229,7 +229,15 @@ function GalleryPageContent() {
     
         try {
             const { error } = await supabase.rpc('soft_delete_user', { user_id: authUser.id });
-            if (error) throw error;
+            if (error) {
+                console.error("Failed to delete account:", error);
+                toast({
+                    title: "Error Deleting Account",
+                    description: error.message || "There was an issue deleting your account.",
+                    variant: 'destructive'
+                });
+                return;
+            }
 
             toast({
                 title: "Account Deletion Initiated",
@@ -239,10 +247,10 @@ function GalleryPageContent() {
             // Sign out after initiating deletion
             await supabase.auth.signOut();
         } catch (error: any) {
-            console.error("Failed to delete account:", error);
+            console.error("Caught exception while deleting account:", error);
             toast({
                 title: "Error Deleting Account",
-                description: error.message || "There was an issue deleting your account.",
+                description: "An unexpected error occurred.",
                 variant: 'destructive'
             });
         }

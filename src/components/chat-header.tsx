@@ -69,8 +69,16 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-      const { error } = await supabase.rpc('soft_delete_user');
-      if (error) throw error;
+      const { error } = await supabase.rpc('soft_delete_user', { user_id: user.id });
+      if (error) {
+        console.error("Failed to delete account:", error);
+        toast({
+            title: "Error deleting account",
+            description: error.message || "There was an issue deleting your account. ",
+            variant: 'destructive'
+        });
+        return;
+      }
 
       toast({
         title: "Account Deletion Initiated",
@@ -80,10 +88,10 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       await supabase.auth.signOut();
 
     } catch (error: any) {
-        console.error("Failed to delete account", error);
+        console.error("Caught exception while deleting account:", error);
         toast({
             title: "Error deleting account",
-            description: error.message || "There was an issue deleting your account. ",
+            description: "An unexpected error occurred.",
             variant: 'destructive'
         });
     }
