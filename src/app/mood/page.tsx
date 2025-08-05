@@ -71,10 +71,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        const result = await deleteUserAccount();
-        if (result?.error) {
-            throw new Error(result.error);
-        }
+        await deleteUserAccount();
         toast({
             title: "Account Deletion Initiated",
             description: "Your account will be permanently deleted in 30 minutes.",
@@ -87,7 +84,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
         console.error("Failed to delete account", error);
         toast({
             title: "Error deleting account",
-            description: error.message || "There was an issue deleting your account. ",
+            description: error.message || "There was an issue deleting your account.",
             variant: 'destructive'
         });
     }
