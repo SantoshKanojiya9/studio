@@ -228,7 +228,7 @@ function GalleryPageContent() {
         if (!authUser) return;
     
         try {
-            const { error } = await supabase.rpc('soft_delete_user', { userid: authUser.id });
+            const { error } = await supabase.rpc('soft_delete_user', { user_id: authUser.id });
             if (error) throw error;
 
             toast({

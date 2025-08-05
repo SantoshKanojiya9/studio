@@ -70,7 +70,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-      const { error } = await supabase.rpc('soft_delete_user', { userid: user.id });
+      const { error } = await supabase.rpc('soft_delete_user', { user_id: user.id });
       if (error) throw error;
 
       toast({
