@@ -88,14 +88,13 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       }
       
       toast({
-        title: 'Account Deleted',
-        description: 'Your account has been successfully deleted.',
+        title: 'Account Deletion Initiated',
+        description: 'Your account has been successfully marked for deletion.',
         variant: 'success',
       });
 
-      // Sign out after successful deletion
       await supabase.auth.signOut();
-      window.location.href = '/'; // Force a redirect to the home page
+      window.location.href = '/';
     } catch (error: any) {
       console.error("Failed to delete account:", error);
       toast({
