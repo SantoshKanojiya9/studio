@@ -1,3 +1,4 @@
+
 'use server';
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
@@ -43,9 +44,6 @@ export async function deleteUserAccount() {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
         {
-          cookies: {
-            get: (name: string) => cookies().get(name)?.value,
-          },
           auth: {
             autoRefreshToken: false,
             persistSession: false,

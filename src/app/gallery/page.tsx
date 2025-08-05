@@ -225,8 +225,6 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
         setShowDeleteConfirm(false);
-        if (!authUser) return;
-    
         try {
             await deleteUserAccount();
             toast({
