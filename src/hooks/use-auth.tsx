@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { useToast } from './use-toast';
 
 interface UserProfile {
     id: string;
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createSupabaseBrowserClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -69,9 +71,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
                 if (profile?.deleted_at) {
-                    // User is soft-deleted, sign them out.
-                    await supabase.auth.signOut();
-                    setUserState(null);
+                    // User is soft-deleted, but is logging back in.
+                    // This cancels the deletion.
+                    const { error: updateError } = await supabase
+                        .from('users')
+                        .update({ deleted_at: null })
+                        .eq('id', profile.id);
+                    
+                    if (updateError) {
+                        console.error('Error cancelling account deletion:', updateError);
+                        // Sign out if we can't update
+                        await supabase.auth.signOut();
+                        setUserState(null);
+                    } else {
+                        // Successfully cancelled deletion
+                        setUserState({ ...profile, deleted_at: null });
+                        toast({
+                            title: "Welcome Back!",
+                            description: "Your account deletion has been cancelled.",
+                            variant: "success",
+                        });
+                    }
                 } else if (profile) {
                     // Profile exists and is valid.
                     setUserState(profile);
