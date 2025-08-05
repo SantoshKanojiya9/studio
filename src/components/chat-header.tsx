@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, LogOut, Trash2 } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -11,19 +11,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -56,43 +45,12 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { user, supabase } = useAuth();
-  const { toast } = useToast();
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const { supabase } = useAuth();
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
   };
   
-  const handleDeleteAccount = async () => {
-    setShowDeleteConfirm(false);
-    if (!user) return;
-
-    try {
-      const { error: rpcError } = await supabase.rpc('soft_delete_user', {
-        user_id: user.id,
-      });
-
-      if (rpcError) {
-        throw rpcError;
-      }
-
-      toast({
-        title: 'Account Deletion Initiated',
-        description: 'Your account has been successfully marked for deletion.',
-        variant: 'success',
-      });
-      await supabase.auth.signOut();
-    } catch (error: any) {
-        console.error('Failed to delete account:', error);
-        toast({
-            title: 'Error deleting account',
-            description: error.message || 'An unexpected error occurred.',
-            variant: 'destructive'
-        });
-    }
-  };
-
   return (
     <>
       <header className="flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 md:px-6">
@@ -121,35 +79,11 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                           <LogOut className="mr-2 h-4 w-4" />
                           Sign Out
                     </Button>
-                    <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Account
-                    </Button>
                   </div>
               </SheetContent>
           </Sheet>
         </div>
       </header>
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your
-                  account and remove all your data from our servers.
-              </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                  onClick={handleDeleteAccount}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                  Yes, delete account
-              </AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

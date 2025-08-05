@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { Button } from '@/components/ui/button';
-import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, Trash2, ArrowLeft, UserPlus, UserCheck } from 'lucide-react';
+import { Lock, Grid3x3, Menu, LogOut, Share2, Loader2, ArrowLeft, UserPlus, UserCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -17,16 +17,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
@@ -97,7 +87,6 @@ function GalleryPageContent() {
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
-    const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     
     const [subscribersCount, setSubscribersCount] = React.useState(0);
     const [isSubscribed, setIsSubscribed] = React.useState(false);
@@ -223,35 +212,6 @@ function GalleryPageContent() {
         await supabase.auth.signOut();
     };
     
-    const handleDeleteAccount = async () => {
-      setShowDeleteConfirm(false);
-      if (!authUser) return;
-
-      try {
-        const { error: rpcError } = await supabase.rpc('soft_delete_user', {
-          user_id: authUser.id,
-        });
-
-        if (rpcError) {
-          throw rpcError;
-        }
-
-        toast({
-          title: 'Account Deletion Initiated',
-          description: 'Your account has been successfully marked for deletion.',
-          variant: 'success',
-        });
-        await supabase.auth.signOut();
-      } catch (error: any) {
-        console.error('Failed to delete account:', error);
-        toast({
-          title: 'Error Deleting Account',
-          description: error.message || 'There was an issue deleting your account.',
-          variant: 'destructive',
-        });
-      }
-    };
-
     const handleShareProfile = async () => {
         if (!profileUser) return;
         const profileUrl = `${window.location.origin}/gallery?userId=${profileUser.id}`;
@@ -335,10 +295,6 @@ function GalleryPageContent() {
                            <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Sign Out
-                           </Button>
-                           <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Account
                            </Button>
                         </div>
                     </SheetContent>
@@ -444,26 +400,6 @@ function GalleryPageContent() {
                 </>
             )}
             </div>
-            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your
-                        account and remove all your data from our servers.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={handleDeleteAccount}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                        Yes, delete account
-                    </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 }
