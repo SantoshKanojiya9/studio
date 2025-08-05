@@ -7,7 +7,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { upsertUserProfile } from '@/app/actions';
 
 interface UserProfile {
     id: string;
@@ -44,30 +43,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     .from('users')
                     .select('*')
                     .eq('id', session.user.id)
-                    .maybeSingle();
+                    .single();
 
-                if (fetchError) {
-                     console.error("Error fetching user profile:", fetchError);
+                if (fetchError && fetchError.code === 'PGRST116') {
+                    // Profile does not exist, so create it using the client.
+                    // This will succeed because of the RLS policies.
+                    const { data: newProfile, error: insertError } = await supabase
+                        .from('users')
+                        .insert({
+                            id: session.user.id,
+                            name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
+                            email: session.user.email!,
+                            picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
+                        })
+                        .select()
+                        .single();
+
+                    if (insertError) {
+                        console.error("Error creating user profile:", insertError);
+                        throw new Error("Could not create user profile.");
+                    }
+                    profile = newProfile;
+                } else if (fetchError) {
+                    console.error("Error fetching user profile:", fetchError);
                 }
 
-                if (!profile) {
-                    // Profile does not exist, so create it using a secure server action.
-                    const profileData = {
-                        id: session.user.id,
-                        name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
-                        email: session.user.email!,
-                        picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
-                    };
-                    
-                    // Call the secure server action to create the profile.
-                    profile = await upsertUserProfile(profileData);
-                }
 
-                if (profile.deleted_at) {
+                if (profile?.deleted_at) {
                     // User is soft-deleted, sign them out.
                     await supabase.auth.signOut();
                     setUserState(null);
-                } else {
+                } else if (profile) {
                     // Profile exists and is valid.
                     setUserState(profile);
                 }

@@ -29,6 +29,8 @@ function createSupabaseServerClient() {
 }
 
 // --- User Profile Actions ---
+// This function is no longer called from the client for sign-ups,
+// but can be used for other server-side operations if needed.
 export async function upsertUserProfile(profileData: { id: string; name: string; email: string; picture: string; }) {
     const supabaseAdmin = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
