@@ -107,6 +107,7 @@ export default function LoginPage() {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
             picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
