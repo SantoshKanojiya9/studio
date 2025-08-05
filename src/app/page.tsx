@@ -87,7 +87,7 @@ export default function LoginPage() {
     }
 
     if (data.user) {
-      router.push('/mood');
+      // The onAuthStateChange listener in useAuth will handle redirection
     }
   };
 
@@ -161,7 +161,7 @@ export default function LoginPage() {
     if (error) {
       toast({ title: 'Error verifying OTP', description: error.message, variant: 'destructive' });
     } else if (data.user) {
-      router.push('/mood');
+      // The onAuthStateChange listener in useAuth will handle redirection
     }
   };
   
