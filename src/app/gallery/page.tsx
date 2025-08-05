@@ -228,20 +228,18 @@ function GalleryPageContent() {
         if (!authUser) return;
     
         try {
-            const result = await deleteUserAccount();
-            if (result?.error) {
-                throw new Error(result.error);
-            }
+            await deleteUserAccount();
+            // The useAuth hook will handle redirection on auth state change (sign out).
+            // We show a toast here to inform the user.
             toast({
                 title: "Account Deletion Initiated",
-                description: "Your account will be permanently deleted in 30 minutes.",
+                description: "Your account has been successfully marked for deletion.",
                 variant: "success",
             });
-            // The useAuth hook will handle redirection on auth state change (sign out).
         } catch (error: any) {
-            console.error("Failed to delete account", error);
+            console.error("Failed to delete account:", error);
             toast({
-                title: "Error deleting account",
+                title: "Error Deleting Account",
                 description: error.message || "There was an issue deleting your account.",
                 variant: 'destructive'
             });

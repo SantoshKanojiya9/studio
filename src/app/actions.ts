@@ -69,7 +69,7 @@ export async function deleteUserAccount() {
     await supabase.auth.signOut();
     
     // Return a success object instead of null for clarity
-    return { success: true };
+    return { success: true, error: null };
 }
 
 
