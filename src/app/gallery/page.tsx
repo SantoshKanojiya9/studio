@@ -220,35 +220,26 @@ function GalleryPageContent() {
     };
     
     const handleSignOut = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            console.error('Error signing out:', error);
-            toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
-        }
+        await supabase.auth.signOut();
     };
     
     const handleDeleteAccount = async () => {
         setShowDeleteConfirm(false);
         if (!authUser) return;
-
+    
         try {
-            // RLS policies allow users to delete their own records from the client.
-            const { error: deleteError } = await supabase
-                .from('users')
-                .delete()
-                .eq('id', authUser.id);
-            
-            if (deleteError) throw deleteError;
-
+            const { error: functionError } = await supabase.functions.invoke('delete-user');
+    
+            if (functionError) throw functionError;
+    
             toast({
-                title: "Account Deleted",
-                description: "Your account and all data have been deleted.",
+                title: "Account Deletion Initiated",
+                description: "Your account will be permanently deleted in 30 minutes.",
                 variant: "success",
             });
-
-            // After successful DB deletion, sign out. The `useAuth` hook will handle redirection.
-            await supabase.auth.signOut();
-
+    
+            // The useAuth hook will handle redirection on auth state change (sign out).
+    
         } catch (error: any) {
             console.error("Failed to delete account", error);
             toast({

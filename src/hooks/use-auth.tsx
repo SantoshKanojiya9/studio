@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -113,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setUser = (userProfile: UserProfile | null) => {
     if (userProfile === null) {
-      supabase.auth.signOut().then(() => router.refresh());
+      supabase.auth.signOut();
     }
     setUserState(userProfile);
   };

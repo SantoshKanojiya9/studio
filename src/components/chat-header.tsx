@@ -62,10 +62,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-        toast({ title: 'Error signing out', description: error.message, variant: 'destructive' });
-    }
+    await supabase.auth.signOut();
   };
   
   const handleDeleteAccount = async () => {
@@ -73,20 +70,17 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        const { error: deleteError } = await supabase
-            .from('users')
-            .delete()
-            .eq('id', user.id);
-        
-        if (deleteError) throw deleteError;
+        const { error: functionError } = await supabase.functions.invoke('delete-user');
+
+        if (functionError) throw functionError;
 
         toast({
-            title: "Account Deleted",
-            description: "Your account and all data have been deleted.",
+            title: "Account Deletion Initiated",
+            description: "Your account will be permanently deleted in 30 minutes.",
             variant: "success",
         });
         
-        await supabase.auth.signOut();
+        // The useAuth hook will handle redirection on auth state change (sign out).
 
     } catch (error: any) {
         console.error("Failed to delete account", error);
