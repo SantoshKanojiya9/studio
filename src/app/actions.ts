@@ -35,11 +35,11 @@ export async function deleteUserAccount() {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {
+        console.error('Delete Error: User not found or not authenticated.', userError);
         throw new Error('User not found or not authenticated.');
     }
 
     // Create a client with the service_role key to perform admin actions
-    // This is necessary because RLS policies might prevent a user from modifying their own 'deleted_at' field.
     const supabaseAdmin = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -51,11 +51,12 @@ export async function deleteUserAccount() {
         }
     );
 
+    // Call the RPC function to soft delete the user
     const { error: rpcError } = await supabaseAdmin.rpc('soft_delete_user', { user_id: user.id });
 
     if (rpcError) {
         console.error('Error calling soft_delete_user RPC:', rpcError);
-        throw new Error(rpcError.message);
+        throw new Error(`Database error: ${rpcError.message}`);
     }
     
     // Sign the user out after successful deletion marking
