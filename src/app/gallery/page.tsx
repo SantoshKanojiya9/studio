@@ -255,6 +255,7 @@ function GalleryPageContent() {
     
           // Sign out after successful deletion
           await supabase.auth.signOut();
+          window.location.href = '/'; // Force a redirect to the home page
         } catch (error: any) {
           console.error("Failed to delete account:", error);
           toast({
