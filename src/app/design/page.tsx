@@ -205,7 +205,7 @@ const DesignPageContent = () => {
     }
 
     const emojiData = {
-      user_id: user.id,
+      user_id: user.id, // Always include user_id
       model,
       expression,
       background_color,
@@ -227,10 +227,14 @@ const DesignPageContent = () => {
 
         if (id) {
             // Update existing emoji
+            // The RLS policy for UPDATE checks the user_id from the row against auth.uid()
+            // So we don't need to pass it in the update payload itself, but the RLS needs it to exist on the row.
+            const { user_id, ...updateData } = emojiData;
             ({ data, error } = await supabase
                 .from('emojis')
-                .update(emojiData)
+                .update(updateData)
                 .eq('id', id)
+                .eq('user_id', user_id) // Ensure we only update the row if the user_id matches
                 .select()
                 .single());
         } else {
@@ -251,7 +255,6 @@ const DesignPageContent = () => {
         
         if (data) {
           setId(data.id);
-          // Use window.history.pushState to avoid Next.js router issues on same-page nav
           const newUrl = `/design?emojiId=${data.id}`;
           window.history.pushState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
         }
