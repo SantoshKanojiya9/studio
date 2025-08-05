@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
@@ -236,26 +236,32 @@ function GalleryPageContent() {
         if (!authUser) return;
 
         try {
-            const result = await deleteUserAccount(authUser.id);
-    
-            if (!result.success) {
-                throw new Error("Failed to delete account from server action.");
-            }
+            // RLS policies now allow users to delete their own records.
+            // We can perform this action directly from the client.
+            const { error: deleteError } = await supabase
+                .from('users')
+                .delete()
+                .eq('id', authUser.id);
+            
+            if (deleteError) throw deleteError;
+
+            // After successful DB deletion, sign out the user.
+            await supabase.auth.signOut();
 
             toast({
                 title: "Account Deleted",
-                description: "Your account and all data have been marked for deletion.",
+                description: "Your account and all data have been deleted.",
                 variant: "success",
             });
             
-            // The AuthProvider will handle redirecting to '/' after user is null
             setAuthUser(null);
+            router.push('/'); // Redirect to login page
 
         } catch (error: any) {
             console.error("Failed to delete account", error);
             toast({
                 title: "Error deleting account",
-                description: error.message || "There was an issue deleting your account. ",
+                description: error.message || "There was an issue deleting your account.",
                 variant: 'destructive'
             });
         }
@@ -459,7 +465,7 @@ function GalleryPageContent() {
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         This action cannot be undone. This will permanently delete your
-                        account and remove all your data from our servers. This is a soft delete.
+                        account and remove all your data from our servers.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

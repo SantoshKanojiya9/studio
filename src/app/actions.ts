@@ -27,50 +27,6 @@ function createSupabaseServerClient() {
   );
 }
 
-// --- User Profile Actions ---
-export async function deleteUserAccount(userId: string) {
-  const supabase = createSupabaseServerClient();
-
-  // Use the service role key to perform admin actions
-  const supabaseAdmin = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
-
-  // 1. Soft delete the user in the public.users table
-  const { error: updateError } = await supabaseAdmin
-    .from('users')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', userId);
-
-  if (updateError) {
-    console.error('Error soft-deleting user:', updateError);
-    throw new Error('Failed to update user profile for deletion.');
-  }
-  
-  // 2. Sign out the user from all sessions on the server
-  const { error: signOutError } = await supabaseAdmin.auth.admin.signOut(userId);
-
-   if (signOutError) {
-    console.error('Error signing out user from all sessions:', signOutError);
-    // This is not a fatal, we can proceed.
-  }
-
-  // 3. Clear the session cookie on the client side
-  // This is a crucial step to ensure the client knows it's logged out.
-  await supabase.auth.signOut();
-  
-  revalidatePath('/', 'layout');
-  
-  return { success: true };
-}
-
 
 // --- Subscription Actions ---
 
