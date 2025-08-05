@@ -1,21 +1,22 @@
 
--- This function allows an authenticated user to soft-delete their own account.
-create or replace function public.soft_delete_user(user_id_input uuid)
+-- This function is designed to be called by an authenticated user
+-- to request the soft deletion of their own account.
+-- It checks if the caller is the user being deleted.
+create or replace function public.soft_delete_user(user_id_to_delete uuid)
 returns void
-language sql
-security definer
-set search_path = public
+language plpgsql
+security definer -- This is crucial for allowing the function to update the users table
 as $$
-  -- First, update the user's profile to mark them as deleted.
-  -- The RLS policy on the users table will ensure that only the user themselves can do this.
-  update public.users
-  set deleted_at = now()
-  where id = user_id_input and id = auth.uid();
-
-  -- After marking as deleted, sign the user out from all sessions.
-  -- This requires the `supabase_auth_admin` role which this function has due to `security definer`.
-  select auth.admin_sign_out(user_id_input);
+begin
+  -- Check if the user making the request is the same as the user to be deleted
+  if auth.uid() = user_id_to_delete then
+    -- Perform the soft delete by setting the deleted_at timestamp
+    update public.users
+    set deleted_at = now()
+    where id = user_id_to_delete;
+  else
+    -- If the user is not authorized, raise an exception
+    raise exception 'You are not authorized to delete this account.';
+  end if;
+end;
 $$;
-
--- Grant execute permission on the function to authenticated users.
-grant execute on function public.soft_delete_user(uuid) to authenticated;
