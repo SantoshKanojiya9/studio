@@ -24,7 +24,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -57,7 +56,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { supabase } = useAuth();
+  const { user, supabase } = useAuth();
   const { toast } = useToast();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   
@@ -67,21 +66,28 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   
   const handleDeleteAccount = async () => {
     setShowDeleteConfirm(false);
+    if (!user) return;
+
     try {
-      const result = await deleteUserAccount();
-      if (result.success) {
-        toast({
-          title: "Account Deletion Initiated",
-          description: "Your account has been successfully marked for deletion.",
-          variant: "success",
-        });
-        // The auth listener in use-auth will handle the redirect.
+      const { error: rpcError } = await supabase.rpc('soft_delete_user', {
+        user_id_input: user.id,
+      });
+
+      if (rpcError) {
+        throw rpcError;
       }
+
+      toast({
+        title: 'Account Deletion Initiated',
+        description: 'Your account has been successfully marked for deletion.',
+        variant: 'success',
+      });
+      await supabase.auth.signOut();
     } catch (error: any) {
-        console.error("Caught exception while deleting account:", error);
+        console.error('Failed to delete account:', error);
         toast({
-            title: "Error deleting account",
-            description: error.message || "An unexpected error occurred.",
+            title: 'Error deleting account',
+            description: error.message || 'An unexpected error occurred.',
             variant: 'destructive'
         });
     }

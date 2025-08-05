@@ -28,33 +28,6 @@ function createSupabaseServerClient() {
 }
 
 
-// --- Account Actions ---
-
-export async function deleteUserAccount() {
-    const supabase = createSupabaseServerClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-        console.error('Delete Error: User not found or not authenticated.', userError);
-        throw new Error('User not found or not authenticated.');
-    }
-
-    // Call the RPC function to soft delete the user.
-    // This function is defined in the new migration and runs with security definer privileges.
-    const { error: rpcError } = await supabase.rpc('soft_delete_user', { user_id_input: user.id });
-
-    if (rpcError) {
-        console.error('Error calling soft_delete_user RPC:', rpcError);
-        throw new Error(`Database error: ${rpcError.message}`);
-    }
-
-    // Sign the user out after successful deletion marking
-    await supabase.auth.signOut();
-
-    return { success: true };
-}
-
-
 // --- Subscription Actions ---
 
 export async function subscribe(subscribeeId: string) {

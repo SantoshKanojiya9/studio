@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -225,22 +225,29 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
       setShowDeleteConfirm(false);
+      if (!authUser) return;
+
       try {
-        const result = await deleteUserAccount();
-        if (result.success) {
-           toast({
-            title: "Account Deletion Initiated",
-            description: "Your account has been successfully marked for deletion.",
-            variant: "success",
-          });
-          // The auth listener in use-auth will handle the redirect.
+        const { error: rpcError } = await supabase.rpc('soft_delete_user', {
+          user_id_input: authUser.id,
+        });
+
+        if (rpcError) {
+          throw rpcError;
         }
-      } catch (error: any) {
-        console.error("Caught exception while deleting account:", error);
+
         toast({
-          title: "Error Deleting Account",
-          description: error.message || "An unexpected error occurred.",
-          variant: 'destructive'
+          title: 'Account Deletion Initiated',
+          description: 'Your account has been successfully marked for deletion.',
+          variant: 'success',
+        });
+        await supabase.auth.signOut();
+      } catch (error: any) {
+        console.error('Failed to delete account:', error);
+        toast({
+          title: 'Error Deleting Account',
+          description: error.message || 'There was an issue deleting your account.',
+          variant: 'destructive',
         });
       }
     };
