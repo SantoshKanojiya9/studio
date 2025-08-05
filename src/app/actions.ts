@@ -4,6 +4,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import type { User } from '@supabase/supabase-js';
 
 // Helper function to create a Supabase client for server actions
 function createSupabaseServerClient() {
@@ -25,6 +26,40 @@ function createSupabaseServerClient() {
       },
     }
   );
+}
+
+// --- User Profile Actions ---
+export async function upsertUserProfile(user: User) {
+    const supabaseAdmin = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false,
+            },
+        }
+    );
+
+    const profileData = {
+        id: user.id,
+        name: user.user_metadata.name || user.user_metadata.full_name || user.email!.split('@')[0],
+        email: user.email!,
+        picture: user.user_metadata.picture || user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${user.email!.charAt(0).toUpperCase()}`,
+    };
+
+    const { data, error } = await supabaseAdmin
+        .from('users')
+        .upsert(profileData, { onConflict: 'id' })
+        .select()
+        .single();
+    
+    if (error) {
+        console.error("Error upserting user profile:", error);
+        throw new Error("Could not save user profile.");
+    }
+
+    return data;
 }
 
 

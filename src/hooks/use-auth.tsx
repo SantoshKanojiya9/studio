@@ -6,8 +6,8 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
-import type { User, SupabaseClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { upsertUserProfile } from '@/app/actions';
 
 interface UserProfile {
     id: string;
@@ -26,44 +26,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const upsertUserProfile = async (supabase: SupabaseClient, user: User): Promise<UserProfile> => {
-    console.log("Upserting profile for user:", user.id);
-    const profileData = {
-        id: user.id,
-        name: user.user_metadata.name || `Guest-${user.id.substring(0, 6)}`,
-        email: user.email!,
-        picture: user.user_metadata.picture || `https://placehold.co/64x64.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`,
-    };
-
-    // Use the service role key to perform this action.
-    // This is necessary because the user is not fully authenticated yet,
-    // and RLS policies would block this operation on the client-side.
-    const supabaseAdmin = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
-
-    const { data, error } = await supabaseAdmin
-        .from('users')
-        .upsert(profileData, { onConflict: 'id' })
-        .select()
-        .single();
-    
-    if (error) {
-        console.error("Error upserting user profile:", error);
-        throw error;
-    }
-    
-    console.log("Profile upserted successfully:", data);
-    return data;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,13 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         if (session && session.user) {
             try {
-                // Check if user profile exists
+                // First, check if a profile already exists.
                 const { data: existingProfile, error: fetchError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', session.user.id)
-                    .maybeSingle(); // Use maybeSingle to avoid error when no row is found
-                
+                    .maybeSingle();
+
                 if (fetchError) {
                      console.error("Error fetching user profile:", fetchError);
                 }
@@ -94,15 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         await supabase.auth.signOut();
                         setUserState(null);
                     } else {
+                        // Profile exists and is valid.
                         setUserState(existingProfile);
                     }
                 } else {
-                    // if not, create it
-                    const newProfile = await upsertUserProfile(supabase, session.user);
+                    // Profile does not exist, so create it using the server action.
+                    const newProfile = await upsertUserProfile(session.user);
                     setUserState(newProfile);
                 }
             } catch (e) {
                 console.error("Auth state change profile handling error:", e);
+                // If any error occurs, sign the user out to be safe.
+                await supabase.auth.signOut();
                 setUserState(null);
             }
         } else {
