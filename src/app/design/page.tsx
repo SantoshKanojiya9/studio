@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -227,14 +226,12 @@ const DesignPageContent = () => {
 
         if (id) {
             // Update existing emoji
-            // The RLS policy for UPDATE checks the user_id from the row against auth.uid()
-            // So we don't need to pass it in the update payload itself, but the RLS needs it to exist on the row.
-            const { user_id, ...updateData } = emojiData;
+            const { user_id, ...updateData } = emojiData; // RLS policy handles the user_id check on update via auth.uid()
             ({ data, error } = await supabase
                 .from('emojis')
                 .update(updateData)
                 .eq('id', id)
-                .eq('user_id', user_id) // Ensure we only update the row if the user_id matches
+                .eq('user_id', user_id) // Ensure we only update our own emoji
                 .select()
                 .single());
         } else {
@@ -747,7 +744,3 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
-
-    
-
-    
