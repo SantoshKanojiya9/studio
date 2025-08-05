@@ -7,7 +7,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { upsertUserProfile } from '@/app/actions';
 
 interface UserProfile {
     id: string;
@@ -40,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session && session.user) {
             try {
                 // First, check if a profile already exists.
-                const { data: existingProfile, error: fetchError } = await supabase
+                let { data: profile, error: fetchError } = await supabase
                     .from('users')
                     .select('*')
                     .eq('id', session.user.id)
@@ -50,20 +49,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                      console.error("Error fetching user profile:", fetchError);
                 }
 
-                if (existingProfile) {
-                    if (existingProfile.deleted_at) {
-                        // User is soft-deleted, sign them out.
-                        await supabase.auth.signOut();
-                        setUserState(null);
-                    } else {
-                        // Profile exists and is valid.
-                        setUserState(existingProfile);
+                if (!profile) {
+                    // Profile does not exist, so create it directly from the client.
+                    const profileData = {
+                        id: session.user.id,
+                        name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
+                        email: session.user.email!,
+                        picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
+                    };
+                    
+                    const { data: newProfile, error: insertError } = await supabase
+                        .from('users')
+                        .insert(profileData)
+                        .select()
+                        .single();
+                    
+                    if (insertError) {
+                        console.error('Error creating profile:', insertError);
+                        throw new Error("Could not create user profile.");
                     }
-                } else {
-                    // Profile does not exist, so create it using the server action.
-                    const newProfile = await upsertUserProfile(session.user);
-                    setUserState(newProfile);
+                    profile = newProfile;
                 }
+
+                if (profile.deleted_at) {
+                    // User is soft-deleted, sign them out.
+                    await supabase.auth.signOut();
+                    setUserState(null);
+                } else {
+                    // Profile exists and is valid.
+                    setUserState(profile);
+                }
+
             } catch (e) {
                 console.error("Auth state change profile handling error:", e);
                 // If any error occurs, sign the user out to be safe.
