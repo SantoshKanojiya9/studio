@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -228,29 +228,17 @@ function GalleryPageContent() {
         if (!authUser) return;
     
         try {
-            const { error } = await supabase.rpc('soft_delete_user', { user_id: authUser.id });
-            if (error) {
-                console.error("Failed to delete account:", error);
-                toast({
-                    title: "Error Deleting Account",
-                    description: error.message || "There was an issue deleting your account.",
-                    variant: 'destructive'
-                });
-                return;
-            }
-
+            await deleteUserAccount();
             toast({
                 title: "Account Deletion Initiated",
                 description: "Your account has been successfully marked for deletion.",
                 variant: "success",
             });
-            // Sign out after initiating deletion
-            await supabase.auth.signOut();
         } catch (error: any) {
             console.error("Caught exception while deleting account:", error);
             toast({
                 title: "Error Deleting Account",
-                description: "An unexpected error occurred.",
+                description: error.message || "An unexpected error occurred.",
                 variant: 'destructive'
             });
         }

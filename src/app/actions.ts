@@ -27,6 +27,46 @@ function createSupabaseServerClient() {
 }
 
 
+// --- Account Actions ---
+
+export async function deleteUserAccount() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+        throw new Error('User not found or not authenticated.');
+    }
+
+    // Create a client with the service_role key to perform admin actions
+    // This is necessary because RLS policies might prevent a user from modifying their own 'deleted_at' field.
+    const supabaseAdmin = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          cookies: {
+            get: (name: string) => cookies().get(name)?.value,
+          },
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        }
+    );
+
+    const { error: rpcError } = await supabaseAdmin.rpc('soft_delete_user', { user_id: user.id });
+
+    if (rpcError) {
+        console.error('Error calling soft_delete_user RPC:', rpcError);
+        throw new Error(rpcError.message);
+    }
+    
+    // Sign the user out after successful deletion marking
+    await supabase.auth.signOut();
+
+    return { success: true };
+}
+
+
 // --- Subscription Actions ---
 
 export async function subscribe(subscribeeId: string) {

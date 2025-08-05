@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -70,28 +71,17 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-      const { error } = await supabase.rpc('soft_delete_user', { user_id: user.id });
-      if (error) {
-        console.error("Failed to delete account:", error);
-        toast({
-          title: "Error Deleting Account",
-          description: error.message || "There was an issue deleting your account.",
-          variant: 'destructive'
-        });
-        return;
-      }
-
+      await deleteUserAccount();
       toast({
         title: "Account Deletion Initiated",
         description: "Your account has been successfully marked for deletion.",
         variant: "success",
       });
-      await supabase.auth.signOut();
     } catch (error: any) {
         console.error("Caught exception while deleting account:", error);
         toast({
             title: "Error Deleting Account",
-            description: "An unexpected error occurred.",
+            description: error.message || "An unexpected error occurred.",
             variant: 'destructive'
         });
     }
