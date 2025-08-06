@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         <html>
           <head>
             <title>Redirecting...</title>
+            <meta http-equiv="refresh" content="0; url=${origin}${next}" />
             <script>
               window.location.replace("${origin}${next}");
             </script>

@@ -58,15 +58,19 @@ export default function LoginPage() {
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
   
-  const [isLoginView, setIsLoginView] = useState(true);
+  const [activeTab, setActiveTab] = useState('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
   const supabase = createSupabaseBrowserClient();
+  
+  const isLoginView = activeTab === 'email-login';
+  const isSignUpView = activeTab === 'email-signup';
 
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
@@ -85,50 +89,41 @@ export default function LoginPage() {
       toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
       return;
     }
-
-    if (data.user) {
-      // The onAuthStateChange listener in useAuth will handle redirection
-    }
   };
-
+  
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
   
-    let data, error;
-  
-    if (isLoginView) {
-      ({ data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      }));
-    } else {
-      ({ data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
-            picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
-          },
-          // We remove the hardcoded emailRedirectTo so Supabase uses the default Site URL
+    const isSigningUp = activeTab === 'email-signup';
+    
+    try {
+      if (isSigningUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
+              picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
+            },
+          }
+        });
+        if (error) throw error;
+        if (data.user) {
+          setShowConfirmationMessage(true);
         }
-      }));
-    }
-  
-    setLoading(false);
-  
-    if (error) {
-      toast({ title: isLoginView ? 'Sign-in Error' : 'Sign-up Error', description: error.message, variant: 'destructive' });
-      return;
-    }
-  
-    if (data.user) {
-      if (!isLoginView && !data.session) {
-        toast({ title: 'Success!', description: 'Please check your email to verify your account.', variant: 'success' });
+      } else { // Login
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
       }
-      // The onAuthStateChange listener in useAuth will handle redirection
-      // after the user confirms their email or logs in.
+    } catch (error: any) {
+      toast({ title: isSigningUp ? 'Sign-up Error' : 'Sign-in Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -160,8 +155,6 @@ export default function LoginPage() {
 
     if (error) {
       toast({ title: 'Error verifying OTP', description: error.message, variant: 'destructive' });
-    } else if (data.user) {
-      // The onAuthStateChange listener in useAuth will handle redirection
     }
   };
   
@@ -227,58 +220,77 @@ export default function LoginPage() {
             Edengram
         </motion.h1>
 
-        <motion.div variants={itemVariants} className="w-full">
-            <Tabs defaultValue="email" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="email">Email</TabsTrigger>
-                    <TabsTrigger value="phone">Phone</TabsTrigger>
-                </TabsList>
-                <TabsContent value="email">
-                    <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="email">Email</Label>
-                            <Input type="email" id="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="password">Password</Label>
-                            <Input type="password" id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                        </div>
-                        <Button type="submit" disabled={loading}>
-                          {loading ? <Loader2 className="animate-spin" /> : (isLoginView ? 'Sign In' : 'Sign Up')}
-                        </Button>
-                        <div className="text-sm">
-                            <Button variant="link" type="button" onClick={() => setIsLoginView(!isLoginView)}>
-                                {isLoginView ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-                            </Button>
-                        </div>
-                    </form>
-                </TabsContent>
-                <TabsContent value="phone">
-                     <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={otpSent ? handleVerifyOtp : handlePhoneSignIn}>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="phone">Phone Number</Label>
-                            <Input type="tel" id="phone" placeholder="+1234567890" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={otpSent} />
-                        </div>
-                        {otpSent && (
+        {showConfirmationMessage ? (
+             <motion.div variants={itemVariants} className="w-full p-4 bg-primary/10 border border-primary/20 rounded-lg text-center">
+                <h3 className="font-semibold text-primary">Check your inbox!</h3>
+                <p className="text-sm text-foreground/80 mt-1">We've sent a verification link to <strong>{email}</strong>. Please click the link to complete your registration.</p>
+                <Button variant="link" className="mt-2" onClick={() => setShowConfirmationMessage(false)}>Back to Login</Button>
+            </motion.div>
+        ) : (
+            <motion.div variants={itemVariants} className="w-full">
+                <Tabs defaultValue="email-login" className="w-full" onValueChange={setActiveTab}>
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="email-login">Sign In</TabsTrigger>
+                        <TabsTrigger value="email-signup">Sign Up</TabsTrigger>
+                        <TabsTrigger value="phone">Phone</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="email-login">
+                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
                             <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="otp">One-Time Password</Label>
-                                <Input type="text" id="otp" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+                                <Label htmlFor="email-login-input">Email</Label>
+                                <Input type="email" id="email-login-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                             </div>
-                        )}
-                        <Button type="submit" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" /> : (otpSent ? 'Verify OTP & Sign In' : 'Send OTP')}
-                        </Button>
-                        {otpSent && <Button variant="link" type="button" onClick={() => setOtpSent(false)}>Use a different number</Button>}
-                    </form>
-                </TabsContent>
-            </Tabs>
-        </motion.div>
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="password-login-input">Password</Label>
+                                <Input type="password" id="password-login-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            </div>
+                            <Button type="submit" disabled={loading}>
+                              {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                            </Button>
+                        </form>
+                    </TabsContent>
+                    <TabsContent value="email-signup">
+                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="email-signup-input">Email</Label>
+                                <Input type="email" id="email-signup-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            </div>
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="password-signup-input">Password</Label>
+                                <Input type="password" id="password-signup-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            </div>
+                            <Button type="submit" disabled={loading}>
+                              {loading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
+                            </Button>
+                        </form>
+                    </TabsContent>
+                    <TabsContent value="phone">
+                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={otpSent ? handleVerifyOtp : handlePhoneSignIn}>
+                            <div className="grid w-full items-center gap-1.5">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input type="tel" id="phone" placeholder="+1234567890" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={otpSent} />
+                            </div>
+                            {otpSent && (
+                                <div className="grid w-full items-center gap-1.5">
+                                    <Label htmlFor="otp">One-Time Password</Label>
+                                    <Input type="text" id="otp" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} required />
+                                </div>
+                            )}
+                            <Button type="submit" disabled={loading}>
+                                {loading ? <Loader2 className="animate-spin" /> : (otpSent ? 'Verify OTP & Sign In' : 'Send OTP')}
+                            </Button>
+                            {otpSent && <Button variant="link" type="button" onClick={() => setOtpSent(false)}>Use a different number</Button>}
+                        </form>
+                    </TabsContent>
+                </Tabs>
+            </motion.div>
+        )}
         
         <motion.div variants={itemVariants} className="relative w-full flex items-center justify-center">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-border/50"></span>
           </div>
-          <span className="relative px-2 bg-background text-xs uppercase text-muted-foreground">Or continue with</span>
+          <span className="relative px-2 bg-background text-xs uppercase text-muted-foreground">Or</span>
         </motion.div>
         
         <motion.div variants={itemVariants} className="flex flex-col items-center">
