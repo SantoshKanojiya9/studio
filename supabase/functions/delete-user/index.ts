@@ -1,6 +1,10 @@
-
+import 'https://deno.land/std@0.177.0/dotenv/load.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.4';
-import { corsHeaders } from '../_shared/cors.ts';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 Deno.serve(async (req) => {
   // This is needed to handle CORS preflight requests.
@@ -11,10 +15,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      });
+      throw new Error('Missing authorization header');
     }
 
     // Create a Supabase client with the user's token to verify their identity
