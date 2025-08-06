@@ -227,7 +227,9 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
         try {
-            if (!session) throw new Error('Not authenticated.');
+            if (!session?.access_token) {
+              throw new Error('Not authenticated.');
+            }
 
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,

@@ -134,7 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, session, loading, supabase }}>
-      {children}
+      <React.Suspense>
+        {children}
+      </React.Suspense>
     </AuthContext.Provider>
   );
 }

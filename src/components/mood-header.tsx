@@ -68,7 +68,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
 
   const handleDeleteAccount = async () => {
     try {
-      if (!session) {
+      if (!session?.access_token) {
         throw new Error('Not authenticated.');
       }
 
