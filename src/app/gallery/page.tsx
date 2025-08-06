@@ -113,6 +113,23 @@ function GalleryPageContent() {
 
     const isOwnProfile = !userId || (authUser && userId === authUser.id);
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
+    
+    const fetchSubscriptionData = React.useCallback(async () => {
+        if (!viewingUserId || !authUser) return;
+        
+        try {
+            if (!isOwnProfile) {
+                const status = await getSubscriptionStatus(authUser.id, viewingUserId);
+                setIsSubscribed(status);
+            }
+            const subscribers = await getSubscriberCount(viewingUserId);
+            const following = await getSubscribedCount(viewingUserId);
+            setSubscriberCount(subscribers);
+            setSubscribedCount(following);
+        } catch (error: any) {
+            console.error("Failed to refresh subscription data", error);
+        }
+    }, [viewingUserId, authUser, isOwnProfile]);
 
     React.useEffect(() => {
         const fetchProfileData = async () => {
@@ -147,15 +164,7 @@ function GalleryPageContent() {
                 setSavedEmojis(data as unknown as EmojiState[]);
 
                 // Fetch subscription data
-                if (authUser && !isOwnProfile) {
-                    const status = await getSubscriptionStatus(authUser.id, viewingUserId);
-                    setIsSubscribed(status);
-                }
-
-                const subscribers = await getSubscriberCount(viewingUserId);
-                const following = await getSubscribedCount(viewingUserId);
-                setSubscriberCount(subscribers);
-                setSubscribedCount(following);
+                fetchSubscriptionData();
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -174,7 +183,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, authUser, isOwnProfile, supabase]);
+    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSubscriptionData]);
 
 
     const handleDelete = async (emojiId: string) => {
@@ -236,29 +245,20 @@ function GalleryPageContent() {
         if (!authUser || !viewingUserId || isOwnProfile || isSubscriptionLoading) return;
 
         setIsSubscriptionLoading(true);
-
         try {
             if (isSubscribed) {
-                // Optimistically update UI
-                setIsSubscribed(false);
-                setSubscriberCount(prev => prev - 1);
                 await unsubscribeUser(authUser.id, viewingUserId);
             } else {
-                // Optimistically update UI
-                setIsSubscribed(true);
-                setSubscriberCount(prev => prev + 1);
                 await subscribeUser(authUser.id, viewingUserId);
             }
+            await fetchSubscriptionData();
         } catch (error: any) {
             console.error("Subscription error:", error);
             toast({
                 title: "Something went wrong",
-                description: "Could not update your subscription. Please try again.",
+                description: error.message || "Could not update your subscription. Please try again.",
                 variant: "destructive",
             });
-            // Revert optimistic update on error
-            setIsSubscribed(prev => !prev);
-            setSubscriberCount(prev => isSubscribed ? prev + 1 : prev -1);
         } finally {
              startTransition(() => {
                 setIsSubscriptionLoading(false);
