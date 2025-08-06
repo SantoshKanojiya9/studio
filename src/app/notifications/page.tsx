@@ -98,9 +98,9 @@ export default function NotificationsPage() {
                 <div className="flex-1 text-sm">
                     <span className="font-semibold">{notification.sender.name}</span>
                     {notification.type === 'follow' ? (
-                    <span> 🔥 just subscribed to you!</span>
+                    <span> started following you.</span>
                     ) : (
-                    <span> 💬 reacted to your emoji.</span>
+                    <span> reacted to your emoji.</span>
                     )}
                     <span className="text-muted-foreground ml-2">{timeAgo(notification.created_at)}</span>
                 </div>
