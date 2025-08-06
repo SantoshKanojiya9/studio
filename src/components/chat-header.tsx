@@ -62,26 +62,29 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
   
   const handleSignOut = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     router.push('/');
   };
   
   const handleDeleteAccount = async () => {
-    if (!user) return;
+    if (!user || !supabase) return;
 
     try {
+      // Call the RPC function to mark the user for deletion
       const { error } = await supabase.rpc('handle_delete_user');
       if (error) throw error;
       
       toast({
         title: 'Account Deletion Scheduled',
-        description: 'Your account will be permanently deleted in 30 minutes. Sign in again to cancel.',
+        description: 'Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.',
         variant: 'success',
       });
 
+      // Sign the user out locally
       await supabase.auth.signOut();
       router.push('/');
-
+      
     } catch (error: any) {
       console.error("Failed to delete account:", error);
       toast({
@@ -138,8 +141,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
+              Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
