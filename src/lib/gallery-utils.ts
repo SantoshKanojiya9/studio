@@ -11,7 +11,7 @@ export async function getAllSavedEmojis(): Promise<EmojiState[]> {
     try {
         const { data: emojis, error: emojisError } = await supabase
             .from('emojis')
-            .select('*, user:users!inner(*)') // Use inner join to only get emojis with users
+            .select('*, user:users!inner(id, name, picture)') // Use inner join to only get emojis with users
             .order('created_at', { ascending: false });
 
         if (emojisError) {

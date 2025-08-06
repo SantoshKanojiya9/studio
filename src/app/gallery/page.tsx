@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser } from '@/app/actions';
+import { getUserProfile, getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -127,12 +127,8 @@ function GalleryPageContent() {
                 if (isOwnProfile && authUser) {
                     setProfileUser(authUser);
                 } else {
-                     const { data: userProfile, error: userError } = await supabase
-                        .from('users')
-                        .select('id, name, picture')
-                        .eq('id', viewingUserId)
-                        .single();
-                    if (userError) throw userError;
+                     const userProfile = await getUserProfile(viewingUserId);
+                    if (!userProfile) throw new Error("User profile not found.");
                     setProfileUser(userProfile);
                 }
 
