@@ -30,7 +30,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
-import { supabase } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -202,6 +201,7 @@ function GalleryPageContent() {
     };
 
     const handleDelete = async (emojiId: string) => {
+        if (!supabase) return;
         try {
             const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
             if (error) throw error;
@@ -224,12 +224,13 @@ function GalleryPageContent() {
     };
     
     const handleSignOut = async () => {
+        if (!supabase) return;
         await supabase.auth.signOut();
         router.push('/');
     };
     
     const handleDeleteAccount = async () => {
-        if (!authUser) return;
+        if (!authUser || !supabase) return;
 
         try {
             const { error } = await supabase.rpc('handle_delete_user');
@@ -237,7 +238,7 @@ function GalleryPageContent() {
             
             toast({
                 title: 'Account Deletion Scheduled',
-                description: 'Your account will be permanently deleted in 30 minutes. Sign in again to cancel.',
+                description: 'Your account will be permanently deleted in 30 minutes. You can sign in again within this time to cancel.',
                 variant: 'success',
             });
 
@@ -455,6 +456,7 @@ function GalleryPageContent() {
                     <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete your
                     account and remove your data from our servers.
+                    Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
