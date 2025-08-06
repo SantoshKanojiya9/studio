@@ -13,19 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/lib/supabaseClient';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 
@@ -66,10 +53,7 @@ export type EmojiState = {
 const DesignPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
-  const { user } = useAuth();
   
-  const [id, setId] = useState<string | undefined>(undefined);
   const [model, setModel] = useState<ModelType>('emoji');
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
@@ -85,7 +69,6 @@ const DesignPageContent = () => {
   const [eye_style, setEyeStyle] = useState<FeatureStyle>('default');
   const [mouth_style, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrow_style, setEyebrowStyle] = useState<FeatureStyle>('default');
-  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -95,71 +78,15 @@ const DesignPageContent = () => {
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const feature_offset_x = useMotionValue(0);
   const feature_offset_y = useMotionValue(0);
-  
-  const loadState = (state: EmojiState) => {
-    setId(state.id);
-    setModel(state.model || 'emoji');
-    setExpression(state.expression || 'neutral');
-    setBackgroundColor(state.background_color || defaultBackgroundColor);
-    setEmojiColor(state.emoji_color || (state.model === 'loki' ? defaultLokiColor : defaultEmojiColor));
-    setShowSunglasses(state.show_sunglasses || false);
-    setShowMustache(state.show_mustache || false);
-    setSelectedFilter(state.selected_filter || null);
-    setAnimationType(state.animation_type || 'random');
-    setShape(state.shape || 'default');
-    setEyeStyle(state.eye_style || 'default');
-    setMouthStyle(state.mouth_style || 'default');
-    setEyebrowStyle(state.eyebrow_style || 'default');
-    feature_offset_x.set(state.feature_offset_x || 0);
-    feature_offset_y.set(state.feature_offset_y || 0);
-  };
 
-  const handleLoadEmoji = (emojiState: EmojiState) => {
-    loadState(emojiState);
-    setActiveMenu('main');
-  };
-  
   useEffect(() => {
-    const fetchAndLoadEmoji = async (emojiId: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('emojis')
-          .select('*, user:users(*)')
-          .eq('id', emojiId)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          // The data from the DB is the emoji state
-          handleLoadEmoji(data as EmojiState);
-        } else {
-          handleReset();
-        }
-      } catch (error) {
-        console.error("Failed to load emoji from Supabase", error);
-        toast({
-          title: "Error loading emoji",
-          description: "Could not find or load the requested emoji.",
-          variant: "destructive",
-        });
-        handleReset();
-      }
-    };
-
-    const emojiId = searchParams.get('emojiId');
-    if (emojiId) {
-      fetchAndLoadEmoji(emojiId);
-    } else {
-      handleReset();
-    }
+    handleReset();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, user]);
+  }, []);
 
   
   const handleReset = () => {
-    window.history.pushState({}, '', '/design');
-    setId(undefined);
+    router.replace('/design', undefined);
     setModel('emoji');
     setExpression('neutral');
     setBackgroundColor(defaultBackgroundColor);
@@ -184,87 +111,8 @@ const DesignPageContent = () => {
   }
 
   const handleSave = () => {
-    if (!user) {
-        toast({
-            title: "Please sign in to save.",
-            variant: "destructive",
-        });
-        return;
-    }
-    setShowSaveConfirm(true);
+    // Save logic has been removed.
   };
-  
-  const confirmSave = async () => {
-    if (!user) return;
-
-    let currentShape = shape;
-    if (model === 'loki' && shape === 'blob') {
-        currentShape = 'default';
-    }
-
-    const emojiData = {
-      user_id: user.id, // Always include user_id
-      model,
-      expression,
-      background_color,
-      emoji_color,
-      show_sunglasses,
-      show_mustache,
-      selected_filter,
-      animation_type,
-      shape: currentShape,
-      eye_style,
-      mouth_style,
-      eyebrow_style,
-      feature_offset_x: feature_offset_x.get(),
-      feature_offset_y: feature_offset_y.get(),
-    };
-    
-    try {
-        let data, error;
-
-        if (id) {
-            // Update existing emoji
-            const { user_id, ...updateData } = emojiData; // RLS policy handles the user_id check on update via auth.uid()
-            ({ data, error } = await supabase
-                .from('emojis')
-                .update(updateData)
-                .eq('id', id)
-                .eq('user_id', user_id) // Ensure we only update our own emoji
-                .select()
-                .single());
-        } else {
-            // Create new emoji
-            ({ data, error } = await supabase
-                .from('emojis')
-                .insert(emojiData)
-                .select()
-                .single());
-        }
-
-        if (error) throw error;
-        
-        toast({
-            title: "Your emoji has been saved.",
-            variant: "success",
-        });
-        
-        if (data) {
-          setId(data.id);
-          const newUrl = `/design?emojiId=${data.id}`;
-          window.history.pushState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-        }
-    } catch (error: any) {
-        console.error("Failed to save state to Supabase", { error });
-        toast({
-            title: "Failed to save emoji.",
-            description: error.message || "There was an error while trying to save your creation.",
-            variant: "destructive",
-        });
-    }
-    setShowSaveConfirm(false);
-  };
-
 
   const handlePanStart = () => {
     if (dragTimeoutRef.current) {
@@ -717,20 +565,6 @@ const DesignPageContent = () => {
               </ScrollArea>
         </div>
         
-        <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Save Emoji</AlertDialogTitle>
-              <AlertDialogDescription>
-                Do you want to save this emoji to your gallery?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>No</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmSave}>Yes</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </TooltipProvider>
   );
