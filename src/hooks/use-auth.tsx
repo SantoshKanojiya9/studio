@@ -38,7 +38,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start as true
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -46,37 +46,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const client = useMemo(() => supabase, []);
 
   useEffect(() => {
+    // This effect runs once on mount to check the initial session and set up the listener.
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+        // 1. Get the initial session
+        const { data: { session: initialSession } } = await client.auth.getSession();
+        
+        // 2. Handle the initial session state
+        if (isMounted) {
+             await handleAuthChange(initialSession);
+             setLoading(false); // Crucially, set loading to false only after initial check is complete.
+        }
+
+        // 3. Set up the auth state change listener
+        const { data: { subscription } } = client.auth.onAuthStateChange(
+          async (_event, newSession) => {
+            if (isMounted) {
+                await handleAuthChange(newSession);
+            }
+          }
+        );
+
+        return () => {
+            isMounted = false;
+            subscription?.unsubscribe();
+        };
+    };
+
     const handleAuthChange = async (session: Session | null) => {
         setSession(session);
         if (session?.user) {
             const appUser = session.user as AppUser;
             try {
-                // Check if account was marked for deletion and recover it
                 if (appUser.user_metadata?.deleted_at) {
                     const { data, error } = await client.auth.updateUser({
                         data: { ...appUser.user_metadata, deleted_at: null }
                     });
 
                     if (error) {
-                        console.error("Error recovering account:", error);
                         toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
                         await client.auth.signOut();
                         setUserState(null);
-                    } else {
-                        toast({
-                            title: "Welcome Back!",
-                            description: "Your account has been recovered and is no longer scheduled for deletion.",
-                            variant: "success",
+                    } else if (data.user) {
+                        toast({ title: "Welcome Back!", description: "Your account has been recovered.", variant: "success"});
+                        const recoveredUser = data.user as AppUser;
+                        setUserState({
+                            id: recoveredUser.id,
+                            name: recoveredUser.user_metadata.name || recoveredUser.email!.split('@')[0],
+                            email: recoveredUser.email!,
+                            picture: recoveredUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${recoveredUser.email!.charAt(0).toUpperCase()}`,
                         });
-                        if (data.user) {
-                             const recoveredUser = data.user as AppUser;
-                             setUserState({
-                                id: recoveredUser.id,
-                                name: recoveredUser.user_metadata.name || recoveredUser.email!.split('@')[0],
-                                email: recoveredUser.email!,
-                                picture: recoveredUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${recoveredUser.email!.charAt(0).toUpperCase()}`,
-                            });
-                        }
                     }
                 } else {
                      setUserState({
@@ -95,29 +115,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             setUserState(null);
         }
-        setLoading(false);
     };
+    
+    initializeAuth();
 
-    const checkInitialSession = async () => {
-      const { data: { session } } = await client.auth.getSession();
-      await handleAuthChange(session);
-    };
-
-    checkInitialSession();
-
-    const { data: { subscription } } = client.auth.onAuthStateChange(
-      async (_event, session) => {
-        await handleAuthChange(session);
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    // This effect handles redirection logic based on the auth state.
+    // It only runs when `loading` is false.
     if (!loading) {
       const isAuthPage = pathname === '/';
       const isAuthCallback = pathname === '/auth/callback';
@@ -130,12 +137,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
   
+  // Display a global loader while the initial auth check is happening.
   if (loading) {
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     )
+  }
+
+  // Once loading is complete, render the children if the user should be on the page.
+  const isAuthPage = pathname === '/';
+  const isAuthCallback = pathname === '/auth/callback';
+  if (!user && !isAuthPage && !isAuthCallback) {
+    // While redirecting, show a loader to prevent flashing content.
+    return (
+       <div className="flex items-center justify-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
 
   return (
