@@ -475,7 +475,7 @@ function GalleryPageContent() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteAccount}>
+                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                     Continue
                     </AlertDialogAction>
                 </AlertDialogFooter>

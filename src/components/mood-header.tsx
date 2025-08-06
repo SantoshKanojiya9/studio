@@ -22,7 +22,7 @@ import {
     AlertDialogTitle,
   } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import type { Session } from '@supabase/supabase-js';
@@ -59,8 +59,8 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
   const { user, supabase } = useAuth();
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-  const [session, setSession] = React.useState<Session | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   
@@ -170,7 +170,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteAccount}>
+            <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Continue
             </AlertDialogAction>
           </AlertDialogFooter>
