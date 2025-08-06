@@ -42,24 +42,20 @@ export async function recoverUserAccount() {
 }
 
 
-// --- Subscription Actions ---
+// --- Support Actions ---
 
-export async function getSubscriptionStatus(supporterId: string, supportedId: string) {
+export async function getSupportStatus(supporterId: string, supportedId: string) {
     const supabase = createSupabaseServerClient();
-    const { data, error, count } = await supabase
+    const { count } = await supabase
         .from('supports')
         .select('*', { count: 'exact', head: true })
         .eq('supporter_id', supporterId)
         .eq('supported_id', supportedId);
 
-    if (error) {
-        console.error('Error getting subscription status:', error);
-        return false;
-    }
     return (count ?? 0) > 0;
 }
 
-export async function getSubscriberCount(userId: string) {
+export async function getSupporterCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
         .from('supports')
@@ -67,13 +63,13 @@ export async function getSubscriberCount(userId: string) {
         .eq('supported_id', userId);
 
     if (error) {
-        console.error('Error getting subscriber count:', error);
+        console.error('Error getting supporter count:', error);
         return 0;
     }
     return count || 0;
 }
 
-export async function getSubscribedCount(userId: string) {
+export async function getSupportingCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
         .from('supports')
@@ -81,17 +77,16 @@ export async function getSubscribedCount(userId: string) {
         .eq('supporter_id', userId);
     
     if (error) {
-        console.error('Error getting subscribed count:', error);
+        console.error('Error getting supporting count:', error);
         return 0;
     }
     return count || 0;
 }
 
-export async function subscribeUser(supporterId: string, supportedId: string) {
+export async function supportUser(supporterId: string, supportedId: string) {
     if (supporterId === supportedId) {
         throw new Error("Cannot support yourself.");
     }
-    // RLS is now handled by policies in Supabase, so we can use the standard server client.
     const supabase = createSupabaseServerClient();
     const { error } = await supabase
         .from('supports')
@@ -102,12 +97,10 @@ export async function subscribeUser(supporterId: string, supportedId: string) {
         throw error;
     }
     revalidatePath(`/gallery?userId=${supportedId}`);
-    revalidatePath(`/gallery?userId=${supporterId}`);
-    revalidatePath('/gallery');
+    revalidatePath(`/gallery`);
 }
 
-export async function unsubscribeUser(supporterId: string, supportedId: string) {
-    // RLS is now handled by policies in Supabase, so we can use the standard server client.
+export async function unsupportUser(supporterId: string, supportedId: string) {
     const supabase = createSupabaseServerClient();
     const { error } = await supabase
         .from('supports')
@@ -120,6 +113,5 @@ export async function unsubscribeUser(supporterId: string, supportedId: string) 
         throw error;
     }
     revalidatePath(`/gallery?userId=${supportedId}`);
-    revalidatePath(`/gallery?userId=${supporterId}`);
-    revalidatePath('/gallery');
+    revalidatePath(`/gallery`);
 }

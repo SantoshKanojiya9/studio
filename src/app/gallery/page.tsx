@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, getSubscriptionStatus, getSubscriberCount, getSubscribedCount, subscribeUser, unsubscribeUser, deleteUserAccount } from '@/app/actions';
+import { getUserProfile, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -98,10 +98,10 @@ function GalleryPageContent() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
-    const [isSubscribed, setIsSubscribed] = React.useState(false);
-    const [subscriberCount, setSubscriberCount] = React.useState(0);
-    const [subscribedCount, setSubscribedCount] = React.useState(0);
-    const [isSubscriptionLoading, setIsSubscriptionLoading] = React.useState(false);
+    const [isSupported, setIsSupported] = React.useState(false);
+    const [supporterCount, setSupporterCount] = React.useState(0);
+    const [supportingCount, setSupportingCount] = React.useState(0);
+    const [isSupportLoading, setIsSupportLoading] = React.useState(false);
     
     const { user: authUser, supabase } = useAuth();
     const { toast } = useToast();
@@ -114,20 +114,20 @@ function GalleryPageContent() {
     const isOwnProfile = !userId || (authUser && userId === authUser.id);
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
     
-    const fetchSubscriptionData = React.useCallback(async () => {
+    const fetchSupportData = React.useCallback(async () => {
         if (!viewingUserId || !authUser) return;
         
         try {
             if (!isOwnProfile) {
-                const status = await getSubscriptionStatus(authUser.id, viewingUserId);
-                setIsSubscribed(status);
+                const status = await getSupportStatus(authUser.id, viewingUserId);
+                setIsSupported(status);
             }
-            const subscribers = await getSubscriberCount(viewingUserId);
-            const following = await getSubscribedCount(viewingUserId);
-            setSubscriberCount(subscribers);
-            setSubscribedCount(following);
+            const supporters = await getSupporterCount(viewingUserId);
+            const following = await getSupportingCount(viewingUserId);
+            setSupporterCount(supporters);
+            setSupportingCount(following);
         } catch (error: any) {
-            console.error("Failed to refresh subscription data", error);
+            console.error("Failed to refresh support data", error);
         }
     }, [viewingUserId, authUser, isOwnProfile]);
 
@@ -163,8 +163,8 @@ function GalleryPageContent() {
                 
                 setSavedEmojis(data as unknown as EmojiState[]);
 
-                // Fetch subscription data
-                fetchSubscriptionData();
+                // Fetch support data
+                fetchSupportData();
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -183,7 +183,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSubscriptionData]);
+    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSupportData]);
 
 
     const handleDelete = async (emojiId: string) => {
@@ -241,27 +241,27 @@ function GalleryPageContent() {
         }
     };
 
-    const handleSubscriptionToggle = async () => {
-        if (!authUser || !viewingUserId || isOwnProfile || isSubscriptionLoading) return;
+    const handleSupportToggle = async () => {
+        if (!authUser || !viewingUserId || isOwnProfile || isSupportLoading) return;
 
-        setIsSubscriptionLoading(true);
+        setIsSupportLoading(true);
         try {
-            if (isSubscribed) {
-                await unsubscribeUser(authUser.id, viewingUserId);
+            if (isSupported) {
+                await unsupportUser(authUser.id, viewingUserId);
             } else {
-                await subscribeUser(authUser.id, viewingUserId);
+                await supportUser(authUser.id, viewingUserId);
             }
             // After the server action is complete, re-fetch the data to ensure UI is in sync
-            await fetchSubscriptionData();
+            await fetchSupportData();
         } catch (error: any) {
-            console.error("Subscription error:", error);
+            console.error("Support error:", error);
             toast({
                 title: "Something went wrong",
-                description: error.message || "Could not update your subscription. Please try again.",
+                description: error.message || "Could not update your support status. Please try again.",
                 variant: "destructive",
             });
         } finally {
-            setIsSubscriptionLoading(false);
+            setIsSupportLoading(false);
         }
     };
 
@@ -401,11 +401,11 @@ function GalleryPageContent() {
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{subscriberCount}</p>
+                                        <p className="font-bold text-lg">{supporterCount}</p>
                                         <p className="text-sm text-muted-foreground">support</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{subscribedCount}</p>
+                                        <p className="font-bold text-lg">{supportingCount}</p>
                                         <p className="text-sm text-muted-foreground">supporting</p>
                                     </div>
                                 </div>
@@ -422,12 +422,12 @@ function GalleryPageContent() {
                                 ) : (
                                     <>
                                         <Button 
-                                            variant={isSubscribed ? "secondary" : "default"} 
+                                            variant={isSupported ? "secondary" : "default"} 
                                             className="flex-1"
-                                            onClick={handleSubscriptionToggle}
-                                            disabled={isSubscriptionLoading}
+                                            onClick={handleSupportToggle}
+                                            disabled={isSupportLoading}
                                         >
-                                            {isSubscriptionLoading ? <Loader2 className="animate-spin"/> : (isSubscribed ? 'Unsupport' : 'Support')}
+                                            {isSupportLoading ? <Loader2 className="animate-spin"/> : (isSupported ? 'Unsupport' : 'Support')}
                                         </Button>
                                         <Button variant="secondary" className="flex-1">Message</Button>
                                     </>
