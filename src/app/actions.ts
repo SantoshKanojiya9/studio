@@ -10,7 +10,7 @@ export async function getUserProfile(userId: string) {
     const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
         .from('users')
-        .select('id, name, picture')
+        .select('id, name, picture, deleted_at')
         .eq('id', userId)
         .single();
     if (error) {
@@ -19,6 +19,25 @@ export async function getUserProfile(userId: string) {
     }
     return data;
 }
+
+export async function deleteUserAccount() {
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase.rpc('handle_delete_user');
+    if (error) {
+        console.error('Error scheduling user deletion:', error);
+        throw error;
+    }
+}
+
+export async function recoverUserAccount() {
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase.rpc('handle_recover_user');
+     if (error) {
+        console.error('Error recovering user account:', error);
+        throw error;
+    }
+}
+
 
 // --- Subscription Actions ---
 

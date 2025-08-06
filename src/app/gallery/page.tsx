@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser } from '@/app/actions';
+import { getUserProfile, getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -207,15 +207,15 @@ function GalleryPageContent() {
     };
     
     const handleDeleteAccount = async () => {
+        setShowDeleteConfirm(false);
         if (!authUser || !supabase) return;
 
         try {
-            const { error } = await supabase.rpc('handle_delete_user');
-            if (error) throw error;
+            await deleteUserAccount();
             
             toast({
                 title: 'Account Deletion Scheduled',
-                description: 'Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.',
+                description: 'Your account will be deleted in 30 minutes. Sign in again to cancel.',
                 variant: 'success',
             });
 
@@ -226,11 +226,9 @@ function GalleryPageContent() {
           console.error("Failed to delete account:", error);
           toast({
             title: "Error Deleting Account",
-            description: error.message,
+            description: "Could not schedule your account for deletion.",
             variant: "destructive",
           });
-        } finally {
-          setShowDeleteConfirm(false);
         }
     };
 
@@ -467,13 +465,13 @@ function GalleryPageContent() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                    Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.
+                    This will schedule your account and all associated data for permanent deletion in 30 minutes. You can cancel this by signing back in within that time.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Continue
+                    Yes, Delete My Account
                     </AlertDialogAction>
                 </AlertDialogFooter>
                 </AlertDialogContent>
