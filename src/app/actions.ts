@@ -44,13 +44,13 @@ export async function recoverUserAccount() {
 
 // --- Subscription Actions ---
 
-export async function getSubscriptionStatus(subscriberId: string, subscribedToId: string) {
+export async function getSubscriptionStatus(supporterId: string, supportedId: string) {
     const supabase = createSupabaseServerClient();
     const { data, error, count } = await supabase
-        .from('subscriptions')
+        .from('supports')
         .select('*', { count: 'exact', head: true })
-        .eq('subscriber_id', subscriberId)
-        .eq('subscribed_to_id', subscribedToId);
+        .eq('supporter_id', supporterId)
+        .eq('supported_id', supportedId);
 
     if (error) {
         console.error('Error getting subscription status:', error);
@@ -62,9 +62,9 @@ export async function getSubscriptionStatus(subscriberId: string, subscribedToId
 export async function getSubscriberCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
-        .from('subscriptions')
+        .from('supports')
         .select('*', { count: 'exact', head: true })
-        .eq('subscribed_to_id', userId);
+        .eq('supported_id', userId);
 
     if (error) {
         console.error('Error getting subscriber count:', error);
@@ -76,9 +76,9 @@ export async function getSubscriberCount(userId: string) {
 export async function getSubscribedCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
-        .from('subscriptions')
+        .from('supports')
         .select('*', { count: 'exact', head: true })
-        .eq('subscriber_id', userId);
+        .eq('supporter_id', userId);
     
     if (error) {
         console.error('Error getting subscribed count:', error);
@@ -87,39 +87,39 @@ export async function getSubscribedCount(userId: string) {
     return count || 0;
 }
 
-export async function subscribeUser(subscriberId: string, subscribedToId: string) {
-    if (subscriberId === subscribedToId) {
-        throw new Error("Cannot subscribe to yourself.");
+export async function subscribeUser(supporterId: string, supportedId: string) {
+    if (supporterId === supportedId) {
+        throw new Error("Cannot support yourself.");
     }
     // RLS is now handled by policies in Supabase, so we can use the standard server client.
     const supabase = createSupabaseServerClient();
     const { error } = await supabase
-        .from('subscriptions')
-        .insert({ subscriber_id: subscriberId, subscribed_to_id: subscribedToId });
+        .from('supports')
+        .insert({ supporter_id: supporterId, supported_id: supportedId });
     
     if (error) {
-        console.error('Error subscribing:', error);
+        console.error('Error supporting user:', error);
         throw error;
     }
-    revalidatePath(`/gallery?userId=${subscribedToId}`);
-    revalidatePath(`/gallery?userId=${subscriberId}`);
+    revalidatePath(`/gallery?userId=${supportedId}`);
+    revalidatePath(`/gallery?userId=${supporterId}`);
     revalidatePath('/gallery');
 }
 
-export async function unsubscribeUser(subscriberId: string, subscribedToId: string) {
+export async function unsubscribeUser(supporterId: string, supportedId: string) {
     // RLS is now handled by policies in Supabase, so we can use the standard server client.
     const supabase = createSupabaseServerClient();
     const { error } = await supabase
-        .from('subscriptions')
+        .from('supports')
         .delete()
-        .eq('subscriber_id', subscriberId)
-        .eq('subscribed_to_id', subscribedToId);
+        .eq('supporter_id', supporterId)
+        .eq('supported_id', supportedId);
 
     if (error) {
-        console.error('Error unsubscribing:', error);
+        console.error('Error unsupporting user:', error);
         throw error;
     }
-    revalidatePath(`/gallery?userId=${subscribedToId}`);
-    revalidatePath(`/gallery?userId=${subscriberId}`);
+    revalidatePath(`/gallery?userId=${supportedId}`);
+    revalidatePath(`/gallery?userId=${supporterId}`);
     revalidatePath('/gallery');
 }
