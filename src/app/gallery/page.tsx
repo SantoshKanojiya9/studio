@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
+import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -226,35 +226,13 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
         try {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-          if (!session) throw new Error('Not authenticated');
-    
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${session.access_token}`,
-              },
-            }
-          );
-    
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete account.');
-          }
-          
-          toast({
-            title: 'Account Deletion Initiated',
-            description: 'Your account has been successfully marked for deletion.',
-            variant: 'success',
-          });
-    
-          await supabase.auth.signOut();
-          window.location.href = '/';
+            await deleteUserAccount();
+            toast({
+                title: 'Account Deletion Initiated',
+                description: 'Your account has been successfully marked for deletion.',
+                variant: 'success',
+            });
+            // useAuth hook will handle redirect
         } catch (error: any) {
           console.error("Failed to delete account:", error);
           toast({
