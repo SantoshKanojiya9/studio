@@ -251,6 +251,7 @@ function GalleryPageContent() {
             } else {
                 await subscribeUser(authUser.id, viewingUserId);
             }
+            // After the server action is complete, re-fetch the data to ensure UI is in sync
             await fetchSubscriptionData();
         } catch (error: any) {
             console.error("Subscription error:", error);
@@ -260,9 +261,7 @@ function GalleryPageContent() {
                 variant: "destructive",
             });
         } finally {
-             startTransition(() => {
-                setIsSubscriptionLoading(false);
-            });
+            setIsSubscriptionLoading(false);
         }
     };
 
