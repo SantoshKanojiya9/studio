@@ -53,7 +53,7 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, supabase } = useAuth();
+  const { user, supabase, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
   
@@ -62,12 +62,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   const handleGoogleSignIn = async (response: CredentialResponse) => {
+    setLoading(true);
     if (!response.credential) {
       toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
+      setLoading(false);
       return;
     }
     
-    setLoading(true);
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: response.credential,
@@ -87,9 +88,8 @@ export default function LoginPage() {
         email,
         password,
         options: {
-            // You can add additional metadata here if needed
             data: {
-                name: email.split('@')[0], // Basic name from email
+                name: email.split('@')[0],
                 picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
             }
         }
@@ -111,9 +111,10 @@ export default function LoginPage() {
     });
      if (error) {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
+        setLoading(false);
     }
     // On success, the onAuthStateChange listener in useAuth will handle the redirect.
-    setLoading(false);
+    // We don't setLoading(false) here because the redirect will unmount the component.
   }
   
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function LoginPage() {
         return;
     }
     
-    if (window.google && signInDiv.current && !loading) {
+    if (window.google && signInDiv.current && !loading && !authLoading) {
         try {
             window.google.accounts.id.initialize({
                 client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
@@ -138,7 +139,7 @@ export default function LoginPage() {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router, loading]);
+  }, [user, router, loading, authLoading]);
 
 
   const containerVariants = {
@@ -164,6 +165,8 @@ export default function LoginPage() {
       }
     },
   };
+
+  const isPageLoading = loading || authLoading;
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
@@ -193,14 +196,14 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignIn} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-in">Email</Label>
-                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} />
+                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={isPageLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-in">Password</Label>
-                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
+                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={isPageLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                        <Button type="submit" className="w-full" disabled={isPageLoading}>
+                            {isPageLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -208,14 +211,14 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignUp} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-up">Email</Label>
-                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} />
+                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={isPageLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-up">Password</Label>
-                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
+                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={isPageLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
+                        <Button type="submit" className="w-full" disabled={isPageLoading}>
+                            {isPageLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -232,7 +235,7 @@ export default function LoginPage() {
         </motion.div>
         
         <motion.div variants={itemVariants} className="flex flex-col items-center h-10">
-            {loading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
+            {isPageLoading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
         </motion.div>
       </motion.div>
     </div>
