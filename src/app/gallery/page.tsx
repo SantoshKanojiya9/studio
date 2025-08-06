@@ -247,9 +247,9 @@ function GalleryPageContent() {
         setIsSupportLoading(true);
         try {
             if (isSupported) {
-                await unsupportUser(authUser.id, viewingUserId);
+                await unsupportUser(viewingUserId);
             } else {
-                await supportUser(authUser.id, viewingUserId);
+                await supportUser(viewingUserId);
             }
             // After the server action is complete, re-fetch the data to ensure UI is in sync
             await fetchSupportData();
@@ -402,7 +402,7 @@ function GalleryPageContent() {
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{supporterCount}</p>
-                                        <p className="text-sm text-muted-foreground">support</p>
+                                        <p className="text-sm text-muted-foreground">supporters</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{supportingCount}</p>

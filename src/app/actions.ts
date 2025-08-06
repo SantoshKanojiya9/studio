@@ -83,14 +83,20 @@ export async function getSupportingCount(userId: string) {
     return count || 0;
 }
 
-export async function supportUser(supporterId: string, supportedId: string) {
-    if (supporterId === supportedId) {
+export async function supportUser(supportedId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("User not authenticated.");
+    }
+    if (user.id === supportedId) {
         throw new Error("Cannot support yourself.");
     }
-    const supabase = createSupabaseServerClient();
+
     const { error } = await supabase
         .from('supports')
-        .insert({ supporter_id: supporterId, supported_id: supportedId });
+        .insert({ supporter_id: user.id, supported_id: supportedId });
     
     if (error) {
         console.error('Error supporting user:', error);
@@ -100,12 +106,18 @@ export async function supportUser(supporterId: string, supportedId: string) {
     revalidatePath(`/gallery`);
 }
 
-export async function unsupportUser(supporterId: string, supportedId: string) {
+export async function unsupportUser(supportedId: string) {
     const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("User not authenticated.");
+    }
+
     const { error } = await supabase
         .from('supports')
         .delete()
-        .eq('supporter_id', supporterId)
+        .eq('supporter_id', user.id)
         .eq('supported_id', supportedId);
 
     if (error) {
