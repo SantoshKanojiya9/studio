@@ -102,7 +102,7 @@ function GalleryPageContent() {
     const [isSubscribed, setIsSubscribed] = React.useState(false);
     const [isSubscribing, setIsSubscribing] = React.useState(false);
 
-    const { user: authUser, supabase } = useAuth();
+    const { user: authUser, session, supabase } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -227,7 +227,6 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
         try {
-            const { data: { session }, } = await supabase.auth.getSession();
             if (!session) throw new Error('Not authenticated.');
 
             const response = await fetch(

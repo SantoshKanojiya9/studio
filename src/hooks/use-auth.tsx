@@ -18,6 +18,7 @@ interface UserProfile {
 
 interface AuthContextType {
   user: UserProfile | null;
+  session: Session | null;
   loading: boolean;
   supabase: SupabaseClient;
 }
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -34,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleAuthChange = async (session: Session | null) => {
+        setSession(session);
         if (session?.user) {
             try {
                 let { data: profile, error: fetchError } = await supabase
@@ -130,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, supabase }}>
+    <AuthContext.Provider value={{ user, session, loading, supabase }}>
       {children}
     </AuthContext.Provider>
   );

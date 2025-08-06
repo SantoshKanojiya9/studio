@@ -56,7 +56,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { user, supabase } = useAuth();
+  const { user, session, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -68,7 +68,6 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   
   const handleDeleteAccount = async () => {
     try {
-        const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
             throw new Error('Not authenticated.');
         }
