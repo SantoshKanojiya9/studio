@@ -12,6 +12,7 @@ import type { EmojiState } from '@/app/design/page';
 import { getAllSavedEmojis } from '@/lib/gallery-utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/hooks/use-auth';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -54,6 +55,7 @@ export default function ExplorePage() {
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     const fetchAllEmojis = async () => {
@@ -104,7 +106,7 @@ export default function ExplorePage() {
     } finally {
       setIsSearching(false);
     }
-  }, [toast, supabase]);
+  }, [toast]);
   
   useEffect(() => {
     searchUsers(debouncedSearchQuery);
@@ -112,12 +114,20 @@ export default function ExplorePage() {
 
 
   const handleDelete = async (emojiId: string) => {
+    // A user should only be able to delete their own posts.
+    // RLS policies on Supabase will enforce this, but we can also check on the client.
+    const emojiToDelete = allEmojis.find(e => e.id === emojiId);
+    if (!emojiToDelete || emojiToDelete.user_id !== authUser?.id) {
+        toast({ title: "Cannot delete", description: "You can only delete your own posts.", variant: "destructive" });
+        return;
+    }
+
     try {
         const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
         if (error) throw error;
         
-        const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
-        setAllEmojis(updatedEmojis);
+        // Update state optimistically
+        setAllEmojis(prevEmojis => prevEmojis.filter(emoji => emoji.id !== emojiId));
         
         toast({ title: "Post deleted", variant: "success" });
     } catch (error: any) {
@@ -142,13 +152,13 @@ export default function ExplorePage() {
       )
   }
 
-  const selectedEmoji = selectedEmojiId ? allEmojis.find(e => e.id === selectedEmojiId) : null;
+  const selectedEmojiIndex = selectedEmojiId ? allEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
   
-  if (selectedEmoji) {
+  if (selectedEmojiId && selectedEmojiIndex !== -1) {
     return (
         <PostView 
-            emojis={[selectedEmoji]}
-            initialIndex={0}
+            emojis={allEmojis}
+            initialIndex={selectedEmojiIndex}
             onClose={() => setSelectedEmojiId(null)}
             onDelete={handleDelete}
         />
