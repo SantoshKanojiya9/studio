@@ -8,6 +8,11 @@ const corsHeaders = {
 };
 
 async function deleteUser(req: Request) {
+  // This is a pre-flight CORS request.
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
     throw new Error('Missing authorization header');
@@ -48,11 +53,6 @@ async function deleteUser(req: Request) {
 
 
 Deno.serve(async (req) => {
-  // This is a pre-flight CORS request.
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
   try {
     const data = await deleteUser(req);
     return new Response(JSON.stringify(data), {
