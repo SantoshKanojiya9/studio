@@ -59,9 +59,8 @@ export default function LoginPage() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Hydration fix: ensure client-side only logic runs after mount
   const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -94,11 +93,12 @@ export default function LoginPage() {
             }
         }
     });
-    setAuthLoading(false);
     if (error) {
         toast({ title: 'Sign-up Error', description: error.message, variant: 'destructive'});
+        setAuthLoading(false);
     } else {
         toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email address.', variant: 'success'});
+        setAuthLoading(false);
     }
   }
 
@@ -200,7 +200,7 @@ export default function LoginPage() {
                             <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
                         <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
-                            {authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                            {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -215,7 +215,7 @@ export default function LoginPage() {
                             <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
                         <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
-                            {authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
+                            {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -232,7 +232,7 @@ export default function LoginPage() {
         </motion.div>
         
         <motion.div variants={itemVariants} className="flex flex-col items-center h-10">
-            {authLoading || !isClient ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
+            {!isClient || (isClient && authLoading) ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
         </motion.div>
       </motion.div>
     </div>
