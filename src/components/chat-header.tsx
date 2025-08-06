@@ -56,7 +56,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { user, session, supabase } = useAuth();
+  const { user, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -68,25 +68,11 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
   
   const handleDeleteAccount = async () => {
     try {
-        if (!session?.access_token) {
-            throw new Error('Not authenticated.');
-        }
+      const { error } = await supabase.rpc('handle_delete_user');
 
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${session.access_token}`,
-                },
-            }
-        );
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch');
-        }
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: 'Account Deletion Initiated',
