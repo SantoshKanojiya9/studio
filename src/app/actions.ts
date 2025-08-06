@@ -91,9 +91,8 @@ export async function subscribeUser(subscriberId: string, subscribedToId: string
     if (subscriberId === subscribedToId) {
         throw new Error("Cannot subscribe to yourself.");
     }
-    // Use admin client to bypass RLS for this specific operation.
-    // The logic ensures a user can only act on their own behalf.
-    const supabase = createSupabaseServerClient(true);
+    // RLS is now handled by policies in Supabase, so we can use the standard server client.
+    const supabase = createSupabaseServerClient();
     const { error } = await supabase
         .from('subscriptions')
         .insert({ subscriber_id: subscriberId, subscribed_to_id: subscribedToId });
@@ -108,9 +107,8 @@ export async function subscribeUser(subscriberId: string, subscribedToId: string
 }
 
 export async function unsubscribeUser(subscriberId: string, subscribedToId: string) {
-     // Use admin client to bypass RLS for this specific operation.
-    // The logic ensures a user can only act on their own behalf.
-    const supabase = createSupabaseServerClient(true);
+    // RLS is now handled by policies in Supabase, so we can use the standard server client.
+    const supabase = createSupabaseServerClient();
     const { error } = await supabase
         .from('subscriptions')
         .delete()
