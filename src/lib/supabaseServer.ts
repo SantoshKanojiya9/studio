@@ -2,16 +2,16 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// This file is intended for server-side code that needs to bypass RLS.
-// Do not use this client on the client-side.
+// This file is intended for server-side code.
+// The `bypassRls` parameter should be used with caution.
 
-export function createSupabaseServerClient(bypassRls = true) {
+export function createSupabaseServerClient(bypassRls = false) {
   const cookieStore = cookies()
   
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    // Use the service role key for bypassing RLS
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, 
+    // Use service role for admin actions, but anon key for user-level access
+    bypassRls ? process.env.SUPABASE_SERVICE_ROLE_KEY! : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
     {
       cookies: {
         get(name: string) {
@@ -24,17 +24,11 @@ export function createSupabaseServerClient(bypassRls = true) {
           cookieStore.set({ name, value: '', ...options })
         },
       },
-      // Conditionally bypass RLS
       auth: {
         autoRefreshToken: false,
         persistSession: false,
-        detectSessionInUrl: false,
+        detectSessionInUrl: true, // Important for server-client to pick up session from URL
       },
-      ...(bypassRls ? {
-        db: {
-            schema: 'public',
-        }
-      } : {})
     }
   );
 }

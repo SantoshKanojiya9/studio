@@ -7,12 +7,15 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
 // --- User Profile Actions ---
 
 export async function getUserProfile(userId: string) {
-    const supabase = createSupabaseServerClient();
+    // This client does NOT bypass RLS.
+    // It can only fetch the profile if RLS policies allow it.
+    const supabase = createSupabaseServerClient(); 
     const { data, error } = await supabase
         .from('users')
         .select('id, name, picture, deleted_at')
         .eq('id', userId)
         .single();
+
     if (error) {
         console.error('Error getting user profile:', error);
         return null;
@@ -21,7 +24,7 @@ export async function getUserProfile(userId: string) {
 }
 
 export async function deleteUserAccount() {
-    const supabase = createSupabaseServerClient();
+    const supabase = createSupabaseServerClient(); // Does not bypass RLS
     const { error } = await supabase.rpc('handle_delete_user');
     if (error) {
         console.error('Error scheduling user deletion:', error);
@@ -30,7 +33,7 @@ export async function deleteUserAccount() {
 }
 
 export async function recoverUserAccount() {
-    const supabase = createSupabaseServerClient();
+    const supabase = createSupabaseServerClient(); // Does not bypass RLS
     const { error } = await supabase.rpc('handle_recover_user');
      if (error) {
         console.error('Error recovering user account:', error);
