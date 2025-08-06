@@ -85,7 +85,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete account.');
+            throw new Error(errorData.error || 'Failed to fetch');
         }
       
       toast({
@@ -100,7 +100,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       console.error("Failed to delete account:", error);
       toast({
         title: "Error Deleting Account",
-        description: error.message || "There was an issue deleting your account.",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
