@@ -24,7 +24,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUserAccount } from '@/app/actions';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -67,14 +66,37 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
 
   const handleDeleteAccount = async () => {
     try {
-      await deleteUserAccount();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('Not authenticated.');
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account.');
+      }
       
       toast({
         title: 'Account Deletion Initiated',
         description: 'Your account has been successfully marked for deletion.',
         variant: 'success',
       });
-      // The useAuth hook will handle redirecting the user after sign out.
+      await supabase.auth.signOut();
+
     } catch (error: any) {
       console.error("Failed to delete account:", error);
       toast({

@@ -179,34 +179,3 @@ export async function getNotifications() {
     }
     return data;
 }
-
-// --- Account Actions ---
-export async function deleteUserAccount() {
-    const supabase = createSupabaseServerClient();
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session) {
-        throw new Error('Not authenticated.');
-    }
-
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        }
-    );
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete account.');
-    }
-
-    // Sign out on the server side
-    await supabase.auth.signOut();
-
-    return response.json();
-}
