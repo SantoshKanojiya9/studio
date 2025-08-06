@@ -1,18 +1,21 @@
 
--- Creates a function that inserts a new row into public.users
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.users (id, name, picture, email)
-  values (new.id, new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'picture', new.email);
-  return new;
-end;
-$$;
+-- Function to create a public user profile when a new auth user signs up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, name, picture)
+  VALUES (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'name',
+    new.raw_user_meta_data->>'picture'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Creates a trigger that calls the function when a new user is created
-create or replace trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+-- Trigger to call the function after a new user is inserted into auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
