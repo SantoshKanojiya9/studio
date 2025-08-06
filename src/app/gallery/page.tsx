@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser, deleteUserAccount } from '@/app/actions';
+import { getUserProfile, getSubscriptionStatus, getSubscriberCount, getSubscribedCount, subscribeUser, unsubscribeUser, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -99,8 +99,8 @@ function GalleryPageContent() {
     const [isLoading, setIsLoading] = React.useState(true);
     
     const [isSubscribed, setIsSubscribed] = React.useState(false);
-    const [followerCount, setFollowerCount] = React.useState(0);
-    const [followingCount, setFollowingCount] = React.useState(0);
+    const [subscriberCount, setSubscriberCount] = React.useState(0);
+    const [subscribedCount, setSubscribedCount] = React.useState(0);
     const [isSubscriptionLoading, setIsSubscriptionLoading] = React.useState(false);
     
     const { user: authUser, supabase } = useAuth();
@@ -152,10 +152,10 @@ function GalleryPageContent() {
                     setIsSubscribed(status);
                 }
 
-                const followers = await getFollowerCount(viewingUserId);
-                const following = await getFollowingCount(viewingUserId);
-                setFollowerCount(followers);
-                setFollowingCount(following);
+                const subscribers = await getSubscriberCount(viewingUserId);
+                const following = await getSubscribedCount(viewingUserId);
+                setSubscriberCount(subscribers);
+                setSubscribedCount(following);
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -241,12 +241,12 @@ function GalleryPageContent() {
             if (isSubscribed) {
                 // Optimistically update UI
                 setIsSubscribed(false);
-                setFollowerCount(prev => prev - 1);
+                setSubscriberCount(prev => prev - 1);
                 await unsubscribeUser(authUser.id, viewingUserId);
             } else {
                 // Optimistically update UI
                 setIsSubscribed(true);
-                setFollowerCount(prev => prev + 1);
+                setSubscriberCount(prev => prev + 1);
                 await subscribeUser(authUser.id, viewingUserId);
             }
         } catch (error: any) {
@@ -258,7 +258,7 @@ function GalleryPageContent() {
             });
             // Revert optimistic update on error
             setIsSubscribed(prev => !prev);
-            setFollowerCount(prev => isSubscribed ? prev + 1 : prev -1);
+            setSubscriberCount(prev => isSubscribed ? prev + 1 : prev -1);
         } finally {
              startTransition(() => {
                 setIsSubscriptionLoading(false);
@@ -402,12 +402,12 @@ function GalleryPageContent() {
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{followerCount}</p>
-                                        <p className="text-sm text-muted-foreground">followers</p>
+                                        <p className="font-bold text-lg">{subscriberCount}</p>
+                                        <p className="text-sm text-muted-foreground">subscribers</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{followingCount}</p>
-                                        <p className="text-sm text-muted-foreground">following</p>
+                                        <p className="font-bold text-lg">{subscribedCount}</p>
+                                        <p className="text-sm text-muted-foreground">subscribed</p>
                                     </div>
                                 </div>
                             </div>

@@ -59,7 +59,7 @@ export async function getSubscriptionStatus(subscriberId: string, subscribedToId
     return (count ?? 0) > 0;
 }
 
-export async function getFollowerCount(userId: string) {
+export async function getSubscriberCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
         .from('subscriptions')
@@ -67,13 +67,13 @@ export async function getFollowerCount(userId: string) {
         .eq('subscribed_to_id', userId);
 
     if (error) {
-        console.error('Error getting follower count:', error);
+        console.error('Error getting subscriber count:', error);
         return 0;
     }
     return count || 0;
 }
 
-export async function getFollowingCount(userId: string) {
+export async function getSubscribedCount(userId: string) {
     const supabase = createSupabaseServerClient();
     const { count, error } = await supabase
         .from('subscriptions')
@@ -81,7 +81,7 @@ export async function getFollowingCount(userId: string) {
         .eq('subscriber_id', userId);
     
     if (error) {
-        console.error('Error getting following count:', error);
+        console.error('Error getting subscribed count:', error);
         return 0;
     }
     return count || 0;
