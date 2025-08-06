@@ -64,14 +64,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 
                 if (profile) {
-                    // Check if this is a new login event
-                    if (user?.id !== profile.id) {
-                         toast({
-                            title: "Login Successful",
-                            description: `You are now signed in. User ID: ${profile.id}`,
-                            variant: "success",
-                        });
+                    // Check if account was marked for deletion and recover it
+                    if (profile.deleted_at) {
+                        const { error: updateError } = await client
+                            .from('users')
+                            .update({ deleted_at: null })
+                            .eq('id', profile.id);
+
+                        if (updateError) {
+                            console.error("Error recovering account:", updateError);
+                            toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
+                        } else {
+                            profile.deleted_at = null; // Update local profile object
+                            toast({
+                                title: "Welcome Back!",
+                                description: "Your account has been recovered and is no longer scheduled for deletion.",
+                                variant: "success",
+                            });
+                        }
                     }
+
                     setUserState(profile);
                 }
 
