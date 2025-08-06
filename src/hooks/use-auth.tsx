@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useMe
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import type { SupabaseClient, Session } from '@supabase/supabase-js';
+import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { useToast } from './use-toast';
 
 interface UserProfile {
@@ -15,6 +15,17 @@ interface UserProfile {
     deleted_at?: string | null;
     picture: string;
 }
+
+interface AppUser extends User {
+    user_metadata: {
+        picture?: string;
+        name?: string;
+        full_name?: string;
+        avatar_url?: string;
+        deleted_at?: string | null;
+    }
+}
+
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -39,54 +50,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleAuthChange = async (session: Session | null) => {
         setSession(session);
         if (session?.user) {
+            const appUser = session.user as AppUser;
             try {
-                let { data: profile, error: fetchError } = await client
-                    .from('users')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+                // Check if account was marked for deletion and recover it
+                if (appUser.user_metadata?.deleted_at) {
+                    const { data, error } = await client.auth.updateUser({
+                        data: { ...appUser.user_metadata, deleted_at: null }
+                    });
 
-                if (fetchError && fetchError.code === 'PGRST116') { // Profile doesn't exist, create it
-                    const { data: newProfile, error: insertError } = await client
-                        .from('users')
-                        .insert({
-                            id: session.user.id,
-                            name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
-                            picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
-                        })
-                        .select()
-                        .single();
-
-                    if (insertError) throw insertError;
-                    profile = newProfile;
-                } else if (fetchError) {
-                    throw fetchError;
-                }
-                
-                if (profile) {
-                    // Check if account was marked for deletion and recover it
-                    if (profile.deleted_at) {
-                        const { error: updateError } = await client
-                            .from('users')
-                            .update({ deleted_at: null })
-                            .eq('id', profile.id);
-
-                        if (updateError) {
-                            console.error("Error recovering account:", updateError);
-                            toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
-                        } else {
-                            profile.deleted_at = null; // Update local profile object
-                            toast({
-                                title: "Welcome Back!",
-                                description: "Your account has been recovered and is no longer scheduled for deletion.",
-                                variant: "success",
+                    if (error) {
+                        console.error("Error recovering account:", error);
+                        toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
+                    } else {
+                        toast({
+                            title: "Welcome Back!",
+                            description: "Your account has been recovered and is no longer scheduled for deletion.",
+                            variant: "success",
+                        });
+                        if (data.user) {
+                             setUserState({
+                                id: data.user.id,
+                                name: data.user.user_metadata.name,
+                                email: data.user.email!,
+                                picture: data.user.user_metadata.picture,
+                                deleted_at: null,
                             });
                         }
                     }
-
-                    setUserState(profile);
+                } else {
+                     setUserState({
+                        id: appUser.id,
+                        name: appUser.user_metadata.name || appUser.email!.split('@')[0],
+                        email: appUser.email!,
+                        picture: appUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${appUser.email!.charAt(0).toUpperCase()}`,
+                        deleted_at: appUser.user_metadata.deleted_at
+                    });
                 }
-
             } catch (e: any) {
                 console.error("Auth state change profile handling error:", e);
                 await client.auth.signOut();
@@ -108,13 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
       async (_event, session) => {
-        // Only show toast on SIGNED_IN event
-        if (_event === 'SIGNED_IN') {
-           await handleAuthChange(session);
-        } else {
-           setSession(session);
-           setUserState(session ? user : null);
-        }
+        await handleAuthChange(session);
       }
     );
 

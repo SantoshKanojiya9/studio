@@ -179,3 +179,19 @@ export async function getNotifications() {
     }
     return data;
 }
+
+// --- User Profile Actions ---
+
+export async function getUserProfile(userId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, name, picture')
+        .eq('id', userId)
+        .single();
+    if (error) {
+        console.error('Error getting user profile:', error);
+        return null;
+    }
+    return data;
+}

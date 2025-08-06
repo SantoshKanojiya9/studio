@@ -30,6 +30,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
+import { supabase } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -123,21 +124,23 @@ function GalleryPageContent() {
             setIsLoading(true);
             try {
                 // Fetch user profile
-                const { data: userProfile, error: userError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', viewingUserId)
-                    .single();
-
-                if (userError) throw userError;
-                setProfileUser(userProfile);
+                if (isOwnProfile && authUser) {
+                    setProfileUser(authUser);
+                } else {
+                     const { data: userProfile, error: userError } = await supabase
+                        .from('users')
+                        .select('id, name, picture')
+                        .eq('id', viewingUserId)
+                        .single();
+                    if (userError) throw userError;
+                    setProfileUser(userProfile);
+                }
 
                 // Fetch user emojis
                 const { data, error } = await supabase
                     .from('emojis')
-                    .select('*, user:users!inner(*)')
+                    .select('*, user:users!inner(id, name, picture)')
                     .eq('user_id', viewingUserId)
-                    .is('user.deleted_at', null)
                     .order('created_at', { ascending: false });
 
                 if (error) {
@@ -145,7 +148,7 @@ function GalleryPageContent() {
                     throw new Error(error.message);
                 };
                 
-                setSavedEmojis(data as EmojiState[]);
+                setSavedEmojis(data as unknown as EmojiState[]);
 
                 // Fetch subscription data
                 const count = await getSubscribersCount(viewingUserId);

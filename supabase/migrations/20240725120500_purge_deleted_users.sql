@@ -1,3 +1,4 @@
+
 -- Purge users that were soft-deleted more than 30 minutes ago
 create or replace function public.purge_deleted_users()
 returns void
@@ -9,7 +10,7 @@ declare
 begin
     -- Loop through users marked for deletion over 30 minutes ago
     for user_id_to_purge in
-        select id from auth.users where deleted_at is not null and deleted_at < (now() - interval '30 minutes')
+        select id from auth.users where (raw_user_meta_data->>'deleted_at') is not null and (raw_user_meta_data->>'deleted_at')::timestamptz < (now() - interval '30 minutes')
     loop
         -- Use the built-in admin function to permanently delete the user
         perform auth.admin_delete_user(user_id_to_purge);
