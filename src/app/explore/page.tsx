@@ -140,18 +140,6 @@ export default function ExplorePage() {
   
   const showSearchResults = searchQuery.length > 0;
 
-  if (isLoading && !showSearchResults) { // Only show main loader if not searching
-      return (
-           <div className="flex h-full w-full flex-col">
-              <div className="flex-1 overflow-y-auto">
-                  <div className="flex h-full items-center justify-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-              </div>
-          </div>
-      )
-  }
-
   const selectedEmojiIndex = selectedEmojiId ? allEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
   
   if (selectedEmojiId && selectedEmojiIndex !== -1) {
@@ -182,7 +170,11 @@ export default function ExplorePage() {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        {showSearchResults ? (
+        {isLoading ? (
+             <div className="flex h-full items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+        ) : showSearchResults ? (
           <div className="flex flex-col">
              {searchedUsers.length > 0 ? (
                  searchedUsers.map(user => (

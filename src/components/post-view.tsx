@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
@@ -48,28 +48,38 @@ export function PostView({
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isScrolling = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+
+  useLayoutEffect(() => {
     const container = scrollContainerRef.current;
-    if (container && emojis) { // Only handle scroll logic if it's a list
+    if (container) {
         container.scrollTo({
             top: container.offsetHeight * initialIndex,
             behavior: 'auto'
         });
-
-        const handleScroll = () => {
-            if (scrollContainerRef.current) {
-                const newIndex = Math.round(scrollContainerRef.current.scrollTop / scrollContainerRef.current.offsetHeight);
-                if (newIndex < emojis.length) {
-                    setCurrentIndex(newIndex);
-                }
-            }
-        };
-
-        container.addEventListener('scroll', handleScroll, { passive: true });
-        return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [initialIndex, emojis]);
+  }, [initialIndex]);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      if (isScrolling.current) {
+        clearTimeout(isScrolling.current);
+      }
+      isScrolling.current = setTimeout(() => {
+        const newIndex = Math.round(container.scrollTop / container.offsetHeight);
+        if (newIndex >= 0 && newIndex < emojis.length) {
+            setCurrentIndex(newIndex);
+        }
+      }, 150);
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [emojis.length]);
 
   const handleDeleteClick = (id: string) => {
     if (!onDelete) return;
