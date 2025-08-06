@@ -403,7 +403,7 @@ function GalleryPageContent() {
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{subscriberCount}</p>
-                                        <p className="text-sm text-muted-foreground">supporters</p>
+                                        <p className="text-sm text-muted-foreground">support</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{subscribedCount}</p>
