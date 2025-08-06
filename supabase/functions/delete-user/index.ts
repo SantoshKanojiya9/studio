@@ -1,10 +1,6 @@
 import 'https://deno.land/std@0.177.0/dotenv/load.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.4';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from '../_shared/cors.ts';
 
 Deno.serve(async (req) => {
   // This is needed to handle CORS preflight requests.
