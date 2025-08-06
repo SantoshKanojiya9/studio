@@ -58,20 +58,14 @@ export default function LoginPage() {
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
   
-  const [activeTab, setActiveTab] = useState('email');
+  const [activeTab, setActiveTab] = useState('email-login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
   const supabase = createSupabaseBrowserClient();
   
-  const isLoginView = activeTab === 'email-login';
-  const isSignUpView = activeTab === 'email-signup';
-
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
       toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
@@ -124,37 +118,6 @@ export default function LoginPage() {
       toast({ title: isSigningUp ? 'Sign-up Error' : 'Sign-in Error', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handlePhoneSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: phone,
-    });
-    setLoading(false);
-
-    if (error) {
-      toast({ title: 'Error sending OTP', description: error.message, variant: 'destructive' });
-    } else {
-      setOtpSent(true);
-      toast({ title: 'OTP Sent', description: 'Check your phone for the one-time password.', variant: 'success' });
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone: phone,
-      token: otp,
-      type: 'sms',
-    });
-    setLoading(false);
-
-    if (error) {
-      toast({ title: 'Error verifying OTP', description: error.message, variant: 'destructive' });
     }
   };
   
@@ -229,10 +192,9 @@ export default function LoginPage() {
         ) : (
             <motion.div variants={itemVariants} className="w-full">
                 <Tabs defaultValue="email-login" className="w-full" onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="email-login">Sign In</TabsTrigger>
                         <TabsTrigger value="email-signup">Sign Up</TabsTrigger>
-                        <TabsTrigger value="phone">Phone</TabsTrigger>
                     </TabsList>
                     <TabsContent value="email-login">
                         <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
@@ -262,24 +224,6 @@ export default function LoginPage() {
                             <Button type="submit" disabled={loading}>
                               {loading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
                             </Button>
-                        </form>
-                    </TabsContent>
-                    <TabsContent value="phone">
-                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={otpSent ? handleVerifyOtp : handlePhoneSignIn}>
-                            <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="phone">Phone Number</Label>
-                                <Input type="tel" id="phone" placeholder="+1234567890" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={otpSent} />
-                            </div>
-                            {otpSent && (
-                                <div className="grid w-full items-center gap-1.5">
-                                    <Label htmlFor="otp">One-Time Password</Label>
-                                    <Input type="text" id="otp" placeholder="123456" value={otp} onChange={(e) => setOtp(e.target.value)} required />
-                                </div>
-                            )}
-                            <Button type="submit" disabled={loading}>
-                                {loading ? <Loader2 className="animate-spin" /> : (otpSent ? 'Verify OTP & Sign In' : 'Send OTP')}
-                            </Button>
-                            {otpSent && <Button variant="link" type="button" onClick={() => setOtpSent(false)}>Use a different number</Button>}
                         </form>
                     </TabsContent>
                 </Tabs>
