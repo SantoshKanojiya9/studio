@@ -22,8 +22,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import type { Session } from '@supabase/supabase-js';
 
 
 const EdengramLogo = ({ className }: { className?: string }) => (
@@ -58,18 +60,25 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const { user, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [session, setSession] = React.useState<Session | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchSession = async () => {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        setSession(currentSession);
+    };
+    fetchSession();
+  }, [supabase]);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    router.push('/');
   };
   
   const handleDeleteAccount = async () => {
     try {
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
-
         if (!session) {
             throw new Error('Not authenticated.');
         }
@@ -96,6 +105,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
         variant: 'success',
       });
       await supabase.auth.signOut();
+      router.push('/');
 
     } catch (error: any) {
       console.error("Failed to delete account:", error);
