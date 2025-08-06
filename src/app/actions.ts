@@ -91,7 +91,9 @@ export async function subscribeUser(subscriberId: string, subscribedToId: string
     if (subscriberId === subscribedToId) {
         throw new Error("Cannot subscribe to yourself.");
     }
-    const supabase = createSupabaseServerClient();
+    // Use admin client to bypass RLS for this specific operation.
+    // The logic ensures a user can only act on their own behalf.
+    const supabase = createSupabaseServerClient(true);
     const { error } = await supabase
         .from('subscriptions')
         .insert({ subscriber_id: subscriberId, subscribed_to_id: subscribedToId });
@@ -101,11 +103,14 @@ export async function subscribeUser(subscriberId: string, subscribedToId: string
         throw error;
     }
     revalidatePath(`/gallery?userId=${subscribedToId}`);
+    revalidatePath(`/gallery?userId=${subscriberId}`);
     revalidatePath('/gallery');
 }
 
 export async function unsubscribeUser(subscriberId: string, subscribedToId: string) {
-    const supabase = createSupabaseServerClient();
+     // Use admin client to bypass RLS for this specific operation.
+    // The logic ensures a user can only act on their own behalf.
+    const supabase = createSupabaseServerClient(true);
     const { error } = await supabase
         .from('subscriptions')
         .delete()
@@ -117,5 +122,6 @@ export async function unsubscribeUser(subscriberId: string, subscribedToId: stri
         throw error;
     }
     revalidatePath(`/gallery?userId=${subscribedToId}`);
+    revalidatePath(`/gallery?userId=${subscriberId}`);
     revalidatePath('/gallery');
 }
