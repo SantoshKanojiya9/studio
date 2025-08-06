@@ -70,8 +70,8 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
     if (!user) return;
 
     try {
-        const { error } = await supabase.rpc('handle_delete_user');
-        if (error) throw error;
+      const { error } = await supabase.rpc('handle_delete_user');
+      if (error) throw error;
       
       toast({
         title: 'Account Deletion Initiated',

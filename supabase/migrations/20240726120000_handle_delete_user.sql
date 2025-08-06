@@ -1,12 +1,10 @@
 
 create or replace function handle_delete_user()
 returns void
-language plpgsql
-security definer
+language sql
+security invoker
 as $$
-begin
   update public.users
   set deleted_at = now()
   where id = auth.uid();
-end;
 $$;

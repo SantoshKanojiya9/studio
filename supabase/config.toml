@@ -28,6 +28,12 @@ shadow_port = 54320
 # server_version;` on the remote database to check.
 major_version = 15
 
+# Schedule a function to run on a cron schedule.
+# Every 5 minutes, run the purge_deleted_users function.
+[db.cron.purge_users_job]
+schedule = "*/5 * * * *"
+sql = "select public.purge_deleted_users();"
+
 [db.pooler]
 enabled = false
 # Port to use for the local connection pooler.
