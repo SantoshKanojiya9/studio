@@ -80,7 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { subscription } } = client.auth.onAuthStateChange(
           async (_event, newSession) => {
             if (isMounted) {
+                // When auth state changes, re-fetch everything
+                setLoading(true);
                 await handleAuthChange(newSession);
+                setLoading(false);
             }
           }
         );
@@ -95,18 +98,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [client, handleAuthChange]);
 
   useEffect(() => {
-    if (!loading) {
-      const isAuthPage = pathname === '/';
-      const isAuthCallback = pathname === '/auth/callback';
+    if (loading) return; // Don't run redirects until initial auth state is determined
 
-      if (user && isAuthPage) {
+    const isAuthPage = pathname === '/';
+    const isAuthCallback = pathname.startsWith('/auth/callback');
+
+    if (user && isAuthPage) {
         router.push('/mood');
-      } else if (!user && !isAuthPage && !isAuthCallback) {
+    } else if (!user && !isAuthPage && !isAuthCallback) {
         router.push('/');
-      }
     }
   }, [user, loading, pathname, router]);
   
+  // Show a global loader while we are determining the auth state
   if (loading) {
     return (
         <div className="flex items-center justify-center h-screen">
