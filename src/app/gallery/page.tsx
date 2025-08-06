@@ -169,7 +169,11 @@ function GalleryPageContent() {
             }
         };
 
-        fetchProfileData();
+        if (viewingUserId) {
+            fetchProfileData();
+        } else {
+            setIsLoading(false);
+        }
     }, [viewingUserId, toast, authUser, isOwnProfile, supabase]);
 
 

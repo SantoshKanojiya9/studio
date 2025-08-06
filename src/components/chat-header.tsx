@@ -71,7 +71,6 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
     if (!user || !supabase) return;
 
     try {
-      // Call the RPC function to mark the user for deletion
       const { error } = await supabase.rpc('handle_delete_user');
       if (error) throw error;
       
@@ -81,7 +80,6 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
         variant: 'success',
       });
 
-      // Sign the user out locally
       await supabase.auth.signOut();
       router.push('/');
       
