@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { startTransition } from 'react';
 import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { getSubscriptionStatus, getFollowerCount, getFollowingCount, subscribeUser, unsubscribeUser } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -97,6 +98,11 @@ function GalleryPageContent() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
+    const [isSubscribed, setIsSubscribed] = React.useState(false);
+    const [followerCount, setFollowerCount] = React.useState(0);
+    const [followingCount, setFollowingCount] = React.useState(0);
+    const [isSubscriptionLoading, setIsSubscriptionLoading] = React.useState(false);
+    
     const { user: authUser, supabase } = useAuth();
     const { toast } = useToast();
     const searchParams = useSearchParams();
@@ -143,6 +149,17 @@ function GalleryPageContent() {
                 };
                 
                 setSavedEmojis(data as unknown as EmojiState[]);
+
+                // Fetch subscription data
+                if (authUser && !isOwnProfile) {
+                    const status = await getSubscriptionStatus(authUser.id, viewingUserId);
+                    setIsSubscribed(status);
+                }
+
+                const followers = await getFollowerCount(viewingUserId);
+                const following = await getFollowingCount(viewingUserId);
+                setFollowerCount(followers);
+                setFollowingCount(following);
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -214,6 +231,40 @@ function GalleryPageContent() {
           });
         } finally {
           setShowDeleteConfirm(false);
+        }
+    };
+
+    const handleSubscriptionToggle = async () => {
+        if (!authUser || !viewingUserId || isOwnProfile || isSubscriptionLoading) return;
+
+        setIsSubscriptionLoading(true);
+
+        try {
+            if (isSubscribed) {
+                // Optimistically update UI
+                setIsSubscribed(false);
+                setFollowerCount(prev => prev - 1);
+                await unsubscribeUser(authUser.id, viewingUserId);
+            } else {
+                // Optimistically update UI
+                setIsSubscribed(true);
+                setFollowerCount(prev => prev + 1);
+                await subscribeUser(authUser.id, viewingUserId);
+            }
+        } catch (error: any) {
+            console.error("Subscription error:", error);
+            toast({
+                title: "Something went wrong",
+                description: "Could not update your subscription. Please try again.",
+                variant: "destructive",
+            });
+            // Revert optimistic update on error
+            setIsSubscribed(prev => !prev);
+            setFollowerCount(prev => isSubscribed ? prev + 1 : prev -1);
+        } finally {
+             startTransition(() => {
+                setIsSubscriptionLoading(false);
+            });
         }
     };
 
@@ -343,19 +394,29 @@ function GalleryPageContent() {
                     <ProfileHeader />
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="p-4">
-                            <div className="flex items-center gap-4">
-                            <div className="w-20 h-20 flex-shrink-0">
+                             <div className="flex items-center gap-4">
+                                <div className="w-20 h-20 flex-shrink-0">
                                     <CrownedEggAvatar />
                                 </div>
-                                <div className="flex-1 text-center">
-                                    <p className="font-bold text-lg">{savedEmojis.length}</p>
-                                    <p className="text-sm text-muted-foreground">posts</p>
+                                <div className="flex-1 flex justify-around">
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                        <p className="text-sm text-muted-foreground">posts</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{followerCount}</p>
+                                        <p className="text-sm text-muted-foreground">followers</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="font-bold text-lg">{followingCount}</p>
+                                        <p className="text-sm text-muted-foreground">following</p>
+                                    </div>
                                 </div>
                             </div>
                             <div className="mt-4">
                                 <h2 className="font-semibold">{profileUser?.name || 'User'}</h2>
                             </div>
-                            <div className="mt-4 flex gap-2">
+                           <div className="mt-4 flex gap-2">
                                 {isOwnProfile ? (
                                     <>
                                         <Button variant="secondary" className="flex-1">Edit profile</Button>
@@ -363,6 +424,14 @@ function GalleryPageContent() {
                                     </>
                                 ) : (
                                     <>
+                                        <Button 
+                                            variant={isSubscribed ? "secondary" : "default"} 
+                                            className="flex-1"
+                                            onClick={handleSubscriptionToggle}
+                                            disabled={isSubscriptionLoading}
+                                        >
+                                            {isSubscriptionLoading ? <Loader2 className="animate-spin"/> : (isSubscribed ? 'Unsubscribe' : 'Subscribe')}
+                                        </Button>
                                         <Button variant="secondary" className="flex-1">Message</Button>
                                     </>
                                 )}
