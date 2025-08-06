@@ -9,7 +9,7 @@ import type { CredentialResponse } from 'google-one-tap';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
@@ -64,7 +64,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
-  const supabase = createSupabaseBrowserClient();
   
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {

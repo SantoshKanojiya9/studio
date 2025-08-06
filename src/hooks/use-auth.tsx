@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { useToast } from './use-toast';
 
@@ -31,27 +31,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createSupabaseBrowserClient();
   const { toast } = useToast();
+  
+  const client = useMemo(() => supabase, []);
 
   useEffect(() => {
     const handleAuthChange = async (session: Session | null) => {
         setSession(session);
         if (session?.user) {
             try {
-                let { data: profile, error: fetchError } = await supabase
+                let { data: profile, error: fetchError } = await client
                     .from('users')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
 
                 if (fetchError && fetchError.code === 'PGRST116') { // Profile doesn't exist, create it
-                    const { data: newProfile, error: insertError } = await supabase
+                    const { data: newProfile, error: insertError } = await client
                         .from('users')
                         .insert({
                             id: session.user.id,
                             name: session.user.user_metadata.name || session.user.user_metadata.full_name || session.user.email!.split('@')[0],
-                            email: session.user.email!,
                             picture: session.user.user_metadata.picture || session.user.user_metadata.avatar_url || `https://placehold.co/64x64.png?text=${session.user.email!.charAt(0).toUpperCase()}`,
                         })
                         .select()
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             } catch (e: any) {
                 console.error("Auth state change profile handling error:", e);
-                await supabase.auth.signOut();
+                await client.auth.signOut();
                 setUserState(null);
                 toast({ title: 'Error', description: 'Could not manage user profile.', variant: 'destructive'});
             }
@@ -88,13 +88,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const checkInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await client.auth.getSession();
       await handleAuthChange(session);
     };
 
     checkInitialSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = client.auth.onAuthStateChange(
       async (_event, session) => {
         // Only show toast on SIGNED_IN event
         if (_event === 'SIGNED_IN') {
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, supabase }}>
+    <AuthContext.Provider value={{ user, session, loading, supabase: client }}>
       <React.Suspense>
         {children}
       </React.Suspense>

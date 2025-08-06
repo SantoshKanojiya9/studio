@@ -11,7 +11,7 @@ import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
 import { getAllSavedEmojis } from '@/lib/gallery-utils';
 import { useToast } from '@/hooks/use-toast';
-import { createSupabaseBrowserClient } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -54,7 +54,6 @@ export default function ExplorePage() {
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     const fetchAllEmojis = async () => {
