@@ -64,37 +64,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
         setUserState(null);
     }
-    setLoading(false);
   }, [client, toast]);
 
   useEffect(() => {
     let isMounted = true;
+    setLoading(true);
 
-    const initializeAuth = async () => {
-        const { data: { session: initialSession } } = await client.auth.getSession();
-        
+    const { data: { subscription } } = client.auth.onAuthStateChange(
+      async (_event, newSession) => {
         if (isMounted) {
-            await handleAuthChange(initialSession);
+            await handleAuthChange(newSession);
+            setLoading(false);
         }
+      }
+    );
 
-        const { data: { subscription } } = client.auth.onAuthStateChange(
-          async (_event, newSession) => {
-            if (isMounted) {
-                // When auth state changes, re-fetch everything
-                setLoading(true);
-                await handleAuthChange(newSession);
-                setLoading(false);
-            }
-          }
-        );
-
-        return () => {
-            isMounted = false;
-            subscription?.unsubscribe();
-        };
+    return () => {
+        isMounted = false;
+        subscription?.unsubscribe();
     };
-    
-    initializeAuth();
   }, [client, handleAuthChange]);
 
   useEffect(() => {

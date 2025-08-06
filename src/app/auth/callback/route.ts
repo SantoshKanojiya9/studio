@@ -30,25 +30,7 @@ export async function GET(request: Request) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      // Use a client-side redirect to break out of the server-side rendering
-      // and ensure the new session is picked up by the client.
-      return new NextResponse(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Redirecting...</title>
-            <meta http-equiv="refresh" content="0; url=${origin}${next}" />
-            <script>
-              window.location.replace("${origin}${next}");
-            </script>
-          </head>
-          <body>
-            Redirecting... If you are not redirected automatically, <a href="${origin}${next}">click here</a>.
-          </body>
-        </html>
-      `, {
-        headers: { 'Content-Type': 'text/html' }
-      });
+      return NextResponse.redirect(`${origin}${next}`)
     }
   }
 
