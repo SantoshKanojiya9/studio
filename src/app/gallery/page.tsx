@@ -238,7 +238,7 @@ function GalleryPageContent() {
             
             toast({
                 title: 'Account Deletion Scheduled',
-                description: 'Your account will be permanently deleted in 30 minutes. You can sign in again within this time to cancel.',
+                description: 'Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.',
                 variant: 'success',
             });
 
@@ -454,8 +454,6 @@ function GalleryPageContent() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    account and remove your data from our servers.
                     Your account is scheduled for permanent deletion in 30 minutes. You can sign in again within this time to cancel.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
