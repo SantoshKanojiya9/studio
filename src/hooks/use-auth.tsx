@@ -12,8 +12,8 @@ interface UserProfile {
     id: string;
     name: string;
     email: string;
-    picture: string;
     deleted_at?: string | null;
+    picture: string;
 }
 
 interface AuthContextType {
@@ -36,12 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleAuthChange = async (session: Session | null) => {
-        if (session) {
-          console.log('Supabase session started:', session);
-        } else {
-          console.log('Supabase session ended.');
-        }
-
         setSession(session);
         if (session?.user) {
             try {
@@ -68,24 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else if (fetchError) {
                     throw fetchError;
                 }
-
-                if (profile?.deleted_at) { // Account was soft-deleted, now recover it
-                    const { error: updateError } = await supabase
-                        .from('users')
-                        .update({ deleted_at: null })
-                        .eq('id', profile.id);
-                    
-                    if (updateError) throw updateError;
-                    
-                    setUserState({ ...profile, deleted_at: null });
-                    toast({
-                        title: "Welcome Back!",
-                        description: "Your account deletion has been cancelled.",
-                        variant: "success",
-                    });
-                } else if (profile) {
+                
+                if (profile) {
+                    // Check if this is a new login event
+                    if (user?.id !== profile.id) {
+                         toast({
+                            title: "Login Successful",
+                            description: `You are now signed in. User ID: ${profile.id}`,
+                            variant: "success",
+                        });
+                    }
                     setUserState(profile);
                 }
+
             } catch (e: any) {
                 console.error("Auth state change profile handling error:", e);
                 await supabase.auth.signOut();
@@ -107,7 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
-        await handleAuthChange(session);
+        // Only show toast on SIGNED_IN event
+        if (_event === 'SIGNED_IN') {
+           await handleAuthChange(session);
+        } else {
+           setSession(session);
+           setUserState(session ? user : null);
+        }
       }
     );
 
