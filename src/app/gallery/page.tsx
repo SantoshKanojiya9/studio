@@ -403,11 +403,11 @@ function GalleryPageContent() {
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{subscriberCount}</p>
-                                        <p className="text-sm text-muted-foreground">subscribers</p>
+                                        <p className="text-sm text-muted-foreground">supporters</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{subscribedCount}</p>
-                                        <p className="text-sm text-muted-foreground">subscribed</p>
+                                        <p className="text-sm text-muted-foreground">supporting</p>
                                     </div>
                                 </div>
                             </div>
@@ -428,7 +428,7 @@ function GalleryPageContent() {
                                             onClick={handleSubscriptionToggle}
                                             disabled={isSubscriptionLoading}
                                         >
-                                            {isSubscriptionLoading ? <Loader2 className="animate-spin"/> : (isSubscribed ? 'Unsubscribe' : 'Subscribe')}
+                                            {isSubscriptionLoading ? <Loader2 className="animate-spin"/> : (isSubscribed ? 'Unsupport' : 'Support')}
                                         </Button>
                                         <Button variant="secondary" className="flex-1">Message</Button>
                                     </>
