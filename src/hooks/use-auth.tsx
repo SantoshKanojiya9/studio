@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
@@ -39,33 +39,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isMounted = true;
+    setLoading(true);
 
     const handleAuthChange = async (currentSession: Session | null) => {
         if (!isMounted) return;
-        setLoading(true);
-
+        
         setSession(currentSession);
+        
         if (currentSession?.user) {
-            try {
-                const userProfile = await getUserProfile(currentSession.user.id);
-
-                if (userProfile?.deleted_at) {
-                    await recoverUserAccount();
-                    toast({
-                        title: "Welcome Back!",
-                        description: "Your account has been recovered.",
-                        variant: "success",
-                    });
-                    const recoveredProfile = await getUserProfile(currentSession.user.id);
-                    setUser(recoveredProfile);
-                } else {
-                    setUser(userProfile);
-                }
-            } catch (error) {
-                console.error("Error fetching or recovering user profile:", error);
-                setUser(null);
-                await client.auth.signOut();
-            }
+            // This is a simplified user object directly from the auth session.
+            const authUser = currentSession.user;
+            const userProfile: UserProfile = {
+                id: authUser.id,
+                email: authUser.email || '',
+                name: authUser.user_metadata.name || authUser.email?.split('@')[0] || 'User',
+                picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`
+            };
+            setUser(userProfile);
         } else {
             setUser(null);
         }
@@ -90,7 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isMounted = false;
         subscription?.unsubscribe();
     };
-  }, [client, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client]);
 
   useEffect(() => {
     if (loading) return; 
@@ -105,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
   
-  if (loading && !user) { // Only show full-page loader on initial load without a user
+  if (loading && pathname === '/') {
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

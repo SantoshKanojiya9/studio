@@ -74,10 +74,9 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setAuthLoading(false);
       toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
+      setAuthLoading(false);
     }
-    // On success, the onAuthStateChange listener in useAuth will handle the redirect.
   };
 
   const handleManualSignUp = async (e: React.FormEvent) => {
@@ -93,12 +92,12 @@ export default function LoginPage() {
             }
         }
     });
+    setAuthLoading(false);
     if (error) {
         toast({ title: 'Sign-up Error', description: error.message, variant: 'destructive'});
     } else {
         toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email address.', variant: 'success'});
     }
-    setAuthLoading(false);
   }
 
   const handleManualSignIn = async (e: React.FormEvent) => {
@@ -112,7 +111,7 @@ export default function LoginPage() {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
         setAuthLoading(false);
     }
-    // On success, the onAuthStateChange listener in useAuth will handle the redirect.
+    // On success, the onAuthStateChange listener in useAuth will handle the redirect & loading state.
   }
   
   useEffect(() => {
