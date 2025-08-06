@@ -12,7 +12,6 @@ interface UserProfile {
     id: string;
     name: string;
     email: string;
-    deleted_at?: string | null;
     picture: string;
 }
 
@@ -70,12 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             variant: "success",
                         });
                         if (data.user) {
+                             const recoveredUser = data.user as AppUser;
                              setUserState({
-                                id: data.user.id,
-                                name: data.user.user_metadata.name || data.user.email!.split('@')[0],
-                                email: data.user.email!,
-                                picture: data.user.user_metadata.picture || `https://placehold.co/64x64.png?text=${data.user.email!.charAt(0).toUpperCase()}`,
-                                deleted_at: null,
+                                id: recoveredUser.id,
+                                name: recoveredUser.user_metadata.name || recoveredUser.email!.split('@')[0],
+                                email: recoveredUser.email!,
+                                picture: recoveredUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${recoveredUser.email!.charAt(0).toUpperCase()}`,
                             });
                         }
                     }
@@ -85,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         name: appUser.user_metadata.name || appUser.email!.split('@')[0],
                         email: appUser.email!,
                         picture: appUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${appUser.email!.charAt(0).toUpperCase()}`,
-                        deleted_at: appUser.user_metadata.deleted_at
                     });
                 }
             } catch (e: any) {
