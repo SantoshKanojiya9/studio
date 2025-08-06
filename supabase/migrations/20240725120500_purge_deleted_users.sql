@@ -8,7 +8,7 @@ declare
     user_id_to_purge uuid;
 begin
     -- Loop through users marked for deletion over 30 minutes ago
-    for user_id_to_purge in 
+    for user_id_to_purge in
         select id from auth.users where deleted_at is not null and deleted_at < (now() - interval '30 minutes')
     loop
         -- Use the built-in admin function to permanently delete the user
