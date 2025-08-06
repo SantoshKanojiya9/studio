@@ -188,9 +188,11 @@ const DesignPageContent = () => {
 
   const confirmSave = async () => {
     if (!user || !supabase) return;
+    
     setIsSaving(true);
+    setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> = {
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'user_id'> & { user_id?: string } = {
         user_id: user.id,
         model,
         expression,
@@ -208,11 +210,11 @@ const DesignPageContent = () => {
         feature_offset_y: feature_offset_y.get(),
     };
 
+    let result;
     try {
-        let result;
         if (id) {
             // Update existing emoji
-            result = await supabase.from('emojis').update(emojiData).eq('id', id).select().single();
+            result = await supabase.from('emojis').update({ ...emojiData, user_id: undefined }).eq('id', id).select().single();
         } else {
             // Insert new emoji
             result = await supabase.from('emojis').insert(emojiData).select().single();
@@ -220,27 +222,33 @@ const DesignPageContent = () => {
         
         const { data, error } = result;
 
-        if (error) throw error;
-
-        if (data) {
+        if (error) {
+            console.error('Failed to save emoji to Supabase:', error);
+            toast({
+                title: 'Error Saving',
+                description: error.message,
+                variant: 'destructive',
+            });
+        } else if (data) {
             setId(data.id); // Set new ID if it was an insert
             toast({
                 title: 'Creation Saved!',
                 description: 'Your emoji has been successfully saved to your gallery.',
                 variant: 'success',
             });
+            // Use replace to avoid back button issues, and ensure the URL is updated
+            // without adding a new entry to the history stack.
             router.replace(`/design?emojiId=${data.id}`, undefined);
         }
     } catch (error: any) {
-        console.error('Failed to save emoji to Supabase:', error);
+        console.error('An unexpected error occurred during save:', error);
         toast({
             title: 'Error Saving',
-            description: error.message,
+            description: 'An unexpected error occurred. Please try again.',
             variant: 'destructive',
         });
     } finally {
         setIsSaving(false);
-        setShowSaveConfirm(false);
     }
 };
 
