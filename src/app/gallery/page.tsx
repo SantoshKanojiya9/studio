@@ -226,18 +226,18 @@ function GalleryPageContent() {
     };
     
     const handleDeleteAccount = async () => {
+        if (!authUser) return;
+
         try {
             const { error } = await supabase.rpc('handle_delete_user');
-
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
             
             toast({
                 title: 'Account Deletion Initiated',
                 description: 'Your account has been successfully marked for deletion.',
                 variant: 'success',
             });
+
             await supabase.auth.signOut();
             router.push('/');
             
