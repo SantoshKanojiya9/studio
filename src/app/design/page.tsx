@@ -192,7 +192,7 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'user_id'> & { user_id: string } = {
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> = {
         user_id: user.id, // Explicitly set the user_id
         model,
         expression,
@@ -236,8 +236,6 @@ const DesignPageContent = () => {
                 description: 'Your emoji has been successfully saved to your gallery.',
                 variant: 'success',
             });
-            // Use replace to avoid back button issues, and ensure the URL is updated
-            // without adding a new entry to the history stack.
             router.replace(`/design?emojiId=${data.id}`, undefined);
         }
     } catch (error: any) {
