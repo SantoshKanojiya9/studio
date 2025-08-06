@@ -36,6 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleAuthChange = async (session: Session | null) => {
+        if (session) {
+          console.log('Supabase session started:', session);
+        } else {
+          console.log('Supabase session ended.');
+        }
+
         setSession(session);
         if (session?.user) {
             try {
