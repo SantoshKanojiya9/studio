@@ -226,7 +226,7 @@ const DesignPageContent = () => {
             console.error('Failed to save emoji to Supabase:', error);
             toast({
                 title: 'Error Saving',
-                description: error.message,
+                description: error.message || 'An unknown database error occurred.',
                 variant: 'destructive',
             });
         } else if (data) {
@@ -244,7 +244,7 @@ const DesignPageContent = () => {
         console.error('An unexpected error occurred during save:', error);
         toast({
             title: 'Error Saving',
-            description: 'An unexpected error occurred. Please try again.',
+            description: error.message || 'An unexpected error occurred. Please try again.',
             variant: 'destructive',
         });
     } finally {
