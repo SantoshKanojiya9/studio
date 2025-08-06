@@ -1,5 +1,4 @@
 
-import 'https://deno.land/std@0.177.0/dotenv/load.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.4';
 import { corsHeaders } from '../_shared/cors.ts';
 
