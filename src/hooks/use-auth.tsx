@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                     if (error) {
                         toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
-                        // Don't sign out here, let the listener handle the session state
+                        // Let the listener handle the session state, don't sign out manually
                         setUserState(null);
                     } else if (data.user) {
                         toast({ title: "Welcome Back!", description: "Your account has been recovered.", variant: "success"});
@@ -97,7 +97,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             email: recoveredUser.email!,
                             picture: recoveredUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${recoveredUser.email!.charAt(0).toUpperCase()}`,
                         });
-                        // After recovering, the session is valid, so we don't need to sign out.
                     }
                 } else {
                      setUserState({
