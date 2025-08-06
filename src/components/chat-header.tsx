@@ -56,7 +56,7 @@ const EdengramLogo = ({ className }: { className?: string }) => (
   
 
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
-  const { supabase } = useAuth();
+  const { user, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const { toast } = useToast();
   
@@ -116,32 +116,34 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           {children}
-          <Sheet>
-              <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
-                      <Menu />
-                      <span className="sr-only">Open menu</span>
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-sm flex flex-col">
-                  <SheetHeader className="text-left">
-                      <SheetTitle>Menu</SheetTitle>
-                  </SheetHeader>
-                  <div className="flex-1">
-                  </div>
+          {user && (
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-transparent hover:text-primary">
+                        <Menu />
+                        <span className="sr-only">Open menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full max-w-sm flex flex-col">
+                    <SheetHeader className="text-left">
+                        <SheetTitle>Menu</SheetTitle>
+                    </SheetHeader>
+                    <div className="flex-1">
+                    </div>
 
-                  <div className="mt-auto">
-                    <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Sign Out
-                    </Button>
-                    <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Account
-                    </Button>
-                  </div>
-              </SheetContent>
-          </Sheet>
+                    <div className="mt-auto">
+                      <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                      </Button>
+                      <Button variant="destructive" className="w-full justify-start mt-2" onClick={() => setShowDeleteConfirm(true)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Account
+                      </Button>
+                    </div>
+                </SheetContent>
+            </Sheet>
+          )}
         </div>
       </header>
        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

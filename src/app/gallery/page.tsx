@@ -331,7 +331,7 @@ function GalleryPageContent() {
                 )}
                 <span>{profileUser?.name || 'Profile'}</span>
             </div>
-            {isOwnProfile && (
+            {isOwnProfile && authUser && (
             <div className="flex items-center gap-2">
                  <Sheet>
                     <SheetTrigger asChild>
