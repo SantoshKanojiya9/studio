@@ -192,8 +192,8 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'user_id'> & { user_id?: string } = {
-        user_id: user.id,
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'user_id'> & { user_id: string } = {
+        user_id: user.id, // Explicitly set the user_id
         model,
         expression,
         background_color,
@@ -210,11 +210,11 @@ const DesignPageContent = () => {
         feature_offset_y: feature_offset_y.get(),
     };
 
-    let result;
     try {
+        let result;
         if (id) {
             // Update existing emoji
-            result = await supabase.from('emojis').update({ ...emojiData, user_id: undefined }).eq('id', id).select().single();
+            result = await supabase.from('emojis').update(emojiData).eq('id', id).select().single();
         } else {
             // Insert new emoji
             result = await supabase.from('emojis').insert(emojiData).select().single();
