@@ -30,7 +30,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSubscriptionStatus, getSubscribersCount, subscribe, unsubscribe } from '@/app/actions';
-import type { Session } from '@supabase/supabase-js';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -102,7 +101,6 @@ function GalleryPageContent() {
     const [subscribersCount, setSubscribersCount] = React.useState(0);
     const [isSubscribed, setIsSubscribed] = React.useState(false);
     const [isSubscribing, setIsSubscribing] = React.useState(false);
-    const [session, setSession] = React.useState<Session | null>(null);
 
     const { user: authUser, supabase } = useAuth();
     const { toast } = useToast();
@@ -124,9 +122,6 @@ function GalleryPageContent() {
 
             setIsLoading(true);
             try {
-                 const { data: { session: currentSession } } = await supabase.auth.getSession();
-                 setSession(currentSession);
-
                 // Fetch user profile
                 const { data: userProfile, error: userError } = await supabase
                     .from('users')
@@ -232,9 +227,8 @@ function GalleryPageContent() {
     
     const handleDeleteAccount = async () => {
         try {
-            if (!session) {
-                throw new Error('Not authenticated.');
-            }
+            const { data: { session }, } = await supabase.auth.getSession();
+            if (!session) throw new Error('Not authenticated.');
 
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/delete-user`,

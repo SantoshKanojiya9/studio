@@ -22,11 +22,9 @@ import {
     AlertDialogTitle,
   } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import type { Session } from '@supabase/supabase-js';
-
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 
@@ -60,17 +58,8 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function MoodHeader({ children }: { children?: React.ReactNode }) {
   const { user, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [session, setSession] = useState<Session | null>(null);
   const { toast } = useToast();
   const router = useRouter();
-  
-  useEffect(() => {
-    const fetchSession = async () => {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        setSession(currentSession);
-    };
-    fetchSession();
-  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -79,6 +68,7 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
 
   const handleDeleteAccount = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Not authenticated.');
       }
