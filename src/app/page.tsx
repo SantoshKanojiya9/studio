@@ -53,19 +53,18 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, supabase, loading: authLoading } = useAuth();
+  const { user, supabase, loading: authLoading, setLoading: setAuthLoading } = useAuth();
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
   
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleGoogleSignIn = async (response: CredentialResponse) => {
-    setLoading(true);
+    setAuthLoading(true);
     if (!response.credential) {
       toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
-      setLoading(false);
+      setAuthLoading(false);
       return;
     }
     
@@ -75,7 +74,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setLoading(false);
+      setAuthLoading(false);
       toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
     }
     // On success, the onAuthStateChange listener in useAuth will handle the redirect.
@@ -83,7 +82,7 @@ export default function LoginPage() {
 
   const handleManualSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setAuthLoading(true);
     const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -99,22 +98,21 @@ export default function LoginPage() {
     } else {
         toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email address.', variant: 'success'});
     }
-    setLoading(false);
+    setAuthLoading(false);
   }
 
   const handleManualSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setAuthLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
     });
      if (error) {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
-        setLoading(false);
+        setAuthLoading(false);
     }
     // On success, the onAuthStateChange listener in useAuth will handle the redirect.
-    // We don't setLoading(false) here because the redirect will unmount the component.
   }
   
   useEffect(() => {
@@ -123,7 +121,7 @@ export default function LoginPage() {
         return;
     }
     
-    if (window.google && signInDiv.current && !loading && !authLoading) {
+    if (window.google && signInDiv.current && !authLoading) {
         try {
             window.google.accounts.id.initialize({
                 client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
@@ -139,7 +137,7 @@ export default function LoginPage() {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router, loading, authLoading]);
+  }, [user, router, authLoading]);
 
 
   const containerVariants = {
@@ -165,8 +163,6 @@ export default function LoginPage() {
       }
     },
   };
-
-  const isPageLoading = loading || authLoading;
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
@@ -196,14 +192,14 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignIn} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-in">Email</Label>
-                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={isPageLoading} />
+                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={authLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-in">Password</Label>
-                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={isPageLoading} />
+                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={authLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={isPageLoading}>
-                            {isPageLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                        <Button type="submit" className="w-full" disabled={authLoading}>
+                            {authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -211,14 +207,14 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignUp} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-up">Email</Label>
-                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={isPageLoading} />
+                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={authLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-up">Password</Label>
-                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={isPageLoading} />
+                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={authLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={isPageLoading}>
-                            {isPageLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
+                        <Button type="submit" className="w-full" disabled={authLoading}>
+                            {authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
                         </Button>
                     </form>
                 </TabsContent>
@@ -235,7 +231,7 @@ export default function LoginPage() {
         </motion.div>
         
         <motion.div variants={itemVariants} className="flex flex-col items-center h-10">
-            {isPageLoading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
+            {authLoading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
         </motion.div>
       </motion.div>
     </div>

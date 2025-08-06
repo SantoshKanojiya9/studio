@@ -21,6 +21,7 @@ interface AuthContextType {
   user: UserProfile | null;
   session: Session | null;
   loading: boolean;
+  setLoading: (loading: boolean) => void;
   supabase: SupabaseClient;
 }
 
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handleAuthChange = async (currentSession: Session | null) => {
         if (!isMounted) return;
+        setLoading(true);
 
         setSession(currentSession);
         if (currentSession?.user) {
@@ -103,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
   
-  if (loading) {
+  if (loading && !user) { // Only show full-page loader on initial load without a user
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, supabase: client }}>
+    <AuthContext.Provider value={{ user, session, loading, setLoading, supabase: client }}>
       {children}
     </AuthContext.Provider>
   );
