@@ -6,14 +6,8 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import type { CredentialResponse } from 'google-one-tap';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const EdengramLogo = ({ className }: { className?: string }) => {
     return (
@@ -54,17 +48,12 @@ const EdengramLogo = ({ className }: { className?: string }) => {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, supabase } = useAuth();
   const { toast } = useToast();
   const signInDiv = useRef<HTMLDivElement>(null);
   
-  const [activeTab, setActiveTab] = useState('email-login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
 
-  
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     if (!response.credential) {
       toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
@@ -72,52 +61,16 @@ export default function LoginPage() {
     }
     
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithIdToken({
+    const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: response.credential,
     });
-    setLoading(false);
 
     if (error) {
-      toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
-      return;
-    }
-  };
-  
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-  
-    const isSigningUp = activeTab === 'email-signup';
-    
-    try {
-      if (isSigningUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name: email.split('@')[0] || `Guest-${Math.random().toString(36).substring(2, 8)}`,
-              picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
-            },
-          }
-        });
-        if (error) throw error;
-        if (data.user) {
-          setShowConfirmationMessage(true);
-        }
-      } else { // Login
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-      }
-    } catch (error: any) {
-      toast({ title: isSigningUp ? 'Sign-up Error' : 'Sign-in Error', description: error.message, variant: 'destructive' });
-    } finally {
       setLoading(false);
+      toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
     }
+    // On success, the onAuthStateChange listener in useAuth will handle the redirect.
   };
   
   useEffect(() => {
@@ -126,18 +79,23 @@ export default function LoginPage() {
         return;
     }
     
-    if (window.google && signInDiv.current) {
-        window.google.accounts.id.initialize({
-            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-            callback: handleGoogleSignIn
-        });
-        window.google.accounts.id.renderButton(
-            signInDiv.current,
-            { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
-        );
+    if (window.google && signInDiv.current && !loading) {
+        try {
+            window.google.accounts.id.initialize({
+                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+                callback: handleGoogleSignIn,
+            });
+            window.google.accounts.id.renderButton(
+                signInDiv.current,
+                { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
+            );
+        } catch (error) {
+            console.error("Google One Tap initialization error:", error);
+            toast({ title: 'Sign-In Not Available', description: 'Could not initialize Google Sign-In.', variant: 'destructive' });
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router]);
+  }, [user, router, loading]);
 
 
   const containerVariants = {
@@ -182,62 +140,12 @@ export default function LoginPage() {
             Edengram
         </motion.h1>
 
-        {showConfirmationMessage ? (
-             <motion.div variants={itemVariants} className="w-full p-4 bg-primary/10 border border-primary/20 rounded-lg text-center">
-                <h3 className="font-semibold text-primary">Check your inbox!</h3>
-                <p className="text-sm text-foreground/80 mt-1">We've sent a verification link to <strong>{email}</strong>. Please click the link to complete your registration.</p>
-                <Button variant="link" className="mt-2" onClick={() => setShowConfirmationMessage(false)}>Back to Login</Button>
-            </motion.div>
-        ) : (
-            <motion.div variants={itemVariants} className="w-full">
-                <Tabs defaultValue="email-login" className="w-full" onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="email-login">Sign In</TabsTrigger>
-                        <TabsTrigger value="email-signup">Sign Up</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="email-login">
-                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
-                            <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="email-login-input">Email</Label>
-                                <Input type="email" id="email-login-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                            </div>
-                            <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="password-login-input">Password</Label>
-                                <Input type="password" id="password-login-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                            </div>
-                            <Button type="submit" disabled={loading}>
-                              {loading ? <Loader2 className="animate-spin" /> : 'Sign In'}
-                            </Button>
-                        </form>
-                    </TabsContent>
-                    <TabsContent value="email-signup">
-                        <form className="w-full flex flex-col gap-4 text-left mt-4" onSubmit={handleEmailAuth}>
-                            <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="email-signup-input">Email</Label>
-                                <Input type="email" id="email-signup-input" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                            </div>
-                            <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="password-signup-input">Password</Label>
-                                <Input type="password" id="password-signup-input" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                            </div>
-                            <Button type="submit" disabled={loading}>
-                              {loading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
-                            </Button>
-                        </form>
-                    </TabsContent>
-                </Tabs>
-            </motion.div>
-        )}
+        <motion.p variants={itemVariants} className="text-muted-foreground">
+            Sign in to continue
+        </motion.p>
         
-        <motion.div variants={itemVariants} className="relative w-full flex items-center justify-center">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/50"></span>
-          </div>
-          <span className="relative px-2 bg-background text-xs uppercase text-muted-foreground">Or</span>
-        </motion.div>
-        
-        <motion.div variants={itemVariants} className="flex flex-col items-center">
-            <div ref={signInDiv}></div>
+        <motion.div variants={itemVariants} className="flex flex-col items-center h-10 mt-4">
+            {loading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
         </motion.div>
       </motion.div>
     </div>

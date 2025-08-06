@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useMe
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import type { SupabaseClient, Session, User } from '@supabase/supabase-js';
+import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { useToast } from './use-toast';
 import { getUserProfile, recoverUserAccount } from '@/app/actions';
 
@@ -27,7 +27,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -36,46 +36,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const client = useMemo(() => supabase, []);
 
-  const handleAuthChange = useCallback(async (session: Session | null) => {
-    setSession(session);
-    if (session?.user) {
-        const userProfile = await getUserProfile(session.user.id);
-
-        if (userProfile?.deleted_at) {
-            try {
-                await recoverUserAccount();
-                toast({ 
-                    title: "Welcome Back!", 
-                    description: "Your account has been recovered.", 
-                    variant: "success" 
-                });
-                // Refetch profile to get the updated (non-deleted) state
-                const recoveredProfile = await getUserProfile(session.user.id);
-                setUserState(recoveredProfile);
-            } catch (error) {
-                console.error("Failed to recover user:", error);
-                toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
-                setUserState(null);
-                await client.auth.signOut(); // Sign out if recovery fails
-            }
-        } else {
-            setUserState(userProfile);
-        }
-    } else {
-        setUserState(null);
-    }
-  }, [client, toast]);
-
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
-    const { data: { subscription } } = client.auth.onAuthStateChange(
-      async (_event, newSession) => {
+    const handleAuthChange = async (currentSession: Session | null) => {
+        if (!isMounted) return;
+
+        setSession(currentSession);
+        if (currentSession?.user) {
+            try {
+                const userProfile = await getUserProfile(currentSession.user.id);
+
+                if (userProfile?.deleted_at) {
+                    await recoverUserAccount();
+                    toast({
+                        title: "Welcome Back!",
+                        description: "Your account has been recovered.",
+                        variant: "success",
+                    });
+                    const recoveredProfile = await getUserProfile(currentSession.user.id);
+                    setUser(recoveredProfile);
+                } else {
+                    setUser(userProfile);
+                }
+            } catch (error) {
+                console.error("Error fetching or recovering user profile:", error);
+                setUser(null);
+                await client.auth.signOut();
+            }
+        } else {
+            setUser(null);
+        }
+        
         if (isMounted) {
-            await handleAuthChange(newSession);
             setLoading(false);
         }
+    };
+    
+    // Check initial session
+    client.auth.getSession().then(({ data: { session } }) => {
+        handleAuthChange(session);
+    });
+
+    const { data: { subscription } } = client.auth.onAuthStateChange(
+      (_event, newSession) => {
+        handleAuthChange(newSession);
       }
     );
 
@@ -83,10 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isMounted = false;
         subscription?.unsubscribe();
     };
-  }, [client, handleAuthChange]);
+  }, [client, toast]);
 
   useEffect(() => {
-    if (loading) return; // Don't run redirects until initial auth state is determined
+    if (loading) return; 
 
     const isAuthPage = pathname === '/';
     const isAuthCallback = pathname.startsWith('/auth/callback');
@@ -98,20 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
   
-  // Show a global loader while we are determining the auth state
   if (loading) {
     return (
         <div className="flex items-center justify-center h-screen">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
     )
   }
 
   return (
     <AuthContext.Provider value={{ user, session, loading, supabase: client }}>
-      <React.Suspense>
-        {children}
-      </React.Suspense>
+      {children}
     </AuthContext.Provider>
   );
 }
