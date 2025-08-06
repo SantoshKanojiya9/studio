@@ -60,6 +60,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Hydration fix: ensure client-side only logic runs after mount
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handleGoogleSignIn = async (response: CredentialResponse) => {
     setAuthLoading(true);
     if (!response.credential) {
@@ -68,15 +74,11 @@ export default function LoginPage() {
       return;
     }
     
-    const { error } = await supabase.auth.signInWithIdToken({
+    await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: response.credential,
     });
-
-    if (error) {
-      toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive' });
-      setAuthLoading(false);
-    }
+    // On success, the onAuthStateChange listener in useAuth will handle the redirect & loading state.
   };
 
   const handleManualSignUp = async (e: React.FormEvent) => {
@@ -120,7 +122,7 @@ export default function LoginPage() {
         return;
     }
     
-    if (window.google && signInDiv.current && !authLoading) {
+    if (isClient && window.google && signInDiv.current && !authLoading) {
         try {
             window.google.accounts.id.initialize({
                 client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
@@ -136,7 +138,7 @@ export default function LoginPage() {
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router, authLoading]);
+  }, [user, router, authLoading, isClient]);
 
 
   const containerVariants = {
@@ -191,13 +193,13 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignIn} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-in">Email</Label>
-                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={authLoading} />
+                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-in">Password</Label>
-                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={authLoading} />
+                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={authLoading}>
+                        <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
                             {authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
                         </Button>
                     </form>
@@ -206,13 +208,13 @@ export default function LoginPage() {
                     <form onSubmit={handleManualSignUp} className="space-y-4 pt-4">
                         <div className="space-y-2 text-left">
                             <Label htmlFor="email-up">Email</Label>
-                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={authLoading} />
+                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
                          <div className="space-y-2 text-left">
                             <Label htmlFor="password-up">Password</Label>
-                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={authLoading} />
+                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
                         </div>
-                        <Button type="submit" className="w-full" disabled={authLoading}>
+                        <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
                             {authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
                         </Button>
                     </form>
@@ -230,7 +232,7 @@ export default function LoginPage() {
         </motion.div>
         
         <motion.div variants={itemVariants} className="flex flex-col items-center h-10">
-            {authLoading ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
+            {authLoading || !isClient ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
         </motion.div>
       </motion.div>
     </div>
