@@ -61,6 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     if (error) {
                         console.error("Error recovering account:", error);
                         toast({ title: 'Error', description: 'Could not recover your account.', variant: 'destructive'});
+                        await client.auth.signOut();
+                        setUserState(null);
                     } else {
                         toast({
                             title: "Welcome Back!",
@@ -70,9 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         if (data.user) {
                              setUserState({
                                 id: data.user.id,
-                                name: data.user.user_metadata.name,
+                                name: data.user.user_metadata.name || data.user.email!.split('@')[0],
                                 email: data.user.email!,
-                                picture: data.user.user_metadata.picture,
+                                picture: data.user.user_metadata.picture || `https://placehold.co/64x64.png?text=${data.user.email!.charAt(0).toUpperCase()}`,
                                 deleted_at: null,
                             });
                         }
