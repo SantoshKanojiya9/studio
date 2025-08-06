@@ -84,8 +84,8 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch');
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to fetch');
       }
       
       toast({
