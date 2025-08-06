@@ -101,6 +101,7 @@ export async function subscribeUser(subscriberId: string, subscribedToId: string
         throw error;
     }
     revalidatePath(`/gallery?userId=${subscribedToId}`);
+    revalidatePath('/gallery');
 }
 
 export async function unsubscribeUser(subscriberId: string, subscribedToId: string) {
@@ -116,4 +117,5 @@ export async function unsubscribeUser(subscriberId: string, subscribedToId: stri
         throw error;
     }
     revalidatePath(`/gallery?userId=${subscribedToId}`);
+    revalidatePath('/gallery');
 }
