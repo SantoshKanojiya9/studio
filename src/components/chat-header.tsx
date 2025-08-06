@@ -74,8 +74,8 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       if (error) throw error;
       
       toast({
-        title: 'Account Deletion Initiated',
-        description: 'Your account has been successfully marked for deletion.',
+        title: 'Account Deletion Scheduled',
+        description: 'Your account will be permanently deleted in 30 minutes. Sign in again to cancel.',
         variant: 'success',
       });
 
