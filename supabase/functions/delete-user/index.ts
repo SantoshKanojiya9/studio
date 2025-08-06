@@ -32,6 +32,7 @@ async function handler(req: Request): Promise<Response> {
       { auth: { persistSession: false } }
     );
 
+    // Mark the user as deleted in the public users table
     const { error: updateError } = await supabaseAdmin
       .from('users')
       .update({ deleted_at: new Date().toISOString() })
@@ -39,14 +40,20 @@ async function handler(req: Request): Promise<Response> {
 
     if (updateError) throw updateError;
     
+    // Sign out the user from all sessions
     await supabaseAdmin.auth.admin.signOut(user.id);
 
-    return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
+    // Optionally, you could permanently delete the auth user here,
+    // but a soft delete is generally safer.
+    // await supabaseAdmin.auth.admin.deleteUser(user.id);
+
+    return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted and signed out.` }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
 
   } catch (error) {
+    console.error('Delete user error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
