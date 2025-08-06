@@ -2,12 +2,7 @@ import 'https://deno.land/std@0.177.0/dotenv/load.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.4';
 import { corsHeaders } from '../_shared/cors.ts';
 
-Deno.serve(async (req) => {
-  // This is needed to handle CORS preflight requests.
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
+async function handler(req: Request): Promise<Response> {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -45,14 +40,26 @@ Deno.serve(async (req) => {
     await supabaseAdmin.auth.admin.signOut(user.id);
 
     return new Response(JSON.stringify({ message: `User ${user.id} marked as deleted.` }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       status: 200,
     });
 
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       status: 500,
     });
   }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  const response = await handler(req);
+  for (const [key, value] of Object.entries(corsHeaders)) {
+    response.headers.set(key, value);
+  }
+  return response;
 });
