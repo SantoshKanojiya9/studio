@@ -212,7 +212,7 @@ export function PostView({
   };
 
    const onSendClick = () => {
-        if (user && currentEmojiState.user && user.id === currentEmojiState.user.id) {
+        if (user) {
             setShowSetMoodConfirm(true);
         }
     }

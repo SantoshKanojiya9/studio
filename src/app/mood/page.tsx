@@ -107,7 +107,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
     };
     
     const onSendClick = () => {
-        if (user && emoji.user && user.id === emoji.user.id) {
+        if (user) {
             setShowSetMoodConfirm(true);
         }
     }
