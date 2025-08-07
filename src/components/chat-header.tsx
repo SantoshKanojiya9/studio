@@ -78,7 +78,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
       toast({
         title: 'Account Deleted',
         description: 'Your account has been permanently deleted.',
-        variant: 'destructive',
+        variant: 'success',
       });
 
       await supabase.auth.signOut();
