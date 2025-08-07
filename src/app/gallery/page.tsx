@@ -373,9 +373,6 @@ function GalleryPageContent() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-4">
-                                <h2 className="font-semibold">{profileUser?.name || 'User'}</h2>
-                            </div>
                            <div className="mt-4 flex gap-2">
                                 {isOwnProfile ? (
                                     <>
