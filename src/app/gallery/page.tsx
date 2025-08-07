@@ -141,13 +141,13 @@ function GalleryPageContent() {
             setIsLoading(true);
             try {
                 // Fetch user profile directly using client
-                const { data: userProfile, error: profileError } = await supabase
+                const { data: userProfile, error: userError } = await supabase
                     .from('users')
                     .select('id, name, picture')
                     .eq('id', viewingUserId)
                     .single();
-                
-                if (profileError || !userProfile) {
+
+                if (userError || !userProfile) {
                     throw new Error("User profile not found.");
                 }
                 setProfileUser(userProfile as ProfileUser);
@@ -435,7 +435,6 @@ function GalleryPageContent() {
                                         >
                                             {isSupportLoading ? <Loader2 className="animate-spin"/> : (isSupported ? 'Unsupport' : 'Support')}
                                         </Button>
-                                        <Button variant="secondary" className="flex-1">Message</Button>
                                     </>
                                 )}
                             </div>
