@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Loader2, Smile, Heart, MessageCircle, Send } from 'lucide-react';
+import { Plus, Loader2, Smile } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -243,39 +243,12 @@ export default function MoodPage() {
                     <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                 </div>
             ) : feedPosts.length > 0 ? (
-                 <div className="divide-y divide-border/40">
-                     {feedPosts.map(post => (
-                        <div key={post.id} className="w-full flex flex-col snap-center">
-                            <div className="flex items-center px-4 py-2">
-                                <Link href={`/gallery?userId=${post.user?.id}`} className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                    <AvatarImage src={post.user?.picture} alt={post.user?.name} data-ai-hint="profile picture" />
-                                    <AvatarFallback>{post.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-semibold text-sm">{post.user?.name || 'User'}</span>
-                                </Link>
-                            </div>
-
-                            <div 
-                                className="aspect-square w-full bg-muted cursor-pointer"
-                                onClick={() => handleSelectPost(post.id)}
-                            >
-                               <GalleryThumbnail emoji={post} onSelect={() => handleSelectPost(post.id)} />
-                            </div>
-
-                            <div className="px-4 pt-2 pb-4">
-                                <div className="flex items-center gap-4">
-                                    <Heart className="h-6 w-6 cursor-pointer" />
-                                    <MessageCircle className="h-6 w-6 cursor-pointer" />
-                                    <Send className="h-6 w-6 cursor-pointer" />
-                                </div>
-                                <p className="text-sm pt-2">
-                                    <Link href={`/gallery?userId=${post.user?.id}`} className="font-semibold">{post.user?.name || 'User'}</Link>
-                                    {' '}My new creation!
-                                </p>
-                            </div>
-                        </div>
-                     ))}
+                 <div className="p-1">
+                    <div className="grid grid-cols-3 gap-1">
+                        {feedPosts.map((post) => (
+                            <GalleryThumbnail key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} />
+                        ))}
+                    </div>
                  </div>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
