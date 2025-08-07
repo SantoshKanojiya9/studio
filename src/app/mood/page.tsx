@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -43,11 +44,13 @@ export default function MoodPage() {
     const { user, supabase } = useAuth();
     const { toast } = useToast();
     const [moods, setMoods] = useState<Mood[]>([]);
+    const [feedPosts, setFeedPosts] = useState<EmojiState[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
     const [viewedMoods, setViewedMoods] = useState<Set<number>>(new Set());
+    const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-    const fetchMoods = useCallback(async () => {
+    const fetchFeedContent = useCallback(async () => {
         if (!user) return;
         setIsLoading(true);
 
@@ -63,6 +66,7 @@ export default function MoodPage() {
             
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
+            // Fetch moods
             const { data: moodData, error: moodError } = await supabase
                 .from('moods')
                 .select(`
@@ -98,11 +102,23 @@ export default function MoodPage() {
             });
 
             setMoods(formattedMoods as Mood[]);
+            
+            // Fetch posts for feed
+            const { data: postData, error: postError } = await supabase
+                .from('emojis')
+                .select('*, user:users!inner(id, name, picture)')
+                .in('user_id', userIds)
+                .order('created_at', { ascending: false });
+
+            if (postError) throw postError;
+
+            setFeedPosts(postData as unknown as EmojiState[]);
+
 
         } catch (error: any) {
-            console.error('Failed to fetch moods', error);
+            console.error('Failed to fetch feed content', error);
             toast({
-                title: "Could not load moods",
+                title: "Could not load your feed",
                 description: error.message,
                 variant: 'destructive',
             });
@@ -112,8 +128,8 @@ export default function MoodPage() {
     }, [user, supabase, toast]);
 
     useEffect(() => {
-        fetchMoods();
-    }, [fetchMoods]);
+        fetchFeedContent();
+    }, [fetchFeedContent]);
     
     const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
@@ -122,11 +138,14 @@ export default function MoodPage() {
         const moodId = moods[index].mood_id;
         setViewedMoods(prev => new Set(prev).add(moodId));
     };
+    
+    const handleSelectPost = (postId: string) => {
+        setSelectedPostId(postId);
+    };
 
-    const handleOnClose = () => {
+    const handleOnCloseMood = () => {
         setSelectedMoodIndex(null);
-        // We can optionally refresh moods here to get latest view states,
-        // but for now we optimistically update the UI.
+        // Optimistically update viewed state
         const newMoods = moods.map(m => ({
             ...m,
             is_viewed: viewedMoods.has(m.id) ? true : m.is_viewed,
@@ -145,11 +164,26 @@ export default function MoodPage() {
             <PostView 
                 emojis={moods}
                 initialIndex={selectedMoodIndex}
-                onClose={handleOnClose}
+                onClose={handleOnCloseMood}
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
-                    fetchMoods(); // Re-fetch after deletion
+                    fetchFeedContent(); // Re-fetch after deletion
+                }}
+            />
+        )
+    }
+
+    if (selectedPostId !== null) {
+        const postIndex = feedPosts.findIndex(p => p.id === selectedPostId);
+        return (
+             <PostView 
+                emojis={feedPosts}
+                initialIndex={postIndex}
+                onClose={() => setSelectedPostId(null)}
+                onDelete={(deletedId) => {
+                    setFeedPosts(feedPosts.filter(p => p.id !== deletedId));
+                    fetchFeedContent(); // Re-fetch
                 }}
             />
         )
@@ -158,68 +192,95 @@ export default function MoodPage() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       <MoodHeader />
+      <div className="flex-1 overflow-y-auto no-scrollbar">
       
-      <div className="border-b border-border/40">
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex w-max space-x-4 p-4">
-            {!isLoading && !userHasMood && (
-                <Link href="/gallery" className="flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="rounded-full p-[2px] bg-border/50">
-                        <Avatar className="h-16 w-16 border-2 border-background">
-                            <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
-                            <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
-                            <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                                <Plus className="h-3 w-3 text-primary-foreground" />
-                            </div>
-                        </Avatar>
-                    </div>
-                    <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
-                </Link>
-            )}
+        <div className="border-b border-border/40">
+            <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max space-x-4 p-4">
+                {!isLoading && !userHasMood && (
+                    <Link href="/gallery" className="flex flex-col items-center gap-2 cursor-pointer">
+                        <div className="rounded-full p-[2px] bg-border/50">
+                            <Avatar className="h-16 w-16 border-2 border-background">
+                                <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
+                                <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+                                <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                                    <Plus className="h-3 w-3 text-primary-foreground" />
+                                </div>
+                            </Avatar>
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
+                    </Link>
+                )}
 
-            {isLoading ? (
-                Array.from({length: 5}).map((_, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2">
-                        <div className="h-16 w-16 rounded-full bg-muted animate-pulse"></div>
-                        <div className="h-2 w-12 rounded-full bg-muted animate-pulse"></div>
+                {isLoading && moods.length === 0 ? (
+                    Array.from({length: 5}).map((_, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2">
+                            <div className="h-16 w-16 rounded-full bg-muted animate-pulse"></div>
+                            <div className="h-2 w-12 rounded-full bg-muted animate-pulse"></div>
+                        </div>
+                    ))
+                ) : (
+                    moods.map((mood, index) => (
+                    <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
+                        <StoryRing hasStory={true} isViewed={mood.is_viewed || viewedMoods.has(mood.mood_id)}>
+                        <Avatar className="h-16 w-16 border-2 border-background">
+                            <AvatarImage src={mood.user?.picture} alt={mood.user?.name} data-ai-hint="profile picture" />
+                            <AvatarFallback>{mood.user?.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        </StoryRing>
+                        <span className="text-xs font-medium text-muted-foreground">{mood.user_id === user?.id ? "Your Mood" : mood.user?.name}</span>
                     </div>
-                ))
-            ) : (
-                moods.map((mood, index) => (
-                  <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
-                    <StoryRing hasStory={true} isViewed={mood.is_viewed || viewedMoods.has(mood.mood_id)}>
-                      <Avatar className="h-16 w-16 border-2 border-background">
-                        <AvatarImage src={mood.user?.picture} alt={mood.user?.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{mood.user?.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </StoryRing>
-                    <span className="text-xs font-medium text-muted-foreground">{mood.user_id === user?.id ? "Your Mood" : mood.user?.name}</span>
-                  </div>
-                ))
-            )}
-          </div>
-          <ScrollBar orientation="horizontal" className="invisible" />
-        </ScrollArea>
-      </div>
+                    ))
+                )}
+            </div>
+            <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
+        </div>
       
-      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
-        {isLoading ? (
-            <Loader2 className="h-12 w-12 animate-spin" />
-        ) : moods.length > 0 ? (
-            <>
-                <Smile className="h-16 w-16" />
-                <h2 className="text-2xl font-bold text-foreground">Welcome to your Feed</h2>
-                <p>Tap on a mood above to view it. Follow more people to see more moods here.</p>
-                <Link href="/explore" className="text-primary font-semibold">Explore users</Link>
-            </>
-        ) : (
-            <>
-                <PlusSquare className="h-16 w-16" />
-                <h2 className="text-2xl font-bold text-foreground">Nothing in your feed yet</h2>
-                <p>When you follow people, their moods will appear here. Add your own mood from one of your posts!</p>
-                <Link href="/gallery" className="text-primary font-semibold">Go to your gallery</Link>
-            </>
-        )}
+        <div className="flex-1">
+            {isLoading ? (
+                <div className="flex h-full w-full items-center justify-center pt-10">
+                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                </div>
+            ) : feedPosts.length > 0 ? (
+                 <div className="divide-y divide-border/40">
+                     {feedPosts.map(post => (
+                        <div key={post.id} className="w-full flex flex-col snap-center">
+                            <div className="flex items-center px-4 py-2">
+                                <Link href={`/gallery?userId=${post.user?.id}`} className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                    <AvatarImage src={post.user?.picture} alt={post.user?.name} data-ai-hint="profile picture" />
+                                    <AvatarFallback>{post.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-semibold text-sm">{post.user?.name || 'User'}</span>
+                                </Link>
+                            </div>
+
+                            <div 
+                                className="aspect-square w-full bg-muted cursor-pointer"
+                                onClick={() => handleSelectPost(post.id)}
+                            >
+                               <GalleryThumbnail emoji={post} onSelect={() => handleSelectPost(post.id)} />
+                            </div>
+
+                            <div className="px-4 pt-2 pb-4">
+                                <p className="text-sm">
+                                    <Link href={`/gallery?userId=${post.user?.id}`} className="font-semibold">{post.user?.name || 'User'}</Link>
+                                    {' '}My new creation!
+                                </p>
+                            </div>
+                        </div>
+                     ))}
+                 </div>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
+                    <Smile className="h-16 w-16" />
+                    <h2 className="text-2xl font-bold text-foreground">Welcome to your Feed</h2>
+                    <p>When you follow people, their posts and moods will appear here.</p>
+                    <Link href="/explore" className="text-primary font-semibold">Explore users to follow</Link>
+                </div>
+            )}
+        </div>
       </div>
     </div>
   );

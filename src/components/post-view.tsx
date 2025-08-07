@@ -111,10 +111,8 @@ export function PostView({
           transition: { duration: 10, ease: 'linear' }
       }).then((result) => {
          // Check if the animation completed fully, not just stopped
-         if (result.width === '100%' && currentIndex === emojis.length - 1) {
+         if (result.width === '100%') {
             onClose();
-         } else if (result.width === '100%') {
-            goToNext();
          }
       });
     }
@@ -131,9 +129,24 @@ export function PostView({
 
     const container = scrollContainerRef.current;
     if (container) {
-      container.scrollTo({ top: container.offsetHeight * currentIndex, behavior: 'smooth' });
+      const handleScroll = () => {
+        const newIndex = Math.round(container.scrollTop / container.offsetHeight);
+        if (newIndex !== currentIndex) {
+          setCurrentIndex(newIndex);
+        }
+      };
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => container.removeEventListener('scroll', handleScroll);
     }
   }, [currentIndex, isMoodView]);
+
+  useEffect(() => {
+    if (isMoodView) return;
+    const container = scrollContainerRef.current;
+     if (container && !container.dataset.isScrolling) {
+      container.scrollTo({ top: container.offsetHeight * currentIndex, behavior: 'smooth' });
+    }
+  },[currentIndex, isMoodView]);
 
 
   const handleDeleteClick = (id: string) => {
@@ -370,7 +383,7 @@ export function PostView({
         <Button variant="ghost" size="icon" onClick={onClose}>
           <ArrowLeft />
         </Button>
-        <h2 className="font-semibold">{isMoodView ? "Mood" : "Post"}</h2>
+        <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
         <div className="w-10"></div> {/* Spacer */}
       </header>
 
@@ -415,10 +428,13 @@ export function PostView({
                        </Link>
                       </DropdownMenuItem>
                       {onDelete && (
-                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                        </>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -156,6 +156,7 @@ export async function supportUser(supportedId: string) {
     }
     revalidatePath(`/gallery?userId=${supportedId}`);
     revalidatePath(`/gallery`);
+    revalidatePath(`/mood`); // Revalidate mood page to show new posts
 }
 
 export async function unsupportUser(supportedId: string) {
@@ -178,6 +179,7 @@ export async function unsupportUser(supportedId: string) {
     }
     revalidatePath(`/gallery?userId=${supportedId}`);
     revalidatePath(`/gallery`);
+    revalidatePath(`/mood`); // Revalidate mood page to hide posts
 }
 
 // --- Mood Actions ---
