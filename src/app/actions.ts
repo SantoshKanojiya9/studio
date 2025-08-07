@@ -6,22 +6,6 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
 
 // --- User Profile Actions ---
 
-export async function getUserProfile(userId: string) {
-    // This client bypasses RLS to fetch public profile data for any user.
-    const supabase = createSupabaseServerClient(true); 
-    const { data, error } = await supabase
-        .from('users')
-        .select('id, name, picture, deleted_at')
-        .eq('id', userId)
-        .single();
-
-    if (error) {
-        console.error('Error getting user profile:', error);
-        return null;
-    }
-    return data;
-}
-
 export async function deleteUserAccount() {
     const supabase = createSupabaseServerClient(); // Does not bypass RLS
     const { error } = await supabase.rpc('handle_delete_user');

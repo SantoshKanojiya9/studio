@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -140,19 +140,14 @@ function GalleryPageContent() {
 
             setIsLoading(true);
             try {
-                // Fetch user profile
-                let userProfile;
-                if (isOwnProfile && authUser) {
-                    userProfile = {
-                        id: authUser.id,
-                        name: authUser.name,
-                        picture: authUser.picture,
-                    };
-                } else {
-                     userProfile = await getUserProfile(viewingUserId);
-                }
+                // Fetch user profile directly using client
+                const { data: userProfile, error: profileError } = await supabase
+                    .from('users')
+                    .select('id, name, picture')
+                    .eq('id', viewingUserId)
+                    .single();
                 
-                if (!userProfile) {
+                if (profileError || !userProfile) {
                     throw new Error("User profile not found.");
                 }
                 setProfileUser(userProfile as ProfileUser);
@@ -194,7 +189,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSupportData, router]);
+    }, [viewingUserId, toast, isOwnProfile, supabase, fetchSupportData, router]);
 
 
     const handleDelete = async (emojiId: string) => {
