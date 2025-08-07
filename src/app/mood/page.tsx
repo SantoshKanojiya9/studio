@@ -67,6 +67,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
+    const [currentLikeCount, setCurrentLikeCount] = useState(emoji.like_count);
     
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
@@ -164,12 +165,17 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                 </div>
                 <div className="px-4 pt-3 pb-4">
                     <div className="flex items-center gap-4">
-                        <LikeButton postId={emoji.id} initialLikes={emoji.like_count} isInitiallyLiked={emoji.is_liked} />
+                        <LikeButton 
+                            postId={emoji.id} 
+                            initialLikes={emoji.like_count} 
+                            isInitiallyLiked={emoji.is_liked}
+                            onLikeCountChange={setCurrentLikeCount}
+                        />
                         <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
                     </div>
-                     {emoji.like_count > 0 && (
+                     {currentLikeCount > 0 && (
                         <p className="text-sm font-semibold mt-2">
-                            {emoji.like_count} {emoji.like_count === 1 ? 'like' : 'likes'}
+                            {currentLikeCount} {currentLikeCount === 1 ? 'like' : 'likes'}
                         </p>
                      )}
                     <p className="text-sm mt-1">
@@ -243,12 +249,20 @@ export default function MoodPage() {
 
             if (moodError) throw moodError;
             
-            const myViews = new Set(moodData.flatMap(m => m.views.map(v => m.id)));
+            // Check which moods the current user has viewed
+            const myMoodViews = await supabase
+                .from('mood_views')
+                .select('mood_id')
+                .eq('viewer_id', user.id)
+                .in('mood_id', moodData.map(m => m.id));
+
+            const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 
             const formattedMoods = moodData.map(m => {
-                const isViewedByMe = myViews.has(m.id);
                 // A user's own mood should only be "viewed" (gray) if someone ELSE has viewed it.
-                const isViewed = m.user_id === user.id ? m.views.some(v => v.viewer_id !== user.id) : isViewedByMe;
+                const isViewed = m.user_id === user.id 
+                    ? m.views.some(v => v.viewer_id !== user.id) 
+                    : viewedMoodIds.has(m.id);
 
                 return {
                     ...(m.emoji as unknown as EmojiState),
@@ -315,9 +329,16 @@ export default function MoodPage() {
     const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
     const handleSelectMood = (index: number) => {
-        setSelectedMoodIndex(index);
         const moodId = moods[index].mood_id;
-        setViewedMoods(prev => new Set(prev).add(moodId));
+        // Only record a view if it's not the user's own mood
+        if (moods[index].mood_user_id !== user?.id) {
+            recordMoodView(moodId);
+            // Optimistically update the ring state locally
+             setMoods(currentMoods => currentMoods.map(m => 
+                m.mood_id === moodId ? { ...m, is_viewed: true } : m
+            ));
+        }
+        setSelectedMoodIndex(index);
     };
     
     const handleSelectPost = (postId: string) => {
@@ -325,19 +346,16 @@ export default function MoodPage() {
     };
 
     const handleOnCloseMood = () => {
-        setSelectedMoodIndex(null);
-        // Optimistically update viewed state
-        const newMoods = moods.map(m => ({
-            ...m,
-            is_viewed: viewedMoods.has(m.id) ? true : m.is_viewed,
-        })).sort((a, b) => {
+        // Re-sort the moods after closing the viewer
+        const sortedMoods = [...moods].sort((a, b) => {
             if (a.mood_user_id === user?.id) return -1;
             if (b.mood_user_id === user?.id) return 1;
-            if (a.is_viewed && !b.is_viewed) return 1;
             if (!a.is_viewed && b.is_viewed) return -1;
+            if (a.is_viewed && !b.is_viewed) return 1;
             return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
         });
-        setMoods(newMoods);
+        setMoods(sortedMoods);
+        setSelectedMoodIndex(null);
     }
     
     if (selectedMoodIndex !== null) {
@@ -403,7 +421,7 @@ export default function MoodPage() {
                 ) : (
                     moods.map((mood, index) => (
                     <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
-                        <StoryRing hasStory={true} isViewed={mood.is_viewed || viewedMoods.has(mood.mood_id)}>
+                        <StoryRing hasStory={true} isViewed={mood.is_viewed}>
                         <Avatar className="h-16 w-16 border-2 border-background">
                             <AvatarImage src={mood.mood_user?.picture} alt={mood.mood_user?.name} data-ai-hint="profile picture" />
                             <AvatarFallback>{mood.mood_user?.name.charAt(0)}</AvatarFallback>

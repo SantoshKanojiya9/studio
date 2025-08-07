@@ -4,9 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
-import { likePost, unlikePost } from '@/app/actions';
+import { likePost, unlikePost, getLikeCount } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 const BtsHandIcon = ({ isLiked, ...props }: React.SVGProps<SVGSVGElement> & { isLiked: boolean }) => (
     <svg
@@ -18,13 +19,26 @@ const BtsHandIcon = ({ isLiked, ...props }: React.SVGProps<SVGSVGElement> & { is
       className={cn("cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 active:scale-95", props.className)}
       {...props}
     >
-      <path
-        d="M8 15.1429C8 15.1429 7.28571 19.5714 9.14286 21.4286C11 23.2857 14.5714 22.5714 14.5714 22.5714M12.4286 4.71429C12.4286 4.71429 11.7143 2 14 2C16.2857 2 15.7143 4.71429 15.7143 4.71429M12.4286 4.71429C12.4286 4.71429 13.1429 2 11.2857 2C9.42857 2 10 4.71429 10 4.71429M12.4286 4.71429V12.2857"
-        stroke={isLiked ? 'hsl(var(--primary))' : 'currentColor'}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+        <motion.path
+            d="M8.5 14.5C8.5 14.5 7.5 19.5 9.5 21.5C11.5 23.5 15.5 22.5 15.5 22.5M12.5 5C12.5 5 12.5 2 14.5 2C16.5 2 15.5 5 15.5 5M12.5 5C12.5 5 11.5 2 9.5 2C7.5 2 8.5 5 8.5 5M12.5 5L8.5 14.5"
+            stroke={isLiked ? 'hsl(var(--primary))' : 'currentColor'}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={false}
+            animate={{ stroke: isLiked ? 'hsl(var(--primary))' : 'currentColor' }}
+            transition={{ duration: 0.3 }}
+        />
+        <motion.path
+            d="M12.5 12L15.5 5"
+            stroke={isLiked ? 'hsl(var(--primary))' : 'currentColor'}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={false}
+            animate={{ stroke: isLiked ? 'hsl(var(--primary))' : 'currentColor' }}
+            transition={{ duration: 0.3 }}
+        />
     </svg>
 );
 
@@ -64,10 +78,12 @@ export const LikeButton = ({
   postId,
   initialLikes,
   isInitiallyLiked,
+  onLikeCountChange,
 }: {
   postId: string;
   initialLikes: number;
   isInitiallyLiked: boolean;
+  onLikeCountChange?: (newCount: number) => void;
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -87,6 +103,30 @@ export const LikeButton = ({
     }
   }, [showHearts]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`realtime-likes:${postId}`)
+      .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'likes', 
+            filter: `emoji_id=eq.${postId}` 
+        }, 
+        async () => {
+            const newCount = await getLikeCount(postId);
+            setLikeCount(newCount);
+            if (onLikeCountChange) {
+                onLikeCountChange(newCount);
+            }
+        }
+      )
+      .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    }
+  }, [postId, onLikeCountChange]);
+
   const handleClick = async (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
     e.stopPropagation();
     if (!user) {
@@ -101,7 +141,15 @@ export const LikeButton = ({
     // Optimistic UI updates
     const wasLiked = isLiked;
     setIsLiked(!wasLiked);
-    setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
+    
+    // The realtime listener will handle the count update,
+    // but we can do it optimistically for a faster feel.
+    const newOptimisticCount = wasLiked ? likeCount - 1 : likeCount + 1;
+    setLikeCount(newOptimisticCount);
+    if(onLikeCountChange) {
+        onLikeCountChange(newOptimisticCount);
+    }
+
 
     if (!wasLiked) {
         setShowHearts(true);
@@ -116,7 +164,11 @@ export const LikeButton = ({
     } catch (error) {
       // Revert UI on error
       setIsLiked(wasLiked);
-      setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
+       const newRevertedCount = wasLiked ? likeCount + 1 : likeCount - 1;
+       setLikeCount(newRevertedCount);
+       if (onLikeCountChange) {
+           onLikeCountChange(newRevertedCount);
+       }
       toast({
         title: "Something went wrong",
         description: "Could not update like status. Please try again.",
