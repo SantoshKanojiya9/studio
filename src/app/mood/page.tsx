@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, PlusSquare, Loader2, Smile } from 'lucide-react';
+import { Plus, Loader2, Smile, Heart, MessageCircle, Send } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -264,7 +264,12 @@ export default function MoodPage() {
                             </div>
 
                             <div className="px-4 pt-2 pb-4">
-                                <p className="text-sm">
+                                <div className="flex items-center gap-4">
+                                    <Heart className="h-6 w-6 cursor-pointer" />
+                                    <MessageCircle className="h-6 w-6 cursor-pointer" />
+                                    <Send className="h-6 w-6 cursor-pointer" />
+                                </div>
+                                <p className="text-sm pt-2">
                                     <Link href={`/gallery?userId=${post.user?.id}`} className="font-semibold">{post.user?.name || 'User'}</Link>
                                     {' '}My new creation!
                                 </p>
