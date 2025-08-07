@@ -7,9 +7,8 @@ import { createSupabaseServerClient } from '@/lib/supabaseServer';
 // --- User Profile Actions ---
 
 export async function getUserProfile(userId: string) {
-    // This client does NOT bypass RLS.
-    // It can only fetch the profile if RLS policies allow it.
-    const supabase = createSupabaseServerClient(); 
+    // This client bypasses RLS to fetch public profile data for any user.
+    const supabase = createSupabaseServerClient(true); 
     const { data, error } = await supabase
         .from('users')
         .select('id, name, picture, deleted_at')

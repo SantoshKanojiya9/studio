@@ -141,13 +141,17 @@ function GalleryPageContent() {
             setIsLoading(true);
             try {
                 // Fetch user profile
+                let userProfile;
                 if (isOwnProfile && authUser) {
-                    setProfileUser(authUser);
+                    userProfile = authUser;
                 } else {
-                     const userProfile = await getUserProfile(viewingUserId);
-                    if (!userProfile) throw new Error("User profile not found.");
-                    setProfileUser(userProfile);
+                     userProfile = await getUserProfile(viewingUserId);
                 }
+                
+                if (!userProfile) {
+                    throw new Error("User profile not found.");
+                }
+                setProfileUser(userProfile);
 
                 // Fetch user emojis
                 const { data, error } = await supabase
