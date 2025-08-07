@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { useToast } from './use-toast';
-import { getUserProfile, recoverUserAccount } from '@/app/actions';
+import { recoverUserAccount } from '@/app/actions';
 
 interface UserProfile {
     id: string;
@@ -47,15 +47,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(currentSession);
         
         if (currentSession?.user) {
-            // This is a simplified user object directly from the auth session.
-            const authUser = currentSession.user;
-            const userProfile: UserProfile = {
-                id: authUser.id,
-                email: authUser.email || '',
-                name: authUser.user_metadata.name || authUser.email?.split('@')[0] || 'User',
-                picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`
-            };
-            setUser(userProfile);
+            // Fetch the latest profile data from the 'users' table
+            const { data: profile, error } = await client
+                .from('users')
+                .select('*')
+                .eq('id', currentSession.user.id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching user profile:", error);
+                // Fallback to metadata if profile doesn't exist yet
+                 const authUser = currentSession.user;
+                 setUser({
+                    id: authUser.id,
+                    email: authUser.email || '',
+                    name: authUser.user_metadata.name || authUser.email?.split('@')[0] || 'User',
+                    picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`
+                });
+
+            } else if (profile) {
+                setUser({
+                    id: profile.id,
+                    name: profile.name,
+                    email: profile.email,
+                    picture: profile.picture,
+                    deleted_at: profile.deleted_at,
+                });
+            }
         } else {
             setUser(null);
         }
@@ -72,7 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
       (_event, newSession) => {
-        handleAuthChange(newSession);
+        // When a session is refreshed (e.g., after profile update), re-fetch data.
+        if (_event === "TOKEN_REFRESHED" || _event === "SIGNED_IN") {
+            handleAuthChange(newSession);
+        } else if (_event === "SIGNED_OUT") {
+            setUser(null);
+        }
       }
     );
 

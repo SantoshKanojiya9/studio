@@ -33,11 +33,14 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
     }
 
     let avatarUrl = undefined;
+    
+    // Create a client that can bypass RLS to upload the avatar
+    const supabaseAdmin = createSupabaseServerClient(true);
 
     if (avatarFile && avatarFile.size > 0) {
         const filePath = `${user.id}/avatar.${avatarFile.name.split('.').pop()}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseAdmin.storage
             .from('avatars')
             .upload(filePath, avatarFile, {
                 upsert: true, // Overwrite existing file
@@ -48,7 +51,7 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
             throw new Error('Failed to upload new profile picture.');
         }
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl } } = supabaseAdmin.storage
             .from('avatars')
             .getPublicUrl(filePath);
         
@@ -61,6 +64,7 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
         updates.picture = avatarUrl;
     }
     
+    // 1. Update the public users table
     const { error: updateError } = await supabase
         .from('users')
         .update(updates)
@@ -70,6 +74,18 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
         console.error('Error updating user profile:', updateError);
         throw new Error('Failed to update profile.');
     }
+
+    // 2. Update the user_metadata in the auth schema
+    const { error: adminUserUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
+        user.id,
+        { user_metadata: updates }
+    );
+    
+    if (adminUserUpdateError) {
+        console.error('Error updating auth user metadata:', adminUserUpdateError);
+        // This is not a critical error for the user, so we can just log it
+    }
+
 
     // Revalidate paths to reflect changes immediately
     revalidatePath('/gallery');
