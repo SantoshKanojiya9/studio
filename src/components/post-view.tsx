@@ -20,32 +20,29 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X, Eye } from 'lucide-react';
 import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { setMood } from '@/app/actions';
+import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actions';
+
+interface Mood extends EmojiState {
+    mood_id: number;
+    mood_user_id: string;
+}
 
 interface PostViewProps {
-  emojis: EmojiState[];
+  emojis: (EmojiState | Mood)[];
   initialIndex?: number;
   onClose: () => void;
   onDelete?: (id: string) => void;
   isMoodView?: boolean;
 }
-
-const StoryProgressBar = ({ progress }: { progress: number }) => (
-    <div className="w-full bg-gray-500/50 rounded-full h-1">
-        <motion.div 
-            className="bg-white h-1 rounded-full"
-            style={{ width: `${progress * 100}%` }}
-        />
-    </div>
-)
 
 export function PostView({ 
     emojis,
@@ -63,10 +60,13 @@ export function PostView({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const animationControls = useAnimation();
-  const progress = useMotionValue(0);
   const storyTimer = useRef<NodeJS.Timeout>();
-
+  
   const currentEmojiState = emojis[currentIndex];
+
+  const isCurrentEmojiMood = (emoji: EmojiState | Mood): emoji is Mood => {
+    return 'mood_id' in emoji;
+  }
   
   const goToNext = () => {
     if (currentIndex < emojis.length - 1) {
@@ -85,18 +85,18 @@ export function PostView({
   };
 
   useEffect(() => {
-    if (isMoodView) {
-      progress.set(0);
+    if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
+      recordMoodView(currentEmojiState.mood_id);
+      
       animationControls.stop();
       animationControls.set({ width: '0%' });
       
       animationControls.start({
           width: '100%',
           transition: { duration: 10, ease: 'linear' }
-      }).then(({width}) => {
-         // Check if animation completed fully before going to next
-         if (width === '100%') {
-            goToNext();
+      }).then((result) => {
+         if (result.width === '100%') {
+            onClose();
          }
       });
     }
@@ -129,6 +129,20 @@ export function PostView({
       setEmojiToDelete(null);
     }
   };
+  
+  const handleRemoveMood = async () => {
+    if (!currentEmojiState || !isCurrentEmojiMood(currentEmojiState)) return;
+    try {
+        await removeMood();
+        toast({ title: "Mood Removed", variant: 'success' });
+        if (onDelete) {
+            onDelete(currentEmojiState.mood_id.toString());
+        }
+        onClose();
+    } catch (error: any) {
+        toast({ title: "Error removing mood", description: error.message, variant: 'destructive' });
+    }
+  }
 
   const handleSetMood = async (emojiId: string) => {
     try {
@@ -228,9 +242,29 @@ export function PostView({
                       <AvatarFallback>{postAuthor?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
-                     <button onClick={onClose} className="ml-auto text-white">
-                        <X size={24} />
-                    </button>
+                    <div className="ml-auto flex items-center gap-2">
+                        {user && currentEmojiState && isCurrentEmojiMood(currentEmojiState) && currentEmojiState.mood_user_id === user.id && (
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="text-white"><MoreHorizontal size={24} /></button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => {/* TODO: Show viewers */}}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        <span>Viewers</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={handleRemoveMood}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Remove Mood</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                        <button onClick={onClose} className="text-white">
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -305,6 +339,10 @@ export function PostView({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                       <DropdownMenuItem onClick={() => handleSetMood(emoji.id)}>
+                        <Smile className="mr-2 h-4 w-4" />
+                        <span>Set as Mood</span>
+                      </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                        <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
                          <Edit className="mr-2 h-4 w-4" />
@@ -317,10 +355,6 @@ export function PostView({
                           <span>Delete</span>
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem onClick={() => handleSetMood(emoji.id)}>
-                        <Smile className="mr-2 h-4 w-4" />
-                        <span>Set as Mood</span>
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
@@ -361,7 +395,7 @@ export function PostView({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Do you want to delete this emoji? This action cannot be undone.
+                        Do you want to delete this post? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

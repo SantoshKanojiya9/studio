@@ -204,3 +204,67 @@ export async function setMood(emojiId: string) {
 
     revalidatePath('/mood');
 }
+
+export async function removeMood() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("User not authenticated.");
+    }
+
+    const { error } = await supabase
+        .from('moods')
+        .delete()
+        .eq('user_id', user.id);
+
+    if (error) {
+        console.error('Error removing mood:', error);
+        throw new Error(error.message);
+    }
+
+    revalidatePath('/mood');
+}
+
+export async function recordMoodView(moodId: number) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return; // Don't record views for non-users
+
+    // Don't record viewing your own mood
+    const { data: mood, error: moodError } = await supabase
+        .from('moods')
+        .select('user_id')
+        .eq('id', moodId)
+        .single();
+    
+    if (moodError || !mood || mood.user_id === user.id) {
+        return;
+    }
+
+    const { error } = await supabase
+        .from('mood_views')
+        .insert({ mood_id: moodId, viewer_id: user.id });
+
+    if (error && error.code !== '23505') { // 23505 is unique violation, ignore it
+        console.error('Error recording mood view:', error);
+    }
+}
+
+export async function getMoodViewers(moodId: number): Promise<{ id: string; name: string; picture: string; }[]> {
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+        .from('mood_views')
+        .select('user:users!inner(id, name, picture)')
+        .eq('mood_id', moodId)
+        .order('viewed_at', { ascending: false });
+
+    if (error) {
+        console.error('Error getting mood viewers:', error);
+        return [];
+    }
+    
+    // The data is nested, so we need to flatten it.
+    return data.map(v => v.user) as { id: string; name: string; picture: string; }[];
+}

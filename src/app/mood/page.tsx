@@ -23,14 +23,17 @@ const PostView = dynamic(() =>
 
 interface Mood extends EmojiState {
   mood_id: number;
+  mood_created_at: string;
+  mood_user_id: string;
+  is_viewed?: boolean;
 }
 
-const StoryRing = ({ hasStory, children }: { hasStory: boolean; children: React.ReactNode }) => {
+const StoryRing = ({ hasStory, isViewed, children }: { hasStory: boolean; isViewed?: boolean; children: React.ReactNode }) => {
   if (!hasStory) {
     return <>{children}</>;
   }
   return (
-    <div className="rounded-full p-[2px] bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-400">
+    <div className={`rounded-full p-[2px] ${isViewed ? 'bg-border/50' : 'bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-400'}`}>
       {children}
     </div>
   );
@@ -42,6 +45,7 @@ export default function MoodPage() {
     const [moods, setMoods] = useState<Mood[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
+    const [viewedMoods, setViewedMoods] = useState<Set<number>>(new Set());
 
     const fetchMoods = useCallback(async () => {
         if (!user) return;
@@ -62,24 +66,35 @@ export default function MoodPage() {
             const { data: moodData, error: moodError } = await supabase
                 .from('moods')
                 .select(`
-                    id, 
+                    id,
+                    user_id,
                     created_at,
-                    emoji:emojis!inner(*, user:users!inner(id, name, picture))
+                    emoji:emojis!inner(*, user:users!inner(id, name, picture)),
+                    views:mood_views(viewer_id)
                 `)
                 .in('user_id', userIds)
                 .gte('created_at', twentyFourHoursAgo)
                 .order('created_at', { ascending: false });
 
             if (moodError) throw moodError;
+            
+            const myViews = new Set(moodData.flatMap(m => m.views.map(v => m.id)));
 
-            const formattedMoods = moodData.map(m => ({
-                ...(m.emoji as unknown as EmojiState),
-                mood_id: m.id,
-                created_at: m.created_at,
-            })).sort((a, b) => {
-                if (a.user_id === user.id) return -1;
-                if (b.user_id === user.id) return 1;
-                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            const formattedMoods = moodData.map(m => {
+                const isViewed = myViews.has(m.id);
+                return {
+                    ...(m.emoji as unknown as EmojiState),
+                    mood_id: m.id,
+                    mood_created_at: m.created_at,
+                    mood_user_id: m.user_id,
+                    is_viewed: isViewed
+                }
+            }).sort((a, b) => {
+                if (a.mood_user_id === user.id) return -1;
+                if (b.mood_user_id === user.id) return 1;
+                if (a.is_viewed && !b.is_viewed) return 1;
+                if (!a.is_viewed && b.is_viewed) return -1;
+                return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
             });
 
             setMoods(formattedMoods as Mood[]);
@@ -100,19 +115,42 @@ export default function MoodPage() {
         fetchMoods();
     }, [fetchMoods]);
     
-    const userHasMood = moods.some(m => m.user_id === user?.id);
+    const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
     const handleSelectMood = (index: number) => {
         setSelectedMoodIndex(index);
+        const moodId = moods[index].mood_id;
+        setViewedMoods(prev => new Set(prev).add(moodId));
     };
+
+    const handleOnClose = () => {
+        setSelectedMoodIndex(null);
+        // We can optionally refresh moods here to get latest view states,
+        // but for now we optimistically update the UI.
+        const newMoods = moods.map(m => ({
+            ...m,
+            is_viewed: viewedMoods.has(m.id) ? true : m.is_viewed,
+        })).sort((a, b) => {
+            if (a.mood_user_id === user?.id) return -1;
+            if (b.mood_user_id === user?.id) return 1;
+            if (a.is_viewed && !b.is_viewed) return 1;
+            if (!a.is_viewed && b.is_viewed) return -1;
+            return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
+        });
+        setMoods(newMoods);
+    }
     
     if (selectedMoodIndex !== null) {
         return (
             <PostView 
                 emojis={moods}
                 initialIndex={selectedMoodIndex}
-                onClose={() => setSelectedMoodIndex(null)}
+                onClose={handleOnClose}
                 isMoodView={true}
+                onDelete={(moodId) => {
+                    setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
+                    fetchMoods(); // Re-fetch after deletion
+                }}
             />
         )
     }
@@ -149,7 +187,7 @@ export default function MoodPage() {
             ) : (
                 moods.map((mood, index) => (
                   <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
-                    <StoryRing hasStory={true}>
+                    <StoryRing hasStory={true} isViewed={mood.is_viewed || viewedMoods.has(mood.mood_id)}>
                       <Avatar className="h-16 w-16 border-2 border-background">
                         <AvatarImage src={mood.user?.picture} alt={mood.user?.name} data-ai-hint="profile picture" />
                         <AvatarFallback>{mood.user?.name.charAt(0)}</AvatarFallback>
