@@ -13,7 +13,7 @@ export async function getUserProfile(userId: string) {
         .from('users')
         .select('id, name, picture, deleted_at')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
     if (error) {
         console.error('Error getting user profile:', error);
