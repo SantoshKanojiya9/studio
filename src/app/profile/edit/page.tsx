@@ -1,0 +1,150 @@
+
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Loader2, ArrowLeft, Camera } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { updateUserProfile } from '@/app/actions';
+
+export default function EditProfilePage() {
+    const { user, loading: authLoading, supabase } = useAuth();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const [name, setName] = useState('');
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!authLoading && user) {
+            setName(user.name);
+            setAvatarPreview(user.picture);
+        }
+    }, [user, authLoading]);
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+
+        setIsSaving(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', name);
+            if (avatarFile) {
+                formData.append('avatarFile', avatarFile);
+            }
+            
+            // We pass the name and avatarFile to the server action
+            await updateUserProfile({ name, avatarFile: avatarFile || undefined });
+            
+            toast({
+                title: "Profile updated!",
+                description: "Your changes have been saved successfully.",
+                variant: 'success'
+            });
+
+            // Force a reload of the user session to get the new data
+            await supabase.auth.refreshSession();
+            router.push('/gallery');
+            
+        } catch (error: any) {
+            console.error("Failed to update profile", error);
+            toast({
+                title: "Update failed",
+                description: error.message || "Could not save your changes.",
+                variant: 'destructive'
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+    
+    if (authLoading || !user) {
+        return (
+            <div className="flex h-full w-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
+    
+    return (
+        <div className="flex h-full w-full flex-col">
+            <header className="flex h-16 flex-shrink-0 items-center border-b px-4">
+                <Button variant="ghost" size="icon" className="mr-2" onClick={() => router.back()}>
+                    <ArrowLeft />
+                </Button>
+                <h1 className="text-lg font-semibold">Edit Profile</h1>
+            </header>
+            <div className="flex-1 overflow-y-auto p-6">
+                <form onSubmit={handleFormSubmit} className="space-y-8">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={avatarPreview || user.picture} alt="Profile preview" data-ai-hint="profile picture" />
+                                <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                size="icon" 
+                                className="absolute bottom-0 right-0 rounded-full bg-background"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Camera className="h-5 w-5"/>
+                            </Button>
+                            <Input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                accept="image/png, image/jpeg"
+                                onChange={handleAvatarChange}
+                            />
+                        </div>
+                        <Button 
+                            type="button" 
+                            variant="link"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            Change profile photo
+                        </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input 
+                            id="name" 
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    </div>
+                    
+                    <Button type="submit" className="w-full" disabled={isSaving}>
+                        {isSaving ? <Loader2 className="animate-spin" /> : 'Save Changes'}
+                    </Button>
+                </form>
+            </div>
+        </div>
+    );
+}

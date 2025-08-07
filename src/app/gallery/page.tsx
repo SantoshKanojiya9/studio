@@ -30,6 +30,8 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -39,52 +41,6 @@ const PostView = dynamic(() =>
   }
 );
 
-
-const CrownedEggAvatar = () => {
-    return (
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-            <defs>
-                <radialGradient id="eggGradient" cx="0.5" cy="0.5" r="0.5">
-                    <stop offset="0%" stopColor="#f5f5f5" />
-                    <stop offset="100%" stopColor="#e0e0e0" />
-                </radialGradient>
-                <linearGradient id="crownGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FFD700" />
-                    <stop offset="100%" stopColor="#FFA500" />
-                </linearGradient>
-            </defs>
-            <ellipse cx="50" cy="90" rx="35" ry="5" fill="rgba(0,0,0,0.1)" />
-            <path 
-                d="M 50,15
-                   C 25,15 15,40 15,60
-                   C 15,85 35,100 50,100
-                   C 65,100 85,85 85,60
-                   C 85,40 75,15 50,15 Z"
-                fill="url(#eggGradient)"
-                transform="translate(0, -10)"
-            />
-            <g transform="translate(0, -10)">
-                <path 
-                    d="M 25 30 L 75 30 L 70 45 L 30 45 Z"
-                    fill="url(#crownGradient)"
-                    stroke="#DAA520"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                />
-                <path 
-                    d="M 25 30 L 35 15 L 50 25 L 65 15 L 75 30"
-                    fill="url(#crownGradient)"
-                    stroke="#DAA520"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                />
-                <circle cx="35" cy="18" r="3" fill="#FF4136" />
-                <circle cx="50" cy="28" r="3" fill="#0074D9" />
-                <circle cx="65" cy="18" r="3" fill="#2ECC40" />
-            </g>
-        </svg>
-    );
-};
 
 interface ProfileUser {
     id: string;
@@ -398,9 +354,10 @@ function GalleryPageContent() {
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <div className="w-20 h-20 flex-shrink-0">
-                                    <CrownedEggAvatar />
-                                </div>
+                                <Avatar className="w-20 h-20 flex-shrink-0">
+                                    <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                    <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                </Avatar>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
@@ -422,7 +379,9 @@ function GalleryPageContent() {
                            <div className="mt-4 flex gap-2">
                                 {isOwnProfile ? (
                                     <>
-                                        <Button variant="secondary" className="flex-1">Edit profile</Button>
+                                        <Button asChild variant="secondary" className="flex-1">
+                                            <Link href="/profile/edit">Edit profile</Link>
+                                        </Button>
                                         <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
                                     </>
                                 ) : (

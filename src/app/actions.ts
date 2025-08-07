@@ -24,6 +24,59 @@ export async function recoverUserAccount() {
     }
 }
 
+export async function updateUserProfile({ name, avatarFile }: { name: string; avatarFile?: File }) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("User not authenticated.");
+    }
+
+    let avatarUrl = undefined;
+
+    if (avatarFile && avatarFile.size > 0) {
+        const filePath = `${user.id}/avatar.${avatarFile.name.split('.').pop()}`;
+        
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, avatarFile, {
+                upsert: true, // Overwrite existing file
+            });
+
+        if (uploadError) {
+            console.error('Avatar upload error:', uploadError);
+            throw new Error('Failed to upload new profile picture.');
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+        
+        // Add a timestamp to bust the cache
+        avatarUrl = `${publicUrl}?t=${new Date().getTime()}`;
+    }
+
+    const updates: { name: string; picture?: string } = { name };
+    if (avatarUrl) {
+        updates.picture = avatarUrl;
+    }
+    
+    const { error: updateError } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id);
+
+    if (updateError) {
+        console.error('Error updating user profile:', updateError);
+        throw new Error('Failed to update profile.');
+    }
+
+    // Revalidate paths to reflect changes immediately
+    revalidatePath('/gallery');
+    revalidatePath(`/gallery?userId=${user.id}`);
+    revalidatePath('/profile/edit');
+}
+
 
 // --- Support Actions ---
 
