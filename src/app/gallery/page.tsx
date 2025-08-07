@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { startTransition } from 'react';
+import React from 'react';
 import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
+import { UserListSheet } from '@/components/user-list-sheet';
 
 
 const PostView = dynamic(() => 
@@ -68,6 +69,7 @@ function GalleryPageContent() {
     const userId = searchParams.get('userId');
 
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+    const [sheetContent, setSheetContent] = React.useState<'supporters' | 'supporting' | null>(null);
 
     const isOwnProfile = !userId || (authUser && userId === authUser.id);
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
@@ -164,6 +166,28 @@ function GalleryPageContent() {
         }
     }, [viewingUserId, toast, isOwnProfile, supabase, fetchSupportData, router]);
 
+    // Real-time listener for support counts
+    React.useEffect(() => {
+        if (!viewingUserId) return;
+
+        const channel = supabase
+            .channel(`realtime-supports:${viewingUserId}`)
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'supports',
+                filter: `or(supporter_id.eq.${viewingUserId},supported_id.eq.${viewingUserId})`
+            },
+            () => {
+                fetchSupportData();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        }
+    }, [viewingUserId, supabase, fetchSupportData]);
+
 
     const handleDelete = async (emojiId: string) => {
         if (!supabase) return;
@@ -231,6 +255,7 @@ function GalleryPageContent() {
                 await supportUser(viewingUserId);
             }
             // After the server action is complete, re-fetch the data to ensure UI is in sync
+            // The realtime listener will also catch this, but fetching immediately makes the UI faster.
             await fetchSupportData();
         } catch (error: any) {
             console.error("Support error:", error);
@@ -382,14 +407,14 @@ function GalleryPageContent() {
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
-                                    <div className="text-center">
+                                    <button className="text-center" onClick={() => setSheetContent('supporters')}>
                                         <p className="font-bold text-lg">{supporterCount}</p>
                                         <p className="text-sm text-muted-foreground">supporters</p>
-                                    </div>
-                                    <div className="text-center">
+                                    </button>
+                                     <button className="text-center" onClick={() => setSheetContent('supporting')}>
                                         <p className="font-bold text-lg">{supportingCount}</p>
                                         <p className="text-sm text-muted-foreground">supporting</p>
-                                    </div>
+                                    </button>
                                 </div>
                             </div>
                            <div className="mt-4 flex gap-2">
@@ -439,6 +464,14 @@ function GalleryPageContent() {
                 </>
             )}
             </div>
+            
+            <UserListSheet
+                open={!!sheetContent}
+                onOpenChange={(isOpen) => !isOpen && setSheetContent(null)}
+                type={sheetContent}
+                userId={viewingUserId}
+            />
+
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                 <AlertDialogContent>
                 <AlertDialogHeader>
