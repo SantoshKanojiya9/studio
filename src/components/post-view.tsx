@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
@@ -23,8 +23,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile } from 'lucide-react';
-import { motion, useMotionValue } from 'framer-motion';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X } from 'lucide-react';
+import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +38,15 @@ interface PostViewProps {
   isMoodView?: boolean;
 }
 
+const StoryProgressBar = ({ progress }: { progress: number }) => (
+    <div className="w-full bg-gray-500/50 rounded-full h-1">
+        <motion.div 
+            className="bg-white h-1 rounded-full"
+            style={{ width: `${progress * 100}%` }}
+        />
+    </div>
+)
+
 export function PostView({ 
     emojis,
     initialIndex = 0, 
@@ -47,59 +56,67 @@ export function PostView({
 }: PostViewProps) {
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [direction, setDirection] = useState(0);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isScrolling = useRef<NodeJS.Timeout | null>(null);
+  
+  const animationControls = useAnimation();
+  const progress = useMotionValue(0);
+  const storyTimer = useRef<NodeJS.Timeout>();
 
-  const [currentEmojiState, setCurrentEmojiState] = useState(emojis[currentIndex]);
+  const currentEmojiState = emojis[currentIndex];
+  
+  const goToNext = () => {
+    if (currentIndex < emojis.length - 1) {
+      setDirection(1);
+      setCurrentIndex(currentIndex + 1);
+    } else {
+        onClose(); // Close if it's the last one
+    }
+  };
 
-  useEffect(() => {
-    // Sync state if emojis prop changes
-    setCurrentEmojiState(emojis[currentIndex]);
-  }, [emojis, currentIndex]);
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setDirection(-1);
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
 
   useEffect(() => {
     if (isMoodView) {
-      const timer = setTimeout(() => {
-        // After 10 seconds, revert the animation type to 'none'
-        setCurrentEmojiState(prev => ({ ...prev, animation_type: 'none' }));
-      }, 10000);
-      return () => clearTimeout(timer);
+      progress.set(0);
+      animationControls.stop();
+      animationControls.set({ width: '0%' });
+      
+      animationControls.start({
+          width: '100%',
+          transition: { duration: 10, ease: 'linear' }
+      }).then(({width}) => {
+         // Check if animation completed fully before going to next
+         if (width === '100%') {
+            goToNext();
+         }
+      });
     }
-  }, [isMoodView]);
+    return () => {
+      animationControls.stop();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, isMoodView, animationControls]);
 
-  useLayoutEffect(() => {
+
+  // Regular Post view scrolling logic
+  useEffect(() => {
+    if (isMoodView) return;
+
     const container = scrollContainerRef.current;
     if (container) {
-        container.scrollTo({
-            top: container.offsetHeight * initialIndex,
-            behavior: 'auto'
-        });
+      container.scrollTo({ top: container.offsetHeight * currentIndex, behavior: 'smooth' });
     }
-  }, [initialIndex]);
+  }, [currentIndex, isMoodView]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      if (isScrolling.current) {
-        clearTimeout(isScrolling.current);
-      }
-      isScrolling.current = setTimeout(() => {
-        const newIndex = Math.round(container.scrollTop / container.offsetHeight);
-        if (newIndex >= 0 && newIndex < emojis.length) {
-            setCurrentIndex(newIndex);
-            setCurrentEmojiState(emojis[newIndex]); // Update state on scroll
-        }
-      }, 150);
-    };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [emojis]);
 
   const handleDeleteClick = (id: string) => {
     if (!onDelete) return;
@@ -135,15 +152,119 @@ export function PostView({
   
   if (!currentEmojiState) {
     if (emojis.length > 0 && currentIndex >= emojis.length) {
-      setCurrentIndex(0); // Reset to first if current is invalid
-      if(emojis[0]) setCurrentEmojiState(emojis[0]);
+      setCurrentIndex(0);
     } else if (emojis.length === 0) {
-      onClose(); // Close if there are no emojis left to display
+      onClose();
       return null;
     }
     return null;
   }
   
+  const postAuthor = currentEmojiState.user;
+  let finalEmoji: EmojiState = { ...currentEmojiState };
+  if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
+    finalEmoji.shape = 'default';
+  }
+
+  featureOffsetX.set(finalEmoji.feature_offset_x || 0);
+  featureOffsetY.set(finalEmoji.feature_offset_y || 0);
+
+  const variants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      opacity: 0,
+    }),
+    center: {
+      x: '0%',
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      opacity: 0,
+    }),
+  };
+
+  const renderEmojiFace = (emoji: EmojiState) => {
+    const Component = emoji.model === 'loki' ? ClockFace : Face;
+    const animationType = isMoodView ? 'random' : emoji.animation_type;
+    return (
+      <Component 
+        {...emoji}
+        animation_type={animationType}
+        color={emoji.emoji_color}
+        isDragging={false}
+        isInteractive={false}
+        feature_offset_x={featureOffsetX}
+        feature_offset_y={featureOffsetY}
+        setColor={() => {}}
+      />
+    );
+  };
+  
+  // MOOD / STORY VIEW
+  if (isMoodView) {
+      return (
+        <motion.div 
+            className="h-full w-full flex flex-col bg-black relative"
+            onPanEnd={(_, info) => {
+                if (info.offset.y > 100) onClose();
+            }}
+        >
+            <div className="absolute top-0 left-0 right-0 p-3 z-20">
+                <div className="flex items-center gap-2">
+                    {emojis.map((_, index) => (
+                        <div key={index} className="w-full bg-gray-500/50 rounded-full h-1">
+                            <motion.div 
+                                className="bg-white h-1 rounded-full"
+                                initial={{ width: '0%' }}
+                                animate={index === currentIndex ? animationControls : { width: index < currentIndex ? '100%' : '0%' }}
+                            />
+                        </div>
+                    ))}
+                </div>
+                <div className="flex items-center mt-3 gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{postAuthor?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
+                     <button onClick={onClose} className="ml-auto text-white">
+                        <X size={24} />
+                    </button>
+                </div>
+            </div>
+
+             <div className="absolute inset-0 z-10 flex">
+                <div className="flex-1" onClick={goToPrev}></div>
+                <div className="flex-1" onClick={goToNext}></div>
+            </div>
+
+            <AnimatePresence initial={false} custom={direction}>
+                <motion.div
+                    key={currentIndex}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                        x: { type: "spring", stiffness: 300, damping: 30 },
+                        opacity: { duration: 0.2 }
+                    }}
+                     className="w-full h-full flex items-center justify-center absolute"
+                     style={{ 
+                      backgroundColor: finalEmoji.background_color,
+                      filter: finalEmoji.selected_filter && finalEmoji.selected_filter !== 'None' ? `${finalEmoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                    }}
+                >
+                  {renderEmojiFace(finalEmoji)}
+                </motion.div>
+            </AnimatePresence>
+        </motion.div>
+      )
+  }
+
+  // REGULAR POST VIEW
   return (
     <div className="h-full w-full flex flex-col bg-background">
       <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
@@ -158,120 +279,80 @@ export function PostView({
         ref={scrollContainerRef}
         className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
       >
-        {emojis.map((emoji, index) => {
-            // Use the centrally managed state for the currently visible emoji
-            const emojiToRender = index === currentIndex ? currentEmojiState : emoji;
+        {emojis.map((emoji) => (
+            <motion.div
+                key={emoji.id}
+                id={`post-${emoji.id}`}
+                className="w-full h-full flex-shrink-0 flex flex-col snap-center"
+                layout
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+            >
+              <div 
+                className="flex items-center px-4 py-2"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                  <AvatarFallback>{emoji.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                </Avatar>
+                <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
+                {user && emoji.user && user.id === emoji.user.id && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                       <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                         <Edit className="mr-2 h-4 w-4" />
+                         <span>Edit</span>
+                       </Link>
+                      </DropdownMenuItem>
+                      {onDelete && (
+                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onClick={() => handleSetMood(emoji.id)}>
+                        <Smile className="mr-2 h-4 w-4" />
+                        <span>Set as Mood</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
 
-            let finalEmoji: EmojiState = { ...emojiToRender };
-            if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
-              finalEmoji.shape = 'default';
-            }
+              <div 
+                className="flex-1 flex items-center justify-center min-h-0"
+                style={{ 
+                  backgroundColor: emoji.background_color,
+                  filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                }}
+              >
+                {renderEmojiFace(emoji)}
+              </div>
 
-            // Set initial position for rendering
-            featureOffsetX.set(finalEmoji.feature_offset_x || 0);
-            featureOffsetY.set(finalEmoji.feature_offset_y || 0);
-
-            const postAuthor = finalEmoji.user;
-
-            return (
-                <motion.div
-                    key={emoji.id}
-                    id={`post-${emoji.id}`}
-                    className="w-full h-full flex-shrink-0 flex flex-col snap-center"
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                >
-                  <div 
-                    className="flex items-center px-4 py-2"
-                    style={{ backgroundColor: finalEmoji.background_color }}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={postAuthor?.picture || "https://placehold.co/64x64.png"} alt={postAuthor?.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{postAuthor?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <span className="ml-3 font-semibold text-sm">{postAuthor?.name || 'User'}</span>
-                    {user && postAuthor && user.id === postAuthor.id && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                           <Link href={`/design?emojiId=${finalEmoji.id}`} className="flex items-center w-full">
-                             <Edit className="mr-2 h-4 w-4" />
-                             <span>Edit</span>
-                           </Link>
-                          </DropdownMenuItem>
-                          {onDelete && (
-                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(finalEmoji.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleSetMood(finalEmoji.id)}>
-                            <Smile className="mr-2 h-4 w-4" />
-                            <span>Set as Mood</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+              <div 
+                className="px-4 pt-2 pb-4"
+              >
+                  <div className="flex items-center gap-4">
+                    <Heart className="h-6 w-6 cursor-pointer" />
+                    <MessageCircle className="h-6 w-6 cursor-pointer" />
+                    <Send className="h-6 w-6 cursor-pointer" />
+                    <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
                   </div>
-
-                  <div 
-                    className="flex-1 flex items-center justify-center min-h-0"
-                    style={{ 
-                      backgroundColor: finalEmoji.background_color,
-                      filter: finalEmoji.selected_filter && finalEmoji.selected_filter !== 'None' ? `${finalEmoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
-                    }}
-                  >
-                    {finalEmoji.model === 'loki' ? (
-                       <ClockFace 
-                          {...finalEmoji}
-                          animation_type={finalEmoji.animation_type}
-                          color={finalEmoji.emoji_color}
-                          isDragging={false}
-                          isInteractive={false}
-                          feature_offset_x={featureOffsetX}
-                          feature_offset_y={featureOffsetY}
-                          setColor={() => {}}
-                        />
-                    ) : (
-                       <Face 
-                          {...finalEmoji}
-                          animation_type={finalEmoji.animation_type}
-                          color={finalEmoji.emoji_color}
-                          isDragging={false}
-                          isInteractive={false}
-                          feature_offset_x={featureOffsetX}
-                          feature_offset_y={featureOffsetY}
-                          setColor={() => {}}
-                        />
-                    )}
-                  </div>
-
-                  <div 
-                    className="px-4 pt-2 pb-4"
-                    style={{ backgroundColor: finalEmoji.background_color }}
-                  >
-                      <div className="flex items-center gap-4">
-                        <Heart className="h-6 w-6 cursor-pointer" />
-                        <MessageCircle className="h-6 w-6 cursor-pointer" />
-                        <Send className="h-6 w-6 cursor-pointer" />
-                        <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
-                      </div>
-                      <p className="text-sm font-semibold mt-2">1,234 likes</p>
-                      <p className="text-sm mt-1">
-                        <span className="font-semibold">{postAuthor?.name || 'User'}</span>
-                        {' '}My new creation!
-                      </p>
-                  </div>
-                </motion.div>
-              )
-          })}
+                  <p className="text-sm font-semibold mt-2">1,234 likes</p>
+                  <p className="text-sm mt-1">
+                    <span className="font-semibold">{emoji.user?.name || 'User'}</span>
+                    {' '}My new creation!
+                  </p>
+              </div>
+            </motion.div>
+          ))}
       </div>
       
       {emojiToDelete && (

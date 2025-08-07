@@ -41,14 +41,13 @@ export default function MoodPage() {
     const { toast } = useToast();
     const [moods, setMoods] = useState<Mood[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedMoodId, setSelectedMoodId] = useState<number | null>(null);
+    const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
 
     const fetchMoods = useCallback(async () => {
         if (!user) return;
         setIsLoading(true);
 
         try {
-            // Get users the current user is following + the user themselves
             const { data: following, error: followingError } = await supabase
                 .from('supports')
                 .select('supported_id')
@@ -58,7 +57,6 @@ export default function MoodPage() {
 
             const userIds = [...following.map(f => f.supported_id), user.id];
             
-            // Get moods for those users created in the last 24 hours
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
             const { data: moodData, error: moodError } = await supabase
@@ -79,7 +77,6 @@ export default function MoodPage() {
                 mood_id: m.id,
                 created_at: m.created_at,
             })).sort((a, b) => {
-                // Sort own mood to the front
                 if (a.user_id === user.id) return -1;
                 if (b.user_id === user.id) return 1;
                 return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -105,29 +102,17 @@ export default function MoodPage() {
     
     const userHasMood = moods.some(m => m.user_id === user?.id);
 
-    const handleSelectMood = (mood: Mood) => {
-        // Find all moods from this user to pass to PostView
-        const userPosts = moods.filter(m => m.user_id === mood.user_id);
-        setSelectedMoodId(mood.mood_id);
+    const handleSelectMood = (index: number) => {
+        setSelectedMoodIndex(index);
     };
     
-    const selectedMoodIndex = selectedMoodId ? moods.findIndex(e => e.mood_id === selectedMoodId) : -1;
-
-    if (selectedMoodId && selectedMoodIndex !== -1) {
-        // Temporarily set animation to random for 10s
-        const tempMoods = moods.map(m =>
-          m.mood_id === selectedMoodId ? { ...m, animation_type: 'random' as const } : m
-        );
-        
+    if (selectedMoodIndex !== null) {
         return (
             <PostView 
-                emojis={tempMoods}
+                emojis={moods}
                 initialIndex={selectedMoodIndex}
-                onClose={() => {
-                    setSelectedMoodId(null);
-                    // Optionally reset animation type if needed when closing
-                }}
-                isMoodView={true} // Special prop for mood-specific behavior
+                onClose={() => setSelectedMoodIndex(null)}
+                isMoodView={true}
             />
         )
     }
@@ -162,8 +147,8 @@ export default function MoodPage() {
                     </div>
                 ))
             ) : (
-                moods.map((mood) => (
-                  <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(mood)}>
+                moods.map((mood, index) => (
+                  <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
                     <StoryRing hasStory={true}>
                       <Avatar className="h-16 w-16 border-2 border-background">
                         <AvatarImage src={mood.user?.picture} alt={mood.user?.name} data-ai-hint="profile picture" />
