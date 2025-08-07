@@ -30,12 +30,13 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, Send, Smile, X, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Send, Smile, X, Eye, Loader2 } from 'lucide-react';
 import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actions';
+import { setMood, removeMood, recordMoodView, getMoodViewers, getIsLiked, getLikeCount } from '@/app/actions';
+import { LikeButton } from './like-button';
 
 interface Mood extends EmojiState {
     mood_id: number;
@@ -53,8 +54,13 @@ interface Viewer {
   picture: string;
 }
 
+interface PostViewEmoji extends EmojiState {
+    like_count?: number;
+    is_liked?: boolean;
+}
+
 interface PostViewProps {
-  emojis: (EmojiState | Mood)[];
+  emojis: (PostViewEmoji | Mood)[];
   initialIndex?: number;
   onClose: () => void;
   onDelete?: (id: string) => void;
@@ -76,6 +82,7 @@ export function PostView({
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [isViewersSheetOpen, setIsViewersSheetOpen] = useState(false);
   const [isFetchingViewers, setIsFetchingViewers] = useState(false);
+  const [localEmojis, setLocalEmojis] = useState<(PostViewEmoji | Mood)[]>([]);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -83,14 +90,31 @@ export function PostView({
   
   const animationControls = useAnimation();
   
-  const currentEmojiState = emojis[currentIndex];
+  const currentEmojiState = localEmojis[currentIndex];
 
-  const isCurrentEmojiMood = (emoji: EmojiState | Mood): emoji is Mood => {
+  useEffect(() => {
+    const fetchLikeData = async () => {
+        const emojisWithLikes = await Promise.all(
+            emojis.map(async (emoji) => {
+                if ('mood_id' in emoji) return emoji; // It's a mood, no need to fetch likes here.
+                const [like_count, is_liked] = await Promise.all([
+                    getLikeCount(emoji.id),
+                    getIsLiked(emoji.id),
+                ]);
+                return { ...emoji, like_count, is_liked };
+            })
+        );
+        setLocalEmojis(emojisWithLikes);
+    };
+    fetchLikeData();
+  }, [emojis]);
+
+  const isCurrentEmojiMood = (emoji: PostViewEmoji | Mood): emoji is Mood => {
     return 'mood_id' in emoji;
   }
   
   const goToNext = () => {
-    if (currentIndex < emojis.length - 1) {
+    if (currentIndex < localEmojis.length - 1) {
       setDirection(1);
       setCurrentIndex(currentIndex + 1);
     } else {
@@ -226,11 +250,15 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   if (!currentEmojiState) {
-    if (emojis.length > 0 && currentIndex >= emojis.length) {
+    if (localEmojis.length > 0 && currentIndex >= localEmojis.length) {
       setCurrentIndex(0);
-    } else if (emojis.length === 0) {
-      onClose();
-      return null;
+    } else if (localEmojis.length === 0) {
+      // Don't close immediately, wait for localEmojis to be populated
+      return (
+         <div className="flex h-full w-full flex-col items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+         </div>
+      )
     }
     return null;
   }
@@ -287,7 +315,7 @@ export function PostView({
         >
             <div className="absolute top-0 left-0 right-0 p-3 z-20">
                 <div className="flex items-center gap-2">
-                    {emojis.map((_, index) => (
+                    {localEmojis.map((_, index) => (
                         <div key={index} className="w-full bg-gray-500/50 rounded-full h-1">
                             <motion.div 
                                 className="bg-white h-1 rounded-full"
@@ -406,7 +434,11 @@ export function PostView({
             ref={scrollContainerRef}
             className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
         >
-            {emojis.map((emoji) => (
+            {localEmojis.map((emoji) => {
+                const likeCount = emoji.like_count ?? 0;
+                const isLiked = emoji.is_liked ?? false;
+                
+                return (
                 <motion.div
                     key={emoji.id}
                     id={`post-${emoji.id}`}
@@ -470,21 +502,23 @@ export function PostView({
                     {renderEmojiFace(emoji)}
                 </div>
 
-                <div 
-                    className="px-4 pt-2 pb-4"
-                >
+                <div className="px-4 pt-3 pb-4">
                     <div className="flex items-center gap-4">
-                        <Heart className="h-6 w-6 cursor-pointer" />
+                        <LikeButton postId={emoji.id} initialLikes={likeCount} isInitiallyLiked={isLiked} />
                         <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
                     </div>
-                    <p className="text-sm font-semibold mt-2">1,234 likes</p>
+                     {likeCount > 0 && (
+                        <p className="text-sm font-semibold mt-2">
+                           {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+                        </p>
+                     )}
                     <p className="text-sm mt-1">
                         <span className="font-semibold">{emoji.user?.name || 'User'}</span>
                         {' '}My new creation!
                     </p>
                 </div>
                 </motion.div>
-            ))}
+            )})}
         </div>
         
         </div>

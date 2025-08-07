@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Loader2, Smile, Heart, Send, MoreHorizontal, Edit } from 'lucide-react';
+import { Plus, Loader2, Smile, Send, MoreHorizontal, Edit } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { setMood } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
+import { LikeButton } from '@/components/like-button';
+import { getIsLiked, getLikeCount } from '@/app/actions';
+
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -55,7 +58,12 @@ interface Mood extends EmojiState {
   }
 }
 
-const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
+interface FeedPostType extends EmojiState {
+    like_count: number;
+    is_liked: boolean;
+}
+
+const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -154,12 +162,17 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
                         </div>
                     </div>
                 </div>
-                <div className="px-4 pt-2 pb-4">
+                <div className="px-4 pt-3 pb-4">
                     <div className="flex items-center gap-4">
-                        <Heart className="h-6 w-6 cursor-pointer" />
+                        <LikeButton postId={emoji.id} initialLikes={emoji.like_count} isInitiallyLiked={emoji.is_liked} />
                         <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
                     </div>
-                    <p className="text-sm mt-2">
+                     {emoji.like_count > 0 && (
+                        <p className="text-sm font-semibold mt-2">
+                            {emoji.like_count} {emoji.like_count === 1 ? 'like' : 'likes'}
+                        </p>
+                     )}
+                    <p className="text-sm mt-1">
                         <span className="font-semibold">{emoji.user?.name}</span>
                         {' '}My new creation!
                     </p>
@@ -191,7 +204,7 @@ export default function MoodPage() {
     const { user, supabase } = useAuth();
     const { toast } = useToast();
     const [moods, setMoods] = useState<Mood[]>([]);
-    const [feedPosts, setFeedPosts] = useState<EmojiState[]>([]);
+    const [feedPosts, setFeedPosts] = useState<FeedPostType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
     const [viewedMoods, setViewedMoods] = useState<Set<number>>(new Set());
@@ -269,7 +282,18 @@ export default function MoodPage() {
 
             if (postError) throw postError;
 
-            setFeedPosts(postData as unknown as EmojiState[]);
+            // For each post, fetch like count and if user has liked it
+            const postsWithLikes = await Promise.all(
+                (postData as unknown as EmojiState[]).map(async (post) => {
+                    const [like_count, is_liked] = await Promise.all([
+                        getLikeCount(post.id),
+                        getIsLiked(post.id),
+                    ]);
+                    return { ...post, like_count, is_liked };
+                })
+            );
+
+            setFeedPosts(postsWithLikes);
 
 
         } catch (error: any) {

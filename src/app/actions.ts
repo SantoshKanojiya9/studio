@@ -270,3 +270,74 @@ export async function getMoodViewers(moodId: number): Promise<{ id: string; name
     // The data is nested, so we need to flatten it.
     return data.map(v => v.user) as { id: string; name: string; picture: string; }[];
 }
+
+// --- Like Actions ---
+
+export async function likePost(emojiId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated.");
+
+    const { error } = await supabase
+        .from('likes')
+        .insert({ user_id: user.id, emoji_id: emojiId });
+
+    if (error) {
+        if (error.code === '23505') { // Ignore unique constraint violation
+            return;
+        }
+        console.error('Error liking post:', error);
+        throw error;
+    }
+    revalidatePath('/mood');
+    revalidatePath('/explore');
+    revalidatePath('/gallery');
+}
+
+export async function unlikePost(emojiId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated.");
+
+    const { error } = await supabase
+        .from('likes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('emoji_id', emojiId);
+    
+    if (error) {
+        console.error('Error unliking post:', error);
+        throw error;
+    }
+    revalidatePath('/mood');
+    revalidatePath('/explore');
+    revalidatePath('/gallery');
+}
+
+export async function getLikeCount(emojiId: string) {
+    const supabase = createSupabaseServerClient();
+    const { count, error } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('emoji_id', emojiId);
+    
+    if (error) {
+        console.error('Error getting like count:', error);
+        return 0;
+    }
+    return count || 0;
+}
+
+export async function getIsLiked(emojiId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { count } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('emoji_id', emojiId);
+
+    return (count ?? 0) > 0;
+}
