@@ -179,3 +179,28 @@ export async function unsupportUser(supportedId: string) {
     revalidatePath(`/gallery?userId=${supportedId}`);
     revalidatePath(`/gallery`);
 }
+
+// --- Mood Actions ---
+
+export async function setMood(emojiId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error("User not authenticated.");
+    }
+
+    const { error } = await supabase
+        .from('moods')
+        .upsert(
+            { user_id: user.id, emoji_id: emojiId, created_at: new Date().toISOString() },
+            { onConflict: 'user_id' }
+        );
+
+    if (error) {
+        console.error('Error setting mood:', error);
+        throw new Error(error.message);
+    }
+
+    revalidatePath('/mood');
+}
