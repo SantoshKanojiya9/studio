@@ -76,9 +76,9 @@ export function MoodHeader({ children }: { children?: React.ReactNode }) {
       await deleteUserAccount();
       
       toast({
-        title: 'Account Deletion Scheduled',
-        description: 'Your account will be deleted in 30 minutes. Sign in again to cancel.',
-        variant: 'success',
+        title: 'Account Deleted',
+        description: 'Your account has been permanently deleted.',
+        variant: 'destructive',
       });
       await supabase.auth.signOut();
       router.push('/');
