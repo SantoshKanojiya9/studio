@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Loader2, Smile, Heart, MessageCircle, Send, Bookmark, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Smile, Heart, Send, MoreHorizontal, Edit } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -20,9 +20,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { setMood } from '@/app/actions';
 
 const PostView = dynamic(() => 
@@ -54,6 +63,7 @@ const StoryRing = ({ hasStory, isViewed, children }: { hasStory: boolean; isView
 const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
+    const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
     
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
@@ -78,9 +88,10 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
         );
     };
 
-    const handleSetMood = async (emojiId: string) => {
+    const handleSetMood = async () => {
+        setShowSetMoodConfirm(false);
         try {
-            await setMood(emojiId);
+            await setMood(emoji.id);
             toast({
                 title: "Mood Updated!",
                 description: "Your new mood has been set.",
@@ -94,62 +105,87 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
             });
         }
     };
+    
+    const onSendClick = () => {
+        if (user && emoji.user && user.id === emoji.user.id) {
+            setShowSetMoodConfirm(true);
+        }
+    }
 
     return (
-        <div className="flex flex-col border-b border-border/40">
-            <div className="flex items-center px-4 py-2">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
-                    <AvatarFallback>{emoji.user?.name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
-                {user && emoji.user && user.id === emoji.user.id && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                       <DropdownMenuItem onClick={() => handleSetMood(emoji.id)}>
-                        <Smile className="mr-2 h-4 w-4" />
-                        <span>Set as Mood</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                       <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
-                         <Edit className="mr-2 h-4 w-4" />
-                         <span>Edit</span>
-                       </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-            </div>
-            <div 
-                className="relative aspect-square w-full"
-                onClick={onSelect}
-                style={{ 
-                  backgroundColor: emoji.background_color,
-                  filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
-                }}
-            >
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-full h-full scale-[0.9]">
-                        {renderEmojiFace(finalEmoji)}
+        <>
+            <div className="flex flex-col border-b border-border/40">
+                <div className="flex items-center px-4 py-2">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
+                        <AvatarFallback>{emoji.user?.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
+                    {user && emoji.user && user.id === emoji.user.id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => setShowSetMoodConfirm(true)}>
+                            <Smile className="mr-2 h-4 w-4" />
+                            <span>Set as Mood</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                           <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                             <Edit className="mr-2 h-4 w-4" />
+                             <span>Edit</span>
+                           </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                </div>
+                <div 
+                    className="relative aspect-square w-full"
+                    onClick={onSelect}
+                    style={{ 
+                      backgroundColor: emoji.background_color,
+                      filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                    }}
+                >
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-full h-full scale-[0.9]">
+                            {renderEmojiFace(finalEmoji)}
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="px-4 pt-2 pb-4">
-                <div className="flex items-center gap-4">
-                    <Heart className="h-6 w-6 cursor-pointer" />
-                    <Send className="h-6 w-6 cursor-pointer" />
+                <div className="px-4 pt-2 pb-4">
+                    <div className="flex items-center gap-4">
+                        <Heart className="h-6 w-6 cursor-pointer" />
+                        <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
+                    </div>
+                    <p className="text-sm mt-2">
+                        <span className="font-semibold">{emoji.user?.name}</span>
+                        {' '}My new creation!
+                    </p>
                 </div>
-                <p className="text-sm mt-2">
-                    <span className="font-semibold">{emoji.user?.name}</span>
-                    {' '}My new creation!
-                </p>
             </div>
-        </div>
+
+            <AlertDialog open={showSetMoodConfirm} onOpenChange={setShowSetMoodConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Set as your Mood?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will replace your current mood. Are you sure you want to set this post as your mood?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleSetMood}>
+                            Yes, Set Mood
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 };
 

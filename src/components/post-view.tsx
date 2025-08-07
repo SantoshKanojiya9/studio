@@ -30,7 +30,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, Send, Smile, X, Eye, Loader2 } from 'lucide-react';
 import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -67,6 +67,7 @@ export function PostView({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [direction, setDirection] = useState(0);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
+  const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [isViewersSheetOpen, setIsViewersSheetOpen] = useState(false);
   const [isFetchingViewers, setIsFetchingViewers] = useState(false);
@@ -111,8 +112,8 @@ export function PostView({
           transition: { duration: 10, ease: 'linear' }
       }).then((result) => {
          // Check if the animation completed fully, not just stopped
-         if (result.width === '100%') {
-            onClose();
+         if (result && 'width' in result && result.width === '100%') {
+            goToNext();
          }
       });
     }
@@ -191,9 +192,11 @@ export function PostView({
     }
   }
 
-  const handleSetMood = async (emojiId: string) => {
+  const handleSetMood = async () => {
+    setShowSetMoodConfirm(false);
+    if (!currentEmojiState) return;
     try {
-        await setMood(emojiId);
+        await setMood(currentEmojiState.id);
         toast({
             title: "Mood Updated!",
             description: "Your new mood has been set.",
@@ -207,6 +210,12 @@ export function PostView({
         });
     }
   };
+
+   const onSendClick = () => {
+        if (user && currentEmojiState.user && user.id === currentEmojiState.user.id) {
+            setShowSetMoodConfirm(true);
+        }
+    }
   
   const featureOffsetX = useMotionValue(0);
   const featureOffsetY = useMotionValue(0);
@@ -378,112 +387,132 @@ export function PostView({
 
   // REGULAR POST VIEW
   return (
-    <div className="h-full w-full flex flex-col bg-background">
-      <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft />
-        </Button>
-        <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
-        <div className="w-10"></div> {/* Spacer */}
-      </header>
+    <>
+        <div className="h-full w-full flex flex-col bg-background">
+        <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
+            <Button variant="ghost" size="icon" onClick={onClose}>
+            <ArrowLeft />
+            </Button>
+            <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
+            <div className="w-10"></div> {/* Spacer */}
+        </header>
 
-      <div 
-        ref={scrollContainerRef}
-        className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
-      >
-        {emojis.map((emoji) => (
-            <motion.div
-                key={emoji.id}
-                id={`post-${emoji.id}`}
-                className="w-full h-full flex-shrink-0 flex flex-col snap-center"
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            >
-              <div 
-                className="flex items-center px-4 py-2"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                  <AvatarFallback>{emoji.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                </Avatar>
-                <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
-                {user && emoji.user && user.id === emoji.user.id && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                       <DropdownMenuItem onClick={() => handleSetMood(emoji.id)}>
-                        <Smile className="mr-2 h-4 w-4" />
-                        <span>Set as Mood</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                       <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
-                         <Edit className="mr-2 h-4 w-4" />
-                         <span>Edit</span>
-                       </Link>
-                      </DropdownMenuItem>
-                      {onDelete && (
-                        <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+        <div 
+            ref={scrollContainerRef}
+            className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+        >
+            {emojis.map((emoji) => (
+                <motion.div
+                    key={emoji.id}
+                    id={`post-${emoji.id}`}
+                    className="w-full h-full flex-shrink-0 flex flex-col snap-center"
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                >
+                <div 
+                    className="flex items-center px-4 py-2"
+                >
+                    <Avatar className="h-8 w-8">
+                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{emoji.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
+                    {user && emoji.user && user.id === emoji.user.id && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setShowSetMoodConfirm(true)}>
+                            <Smile className="mr-2 h-4 w-4" />
+                            <span>Set as Mood</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                        <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                        </Link>
+                        </DropdownMenuItem>
+                        {onDelete && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    )}
+                </div>
 
-              <div 
-                className="flex-1 flex items-center justify-center min-h-0"
-                style={{ 
-                  backgroundColor: emoji.background_color,
-                  filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
-                }}
-              >
-                {renderEmojiFace(emoji)}
-              </div>
+                <div 
+                    className="flex-1 flex items-center justify-center min-h-0"
+                    style={{ 
+                    backgroundColor: emoji.background_color,
+                    filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                    }}
+                >
+                    {renderEmojiFace(emoji)}
+                </div>
 
-              <div 
-                className="px-4 pt-2 pb-4"
-              >
-                  <div className="flex items-center gap-4">
-                    <Heart className="h-6 w-6 cursor-pointer" />
-                    <Send className="h-6 w-6 cursor-pointer" />
-                  </div>
-                  <p className="text-sm font-semibold mt-2">1,234 likes</p>
-                  <p className="text-sm mt-1">
-                    <span className="font-semibold">{emoji.user?.name || 'User'}</span>
-                    {' '}My new creation!
-                  </p>
-              </div>
-            </motion.div>
-          ))}
-      </div>
-      
-      {emojiToDelete && (
-        <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
+                <div 
+                    className="px-4 pt-2 pb-4"
+                >
+                    <div className="flex items-center gap-4">
+                        <Heart className="h-6 w-6 cursor-pointer" />
+                        <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
+                    </div>
+                    <p className="text-sm font-semibold mt-2">1,234 likes</p>
+                    <p className="text-sm mt-1">
+                        <span className="font-semibold">{emoji.user?.name || 'User'}</span>
+                        {' '}My new creation!
+                    </p>
+                </div>
+                </motion.div>
+            ))}
+        </div>
+        
+        </div>
+
+        <AlertDialog open={showSetMoodConfirm} onOpenChange={setShowSetMoodConfirm}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogTitle>Set as your Mood?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Do you want to delete this post? This action cannot be undone.
+                        This will replace your current mood. Are you sure you want to set this post as your mood?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSetMood}>
+                        Yes, Set Mood
+                    </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-      )}
-    </div>
+
+        {emojiToDelete && (
+            <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Do you want to delete this post? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        )}
+    </>
   );
 }
