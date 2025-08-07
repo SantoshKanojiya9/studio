@@ -456,9 +456,7 @@ export function PostView({
               >
                   <div className="flex items-center gap-4">
                     <Heart className="h-6 w-6 cursor-pointer" />
-                    <MessageCircle className="h-6 w-6 cursor-pointer" />
                     <Send className="h-6 w-6 cursor-pointer" />
-                    <Bookmark className="h-6 w-6 cursor-pointer ml-auto" />
                   </div>
                   <p className="text-sm font-semibold mt-2">1,234 likes</p>
                   <p className="text-sm mt-1">
