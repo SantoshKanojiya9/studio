@@ -36,6 +36,15 @@ export function createSupabaseServerClient(bypassRls = false) {
           }
         },
       },
+      // Add this auth block when using the service role key to bypass RLS
+      ...(bypassRls
+        ? {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false,
+            },
+          }
+        : {}),
     }
   );
 }
