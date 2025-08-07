@@ -33,6 +33,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { setMood } from '@/app/actions';
+import { StoryRing } from '@/components/story-ring';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -53,17 +54,6 @@ interface Mood extends EmojiState {
       picture: string;
   }
 }
-
-const StoryRing = ({ hasStory, isViewed, children }: { hasStory: boolean; isViewed?: boolean; children: React.ReactNode }) => {
-  if (!hasStory) {
-    return <>{children}</>;
-  }
-  return (
-    <div className={`rounded-full p-[2px] ${isViewed ? 'bg-border/50' : 'bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-400'}`}>
-      {children}
-    </div>
-  );
-};
 
 const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
     const { user } = useAuth();
@@ -126,7 +116,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
                         <AvatarFallback>{emoji.user?.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
-                    {user && emoji.user && user.id === emoji.user.id && (
+                    {user && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
@@ -138,12 +128,14 @@ const FeedPost = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void
                             <Smile className="mr-2 h-4 w-4" />
                             <span>Set as Mood</span>
                           </DropdownMenuItem>
+                          {user.id === emoji.user?.id && (
                           <DropdownMenuItem asChild>
                            <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
                              <Edit className="mr-2 h-4 w-4" />
                              <span>Edit</span>
                            </Link>
                           </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
@@ -241,7 +233,10 @@ export default function MoodPage() {
             const myViews = new Set(moodData.flatMap(m => m.views.map(v => m.id)));
 
             const formattedMoods = moodData.map(m => {
-                const isViewed = myViews.has(m.id);
+                const isViewedByMe = myViews.has(m.id);
+                // A user's own mood should only be "viewed" (gray) if someone ELSE has viewed it.
+                const isViewed = m.user_id === user.id ? m.views.some(v => v.viewer_id !== user.id) : isViewedByMe;
+
                 return {
                     ...(m.emoji as unknown as EmojiState),
                     mood_id: m.id,
@@ -251,10 +246,15 @@ export default function MoodPage() {
                     is_viewed: isViewed,
                 }
             }).sort((a, b) => {
+                 // 1. My mood always first
                 if (a.mood_user_id === user.id) return -1;
                 if (b.mood_user_id === user.id) return 1;
-                if (a.is_viewed && !b.is_viewed) return 1;
+
+                // 2. Unviewed moods next, sorted by date
                 if (!a.is_viewed && b.is_viewed) return -1;
+                if (a.is_viewed && !b.is_viewed) return 1;
+                
+                // 3. Sort by date (newest first)
                 return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
             });
 

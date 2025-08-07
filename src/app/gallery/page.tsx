@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StoryRing } from '@/components/story-ring';
 
 
 const PostView = dynamic(() => 
@@ -58,6 +59,7 @@ function GalleryPageContent() {
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [isSupportLoading, setIsSupportLoading] = React.useState(false);
+    const [hasMood, setHasMood] = React.useState(false);
     
     const { user: authUser, supabase } = useAuth();
     const { toast } = useToast();
@@ -121,6 +123,21 @@ function GalleryPageContent() {
                 };
                 
                 setSavedEmojis(data as unknown as EmojiState[]);
+
+                // Fetch mood status
+                 const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                 const { count: moodCount, error: moodError } = await supabase
+                    .from('moods')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', viewingUserId)
+                    .gte('created_at', twentyFourHoursAgo);
+
+                if (moodError) {
+                    console.error('Supabase error fetching mood status:', moodError);
+                } else {
+                    setHasMood((moodCount ?? 0) > 0);
+                }
+
 
                 // Fetch support data
                 fetchSupportData();
@@ -354,10 +371,12 @@ function GalleryPageContent() {
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <Avatar className="w-20 h-20 flex-shrink-0">
-                                    <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
-                                    <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
-                                </Avatar>
+                                <StoryRing hasStory={hasMood}>
+                                    <Avatar className="w-20 h-20 flex-shrink-0 border-2 border-background">
+                                        <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                        <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                    </Avatar>
+                                </StoryRing>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
