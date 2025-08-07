@@ -23,8 +23,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X, Eye } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Heart, MessageCircle, Send, Bookmark, Smile, X, Eye, Loader2 } from 'lucide-react';
 import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -34,6 +40,12 @@ import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actio
 interface Mood extends EmojiState {
     mood_id: number;
     mood_user_id: string;
+}
+
+interface Viewer {
+  id: string;
+  name: string;
+  picture: string;
 }
 
 interface PostViewProps {
@@ -55,12 +67,15 @@ export function PostView({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [direction, setDirection] = useState(0);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
+  const [viewers, setViewers] = useState<Viewer[]>([]);
+  const [isViewersSheetOpen, setIsViewersSheetOpen] = useState(false);
+  const [isFetchingViewers, setIsFetchingViewers] = useState(false);
+
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const animationControls = useAnimation();
-  const storyTimer = useRef<NodeJS.Timeout>();
   
   const currentEmojiState = emojis[currentIndex];
 
@@ -95,8 +110,11 @@ export function PostView({
           width: '100%',
           transition: { duration: 10, ease: 'linear' }
       }).then((result) => {
-         if (result.width === '100%') {
+         // Check if the animation completed fully, not just stopped
+         if (result.width === '100%' && currentIndex === emojis.length - 1) {
             onClose();
+         } else if (result.width === '100%') {
+            goToNext();
          }
       });
     }
@@ -128,6 +146,22 @@ export function PostView({
       onDelete(emojiToDelete);
       setEmojiToDelete(null);
     }
+  };
+
+  const handleShowViewers = async () => {
+      if (!currentEmojiState || !isCurrentEmojiMood(currentEmojiState)) return;
+      setIsFetchingViewers(true);
+      setIsViewersSheetOpen(true);
+      try {
+          const fetchedViewers = await getMoodViewers(currentEmojiState.mood_id);
+          setViewers(fetchedViewers);
+      } catch (error) {
+          console.error("Failed to fetch viewers", error);
+          toast({ title: "Error", description: "Could not load viewers.", variant: "destructive" });
+          setIsViewersSheetOpen(false); // Close sheet on error
+      } finally {
+          setIsFetchingViewers(false);
+      }
   };
   
   const handleRemoveMood = async () => {
@@ -249,7 +283,7 @@ export function PostView({
                                     <button className="text-white"><MoreHorizontal size={24} /></button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => {/* TODO: Show viewers */}}>
+                                    <DropdownMenuItem onClick={handleShowViewers}>
                                         <Eye className="mr-2 h-4 w-4" />
                                         <span>Viewers</span>
                                     </DropdownMenuItem>
@@ -294,6 +328,37 @@ export function PostView({
                   {renderEmojiFace(finalEmoji)}
                 </motion.div>
             </AnimatePresence>
+
+             <Sheet open={isViewersSheetOpen} onOpenChange={setIsViewersSheetOpen}>
+              <SheetContent side="bottom" className="max-h-[80%] flex flex-col">
+                <SheetHeader>
+                  <SheetTitle>Viewers</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto">
+                  {isFetchingViewers ? (
+                    <div className="flex justify-center items-center h-full">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : viewers.length > 0 ? (
+                    <div className="flex flex-col gap-4 py-4">
+                      {viewers.map((viewer) => (
+                        <Link href={`/gallery?userId=${viewer.id}`} key={viewer.id} className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={viewer.picture} alt={viewer.name} data-ai-hint="profile picture" />
+                            <AvatarFallback>{viewer.name.charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-semibold">{viewer.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-10">
+                      No viewers yet.
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
         </motion.div>
       )
   }
