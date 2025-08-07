@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, ArrowLeft, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateUserProfile } from '@/app/actions';
+import imageCompression from 'browser-image-compression';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -31,15 +32,31 @@ export default function EditProfilePage() {
         }
     }, [user, authLoading]);
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setAvatarFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            const options = {
+                maxSizeMB: 0.05, // 50KB
+                maxWidthOrHeight: 400,
+                useWebWorker: true,
+            }
+            try {
+                const compressedFile = await imageCompression(file, options);
+                setAvatarFile(compressedFile);
+
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setAvatarPreview(reader.result as string);
+                };
+                reader.readAsDataURL(compressedFile);
+            } catch (error) {
+                console.error('Image compression error:', error);
+                toast({
+                    title: "Compression failed",
+                    description: "Could not compress the selected image.",
+                    variant: "destructive"
+                });
+            }
         }
     };
 
