@@ -40,6 +40,11 @@ import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actio
 interface Mood extends EmojiState {
     mood_id: number;
     mood_user_id: string;
+    mood_user?: {
+      id: string;
+      name: string;
+      picture: string;
+  }
 }
 
 interface Viewer {
@@ -230,7 +235,7 @@ export function PostView({
     return null;
   }
   
-  const postAuthor = currentEmojiState.user;
+  const postAuthor = isCurrentEmojiMood(currentEmojiState) ? currentEmojiState.mood_user : currentEmojiState.user;
   let finalEmoji: EmojiState = { ...currentEmojiState };
   if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
     finalEmoji.shape = 'default';
@@ -419,7 +424,7 @@ export function PostView({
                     <AvatarFallback>{emoji.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
-                    {user && emoji.user && user.id === emoji.user.id && (
+                    {user && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
@@ -431,21 +436,25 @@ export function PostView({
                             <Smile className="mr-2 h-4 w-4" />
                             <span>Set as Mood</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                        <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                        </Link>
-                        </DropdownMenuItem>
-                        {onDelete && (
+                         {user && emoji.user && user.id === emoji.user.id && (
                             <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
+                                <DropdownMenuItem asChild>
+                                <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Edit</span>
+                                </Link>
                                 </DropdownMenuItem>
+                                {onDelete && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteClick(emoji.id)}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>Delete</span>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                             </>
-                        )}
+                         )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     )}

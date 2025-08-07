@@ -47,6 +47,11 @@ interface Mood extends EmojiState {
   mood_created_at: string;
   mood_user_id: string;
   is_viewed?: boolean;
+  mood_user?: {
+      id: string;
+      name: string;
+      picture: string;
+  }
 }
 
 const StoryRing = ({ hasStory, isViewed, children }: { hasStory: boolean; isViewed?: boolean; children: React.ReactNode }) => {
@@ -223,6 +228,7 @@ export default function MoodPage() {
                     id,
                     user_id,
                     created_at,
+                    mood_user:users!moods_user_id_fkey(id, name, picture),
                     emoji:emojis!inner(*, user:users!inner(id, name, picture)),
                     views:mood_views(viewer_id)
                 `)
@@ -241,7 +247,8 @@ export default function MoodPage() {
                     mood_id: m.id,
                     mood_created_at: m.created_at,
                     mood_user_id: m.user_id,
-                    is_viewed: isViewed
+                    mood_user: m.mood_user,
+                    is_viewed: isViewed,
                 }
             }).sort((a, b) => {
                 if (a.mood_user_id === user.id) return -1;
@@ -374,11 +381,11 @@ export default function MoodPage() {
                     <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
                         <StoryRing hasStory={true} isViewed={mood.is_viewed || viewedMoods.has(mood.mood_id)}>
                         <Avatar className="h-16 w-16 border-2 border-background">
-                            <AvatarImage src={mood.user?.picture} alt={mood.user?.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{mood.user?.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={mood.mood_user?.picture} alt={mood.mood_user?.name} data-ai-hint="profile picture" />
+                            <AvatarFallback>{mood.mood_user?.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         </StoryRing>
-                        <span className="text-xs font-medium text-muted-foreground">{mood.user_id === user?.id ? "Your Mood" : mood.user?.name}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{mood.mood_user_id === user?.id ? "Your Mood" : mood.mood_user?.name}</span>
                     </div>
                     ))
                 )}
