@@ -22,7 +22,7 @@ export function BottomBar() {
   ];
 
   return (
-    <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-md border-t border-border/40 bg-background backdrop-blur">
       <nav className="flex h-14 items-center justify-around">
         {navItems.map((item) => {
             const Icon = item.icon;
