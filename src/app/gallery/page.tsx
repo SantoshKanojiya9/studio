@@ -143,7 +143,11 @@ function GalleryPageContent() {
                 // Fetch user profile
                 let userProfile;
                 if (isOwnProfile && authUser) {
-                    userProfile = authUser;
+                    userProfile = {
+                        id: authUser.id,
+                        name: authUser.name,
+                        picture: authUser.picture,
+                    };
                 } else {
                      userProfile = await getUserProfile(viewingUserId);
                 }
@@ -151,7 +155,7 @@ function GalleryPageContent() {
                 if (!userProfile) {
                     throw new Error("User profile not found.");
                 }
-                setProfileUser(userProfile);
+                setProfileUser(userProfile as ProfileUser);
 
                 // Fetch user emojis
                 const { data, error } = await supabase
@@ -177,6 +181,9 @@ function GalleryPageContent() {
                     description: error.message,
                     variant: 'destructive',
                 })
+                if (!isOwnProfile) {
+                    router.push('/explore');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -187,7 +194,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSupportData]);
+    }, [viewingUserId, toast, authUser, isOwnProfile, supabase, fetchSupportData, router]);
 
 
     const handleDelete = async (emojiId: string) => {
