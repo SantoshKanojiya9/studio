@@ -185,6 +185,14 @@ export async function supportUser(supportedId: string) {
         console.error('Error supporting user:', error);
         throw error;
     }
+
+    // Create notification
+    await createNotification({
+        recipient_id: supportedId,
+        actor_id: user.id,
+        type: 'new_supporter',
+    });
+
     revalidatePath(`/gallery?userId=${supportedId}`);
     revalidatePath(`/gallery`);
     revalidatePath(`/mood`); // Revalidate mood page to show new posts
@@ -309,6 +317,18 @@ export async function likePost(emojiId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated.");
 
+    // First, find the owner of the post
+    const { data: emoji, error: emojiError } = await supabase
+        .from('emojis')
+        .select('user_id')
+        .eq('id', emojiId)
+        .single();
+    
+    if (emojiError) {
+        console.error('Error finding post owner:', emojiError);
+        throw emojiError;
+    }
+
     const { error } = await supabase
         .from('likes')
         .insert({ user_id: user.id, emoji_id: emojiId });
@@ -320,6 +340,17 @@ export async function likePost(emojiId: string) {
         console.error('Error liking post:', error);
         throw error;
     }
+    
+    // Create notification if not liking your own post
+    if (user.id !== emoji.user_id) {
+        await createNotification({
+            recipient_id: emoji.user_id,
+            actor_id: user.id,
+            type: 'new_like',
+            emoji_id: emojiId
+        });
+    }
+
     revalidatePath('/mood');
     revalidatePath('/explore');
     revalidatePath('/gallery');
@@ -371,4 +402,42 @@ export async function getIsLiked(emojiId: string) {
         .eq('emoji_id', emojiId);
 
     return (count ?? 0) > 0;
+}
+
+
+// --- Notification Actions ---
+type NotificationPayload = {
+    recipient_id: string;
+    actor_id: string;
+    type: 'new_supporter' | 'new_like';
+    emoji_id?: string;
+}
+
+export async function createNotification(payload: NotificationPayload) {
+    const supabase = createSupabaseServerClient(true); // Use admin client to insert
+    const { error } = await supabase.from('notifications').insert(payload);
+    if (error) {
+        console.error('Error creating notification:', error);
+    }
+}
+
+export async function getNotifications() {
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+        .from('notifications')
+        .select(`
+            id,
+            type,
+            created_at,
+            emoji_id,
+            actor:users!notifications_actor_id_fkey (id, name, picture),
+            emoji:emojis (id, background_color, emoji_color, expression, model, shape, eye_style, mouth_style, eyebrow_style, show_sunglasses, show_mustache, feature_offset_x, feature_offset_y, selected_filter)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+    }
+    return data;
 }
