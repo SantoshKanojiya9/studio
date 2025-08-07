@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "ES2017",
@@ -23,6 +24,6 @@
     },
     "types": ["@types/wav"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/google-one-tap.d.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/google-one-tap.d.ts", "src/middleware.ts"],
   "exclude": ["node_modules"]
 }
