@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,7 +36,10 @@ import { setMood, recordMoodView } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 import { getIsLiked, getLikeCount } from '@/app/actions';
-import { LikerListSheet } from '@/components/liker-list-sheet';
+
+const LikerListSheet = lazy(() =>
+  import('@/components/liker-list-sheet').then(mod => ({ default: mod.LikerListSheet }))
+);
 
 
 const PostView = dynamic(() => 
@@ -161,9 +164,9 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                 >
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-full h-full flex items-center justify-center">
-                            <div className="scale-[0.9]">
+                            <motion.div className="origin-center" style={{ scale: 0.9 }} animate={{ scale: 0.9 }} transition={{ duration: 0 }}>
                                 {renderEmojiFace(finalEmoji)}
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </div>
@@ -207,7 +210,9 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
+            <Suspense fallback={null}>
+                {showLikers && <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />}
+            </Suspense>
         </>
     );
 };
@@ -406,11 +411,6 @@ export default function MoodPage() {
                              <Avatar className="h-16 w-16 border-2 border-background">
                                 <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
                                 <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                                {!userHasMood && (
-                                    <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                                        <Plus className="h-3 w-3 text-primary-foreground" />
-                                    </div>
-                                )}
                             </Avatar>
                         </StoryRing>
                         <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
