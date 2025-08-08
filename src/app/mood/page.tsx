@@ -160,8 +160,10 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                     }}
                 >
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-full h-full scale-[0.9]">
-                            {renderEmojiFace(finalEmoji)}
+                        <div className="w-full h-full flex items-center justify-center">
+                            <div className="scale-[0.9]">
+                                {renderEmojiFace(finalEmoji)}
+                            </div>
                         </div>
                     </div>
                 </div>
