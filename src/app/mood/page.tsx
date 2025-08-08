@@ -181,7 +181,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                         </button>
                      )}
                      {emoji.caption && (
-                        <p className="text-sm mt-1 truncate">
+                        <p className="text-sm mt-1 whitespace-pre-wrap">
                             <span className="font-semibold">{emoji.user?.name || 'User'}</span>
                             {' '}{emoji.caption}
                         </p>
