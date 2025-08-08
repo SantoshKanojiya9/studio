@@ -32,7 +32,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { setMood } from '@/app/actions';
+import { setMood, recordMoodView } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 import { getIsLiked, getLikeCount } from '@/app/actions';
