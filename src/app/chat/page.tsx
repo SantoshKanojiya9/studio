@@ -7,31 +7,20 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus } from 'lucide-react';
 import Image from 'next/image';
+import { StoryRing } from '@/components/story-ring';
 
 const stories = [
-  { id: 1, username: 'Neil', avatar: 'https://placehold.co/64x64.png', hasStory: true, isMe: true },
-  { id: 2, username: 'Alice', avatar: 'https://placehold.co/64x64.png', hasStory: true },
-  { id: 3, username: 'Bob', avatar: 'https://placehold.co/64x64.png', hasStory: true },
-  { id: 4, username: 'Charlie', avatar: 'https://placehold.co/64x64.png', hasStory: false },
-  { id: 5, username: 'David', avatar: 'https://placehold.co/64x64.png', hasStory: true },
-  { id: 6, username: 'Eve', avatar: 'https://placehold.co/64x64.png', hasStory: false },
-  { id: 7, username: 'Frank', avatar: 'https://placehold.co/64x64.png', hasStory: true },
-  { id: 8, username: 'Grace', avatar: 'https://placehold.co/64x64.png', hasStory: false },
-  { id: 9, username: 'Heidi', avatar: 'https://placehold.co/64x64.png', hasStory: true },
-  { id: 10, username: 'Ivan', avatar: 'https://placehold.co/64x64.png', hasStory: false },
+  { id: 1, username: 'Neil', avatar: 'https://placehold.co/64x64.png', hasStory: true, isMe: true, isViewed: false },
+  { id: 2, username: 'Alice', avatar: 'https://placehold.co/64x64.png', hasStory: true, isViewed: false },
+  { id: 3, username: 'Bob', avatar: 'https://placehold.co/64x64.png', hasStory: true, isViewed: true },
+  { id: 4, username: 'Charlie', avatar: 'https://placehold.co/64x64.png', hasStory: false, isViewed: false },
+  { id: 5, username: 'David', avatar: 'https://placehold.co/64x64.png', hasStory: true, isViewed: false },
+  { id: 6, username: 'Eve', avatar: 'https://placehold.co/64x64.png', hasStory: false, isViewed: false },
+  { id: 7, username: 'Frank', avatar: 'https://placehold.co/64x64.png', hasStory: true, isViewed: true },
+  { id: 8, username: 'Grace', avatar: 'https://placehold.co/64x64.png', hasStory: false, isViewed: false },
+  { id: 9, username: 'Heidi', avatar: 'https://placehold.co/64x64.png', hasStory: true, isViewed: false },
+  { id: 10, username: 'Ivan', avatar: 'https://placehold.co/64x64.png', hasStory: false, isViewed: false },
 ];
-
-const StoryRing = ({ hasStory, children }: { hasStory: boolean; children: React.ReactNode }) => {
-  if (!hasStory) {
-    return <>{children}</>;
-  }
-  return (
-    <div className="rounded-full p-[2px] bg-gradient-to-tr from-purple-500 via-pink-500 to-blue-400">
-      {children}
-    </div>
-  );
-};
-
 
 export default function ChatPage() {
   return (
@@ -43,7 +32,7 @@ export default function ChatPage() {
           <div className="flex w-max space-x-4 p-4">
             {stories.map((story) => (
               <div key={story.id} className="flex flex-col items-center gap-2 cursor-pointer">
-                <StoryRing hasStory={story.hasStory}>
+                <StoryRing hasStory={story.hasStory} isViewed={story.isViewed}>
                   <Avatar className="h-16 w-16 border-2 border-background">
                     <AvatarImage src={story.avatar} alt={story.username} data-ai-hint="profile picture" />
                     <AvatarFallback>{story.username.charAt(0)}</AvatarFallback>

@@ -404,17 +404,19 @@ export default function MoodPage() {
         <div className="border-b border-border/40">
             <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-4 p-4">
-                {!isLoading && !userHasMood && (
-                    <Link href="/gallery" className="flex flex-col items-center gap-2 cursor-pointer">
-                        <div className="rounded-full p-[2px] bg-border/50">
-                            <Avatar className="h-16 w-16 border-2 border-background">
+                {!isLoading && (
+                    <Link href={userHasMood ? "/mood" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? () => handleSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) : undefined}>
+                        <StoryRing hasStory={userHasMood} isViewed={false}>
+                             <Avatar className="h-16 w-16 border-2 border-background">
                                 <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
                                 <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                                <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                                    <Plus className="h-3 w-3 text-primary-foreground" />
-                                </div>
+                                {!userHasMood && (
+                                    <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                                        <Plus className="h-3 w-3 text-primary-foreground" />
+                                    </div>
+                                )}
                             </Avatar>
-                        </div>
+                        </StoryRing>
                         <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
                     </Link>
                 )}
@@ -427,15 +429,15 @@ export default function MoodPage() {
                         </div>
                     ))
                 ) : (
-                    moods.map((mood, index) => (
-                    <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(index)}>
+                    moods.filter(mood => mood.mood_user_id !== user?.id).map((mood, index) => (
+                    <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleSelectMood(moods.findIndex(m => m.mood_id === mood.mood_id))}>
                         <StoryRing hasStory={true} isViewed={mood.is_viewed}>
                         <Avatar className="h-16 w-16 border-2 border-background">
                             <AvatarImage src={mood.mood_user?.picture} alt={mood.mood_user?.name} data-ai-hint="profile picture" />
                             <AvatarFallback>{mood.mood_user?.name ? mood.mood_user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         </StoryRing>
-                        <span className="text-xs font-medium text-muted-foreground">{mood.mood_user_id === user?.id ? "Your Mood" : mood.mood_user?.name}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{mood.mood_user?.name}</span>
                     </div>
                     ))
                 )}
