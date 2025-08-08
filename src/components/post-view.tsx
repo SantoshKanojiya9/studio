@@ -42,6 +42,7 @@ import { LikerListSheet } from './liker-list-sheet';
 interface Mood extends EmojiState {
     mood_id: number;
     mood_user_id: string;
+    is_viewed?: boolean;
     mood_user?: {
       id: string;
       name: string;
@@ -63,7 +64,7 @@ interface PostViewEmoji extends EmojiState {
 interface PostViewProps {
   emojis: (PostViewEmoji | Mood)[];
   initialIndex?: number;
-  onClose: () => void;
+  onClose: (emojis?: any[]) => void;
   onDelete?: (id: string) => void;
   isMoodView?: boolean;
 }
@@ -237,9 +238,9 @@ export function PostView({
       setDirection(1);
       setCurrentIndex(currentIndex + 1);
     } else {
-        onClose(); // Close if it's the last one
+        onClose(localEmojis); // Close if it's the last one, passing back updated state
     }
-  }, [currentIndex, localEmojis.length, onClose]);
+  }, [currentIndex, localEmojis, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -264,7 +265,13 @@ export function PostView({
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
-        recordMoodView(currentEmojiState.mood_id);
+        // Optimistically update the view status in the local state for the parent component.
+        setLocalEmojis(current => current.map(e => {
+            if ('mood_id' in e && e.mood_id === (currentEmojiState as Mood).mood_id) {
+                return { ...e, is_viewed: true };
+            }
+            return e;
+        }));
         startAnimation();
     }
     return () => {
@@ -335,7 +342,7 @@ export function PostView({
         if (onDelete) {
             onDelete(currentEmojiState.mood_id.toString());
         }
-        onClose();
+        onClose(localEmojis);
     } catch (error: any) {
         toast({ title: "Error removing mood", description: error.message, variant: 'destructive' });
     }
@@ -382,7 +389,7 @@ export function PostView({
     }
     // If there are truly no emojis, we can probably just close.
     // This might happen if the last mood/post was deleted.
-    onClose();
+    onClose(localEmojis);
     return null;
   }
   
@@ -433,7 +440,7 @@ export function PostView({
         <motion.div 
             className="h-full w-full flex flex-col bg-black relative"
             onPanEnd={(_, info) => {
-                if (info.offset.y > 100) onClose();
+                if (info.offset.y > 100) onClose(localEmojis);
             }}
         >
             <div className="absolute top-0 left-0 right-0 p-3 z-20">
@@ -473,7 +480,7 @@ export function PostView({
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         )}
-                        <button onClick={onClose} className="text-white">
+                        <button onClick={() => onClose(localEmojis)} className="text-white">
                             <X size={24} />
                         </button>
                     </div>
@@ -546,7 +553,7 @@ export function PostView({
     <>
         <div className="h-full w-full flex flex-col bg-background">
         <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={() => onClose()}>
             <ArrowLeft />
             </Button>
             <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>

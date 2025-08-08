@@ -335,8 +335,8 @@ export default function MoodPage() {
         // Only record a view if it's not the user's own mood
         if (moods[index].mood_user_id !== user?.id) {
             recordMoodView(moodId);
-            // Optimistically update the ring state locally
-             setMoods(currentMoods => currentMoods.map(m => 
+            // Optimistically update the ring state locally for immediate feedback
+            setMoods(currentMoods => currentMoods.map(m => 
                 m.mood_id === moodId ? { ...m, is_viewed: true } : m
             ));
         }
@@ -347,9 +347,10 @@ export default function MoodPage() {
         setSelectedPostId(postId);
     };
 
-    const handleOnCloseMood = () => {
-        // Re-sort the moods after closing the viewer
-        const sortedMoods = [...moods].sort((a, b) => {
+    const handleOnCloseMood = (updatedMoods: Mood[]) => {
+        // The PostView component will pass back the latest state of moods.
+        // We re-sort it to ensure proper order is maintained.
+        const sortedMoods = [...updatedMoods].sort((a, b) => {
             if (a.mood_user_id === user?.id) return -1;
             if (b.mood_user_id === user?.id) return 1;
             if (!a.is_viewed && b.is_viewed) return -1;
