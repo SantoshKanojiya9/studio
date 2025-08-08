@@ -648,7 +648,7 @@ const DesignPageContent = () => {
   return (
     <TooltipProvider>
       <div 
-          className="flex h-full w-full flex-col overflow-hidden touch-none transition-colors duration-300"
+          className="flex h-full w-full flex-col touch-none transition-colors duration-300"
           style={{ backgroundColor: background_color }}
       >
         <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
