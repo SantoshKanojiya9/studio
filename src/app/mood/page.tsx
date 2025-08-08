@@ -180,10 +180,12 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                             {currentLikeCount} {currentLikeCount === 1 ? 'like' : 'likes'}
                         </button>
                      )}
-                    <p className="text-sm mt-1">
-                        <span className="font-semibold">{emoji.user?.name || 'User'}</span>
-                        {' '}My new creation!
-                    </p>
+                     {emoji.caption && (
+                        <p className="text-sm mt-1 truncate">
+                            <span className="font-semibold">{emoji.user?.name || 'User'}</span>
+                            {' '}{emoji.caption}
+                        </p>
+                    )}
                 </div>
             </div>
 
@@ -335,11 +337,11 @@ export default function MoodPage() {
         // Only record a view if it's not the user's own mood
         if (moods[index].mood_user_id !== user?.id) {
             recordMoodView(moodId);
-            // Optimistically update the ring state locally for immediate feedback
-            setMoods(currentMoods => currentMoods.map(m => 
-                m.mood_id === moodId ? { ...m, is_viewed: true } : m
-            ));
         }
+        // Optimistically update the ring state locally for immediate feedback
+        setMoods(currentMoods => currentMoods.map(m => 
+            m.mood_id === moodId ? { ...m, is_viewed: true } : m
+        ));
         setSelectedMoodIndex(index);
     };
     

@@ -6,6 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
@@ -55,6 +56,7 @@ export type EmojiState = {
     eyebrow_style: FeatureStyle;
     feature_offset_x: number;
     feature_offset_y: number;
+    caption: string;
     user?: {
       id: string;
       name: string;
@@ -89,6 +91,7 @@ const DesignPageContent = () => {
   const [eye_style, setEyeStyle] = useState<FeatureStyle>('default');
   const [mouth_style, setMouthStyle] = useState<FeatureStyle>('default');
   const [eyebrow_style, setEyebrowStyle] = useState<FeatureStyle>('default');
+  const [caption, setCaption] = useState('');
   
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
@@ -129,6 +132,7 @@ const DesignPageContent = () => {
                 setEyebrowStyle(data.eyebrow_style);
                 feature_offset_x.set(data.feature_offset_x);
                 feature_offset_y.set(data.feature_offset_y);
+                setCaption(data.caption || '');
             }
         } catch (error: any) {
             console.error('Failed to load emoji data:', error);
@@ -169,6 +173,7 @@ const DesignPageContent = () => {
     setEyebrowStyle('default');
     feature_offset_x.set(0);
     feature_offset_y.set(0);
+    setCaption('');
     setActiveMenu('main');
   };
   
@@ -208,6 +213,7 @@ const DesignPageContent = () => {
         eyebrow_style,
         feature_offset_x: feature_offset_x.get(),
         feature_offset_y: feature_offset_y.get(),
+        caption,
     };
 
     try {
@@ -698,6 +704,24 @@ const DesignPageContent = () => {
                 />
             )}
           </motion.div>
+        </div>
+
+        <div className="bg-background/80 backdrop-blur-sm border-t border-border p-3 space-y-2">
+            <Label htmlFor="caption">Caption</Label>
+            <div className="relative">
+                 <Textarea 
+                    id="caption"
+                    placeholder="Add a caption..."
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    maxLength={30}
+                    className="pr-12 h-16 resize-none"
+                    rows={2}
+                 />
+                 <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                    {caption.length}/30
+                 </div>
+            </div>
         </div>
 
         <div className="fixed bottom-[56px] left-0 right-0 z-20">

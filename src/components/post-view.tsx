@@ -176,10 +176,12 @@ const PostContent = ({
                         {localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}
                     </button>
                 )}
-                <p className="text-sm mt-1">
-                    <span className="font-semibold">{emoji.user?.name || 'User'}</span>
-                    {' '}My new creation!
-                </p>
+                {emoji.caption && (
+                    <p className="text-sm mt-1 whitespace-pre-wrap">
+                        <span className="font-semibold">{emoji.user?.name || 'User'}</span>
+                        {' '}{emoji.caption}
+                    </p>
+                )}
             </div>
              <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
         </motion.div>
@@ -604,5 +606,3 @@ export function PostView({
     </>
   );
 }
-
-    
