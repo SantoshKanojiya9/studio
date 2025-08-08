@@ -73,7 +73,7 @@ const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemPr
         <Link href={`/gallery?userId=${itemUser.id}`} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
             <Avatar className="h-12 w-12">
                 <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
-                <AvatarFallback>{itemUser.name.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
             </Avatar>
             <span className="font-semibold flex-1">{itemUser.name}</span>
             {!isSelf && currentUser && (

@@ -98,7 +98,7 @@ export default function NotificationsPage() {
             <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className={commonClasses}>
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
                 <Message />
                 <div className="flex items-center justify-center bg-primary/10 text-primary rounded-full h-8 w-8">
@@ -113,7 +113,7 @@ export default function NotificationsPage() {
              <Link href={`/gallery`} key={notification.id} className={commonClasses}>
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
                 <Message />
                 <div className="w-12 h-12 flex-shrink-0">

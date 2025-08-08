@@ -109,7 +109,7 @@ const PostContent = ({
             <div className="flex items-center px-4 py-2">
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{emoji.user?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
                 <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
                 {user && (
@@ -444,7 +444,7 @@ export function PostView({
                 <div className="flex items-center mt-3 gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{postAuthor?.name?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                      <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
                     <div className="ml-auto flex items-center gap-2">
@@ -516,7 +516,7 @@ export function PostView({
                         <Link href={`/gallery?userId=${viewer.id}`} key={viewer.id} className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage src={viewer.picture} alt={viewer.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{viewer.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{viewer.name ? viewer.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                           </Avatar>
                           <span className="font-semibold">{viewer.name}</span>
                         </Link>
