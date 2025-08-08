@@ -247,16 +247,17 @@ export function PostView({
   const goToPrev = () => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex((prev) => prev - 1);
+      setCurrentIndex((prev) => prev + 1);
     }
   };
 
   const startAnimation = useCallback(() => {
-    animationControls.stop();
     animationControls.set({ width: '0%' });
     animationControls.start({
         width: '100%',
         transition: { duration: 10, ease: 'linear' }
+    }).then(() => {
+        // Animation completed
     });
   }, [animationControls]);
 
