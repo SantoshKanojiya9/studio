@@ -505,6 +505,14 @@ export function PostView({
                 </motion.div>
             </AnimatePresence>
 
+            {finalEmoji.caption && (
+              <div className="absolute bottom-4 left-4 right-4 z-20 text-center">
+                  <p className="inline-block bg-black/50 text-white text-sm p-2 rounded-lg">
+                      {finalEmoji.caption}
+                  </p>
+              </div>
+            )}
+
              <Sheet open={isViewersSheetOpen} onOpenChange={setIsViewersSheetOpen}>
               <SheetContent side="bottom" className="max-h-[80%] flex flex-col">
                 <SheetHeader>
