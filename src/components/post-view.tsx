@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
@@ -232,14 +232,14 @@ export function PostView({
     return 'mood_id' in emoji;
   }
   
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     if (currentIndex < localEmojis.length - 1) {
       setDirection(1);
       setCurrentIndex(currentIndex + 1);
     } else {
         onClose(); // Close if it's the last one
     }
-  };
+  }, [currentIndex, localEmojis.length, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -270,8 +270,7 @@ export function PostView({
     return () => {
       animationControls.stop();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, isMoodView, currentEmojiState]);
+  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, animationControls]);
 
 
   // Regular Post view scrolling logic
