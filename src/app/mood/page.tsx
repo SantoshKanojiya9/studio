@@ -275,6 +275,7 @@ export default function MoodPage() {
                     mood_user_id: m.user_id,
                     mood_user: m.mood_user,
                     is_viewed: isViewed,
+                    caption: (m.emoji as any)?.caption, // Ensure caption is passed through
                 }
             }).sort((a, b) => {
                  // 1. My mood always first
