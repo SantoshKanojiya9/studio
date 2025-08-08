@@ -56,7 +56,7 @@ export type EmojiState = {
     eyebrow_style: FeatureStyle;
     feature_offset_x: number;
     feature_offset_y: number;
-    caption: string;
+    caption?: string;
     user?: {
       id: string;
       name: string;
@@ -706,31 +706,35 @@ const DesignPageContent = () => {
           </motion.div>
         </div>
 
-        <div className="bg-background/80 backdrop-blur-sm border-t border-border p-3 space-y-2">
-            <Label htmlFor="caption">Caption</Label>
-            <div className="relative">
-                 <Textarea 
-                    id="caption"
-                    placeholder="Add a caption..."
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    maxLength={30}
-                    className="pr-12 h-16 resize-none"
-                    rows={2}
-                 />
-                 <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                    {caption.length}/30
-                 </div>
+        <div className="fixed bottom-[56px] left-0 right-0 z-20 w-full max-w-md mx-auto">
+          <div className="flex flex-col bg-background/80 backdrop-blur-sm border-t border-border">
+            {/* Caption Input */}
+            <div className="p-3 space-y-2">
+                <Label htmlFor="caption" className="px-1">Caption</Label>
+                <div className="relative">
+                     <Textarea 
+                        id="caption"
+                        placeholder="Add a caption..."
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        maxLength={30}
+                        className="pr-12 h-16 resize-none"
+                        rows={2}
+                     />
+                     <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                        {caption.length}/30
+                     </div>
+                </div>
             </div>
-        </div>
-
-        <div className="fixed bottom-[56px] left-0 right-0 z-20">
-              <ScrollArea className="w-full whitespace-nowrap bg-background/80 backdrop-blur-sm border-t border-border no-scrollbar">
-                  <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
-                      {renderMenu()}
-                  </div>
-                  <ScrollBar orientation="horizontal" className="hidden" />
-              </ScrollArea>
+            
+            {/* Tool Controls */}
+            <ScrollArea className="w-full whitespace-nowrap border-t border-border no-scrollbar">
+                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
+                    {renderMenu()}
+                </div>
+                <ScrollBar orientation="horizontal" className="hidden" />
+            </ScrollArea>
+          </div>
         </div>
 
         <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
