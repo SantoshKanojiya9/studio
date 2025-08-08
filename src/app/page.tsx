@@ -50,6 +50,10 @@ const EdengramLogo = ({ className }: { className?: string }) => {
     )
 };
 
+const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+);
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,6 +82,21 @@ export default function LoginPage() {
       token: response.credential,
     });
     // On success, the onAuthStateChange listener in useAuth will handle the redirect & loading state.
+  };
+
+  const handleFacebookSignIn = async () => {
+    setAuthLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) {
+      toast({ title: 'Facebook Sign-in Error', description: error.message, variant: 'destructive' });
+      setAuthLoading(false);
+    }
+    // On success, Supabase handles the redirect.
   };
 
   const handleManualSignUp = async (e: React.FormEvent) => {
@@ -231,8 +250,18 @@ export default function LoginPage() {
             </div>
         </motion.div>
         
-        <motion.div variants={itemVariants} className="flex flex-col items-center h-10">
-            {!isClient || (isClient && authLoading) ? <Loader2 className="animate-spin h-8 w-8" /> : <div ref={signInDiv}></div>}
+        <motion.div variants={itemVariants} className="w-full flex flex-col items-center gap-2">
+            {!isClient || (isClient && authLoading) ? (
+                <Loader2 className="animate-spin h-8 w-8" />
+            ) : (
+              <>
+                <div ref={signInDiv} className="flex justify-center"></div>
+                <Button variant="outline" className="w-full" onClick={handleFacebookSignIn}>
+                    <FacebookIcon className="mr-2 h-4 w-4" />
+                    Continue with Facebook
+                </Button>
+              </>
+            )}
         </motion.div>
       </motion.div>
     </div>
