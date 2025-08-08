@@ -401,7 +401,7 @@ export default function MoodPage() {
                         <div className="rounded-full p-[2px] bg-border/50">
                             <Avatar className="h-16 w-16 border-2 border-background">
                                 <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
-                                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                                 <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
                                     <Plus className="h-3 w-3 text-primary-foreground" />
                                 </div>
@@ -424,7 +424,7 @@ export default function MoodPage() {
                         <StoryRing hasStory={true} isViewed={mood.is_viewed}>
                         <Avatar className="h-16 w-16 border-2 border-background">
                             <AvatarImage src={mood.mood_user?.picture} alt={mood.mood_user?.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{mood.mood_user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                            <AvatarFallback>{mood.mood_user?.name ? mood.mood_user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         </StoryRing>
                         <span className="text-xs font-medium text-muted-foreground">{mood.mood_user_id === user?.id ? "Your Mood" : mood.mood_user?.name}</span>
