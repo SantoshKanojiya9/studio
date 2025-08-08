@@ -59,10 +59,12 @@ const EdengramLogo = ({ className }: { className?: string }) => (
 export function ChatHeader({ children }: { children?: React.ReactNode }) {
   const { user, supabase } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   
   const handleSignOut = async () => {
+    setShowSignOutConfirm(false);
     if (!supabase) return;
     await supabase.auth.signOut();
     router.push('/');
@@ -119,7 +121,7 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
                     </div>
 
                     <div className="mt-auto">
-                      <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                      <Button variant="ghost" className="w-full justify-start" onClick={() => setShowSignOutConfirm(true)}>
                             <LogOut className="mr-2 h-4 w-4" />
                             Sign Out
                       </Button>
@@ -145,6 +147,20 @@ export function ChatHeader({ children }: { children?: React.ReactNode }) {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Yes, Delete My Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSignOutConfirm} onOpenChange={setShowSignOutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignOut}>
+              Yes
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
