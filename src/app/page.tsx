@@ -86,7 +86,7 @@ export default function LoginPage() {
         email,
         password,
         options: {
-            emailRedirectTo: 'https://9000-firebase-chaigram-1754665254483.cluster-73qgvk7hjjadkrjeyexca5ivva.cloudworkstations.dev/auth/callback',
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
             data: {
                 name: email.split('@')[0],
                 picture: `https://placehold.co/64x64.png?text=${email.charAt(0).toUpperCase()}`
