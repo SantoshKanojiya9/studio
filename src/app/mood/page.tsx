@@ -216,7 +216,6 @@ export default function MoodPage() {
     const [feedPosts, setFeedPosts] = useState<FeedPostType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
-    const [viewedMoods, setViewedMoods] = useState<Set<number>>(new Set());
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
     const fetchFeedContent = useCallback(async () => {
@@ -257,7 +256,7 @@ export default function MoodPage() {
                 .from('mood_views')
                 .select('mood_id')
                 .eq('viewer_id', user.id)
-                .in('mood_data.map(m => m.id)', moodData.map(m => m.id));
+                .in('mood_id', moodData.map(m => m.id));
 
             const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 

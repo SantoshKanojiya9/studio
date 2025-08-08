@@ -209,8 +209,6 @@ export function PostView({
   
   const animationControls = useAnimation();
   
-  const currentEmojiState = localEmojis[currentIndex];
-
   useEffect(() => {
     const fetchLikeData = async () => {
         const emojisWithLikes = await Promise.all(
@@ -227,6 +225,8 @@ export function PostView({
     };
     fetchLikeData();
   }, [emojis]);
+
+  const currentEmojiState = localEmojis[currentIndex];
 
   const isCurrentEmojiMood = (emoji: PostViewEmoji | Mood): emoji is Mood => {
     return 'mood_id' in emoji;
@@ -248,28 +248,30 @@ export function PostView({
     }
   };
 
+  const startAnimation = useCallback(() => {
+    animationControls.stop();
+    animationControls.set({ width: '0%' });
+    animationControls.start({
+        width: '100%',
+        transition: { duration: 10, ease: 'linear' }
+    }).then((result) => {
+        if (result && !result.cancelled) {
+          goToNext();
+        }
+    });
+  }, [animationControls, goToNext]);
+
+
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
-      recordMoodView(currentEmojiState.mood_id);
-      
-      animationControls.stop();
-      animationControls.set({ width: '0%' });
-      
-      animationControls.start({
-          width: '100%',
-          transition: { duration: 10, ease: 'linear' }
-      }).then((result) => {
-         // Check if the animation completed fully, not just stopped
-         if (result && 'width' in result && result.width === '100%') {
-            goToNext();
-         }
-      });
+        recordMoodView(currentEmojiState.mood_id);
+        startAnimation();
     }
     return () => {
       animationControls.stop();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, isMoodView, animationControls]);
+  }, [currentIndex, isMoodView, currentEmojiState]);
 
 
   // Regular Post view scrolling logic
@@ -370,15 +372,18 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   if (!currentEmojiState) {
-    if (localEmojis.length > 0 && currentIndex >= localEmojis.length) {
-      setCurrentIndex(0);
-    } else if (localEmojis.length === 0) {
-      return (
-         <div className="flex h-full w-full flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-         </div>
-      )
+    // This can happen briefly while `localEmojis` is being populated.
+    // We check if emojis exist but localEmojis is empty, which means we're loading.
+    if (emojis.length > 0 && localEmojis.length === 0) {
+        return (
+            <div className="flex h-full w-full flex-col items-center justify-center bg-black">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+            </div>
+        );
     }
+    // If there are truly no emojis, we can probably just close.
+    // This might happen if the last mood/post was deleted.
+    onClose();
     return null;
   }
   
