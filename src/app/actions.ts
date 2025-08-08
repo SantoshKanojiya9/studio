@@ -404,6 +404,22 @@ export async function getIsLiked(emojiId: string) {
     return (count ?? 0) > 0;
 }
 
+export async function getLikers(emojiId: string): Promise<{ id: string; name: string; picture: string; }[]> {
+    const supabase = createSupabaseServerClient();
+    const { data, error } = await supabase
+        .from('likes')
+        .select('user:users!inner(id, name, picture)')
+        .eq('emoji_id', emojiId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error getting likers:', error);
+        return [];
+    }
+    // The data is nested, so we need to flatten it.
+    return data.map(l => l.user) as { id: string; name: string; picture: string; }[];
+}
+
 
 // --- Notification Actions ---
 type NotificationPayload = {

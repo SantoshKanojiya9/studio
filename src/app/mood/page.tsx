@@ -36,6 +36,7 @@ import { setMood, recordMoodView } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 import { getIsLiked, getLikeCount } from '@/app/actions';
+import { LikerListSheet } from '@/components/liker-list-sheet';
 
 
 const PostView = dynamic(() => 
@@ -68,6 +69,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
     const [currentLikeCount, setCurrentLikeCount] = useState(emoji.like_count);
+    const [showLikers, setShowLikers] = useState(false);
     
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
@@ -174,12 +176,12 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                         <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
                     </div>
                      {currentLikeCount > 0 && (
-                        <p className="text-sm font-semibold mt-2">
+                        <button className="text-sm font-semibold mt-2" onClick={() => setShowLikers(true)}>
                             {currentLikeCount} {currentLikeCount === 1 ? 'like' : 'likes'}
-                        </p>
+                        </button>
                      )}
                     <p className="text-sm mt-1">
-                        <span className="font-semibold">{emoji.user?.name}</span>
+                        <span className="font-semibold">{emoji.user?.name || 'User'}</span>
                         {' '}My new creation!
                     </p>
                 </div>
@@ -201,6 +203,7 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
         </>
     );
 };
@@ -254,7 +257,7 @@ export default function MoodPage() {
                 .from('mood_views')
                 .select('mood_id')
                 .eq('viewer_id', user.id)
-                .in('mood_id', moodData.map(m => m.id));
+                .in('mood_data.map(m => m.id)', moodData.map(m => m.id));
 
             const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 

@@ -37,6 +37,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, getIsLiked, getLikeCount } from '@/app/actions';
 import { LikeButton } from './like-button';
+import { LikerListSheet } from './liker-list-sheet';
 
 interface Mood extends EmojiState {
     mood_id: number;
@@ -79,6 +80,7 @@ const PostContent = ({
 }) => {
     const { user } = useAuth();
     const [localLikeCount, setLocalLikeCount] = useState(emoji.like_count ?? 0);
+    const [showLikers, setShowLikers] = useState(false);
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
 
@@ -169,15 +171,16 @@ const PostContent = ({
                     <Send className="h-6 w-6 cursor-pointer" onClick={() => onSetMood(emoji.id)} />
                 </div>
                 {localLikeCount > 0 && (
-                    <p className="text-sm font-semibold mt-2">
+                    <button className="text-sm font-semibold mt-2" onClick={() => setShowLikers(true)}>
                         {localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}
-                    </p>
+                    </button>
                 )}
                 <p className="text-sm mt-1">
                     <span className="font-semibold">{emoji.user?.name || 'User'}</span>
                     {' '}My new creation!
                 </p>
             </div>
+             <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
         </motion.div>
     );
 };
