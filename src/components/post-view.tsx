@@ -257,14 +257,8 @@ export function PostView({
     animationControls.start({
         width: '100%',
         transition: { duration: 10, ease: 'linear' }
-    }).then((result) => {
-        // We will no longer auto-advance. User must tap to navigate.
-        if (result && !result.cancelled && currentIndex === localEmojis.length - 1) {
-            onClose(localEmojis);
-        }
     });
-  }, [animationControls, currentIndex, localEmojis, onClose]);
-
+  }, [animationControls]);
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
@@ -274,6 +268,16 @@ export function PostView({
       animationControls.stop();
     }
   }, [currentIndex, isMoodView, currentEmojiState, startAnimation, animationControls]);
+
+  useEffect(() => {
+    if (isMoodView) {
+        if (isViewersSheetOpen) {
+            animationControls.stop();
+        } else {
+            animationControls.start();
+        }
+    }
+  }, [isViewersSheetOpen, isMoodView, animationControls]);
 
 
   // Regular Post view scrolling logic
