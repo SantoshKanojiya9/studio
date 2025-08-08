@@ -181,7 +181,7 @@ export default function ExplorePage() {
                     <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
                         <Avatar className="h-12 w-12">
                             <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         <span className="font-semibold">{user.name}</span>
                     </Link>
