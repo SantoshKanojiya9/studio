@@ -27,6 +27,7 @@ export function BottomBar() {
         const { count, error } = await supabase
             .from('notifications')
             .select('*', { count: 'exact', head: true })
+            .eq('recipient_id', user.id)
             .gt('created_at', lastChecked || new Date(0).toISOString());
         
         if (!error && (count ?? 0) > 0) {
@@ -119,3 +120,5 @@ export function BottomBar() {
     </footer>
   );
 }
+
+    

@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2, UserPlus, Heart, Check, X } from 'lucide-react';
-import { getNotifications, respondToSupportRequest } from '../actions';
+import { getNotifications, respondToSupportRequest, getSupportStatus, supportUser, unsupportUser } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
@@ -19,16 +19,19 @@ const NotificationHeader = () => (
     </header>
 );
 
+interface Actor {
+    id: string;
+    name: string;
+    picture: string;
+    is_private: boolean;
+}
+
 interface Notification {
   id: number;
   type: 'new_supporter' | 'new_like' | 'new_support_request' | 'support_request_approved';
   created_at: string;
   emoji_id: string | null;
-  actor: {
-    id: string;
-    name: string;
-    picture: string;
-  };
+  actor: Actor;
   emoji: EmojiState | null;
 }
 
@@ -46,6 +49,74 @@ const timeSince = (date: Date) => {
     if (interval > 1) return Math.floor(interval) + "min";
     return Math.floor(seconds) + "s";
 };
+
+const SupportNotification = ({ notification }: { notification: Notification }) => {
+    const { actor, created_at, id } = notification;
+    const { user: currentUser } = useAuth();
+    const { toast } = useToast();
+    const [supportStatus, setSupportStatus] = useState<'approved' | 'pending' | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+     useEffect(() => {
+        if (!currentUser) {
+            setIsLoading(false);
+            return;
+        }
+        getSupportStatus(currentUser.id, actor.id).then(status => {
+            setSupportStatus(status);
+            setIsLoading(false);
+        });
+    }, [currentUser, actor.id]);
+
+    const handleSupportToggle = async () => {
+        if (!currentUser || isLoading) return;
+
+        setIsLoading(true);
+        try {
+            if (supportStatus === 'approved' || supportStatus === 'pending') {
+                await unsupportUser(actor.id);
+                setSupportStatus(null);
+            } else {
+                await supportUser(actor.id, actor.is_private);
+                setSupportStatus(actor.is_private ? 'pending' : 'approved');
+            }
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
+             <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0">
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
+                    <UserPlus className="h-3 w-3 text-primary-foreground"/>
+                </div>
+            </Link>
+            <p className="flex-1 text-sm">
+                <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
+                {' became your supporter. '}
+                <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
+            </p>
+            <Button
+                variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
+                size="sm"
+                onClick={handleSupportToggle}
+                disabled={isLoading}
+            >
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> :
+                 supportStatus === 'approved' ? 'Unsupport' :
+                 supportStatus === 'pending' ? 'Pending' : 'Support'}
+            </Button>
+        </div>
+    );
+};
+
 
 const SupportRequestNotification = ({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
     const { actor, created_at, id } = notification;
@@ -162,24 +233,7 @@ export default function NotificationsPage() {
     }
 
     if (type === 'new_supporter') {
-         return (
-             <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                <div className="relative">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                     <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
-                        <UserPlus className="h-3 w-3 text-primary-foreground"/>
-                    </div>
-                </div>
-                <p className="flex-1 text-sm">
-                    <span className="font-semibold">{actor.name}</span>
-                    {' started supporting you.'}
-                    <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
-                </p>
-            </Link>
-        )
+         return <SupportNotification key={notification.id} notification={notification} />
     }
 
     if (type === 'new_like' && emoji) {
@@ -191,7 +245,7 @@ export default function NotificationsPage() {
                 </Avatar>
                 <p className="flex-1 text-sm">
                     <span className="font-semibold">{actor.name}</span>
-                    {' reacted to your creation.'}
+                    {' reacted to your post.'}
                     <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
                 </p>
                 <div className="w-12 h-12 flex-shrink-0">
@@ -221,3 +275,5 @@ export default function NotificationsPage() {
     </div>
   );
 }
+
+    

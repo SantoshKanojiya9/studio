@@ -503,6 +503,9 @@ export async function createNotification(payload: NotificationPayload) {
 
 export async function getNotifications() {
     const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
     const { data, error } = await supabase
         .from('notifications')
         .select(`
@@ -510,9 +513,10 @@ export async function getNotifications() {
             type,
             created_at,
             emoji_id,
-            actor:users!notifications_actor_id_fkey (id, name, picture),
+            actor:users!notifications_actor_id_fkey (id, name, picture, is_private),
             emoji:emojis (id, background_color, emoji_color, expression, model, shape, eye_style, mouth_style, eyebrow_style, show_sunglasses, show_mustache, feature_offset_x, feature_offset_y, selected_filter)
         `)
+        .eq('recipient_id', user.id)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -521,3 +525,5 @@ export async function getNotifications() {
     }
     return data;
 }
+
+    
