@@ -177,7 +177,7 @@ const PostContent = ({
                     </button>
                 )}
                 {emoji.caption && (
-                    <p className="text-sm mt-1 whitespace-pre-wrap">
+                    <p className="text-sm mt-1">
                         <span className="font-semibold">{emoji.user?.name || 'User'}</span>
                         {' '}{emoji.caption}
                     </p>
@@ -258,13 +258,12 @@ export function PostView({
         width: '100%',
         transition: { duration: 10, ease: 'linear' }
     }).then((result) => {
-        if (result && !result.cancelled && currentIndex < localEmojis.length - 1) {
-          goToNext();
-        } else if (result && !result.cancelled && currentIndex === localEmojis.length - 1) {
-          onClose(localEmojis);
+        // We will no longer auto-advance. User must tap to navigate.
+        if (result && !result.cancelled && currentIndex === localEmojis.length - 1) {
+            onClose(localEmojis);
         }
     });
-  }, [animationControls, goToNext, currentIndex, localEmojis, onClose]);
+  }, [animationControls, currentIndex, localEmojis, onClose]);
 
 
   useEffect(() => {
