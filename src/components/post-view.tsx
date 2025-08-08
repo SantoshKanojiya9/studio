@@ -236,16 +236,16 @@ export function PostView({
   const goToNext = useCallback(() => {
     if (currentIndex < localEmojis.length - 1) {
       setDirection(1);
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex((prev) => prev + 1);
     } else {
-        onClose(localEmojis); // Close if it's the last one, passing back updated state
+      onClose(localEmojis);
     }
   }, [currentIndex, localEmojis, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex(currentIndex - 1);
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
@@ -265,13 +265,6 @@ export function PostView({
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
-        // Optimistically update the view status in the local state for the parent component.
-        setLocalEmojis(current => current.map(e => {
-            if ('mood_id' in e && e.mood_id === (currentEmojiState as Mood).mood_id) {
-                return { ...e, is_viewed: true };
-            }
-            return e;
-        }));
         startAnimation();
     }
     return () => {
@@ -378,8 +371,6 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   if (!currentEmojiState) {
-    // This can happen briefly while `localEmojis` is being populated.
-    // We check if emojis exist but localEmojis is empty, which means we're loading.
     if (emojis.length > 0 && localEmojis.length === 0) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center bg-black">
@@ -387,8 +378,6 @@ export function PostView({
             </div>
         );
     }
-    // If there are truly no emojis, we can probably just close.
-    // This might happen if the last mood/post was deleted.
     onClose(localEmojis);
     return null;
   }
@@ -615,3 +604,5 @@ export function PostView({
     </>
   );
 }
+
+    
