@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2 } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -31,7 +31,7 @@ import {
 
 
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
-type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows';
+type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'caption';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
@@ -397,6 +397,27 @@ const DesignPageContent = () => {
   const renderMenu = () => {
     const isLoki = model === 'loki';
     switch (activeMenu) {
+      case 'caption':
+        return (
+          <div className="flex items-center w-full p-2">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
+            <div className="relative w-full">
+                 <Textarea 
+                    id="caption"
+                    placeholder="Add a caption..."
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    maxLength={30}
+                    className="pr-12 h-10 resize-none text-sm"
+                    rows={1}
+                 />
+                 <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                    {caption.length}/30
+                 </div>
+            </div>
+          </div>
+        )
       case 'expressions':
         return (
           <>
@@ -574,6 +595,10 @@ const DesignPageContent = () => {
                 <span className="text-xs mt-1">Save</span>
             </Button>
             <Separator orientation="vertical" className="h-full mx-1" />
+             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('caption')}>
+                <Captions className="h-4 w-4" />
+                <span className="text-xs mt-1">Caption</span>
+            </Button>
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
                 <Smile className="h-4 w-4" />
                 <span className="text-xs mt-1">Expressions</span>
@@ -708,27 +733,7 @@ const DesignPageContent = () => {
 
         <div className="fixed bottom-[56px] left-0 right-0 z-20 w-full max-w-md mx-auto">
           <div className="flex flex-col bg-background/80 backdrop-blur-sm border-t border-border">
-            {/* Caption Input */}
-            <div className="p-3 space-y-2">
-                <Label htmlFor="caption" className="px-1">Caption</Label>
-                <div className="relative">
-                     <Textarea 
-                        id="caption"
-                        placeholder="Add a caption..."
-                        value={caption}
-                        onChange={(e) => setCaption(e.target.value)}
-                        maxLength={30}
-                        className="pr-12 h-16 resize-none"
-                        rows={2}
-                     />
-                     <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                        {caption.length}/30
-                     </div>
-                </div>
-            </div>
-            
-            {/* Tool Controls */}
-            <ScrollArea className="w-full whitespace-nowrap border-t border-border no-scrollbar">
+            <ScrollArea className="w-full whitespace-nowrap no-scrollbar">
                 <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
                     {renderMenu()}
                 </div>
