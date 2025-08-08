@@ -256,8 +256,6 @@ export function PostView({
     animationControls.start({
         width: '100%',
         transition: { duration: 10, ease: 'linear' }
-    }).then(() => {
-        // Animation completed
     });
   }, [animationControls]);
 
@@ -275,10 +273,10 @@ export function PostView({
         if (isViewersSheetOpen) {
             animationControls.stop();
         } else {
-            animationControls.start();
+            startAnimation();
         }
     }
-  }, [isViewersSheetOpen, isMoodView, animationControls]);
+  }, [isViewersSheetOpen, isMoodView, animationControls, startAnimation]);
 
 
   // Regular Post view scrolling logic
@@ -557,31 +555,30 @@ export function PostView({
   return (
     <>
         <div className="h-full w-full flex flex-col bg-background">
-        <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-            <Button variant="ghost" size="icon" onClick={() => onClose()}>
-            <ArrowLeft />
-            </Button>
-            <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
-            <div className="w-10"></div> {/* Spacer */}
-        </header>
+            <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
+                <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
+                <ArrowLeft />
+                </Button>
+                <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
+                <div className="w-10"></div> {/* Spacer */}
+            </header>
 
-        <div 
-            ref={scrollContainerRef}
-            className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
-        >
-            {localEmojis.map((emoji) => {
-                if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
-                return (
-                    <PostContent 
-                        key={emoji.id} 
-                        emoji={emoji} 
-                        onDelete={handleDeleteClick} 
-                        onSetMood={handleSetMoodClick}
-                    />
-                )
-            })}
-        </div>
-        
+            <div 
+                ref={scrollContainerRef}
+                className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+            >
+                {localEmojis.map((emoji) => {
+                    if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
+                    return (
+                        <PostContent 
+                            key={emoji.id} 
+                            emoji={emoji} 
+                            onDelete={handleDeleteClick} 
+                            onSetMood={handleSetMoodClick}
+                        />
+                    )
+                })}
+            </div>
         </div>
 
         <AlertDialog open={!!emojiToSetMood} onOpenChange={(isOpen) => !isOpen && setEmojiToSetMood(null)}>
