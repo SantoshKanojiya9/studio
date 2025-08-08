@@ -5,11 +5,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Search, User, Loader2 } from 'lucide-react';
+import { Search, User, Loader2, Lock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
-import { getAllSavedEmojis } from '@/lib/gallery-utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/use-auth';
@@ -61,8 +60,15 @@ export default function ExplorePage() {
     const fetchAllEmojis = async () => {
         setIsLoading(true);
         try {
-            const emojis = await getAllSavedEmojis();
-            setAllEmojis(emojis);
+            // Only fetch posts from public users
+            const { data, error } = await supabase
+                .from('emojis')
+                .select('*, user:users!inner(id, name, picture, is_private)')
+                .eq('user.is_private', false)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setAllEmojis(data as unknown as EmojiState[]);
         } catch (error: any) {
             console.error("Failed to load emojis for explore page", error);
             toast({
@@ -114,8 +120,6 @@ export default function ExplorePage() {
 
 
   const handleDelete = async (emojiId: string) => {
-    // A user should only be able to delete their own posts.
-    // RLS policies on Supabase will enforce this, but we can also check on the client.
     const emojiToDelete = allEmojis.find(e => e.id === emojiId);
     if (!emojiToDelete || emojiToDelete.user_id !== authUser?.id) {
         toast({ title: "Cannot delete", description: "You can only delete your own posts.", variant: "destructive" });
@@ -126,7 +130,6 @@ export default function ExplorePage() {
         const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
         if (error) throw error;
         
-        // Update state optimistically
         setAllEmojis(prevEmojis => prevEmojis.filter(emoji => emoji.id !== emojiId));
         
         toast({ title: "Post deleted", variant: "success" });
@@ -206,7 +209,7 @@ export default function ExplorePage() {
                 <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">
                     <User className="h-16 w-16" />
                     <h2 className="text-2xl font-bold text-foreground">Nothing to explore yet</h2>
-                    <p>When users create emojis, they will appear here.</p>
+                    <p>When public users create emojis, they will appear here.</p>
                 </div>
              )}
           </div>

@@ -48,6 +48,7 @@ interface ProfileUser {
     id: string;
     name: string;
     picture: string;
+    is_private: boolean;
 }
 
 function GalleryPageContent() {
@@ -56,7 +57,7 @@ function GalleryPageContent() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
-    const [isSupported, setIsSupported] = React.useState(false);
+    const [supportStatus, setSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [isSupportLoading, setIsSupportLoading] = React.useState(false);
@@ -80,7 +81,7 @@ function GalleryPageContent() {
         try {
             if (!isOwnProfile) {
                 const status = await getSupportStatus(authUser.id, viewingUserId);
-                setIsSupported(status);
+                setSupportStatus(status);
             }
             const supporters = await getSupporterCount(viewingUserId);
             const following = await getSupportingCount(viewingUserId);
@@ -103,7 +104,7 @@ function GalleryPageContent() {
                 // Fetch user profile directly using client
                 const { data: userProfile, error: userError } = await supabase
                     .from('users')
-                    .select('id, name, picture')
+                    .select('id, name, picture, is_private')
                     .eq('id', viewingUserId)
                     .single();
 
@@ -112,19 +113,25 @@ function GalleryPageContent() {
                 }
                 setProfileUser(userProfile as ProfileUser);
 
-                // Fetch user emojis
-                const { data, error } = await supabase
-                    .from('emojis')
-                    .select('*, user:users!inner(id, name, picture)')
-                    .eq('user_id', viewingUserId)
-                    .order('created_at', { ascending: false });
-
-                if (error) {
-                    console.error('Supabase error in gallery:', error);
-                    throw new Error(error.message);
-                };
+                // Fetch support data in parallel
+                fetchSupportData();
                 
-                setSavedEmojis(data as unknown as EmojiState[]);
+                // If the profile is private and the current user is not a supporter, don't fetch posts.
+                const tempSupportStatus = isOwnProfile ? 'approved' : await getSupportStatus(authUser!.id, viewingUserId);
+                if (userProfile.is_private && tempSupportStatus !== 'approved' && !isOwnProfile) {
+                    setSavedEmojis([]);
+                } else {
+                    // Fetch user emojis
+                    const { data, error } = await supabase
+                        .from('emojis')
+                        .select('*, user:users!inner(id, name, picture)')
+                        .eq('user_id', viewingUserId)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw new Error(error.message);
+                    setSavedEmojis(data as unknown as EmojiState[]);
+                }
+
 
                 // Fetch mood status
                  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -134,15 +141,8 @@ function GalleryPageContent() {
                     .eq('user_id', viewingUserId)
                     .gte('created_at', twentyFourHoursAgo);
 
-                if (moodError) {
-                    console.error('Supabase error fetching mood status:', moodError);
-                } else {
-                    setHasMood((moodCount ?? 0) > 0);
-                }
-
-
-                // Fetch support data
-                fetchSupportData();
+                if (moodError) console.error('Supabase error fetching mood status:', moodError);
+                else setHasMood((moodCount ?? 0) > 0);
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -164,7 +164,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, isOwnProfile, supabase, fetchSupportData, router]);
+    }, [viewingUserId, toast, isOwnProfile, supabase, fetchSupportData, router, authUser]);
 
     // Real-time listener for support counts
     React.useEffect(() => {
@@ -245,18 +245,17 @@ function GalleryPageContent() {
     };
 
     const handleSupportToggle = async () => {
-        if (!authUser || !viewingUserId || isOwnProfile || isSupportLoading) return;
+        if (!authUser || !viewingUserId || !profileUser || isOwnProfile || isSupportLoading) return;
 
         setIsSupportLoading(true);
         try {
-            if (isSupported) {
+            if (supportStatus === 'approved' || supportStatus === 'pending') {
                 await unsupportUser(viewingUserId);
+                setSupportStatus(null);
             } else {
-                await supportUser(viewingUserId);
+                await supportUser(viewingUserId, profileUser.is_private);
+                setSupportStatus(profileUser.is_private ? 'pending' : 'approved');
             }
-            // After the server action is complete, re-fetch the data to ensure UI is in sync
-            // The realtime listener will also catch this, but fetching immediately makes the UI faster.
-            await fetchSupportData();
         } catch (error: any) {
             console.error("Support error:", error);
             toast({
@@ -328,9 +327,8 @@ function GalleryPageContent() {
                     <Button variant="ghost" size="icon" className="mr-2" onClick={() => router.back()}>
                         <ArrowLeft />
                     </Button>
-                ) : (
-                    <Lock className="h-4 w-4" />
-                )}
+                ) : null }
+                 {profileUser?.is_private && <Lock className="h-4 w-4" />}
                 <span>{profileUser?.name || 'Profile'}</span>
             </div>
             {isOwnProfile && authUser && (
@@ -380,6 +378,8 @@ function GalleryPageContent() {
         );
     }
     
+    const canViewContent = !profileUser?.is_private || supportStatus === 'approved' || isOwnProfile;
+
     return (
         <>
             <div className="flex h-full w-full flex-col overflow-x-hidden">
@@ -407,11 +407,11 @@ function GalleryPageContent() {
                                         <p className="font-bold text-lg">{savedEmojis.length}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
-                                    <button className="text-center" onClick={() => setSheetContent('supporters')}>
+                                    <button className="text-center" onClick={() => canViewContent && setSheetContent('supporters')}>
                                         <p className="font-bold text-lg">{supporterCount}</p>
                                         <p className="text-sm text-muted-foreground">supporters</p>
                                     </button>
-                                     <button className="text-center" onClick={() => setSheetContent('supporting')}>
+                                     <button className="text-center" onClick={() => canViewContent && setSheetContent('supporting')}>
                                         <p className="font-bold text-lg">{supportingCount}</p>
                                         <p className="text-sm text-muted-foreground">supporting</p>
                                     </button>
@@ -428,12 +428,15 @@ function GalleryPageContent() {
                                 ) : (
                                     <>
                                         <Button 
-                                            variant={isSupported ? "secondary" : "default"} 
+                                            variant={supportStatus === 'approved' || supportStatus === 'pending' ? "secondary" : "default"} 
                                             className="flex-1"
                                             onClick={handleSupportToggle}
                                             disabled={isSupportLoading}
                                         >
-                                            {isSupportLoading ? <Loader2 className="animate-spin"/> : (isSupported ? 'Unsupport' : 'Support')}
+                                            {isSupportLoading ? <Loader2 className="animate-spin"/> : (
+                                                supportStatus === 'approved' ? 'Unsupport' :
+                                                supportStatus === 'pending' ? 'Pending' : 'Support'
+                                            )}
                                         </Button>
                                     </>
                                 )}
@@ -441,22 +444,30 @@ function GalleryPageContent() {
                         </div>
 
                         <div className="p-1">
-                            {savedEmojis.length > 0 ? (
-                                <motion.div 
-                                    layout
-                                    className="grid grid-cols-3 gap-1"
-                                >
-                                    {savedEmojis.map(emoji => (
-                                        <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
-                                    ))}
-                                </motion.div>
-                            ) : (
-                                <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4">
-                                    <div className="border-2 border-foreground rounded-full p-4">
-                                        <Grid3x3 className="h-12 w-12" />
+                            {canViewContent ? (
+                                savedEmojis.length > 0 ? (
+                                    <motion.div 
+                                        layout
+                                        className="grid grid-cols-3 gap-1"
+                                    >
+                                        {savedEmojis.map(emoji => (
+                                            <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
+                                        ))}
+                                    </motion.div>
+                                ) : (
+                                    <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">
+                                        <div className="border-2 border-foreground rounded-full p-4">
+                                            <Grid3x3 className="h-12 w-12" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold">No Posts Yet</h2>
+                                        {isOwnProfile && <Link href="/design" className="text-primary font-semibold">Create your first post</Link>}
                                     </div>
-                                    <h2 className="text-2xl font-bold">Capture the moment with a friend</h2>
-                                    {isOwnProfile && <Link href="/design" className="text-primary font-semibold">Create your first post</Link>}
+                                )
+                            ) : (
+                                <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">
+                                    <Lock className="h-12 w-12" />
+                                    <h2 className="text-xl font-bold text-foreground">This Account is Private</h2>
+                                    <p>Support this user to see their posts.</p>
                                 </div>
                             )}
                         </div>

@@ -7,11 +7,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, ArrowLeft, Camera } from 'lucide-react';
+import { Loader2, ArrowLeft, Camera, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateUserProfile } from '@/app/actions';
 import imageCompression from 'browser-image-compression';
+import { Separator } from '@/components/ui/separator';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -19,18 +21,37 @@ export default function EditProfilePage() {
     const { toast } = useToast();
 
     const [name, setName] = useState('');
+    const [isPrivate, setIsPrivate] = useState(false);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [initialIsPrivate, setInitialIsPrivate] = useState(false);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (!authLoading && user) {
-            setName(user.name);
-            setAvatarPreview(user.picture);
+        const fetchUserData = async () => {
+            if (!authLoading && user) {
+                // Fetch the user's current privacy setting from the database
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('name, picture, is_private')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) {
+                    console.error("Error fetching user data for edit page", error);
+                    toast({ title: "Error", description: "Could not load profile data."});
+                } else if (data) {
+                    setName(data.name);
+                    setAvatarPreview(data.picture);
+                    setIsPrivate(data.is_private);
+                    setInitialIsPrivate(data.is_private);
+                }
+            }
         }
-    }, [user, authLoading]);
+        fetchUserData();
+    }, [user, authLoading, supabase, toast]);
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -66,14 +87,11 @@ export default function EditProfilePage() {
 
         setIsSaving(true);
         try {
-            const formData = new FormData();
-            formData.append('name', name);
-            if (avatarFile) {
-                formData.append('avatarFile', avatarFile);
-            }
-            
-            // We pass the name and avatarFile to the server action
-            await updateUserProfile({ name, avatarFile: avatarFile || undefined });
+            await updateUserProfile({ 
+                name, 
+                avatarFile: avatarFile || undefined,
+                is_private: isPrivate,
+            });
             
             toast({
                 title: "Profile updated!",
@@ -81,7 +99,6 @@ export default function EditProfilePage() {
                 variant: 'success'
             });
 
-            // Force a reload of the user session to get the new data
             await supabase.auth.refreshSession();
             router.push('/gallery');
             
@@ -118,7 +135,7 @@ export default function EditProfilePage() {
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={avatarPreview || user.picture} alt="Profile preview" data-ai-hint="profile picture" />
+                                <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
                                 <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <Button 
@@ -155,6 +172,28 @@ export default function EditProfilePage() {
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
+                    </div>
+
+                    <Separator />
+                    
+                     <div className="space-y-4">
+                        <Label className="text-base font-semibold">Account Privacy</Label>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="flex items-center gap-3">
+                                <Lock className="h-5 w-5"/>
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="private-account">Private Account</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        When your account is private, only people you approve can see your photos and videos.
+                                    </p>
+                                </div>
+                            </div>
+                            <Switch
+                                id="private-account"
+                                checked={isPrivate}
+                                onCheckedChange={setIsPrivate}
+                            />
+                        </div>
                     </div>
                     
                     <Button type="submit" className="w-full" disabled={isSaving}>

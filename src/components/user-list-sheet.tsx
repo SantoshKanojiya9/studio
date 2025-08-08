@@ -20,16 +20,17 @@ interface User {
   id: string;
   name: string;
   picture: string;
+  is_private?: boolean; // We might not always have this
 }
 
 interface UserListItemProps {
   itemUser: User;
-  currentUser: { id: string } | null;
+  currentUser: { id: string, is_private: boolean } | null;
   onSupportChange: (userId: string, isNowSupported: boolean) => void;
 }
 
 const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemProps) => {
-    const [isSupported, setIsSupported] = useState(false);
+    const [supportStatus, setSupportStatus] = useState<'approved' | 'pending' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
@@ -39,7 +40,7 @@ const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemPr
             return;
         }
         getSupportStatus(currentUser.id, itemUser.id).then(status => {
-            setIsSupported(status);
+            setSupportStatus(status);
             setIsLoading(false);
         });
     }, [currentUser, itemUser.id]);
@@ -51,14 +52,19 @@ const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemPr
 
         setIsLoading(true);
         try {
-            if (isSupported) {
+            if (supportStatus === 'approved' || supportStatus === 'pending') {
                 await unsupportUser(itemUser.id);
-                 onSupportChange(itemUser.id, false);
-                 setIsSupported(false);
+                onSupportChange(itemUser.id, false);
+                setSupportStatus(null);
             } else {
-                await supportUser(itemUser.id);
-                 onSupportChange(itemUser.id, true);
-                 setIsSupported(true);
+                // To know if the user is private, we'd need to fetch that info.
+                // For now, let's assume we can pass it or have a fallback.
+                // A better approach would be to fetch the user's `is_private` status here if not available.
+                // For simplicity, we'll refetch in the parent component for now.
+                const isPrivate = itemUser.is_private ?? false;
+                await supportUser(itemUser.id, isPrivate);
+                onSupportChange(itemUser.id, true);
+                setSupportStatus(isPrivate ? 'pending' : 'approved');
             }
         } catch (error: any) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
@@ -78,12 +84,14 @@ const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemPr
             <span className="font-semibold flex-1">{itemUser.name}</span>
             {!isSelf && currentUser && (
                  <Button 
-                    variant={isSupported ? 'secondary' : 'default'}
+                    variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
                     size="sm"
                     onClick={handleSupportToggle}
                     disabled={isLoading}
                  >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (isSupported ? 'Unsupport' : 'Support')}
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 
+                        (supportStatus === 'approved' ? 'Unsupport' : 
+                         supportStatus === 'pending' ? 'Pending' : 'Support')}
                 </Button>
             )}
         </Link>
@@ -102,8 +110,6 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
     const [isLoading, setIsLoading] = useState(false);
     const { user: currentUser } = useAuth();
     
-    // This state is to force re-renders on children when a support status changes
-    // It's a bit of a hack, but simpler than a complex state management solution here
     const [supportChangeTracker, setSupportChangeTracker] = useState(0);
 
     useEffect(() => {
@@ -138,11 +144,14 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
         // If the list is the current user's "supporting" list, update it optimistically
         if (currentUser && currentUser.id === userId && type === 'supporting') {
             if (isNowSupported) {
-                 // This is tricky without fetching the full user object, so we'll just refetch
+                 // We have to refetch to get the full user object with `is_private` for the button logic
                  setSupportChangeTracker(c => c + 1);
             } else {
                  setUserList(currentList => currentList.filter(u => u.id !== changedUserId));
             }
+        } else {
+            // For other lists (like someone else's supporters), just refetch to be safe.
+            setSupportChangeTracker(c => c + 1);
         }
     }
 

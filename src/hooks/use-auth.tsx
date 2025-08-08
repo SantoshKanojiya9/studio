@@ -14,6 +14,7 @@ interface UserProfile {
     name: string;
     email: string;
     picture: string;
+    is_private: boolean;
     deleted_at?: string | null;
 }
 
@@ -62,7 +63,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     id: authUser.id,
                     email: authUser.email || '',
                     name: authUser.user_metadata.name || authUser.email?.split('@')[0] || 'User',
-                    picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`
+                    picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`,
+                    is_private: false,
                 });
 
             } else if (profile) {
@@ -71,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     name: profile.name,
                     email: profile.email,
                     picture: profile.picture,
+                    is_private: profile.is_private,
                     deleted_at: profile.deleted_at,
                 });
             }
@@ -90,11 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
       (_event, newSession) => {
-        // When a session is refreshed (e.g., after profile update), re-fetch data.
         if (_event === "TOKEN_REFRESHED" || _event === "SIGNED_IN") {
             handleAuthChange(newSession);
         } else if (_event === "SIGNED_OUT") {
             setUser(null);
+            setSession(null);
         }
       }
     );

@@ -230,7 +230,8 @@ export default function MoodPage() {
             const { data: following, error: followingError } = await supabase
                 .from('supports')
                 .select('supported_id')
-                .eq('supporter_id', user.id);
+                .eq('supporter_id', user.id)
+                .eq('status', 'approved'); // Only fetch content from approved supports
             
             if (followingError) throw followingError;
 
@@ -265,7 +266,6 @@ export default function MoodPage() {
             const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 
             const formattedMoods = moodData.map(m => {
-                // A user's own mood should only be "viewed" (gray) if someone ELSE has viewed it.
                 const isViewed = m.user_id === user.id 
                     ? m.views.some(v => v.viewer_id !== user.id) 
                     : viewedMoodIds.has(m.id);
@@ -277,7 +277,7 @@ export default function MoodPage() {
                     mood_user_id: m.user_id,
                     mood_user: m.mood_user,
                     is_viewed: isViewed,
-                    caption: (m.emoji as any)?.caption, // Ensure caption is passed through
+                    caption: (m.emoji as any)?.caption,
                 }
             }).sort((a, b) => {
                  // 1. My mood always first
@@ -337,11 +337,9 @@ export default function MoodPage() {
 
     const handleSelectMood = (index: number) => {
         const moodId = moods[index].mood_id;
-        // Only record a view if it's not the user's own mood
         if (moods[index].mood_user_id !== user?.id) {
             recordMoodView(moodId);
         }
-        // Optimistically update the ring state locally for immediate feedback
         setMoods(currentMoods => currentMoods.map(m => 
             m.mood_id === moodId ? { ...m, is_viewed: true } : m
         ));
@@ -353,8 +351,6 @@ export default function MoodPage() {
     };
 
     const handleOnCloseMood = (updatedMoods: Mood[]) => {
-        // The PostView component will pass back the latest state of moods.
-        // We re-sort it to ensure proper order is maintained.
         const sortedMoods = [...updatedMoods].sort((a, b) => {
             if (a.mood_user_id === user?.id) return -1;
             if (b.mood_user_id === user?.id) return 1;
@@ -375,7 +371,7 @@ export default function MoodPage() {
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
-                    fetchFeedContent(); // Re-fetch after deletion
+                    fetchFeedContent(); 
                 }}
             />
         )
@@ -390,7 +386,7 @@ export default function MoodPage() {
                 onClose={() => setSelectedPostId(null)}
                 onDelete={(deletedId) => {
                     setFeedPosts(feedPosts.filter(p => p.id !== deletedId));
-                    fetchFeedContent(); // Re-fetch
+                    fetchFeedContent();
                 }}
             />
         )

@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Loader2, UserPlus, Heart } from 'lucide-react';
-import { getNotifications, getSupportStatus, supportUser, unsupportUser } from '../actions';
+import { Loader2, UserPlus, Heart, Check, X } from 'lucide-react';
+import { getNotifications, respondToSupportRequest } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
@@ -21,7 +21,7 @@ const NotificationHeader = () => (
 
 interface Notification {
   id: number;
-  type: 'new_supporter' | 'new_like';
+  type: 'new_supporter' | 'new_like' | 'new_support_request' | 'support_request_approved';
   created_at: string;
   emoji_id: string | null;
   actor: {
@@ -47,43 +47,26 @@ const timeSince = (date: Date) => {
     return Math.floor(seconds) + "s";
 };
 
-const SupporterNotification = ({ notification }: { notification: Notification }) => {
-    const { actor, created_at } = notification;
-    const { user: currentUser } = useAuth();
+const SupportRequestNotification = ({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
+    const { actor, created_at, id } = notification;
     const { toast } = useToast();
-    const [isSupported, setIsSupported] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<'approve' | 'decline' | null>(null);
 
-    useEffect(() => {
-        if (!currentUser) {
-            setIsLoading(false);
-            return;
-        }
-        getSupportStatus(currentUser.id, actor.id)
-            .then(setIsSupported)
-            .finally(() => setIsLoading(false));
-    }, [currentUser, actor.id]);
-
-    const handleSupportToggle = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!currentUser || isLoading) return;
-        setIsLoading(true);
-
+    const handleResponse = async (action: 'approve' | 'decline') => {
+        setIsLoading(action);
         try {
-            if (isSupported) {
-                await unsupportUser(actor.id);
-            } else {
-                await supportUser(actor.id);
-            }
-            setIsSupported(!isSupported);
+            await respondToSupportRequest(actor.id, action);
+            toast({
+                title: `Request ${action === 'approve' ? 'Approved' : 'Declined'}`,
+                variant: 'success',
+            });
+            onRespond(id);
         } catch (error: any) {
             toast({ title: "Error", description: error.message, variant: "destructive" });
         } finally {
-            setIsLoading(false);
+            setIsLoading(null);
         }
-    };
+    }
 
     return (
         <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
@@ -95,17 +78,17 @@ const SupporterNotification = ({ notification }: { notification: Notification })
             </Link>
             <p className="flex-1 text-sm">
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
-                {' started supporting you. '}
+                {' wants to support you. '}
                 <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
             </p>
-            <Button
-                variant={isSupported ? 'secondary' : 'default'}
-                size="sm"
-                onClick={handleSupportToggle}
-                disabled={isLoading}
-            >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isSupported ? 'Unsupport' : 'Support'}
-            </Button>
+            <div className="flex gap-2">
+                <Button size="sm" onClick={() => handleResponse('approve')} disabled={!!isLoading}>
+                    {isLoading === 'approve' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Approve'}
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => handleResponse('decline')} disabled={!!isLoading}>
+                    {isLoading === 'decline' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Decline'}
+                </Button>
+            </div>
         </div>
     );
 };
@@ -134,6 +117,10 @@ export default function NotificationsPage() {
     };
     fetchNotifications();
   }, [user]);
+  
+  const handleRequestResponded = (notificationId: number) => {
+    setNotifications(current => current.filter(n => n.id !== notificationId));
+  }
 
   if (isLoading) {
     return (
@@ -149,8 +136,50 @@ export default function NotificationsPage() {
   const renderNotification = (notification: Notification) => {
     const { actor, type, emoji, created_at } = notification;
 
+    if (type === 'new_support_request') {
+      return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} />;
+    }
+    
+    if (type === 'support_request_approved') {
+         return (
+             <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
+                <div className="relative">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                     <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                        <Check className="h-3 w-3 text-white"/>
+                    </div>
+                </div>
+                <p className="flex-1 text-sm">
+                    <span className="font-semibold">{actor.name}</span>
+                    {' approved your support request.'}
+                    <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                </p>
+            </Link>
+        )
+    }
+
     if (type === 'new_supporter') {
-      return <SupporterNotification key={notification.id} notification={notification} />;
+         return (
+             <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
+                <div className="relative">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                     <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
+                        <UserPlus className="h-3 w-3 text-primary-foreground"/>
+                    </div>
+                </div>
+                <p className="flex-1 text-sm">
+                    <span className="font-semibold">{actor.name}</span>
+                    {' started supporting you.'}
+                    <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                </p>
+            </Link>
+        )
     }
 
     if (type === 'new_like' && emoji) {

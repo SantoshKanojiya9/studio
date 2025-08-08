@@ -24,7 +24,7 @@ export async function recoverUserAccount() {
     }
 }
 
-export async function updateUserProfile({ name, avatarFile }: { name: string; avatarFile?: File }) {
+export async function updateUserProfile({ name, avatarFile, is_private }: { name: string; avatarFile?: File, is_private?: boolean }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -59,9 +59,25 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
         avatarUrl = `${publicUrl}?t=${new Date().getTime()}`;
     }
 
-    const updates: { name: string; picture?: string } = { name };
+    const updates: { name: string; picture?: string, is_private?: boolean } = { name };
     if (avatarUrl) {
         updates.picture = avatarUrl;
+    }
+    if (is_private !== undefined) {
+        updates.is_private = is_private;
+
+        // If user is making their account public, approve all pending follow requests.
+        if (is_private === false) {
+             const { error: approveError } = await supabase
+                .from('supports')
+                .update({ status: 'approved' })
+                .eq('supported_id', user.id)
+                .eq('status', 'pending');
+
+            if (approveError) {
+                console.error("Error approving pending requests:", approveError);
+            }
+        }
     }
     
     // 1. Update the public users table
@@ -78,12 +94,11 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
     // 2. Update the user_metadata in the auth schema
     const { error: adminUserUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
         user.id,
-        { user_metadata: updates }
+        { user_metadata: { name: updates.name, picture: updates.picture } } // only update name/pic in metadata
     );
     
     if (adminUserUpdateError) {
         console.error('Error updating auth user metadata:', adminUserUpdateError);
-        // This is not a critical error for the user, so we can just log it
     }
 
 
@@ -98,13 +113,20 @@ export async function updateUserProfile({ name, avatarFile }: { name: string; av
 
 export async function getSupportStatus(supporterId: string, supportedId: string) {
     const supabase = createSupabaseServerClient();
-    const { count } = await supabase
+    const { data, error } = await supabase
         .from('supports')
-        .select('*', { count: 'exact', head: true })
+        .select('status')
         .eq('supporter_id', supporterId)
-        .eq('supported_id', supportedId);
+        .eq('supported_id', supportedId)
+        .single();
+    
+    if (error) {
+        if (error.code === 'PGRST116') return null; // No relationship found
+        console.error("Error getting support status:", error);
+        return null;
+    }
 
-    return (count ?? 0) > 0;
+    return data?.status || null; // 'approved', 'pending', or null
 }
 
 export async function getSupporterCount(userId: string) {
@@ -112,7 +134,8 @@ export async function getSupporterCount(userId: string) {
     const { count, error } = await supabase
         .from('supports')
         .select('*', { count: 'exact', head: true })
-        .eq('supported_id', userId);
+        .eq('supported_id', userId)
+        .eq('status', 'approved');
 
     if (error) {
         console.error('Error getting supporter count:', error);
@@ -126,7 +149,8 @@ export async function getSupportingCount(userId: string) {
     const { count, error } = await supabase
         .from('supports')
         .select('*', { count: 'exact', head: true })
-        .eq('supporter_id', userId);
+        .eq('supporter_id', userId)
+        .eq('status', 'approved');
     
     if (error) {
         console.error('Error getting supporting count:', error);
@@ -140,7 +164,8 @@ export async function getSupporters(userId: string): Promise<{ id: string; name:
     const { data, error } = await supabase
         .from('supports')
         .select('supporter:users!supports_supporter_id_fkey(id, name, picture)')
-        .eq('supported_id', userId);
+        .eq('supported_id', userId)
+        .eq('status', 'approved');
 
     if (error) {
         console.error('Error getting supporters:', error);
@@ -155,7 +180,8 @@ export async function getSupporting(userId: string): Promise<{ id: string; name:
     const { data, error } = await supabase
         .from('supports')
         .select('supported:users!supports_supported_id_fkey(id, name, picture)')
-        .eq('supporter_id', userId);
+        .eq('supporter_id', userId)
+        .eq('status', 'approved');
 
     if (error) {
         console.error('Error getting supporting list:', error);
@@ -166,7 +192,7 @@ export async function getSupporting(userId: string): Promise<{ id: string; name:
 }
 
 
-export async function supportUser(supportedId: string) {
+export async function supportUser(supportedId: string, isPrivate: boolean) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -176,10 +202,12 @@ export async function supportUser(supportedId: string) {
     if (user.id === supportedId) {
         throw new Error("Cannot support yourself.");
     }
+    
+    const status = isPrivate ? 'pending' : 'approved';
 
     const { error } = await supabase
         .from('supports')
-        .insert({ supporter_id: user.id, supported_id: supportedId });
+        .insert({ supporter_id: user.id, supported_id: supportedId, status });
     
     if (error) {
         console.error('Error supporting user:', error);
@@ -190,7 +218,7 @@ export async function supportUser(supportedId: string) {
     await createNotification({
         recipient_id: supportedId,
         actor_id: user.id,
-        type: 'new_supporter',
+        type: isPrivate ? 'new_support_request' : 'new_supporter',
     });
 
     revalidatePath(`/gallery?userId=${supportedId}`);
@@ -219,6 +247,42 @@ export async function unsupportUser(supportedId: string) {
     revalidatePath(`/gallery?userId=${supportedId}`);
     revalidatePath(`/gallery`);
     revalidatePath(`/mood`); // Revalidate mood page to hide posts
+}
+
+export async function respondToSupportRequest(supporterId: string, action: 'approve' | 'decline') {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    if (action === 'approve') {
+        const { error } = await supabase
+            .from('supports')
+            .update({ status: 'approved' })
+            .eq('supporter_id', supporterId)
+            .eq('supported_id', user.id)
+            .eq('status', 'pending');
+
+        if (error) throw error;
+        
+        // Notify the user that their request was approved
+        await createNotification({
+            recipient_id: supporterId,
+            actor_id: user.id,
+            type: 'support_request_approved'
+        });
+
+    } else { // decline
+        const { error } = await supabase
+            .from('supports')
+            .delete()
+            .eq('supporter_id', supporterId)
+            .eq('supported_id', user.id)
+            .eq('status', 'pending');
+        
+        if (error) throw error;
+    }
+    
+    revalidatePath('/notifications');
 }
 
 // --- Mood Actions ---
@@ -425,7 +489,7 @@ export async function getLikers(emojiId: string): Promise<{ id: string; name: st
 type NotificationPayload = {
     recipient_id: string;
     actor_id: string;
-    type: 'new_supporter' | 'new_like';
+    type: 'new_supporter' | 'new_like' | 'new_support_request' | 'support_request_approved';
     emoji_id?: string;
 }
 
