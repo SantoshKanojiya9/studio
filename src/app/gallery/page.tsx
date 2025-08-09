@@ -77,10 +77,11 @@ function GalleryPageContent() {
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
     
     const fetchSupportData = React.useCallback(async () => {
-        if (!viewingUserId || !authUser) return;
+        if (!viewingUserId) return;
         
         try {
-            if (!isOwnProfile) {
+            // No need to check authUser here, as some data can be public
+            if (!isOwnProfile && authUser) {
                 const status = await getSupportStatus(authUser.id, viewingUserId);
                 setSupportStatus(status);
             }
@@ -118,7 +119,8 @@ function GalleryPageContent() {
                 fetchSupportData();
                 
                 // If the profile is private and the current user is not a supporter, don't fetch posts.
-                const tempSupportStatus = isOwnProfile ? 'approved' : await getSupportStatus(authUser!.id, viewingUserId);
+                const tempSupportStatus = isOwnProfile || !authUser ? 'approved' : await getSupportStatus(authUser.id, viewingUserId);
+
                 if (userProfile.is_private && tempSupportStatus !== 'approved' && !isOwnProfile) {
                     setSavedEmojis([]);
                 } else {
@@ -179,7 +181,8 @@ function GalleryPageContent() {
                 table: 'supports',
                 filter: `or(supporter_id.eq.${viewingUserId},supported_id.eq.${viewingUserId})`
             },
-            () => {
+            (payload) => {
+                console.log('Support change detected:', payload);
                 fetchSupportData();
             })
             .subscribe();
