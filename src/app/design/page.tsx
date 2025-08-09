@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -16,6 +16,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
+import { RslimeFace } from '@/components/rslime-face';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,7 +36,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki';
+type ModelType = 'emoji' | 'loki' | 'rslime';
 
 
 export type EmojiState = {
@@ -96,6 +97,7 @@ const DesignPageContent = () => {
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
+  const defaultRslimeColor = '#89d5f7';
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -360,6 +362,8 @@ const DesignPageContent = () => {
     // Set model-specific defaults
     if (newModel === 'loki') {
         setEmojiColor(defaultLokiColor);
+    } else if (newModel === 'rslime') {
+        setEmojiColor(defaultRslimeColor);
     } else {
         setEmojiColor(defaultEmojiColor);
     }
@@ -459,7 +463,7 @@ const DesignPageContent = () => {
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={model === 'loki' && name === 'blob'}
+                            disabled={(model === 'loki' || model === 'rslime') && name === 'blob'}
                         >
                             {label}
                         </Button>
@@ -490,7 +494,7 @@ const DesignPageContent = () => {
                         <Input id="face-color-input" type="color" value={emoji_color} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
-                <TooltipContent><p>{model === 'loki' ? 'Clock Color' : 'Face Color'}</p></TooltipContent>
+                <TooltipContent><p>{model === 'loki' ? 'Clock Color' : (model === 'rslime' ? 'Slime Color' : 'Face Color')}</p></TooltipContent>
             </Tooltip>
           </>
         );
@@ -612,10 +616,12 @@ const DesignPageContent = () => {
                     <Smile className="h-4 w-4" />
                     <span className="text-xs mt-1">Expressions</span>
                 </Button>
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
-                    <UserIcon className="h-4 w-4" />
-                    <span className="text-xs mt-1">Face</span>
-                </Button>
+                {model !== 'loki' && (
+                  <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
+                      <UserIcon className="h-4 w-4" />
+                      <span className="text-xs mt-1">Face</span>
+                  </Button>
+                )}
                 <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
                     <Sparkles className="h-4 w-4" />
                     <span className="text-xs mt-1">Animations</span>
@@ -628,7 +634,7 @@ const DesignPageContent = () => {
                     <Palette className="h-4 w-4" />
                     <span className="text-xs mt-1">Colors</span>
                 </Button>
-                {model === 'emoji' && (
+                {(model === 'emoji' || model === 'rslime') && (
                     <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
                         <Glasses className="h-4 w-4" />
                         <span className="text-xs mt-1">Accessories</span>
@@ -689,6 +695,18 @@ const DesignPageContent = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>Loki Clock Model</p></TooltipContent>
               </Tooltip>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button 
+                          size="icon" 
+                          variant={model === 'rslime' ? 'secondary' : 'ghost'}
+                          onClick={() => handleModelChange('rslime')}
+                      >
+                          <Droplet className="h-5 w-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Rslime Model</p></TooltipContent>
+              </Tooltip>
           </div>
           
           <motion.div
@@ -718,13 +736,33 @@ const DesignPageContent = () => {
                     feature_offset_x={feature_offset_x}
                     feature_offset_y={feature_offset_y}
                 />
-            ) : (
+            ) : model === 'loki' ? (
                 <ClockFace 
                     expression={expression} 
                     color={emoji_color} 
                     setColor={setEmojiColor}
                     show_sunglasses={false}
                     show_mustache={false}
+                    shape={shape}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
+                    animation_type={animation_type}
+                    isDragging={isDragging}
+                    isInteractive={true}
+                    onPan={handlePan}
+                    onPanStart={handlePanStart}
+                    onPanEnd={handlePanEnd}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
+                />
+            ) : (
+                 <RslimeFace 
+                    expression={expression} 
+                    color={emoji_color} 
+                    setColor={setEmojiColor}
+                    show_sunglasses={show_sunglasses} 
+                    show_mustache={show_mustache} 
                     shape={shape}
                     eye_style={eye_style}
                     mouth_style={mouth_style}
