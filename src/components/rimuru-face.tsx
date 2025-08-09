@@ -109,34 +109,30 @@ export const RimuruFace = ({
     return stopAnimations;
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
   
+  const neutralFace = {
+    leftEye: "M 30 45 L 45 55",
+    rightEye: "M 70 45 L 55 55",
+    mouth: "M 42 65 L 58 65"
+  };
+
   const eyeVariants = {
-    neutral:   { left: "M 25,50 L 40,50", right: "M 60,50 L 75,50" }, // -- --
-    happy:     { left: "M 25,45 L 40,55", right: "M 60,55 L 75,45" }, // < >
-    angry:     { left: "M 25,45 L 40,60", right: "M 60,45 L 75,60" }, // \ /
-    sad:       { left: "M 25,60 L 40,45", right: "M 60,60 L 75,45" }, // / \
-    surprised: { left: "M 25,40 C 32.5,30 47.5,30 55,40", right: "M 65,40 C 72.5,30 87.5,30 95,40" }, // two arcs upward
-    scared:    { left: "M 25,45 L 40,50", right: "M 60,45 L 75,50" },
-    love:      { left: "M 25,55 L 45,45", right: "M 60,45 L 75,40" }, // from image
+    neutral:   { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    happy:     { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    angry:     { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    sad:       { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    surprised: { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    scared:    { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    love:      { left: neutralFace.leftEye, right: neutralFace.rightEye },
   };
   
   const mouthVariants = {
-    neutral: { d: "", opacity: 0 },
-    happy: { d: "M 45,65 C 50,70 55,70 60,65", opacity: 1 }, // Small smile
-    angry: { d: "M 45,70 L 60,70", opacity: 1 }, // Straight line
-    sad: { d: "M 45,70 C 50,65 55,65 60,70", opacity: 1 }, // Frown
-    surprised: { d: "M 45,65 A 10 10 0 0 0 55 65 Z", opacity: 1 }, // open mouth circle
-    scared: { d: "M 45,70 Q 50,60 55,70", opacity: 1 },
-    love: { d: "M 45,60 C 50,68 58,68 63,60", opacity: 1 }, // Gentle curve from image
-  };
-
-  const blushVariants = {
-    neutral: { opacity: 0 },
-    happy: { opacity: 0.8 },
-    love: { opacity: 0.8 },
-    angry: { opacity: 0 },
-    sad: { opacity: 0 },
-    surprised: { opacity: 0 },
-    scared: { opacity: 0 },
+    neutral: { d: neutralFace.mouth, opacity: 1 },
+    happy: { d: neutralFace.mouth, opacity: 1 },
+    angry: { d: neutralFace.mouth, opacity: 1 },
+    sad: { d: neutralFace.mouth, opacity: 1 },
+    surprised: { d: neutralFace.mouth, opacity: 1 },
+    scared: { d: neutralFace.mouth, opacity: 1 },
+    love: { d: neutralFace.mouth, opacity: 1 },
   };
 
   const getShapeClipPath = (s: ShapeType) => {
@@ -187,40 +183,13 @@ export const RimuruFace = ({
                     style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
-                    <motion.div className="flex justify-between w-48 absolute top-[135px]"
-                        variants={blushVariants}
-                        animate={expression}
-                        transition={{ duration: 0.3, type: "spring" }}
-                    >
-                        <div className="relative w-12 h-6">
-                            <div className="w-full h-full bg-pink-300/70 rounded-full" style={{ filter: 'blur(1px)'}} />
-                             {(expression === 'love') && (
-                                <div className="absolute inset-0 flex justify-center items-center gap-1">
-                                    <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
-                                    <div className="w-px h-3 bg-black/70"></div>
-                                    <div className="w-px h-3 bg-black/70 transform rotate-[15deg]"></div>
-                                </div>
-                            )}
-                        </div>
-                         <div className="relative w-12 h-6">
-                            <div className="w-full h-full bg-pink-300/70 rounded-full" style={{ filter: 'blur(1px)'}} />
-                            {(expression === 'love') && (
-                                <div className="absolute inset-0 flex justify-center items-center gap-1">
-                                    <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
-                                    <div className="w-px h-3 bg-black/70"></div>
-                                    <div className="w-px h-3 bg-black/70 transform rotate-[15deg]"></div>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                
                     <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-8">
                         {/* Left Eye */}
                         <motion.path
                             d={eyeVariants[expression].left}
                             fill="transparent"
                             stroke="black"
-                            strokeWidth={1.5}
+                            strokeWidth={3}
                             strokeLinecap="round"
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                         />
@@ -229,7 +198,7 @@ export const RimuruFace = ({
                             d={eyeVariants[expression].right}
                             fill="transparent"
                             stroke="black"
-                            strokeWidth={1.5}
+                            strokeWidth={3}
                             strokeLinecap="round"
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                         />
@@ -239,13 +208,12 @@ export const RimuruFace = ({
                            d={mouthVariants[expression].d}
                            fill="transparent"
                            stroke="black"
-                           strokeWidth={1.5}
+                           strokeWidth={3}
                            strokeLinecap="round"
                            animate={{ opacity: mouthVariants[expression].opacity }}
                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                         />
                     </svg>
-
                 </motion.div>
             </motion.div>
         </motion.div>
