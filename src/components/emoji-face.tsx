@@ -116,7 +116,7 @@ export const Face = ({
             animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(feature_offset_y, [50, -50], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [50, 50], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
@@ -160,13 +160,13 @@ export const Face = ({
   };
 
   const expressionMouthVariants = {
-    neutral: { d: mouthVariants[mouth_style]?.d || mouthVariants.default.d },
-    happy: { d: "M 30 50 Q 50 70 70 50" },
-    angry: { d: "M 25 60 Q 50 35 75 60" },
-    sad: { d: "M 30 60 Q 50 50 70 60" },
-    surprised: { d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55" },
-    scared: { d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50" },
-    love: { d: "M 30 50 Q 50 75 70 50" },
+    neutral: { d: mouthVariants[mouth_style]?.d || mouthVariants.default.d, fill: "transparent" },
+    happy: { d: "M 30 50 C 30 75, 70 75, 70 50 Z", fill: "black" },
+    angry: { d: "M 25 60 Q 50 35 75 60", fill: "transparent" },
+    sad: { d: "M 30 60 Q 50 50 70 60", fill: "transparent" },
+    surprised: { d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", fill: "transparent" },
+    scared: { d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50", fill: "transparent" },
+    love: { d: "M 30 50 Q 50 75 70 50", fill: "transparent" },
   };
   
   const eyebrowVariants = {
@@ -377,7 +377,6 @@ export const Face = ({
                         >
                             <svg width="100" height="40" viewBox="0 0 100 80">
                                 <motion.path
-                                    fill="transparent"
                                     stroke="black"
                                     strokeWidth={5}
                                     strokeLinecap="round"
