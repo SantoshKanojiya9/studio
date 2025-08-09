@@ -168,7 +168,6 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
                 </div>
                 <div 
                     className="relative aspect-square w-full"
-                    onClick={onSelect}
                     style={{ 
                       backgroundColor: emoji.background_color,
                       filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
