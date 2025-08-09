@@ -547,19 +547,33 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // Use RPC to get posts with like counts and is_liked status efficiently
-    const { data: postData, error: postError } = await supabase
-        .rpc('get_feed_posts_for_user', {
-            user_ids: userIds,
-            current_user_id: user.id,
-            page_limit: limit,
-            page_offset: from
-        });
+    // Fetch posts from the identified users
+    const { data: posts, error: postError } = await supabase
+        .from('emojis')
+        .select('*, user:users!inner(id, name, picture)')
+        .in('user_id', userIds)
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
     if (postError) {
-        console.error('Error fetching feed posts via RPC:', postError);
+        console.error('Error fetching feed posts:', postError);
         throw postError;
     }
 
-    return postData;
+    // Now, for the fetched posts, get their like counts and is_liked status
+    const postsWithLikes = await Promise.all(
+        posts.map(async (post) => {
+            const [likeCount, isLiked] = await Promise.all([
+                getLikeCount(post.id),
+                getIsLiked(post.id)
+            ]);
+            return {
+                ...post,
+                like_count: likeCount,
+                is_liked: isLiked
+            };
+        })
+    );
+
+    return postsWithLikes;
 }
