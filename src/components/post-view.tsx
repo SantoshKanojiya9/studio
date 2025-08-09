@@ -234,7 +234,7 @@ export function PostView({
   const goToPrev = () => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex((prev) => prev + 1);
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
@@ -428,6 +428,9 @@ export function PostView({
                                 className="bg-white h-1 rounded-full"
                                 initial={{ width: '0%' }}
                                 animate={index === currentIndex ? animationControls : { width: index < currentIndex ? '100%' : '0%' }}
+                                onAnimationComplete={() => {
+                                  if(index === currentIndex) goToNext()
+                                }}
                             />
                         </div>
                     ))}
@@ -536,70 +539,70 @@ export function PostView({
   // REGULAR POST VIEW
   return (
     <>
-        <div className="h-full w-full flex flex-col bg-background">
-            <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-                <Button variant="ghost" size="icon" onClick={() => onClose(emojis)}>
-                <ArrowLeft />
-                </Button>
-                <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
-                <div className="w-10"></div> {/* Spacer */}
-            </header>
+      <div className="h-full w-full flex flex-col bg-background">
+          <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
+              <Button variant="ghost" size="icon" onClick={() => onClose(emojis)}>
+              <ArrowLeft />
+              </Button>
+              <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
+              <div className="w-10"></div> {/* Spacer */}
+          </header>
 
-            <div 
-                ref={scrollContainerRef}
-                className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
-                onClick={(e) => {
-                     // Check if the click target or its parent is the feed post container itself, not its children
-                     const target = e.target as HTMLElement;
-                     if (target.dataset.isFeedPostContainer) {
-                         onClose(emojis);
-                     }
-                }}
-                data-is-feed-post-container={true}
-            >
-                {emojis.map((emoji) => {
-                    if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
-                    return (
-                        <PostContent 
-                            key={emoji.id} 
-                            emoji={emoji as PostViewEmoji} 
-                            onDelete={handleDeleteClick} 
-                            onSetMood={handleSetMoodClick}
-                        />
-                    )
-                })}
-            </div>
-        </div>
-        <AlertDialog open={!!emojiToSetMood} onOpenChange={(isOpen) => !isOpen && setEmojiToSetMood(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Set as your Mood?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will replace your current mood. Are you sure you want to set this post as your mood?
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setEmojiToSetMood(null)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmSetMood}>
-                        Yes, Set Mood
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-        <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Do you want to delete this post? This action cannot be undone.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+          <div 
+              ref={scrollContainerRef}
+              className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+              onClick={(e) => {
+                    // Check if the click target or its parent is the feed post container itself, not its children
+                    const target = e.target as HTMLElement;
+                    if (target.dataset.isFeedPostContainer) {
+                        onClose(emojis);
+                    }
+              }}
+              data-is-feed-post-container={true}
+          >
+              {emojis.map((emoji) => {
+                  if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
+                  return (
+                      <PostContent 
+                          key={emoji.id} 
+                          emoji={emoji as PostViewEmoji} 
+                          onDelete={handleDeleteClick} 
+                          onSetMood={handleSetMoodClick}
+                      />
+                  )
+              })}
+          </div>
+      </div>
+      <AlertDialog open={!!emojiToSetMood} onOpenChange={(isOpen) => !isOpen && setEmojiToSetMood(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Set as your Mood?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will replace your current mood. Are you sure you want to set this post as your mood?
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setEmojiToSetMood(null)}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmSetMood}>
+                      Yes, Set Mood
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      Do you want to delete this post? This action cannot be undone.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
+                  <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

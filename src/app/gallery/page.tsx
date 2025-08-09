@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getIsLiked, getLikeCount, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -129,26 +129,17 @@ function GalleryPageContent() {
                 if (userProfile.is_private && tempSupportStatus !== 'approved' && !isOwnProfile) {
                     setSavedEmojis([]);
                 } else {
-                    // Fetch user emojis
+                    // Fetch user emojis with like data efficiently
+                    const rpcParams: {profile_id: string; current_user_id?: string;} = { profile_id: viewingUserId };
+                    if (authUser) {
+                        rpcParams.current_user_id = authUser.id;
+                    }
                     const { data: emojiData, error } = await supabase
-                        .from('emojis')
-                        .select('*, user:users!inner(id, name, picture)')
-                        .eq('user_id', viewingUserId)
-                        .order('created_at', { ascending: false });
+                        .rpc('get_posts_for_profile', rpcParams)
 
                     if (error) throw new Error(error.message);
 
-                     // Pre-fetch like data for instant post view
-                    const emojisWithLikes = await Promise.all(
-                        (emojiData as EmojiState[]).map(async (emoji) => {
-                            const [like_count, is_liked] = await Promise.all([
-                                getLikeCount(emoji.id),
-                                getIsLiked(emoji.id),
-                            ]);
-                            return { ...emoji, like_count, is_liked };
-                        })
-                    );
-                    setSavedEmojis(emojisWithLikes);
+                    setSavedEmojis(emojiData as GalleryEmoji[]);
                 }
 
 
