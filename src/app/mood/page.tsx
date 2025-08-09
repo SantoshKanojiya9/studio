@@ -273,7 +273,7 @@ export default function MoodPage() {
             .from('mood_views')
             .select('mood_id')
             .eq('viewer_id', user.id)
-            .in('mood_id', moodData.map(m => m.id));
+            .in('moodData.map(m => m.id)', moodData.map(m => m.id));
 
         const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 
@@ -312,16 +312,22 @@ export default function MoodPage() {
                 moodPageCache.hasMore = false;
             }
 
-            setFeedPosts(prev => [...prev, ...newPosts]);
-            moodPageCache.feedPosts = [...(moodPageCache.feedPosts || []), ...newPosts];
+            setFeedPosts(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+                const updatedPosts = [...prev, ...uniqueNewPosts];
+                moodPageCache.feedPosts = updatedPosts;
+                return updatedPosts;
+            });
             
             const nextPage = pageNum + 1;
             setPage(nextPage);
             moodPageCache.page = nextPage;
-
+            return newPosts;
         } catch (error: any) {
             console.error("Failed to fetch posts:", error);
             toast({ title: "Failed to load more posts", description: error.message, variant: "destructive" });
+            return [];
         } finally {
             setIsFetchingMore(false);
         }
@@ -536,3 +542,6 @@ export default function MoodPage() {
   );
 }
 
+
+
+    
