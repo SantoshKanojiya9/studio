@@ -110,23 +110,23 @@ export const RimuruFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
   
   const eyeVariants = {
-    neutral:   { d: "M 30,50 L 45,50" },
-    happy:     { d: "M 30,45 L 40,55 L 30,65" }, // > shape
-    love:      { d: "M 30,45 C 40,50 50,60 60,65" },
-    angry:     { d: "M 30,45 L 45,60" }, // \ shape
-    sad:       { d: "M 30,60 C 40,50 50,50 60,55" },
-    surprised: { d: "M 30,45 C 40,35 50,35 60,45" },
-    scared:    { d: "M 30,45 C 40,35 50,35 60,45" },
+    neutral:   { left: "M 25,50 L 40,50", right: "M 60,50 L 75,50" }, // -- --
+    happy:     { left: "M 25,45 L 40,55", right: "M 60,55 L 75,45" }, // < >
+    angry:     { left: "M 25,45 L 40,60", right: "M 60,45 L 75,60" }, // \ /
+    sad:       { left: "M 25,60 L 40,45", right: "M 60,60 L 75,45" }, // / \
+    surprised: { left: "M 25,40 C 32.5,30 47.5,30 55,40", right: "M 65,40 C 72.5,30 87.5,30 95,40" }, // two arcs upward
+    scared:    { left: "M 25,45 L 40,50", right: "M 60,45 L 75,50" },
+    love:      { left: "M 25,55 L 45,45", right: "M 60,45 L 75,40" }, // from image
   };
   
   const mouthVariants = {
     neutral: { d: "", opacity: 0 },
-    happy: { d: "", opacity: 0 },
-    love: { d: "M 45,70 C 50,75 55,75 60,70", opacity: 1},
-    angry: { d: "", opacity: 0 },
-    sad: { d: "M 45,70 Q 50,60 55,70", opacity: 1 },
+    happy: { d: "M 45,65 C 50,70 55,70 60,65", opacity: 1 }, // Small smile
+    angry: { d: "M 45,70 L 60,70", opacity: 1 }, // Straight line
+    sad: { d: "M 45,70 C 50,65 55,65 60,70", opacity: 1 }, // Frown
     surprised: { d: "M 45,65 A 10 10 0 0 0 55 65 Z", opacity: 1 }, // open mouth circle
     scared: { d: "M 45,70 Q 50,60 55,70", opacity: 1 },
+    love: { d: "M 45,60 C 50,68 58,68 63,60", opacity: 1 }, // Gentle curve from image
   };
 
   const blushVariants = {
@@ -138,7 +138,6 @@ export const RimuruFace = ({
     surprised: { opacity: 0 },
     scared: { opacity: 0 },
   };
-
 
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
@@ -194,7 +193,7 @@ export const RimuruFace = ({
                         transition={{ duration: 0.3, type: "spring" }}
                     >
                         <div className="relative w-12 h-6">
-                            <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
+                            <div className="w-full h-full bg-pink-300/70 rounded-full" style={{ filter: 'blur(1px)'}} />
                              {(expression === 'love') && (
                                 <div className="absolute inset-0 flex justify-center items-center gap-1">
                                     <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
@@ -204,7 +203,7 @@ export const RimuruFace = ({
                             )}
                         </div>
                          <div className="relative w-12 h-6">
-                            <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
+                            <div className="w-full h-full bg-pink-300/70 rounded-full" style={{ filter: 'blur(1px)'}} />
                             {(expression === 'love') && (
                                 <div className="absolute inset-0 flex justify-center items-center gap-1">
                                     <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
@@ -218,47 +217,31 @@ export const RimuruFace = ({
                     <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-8">
                         {/* Left Eye */}
                         <motion.path
+                            d={eyeVariants[expression].left}
                             fill="transparent"
                             stroke="black"
                             strokeWidth={1.5}
                             strokeLinecap="round"
-                            variants={eyeVariants}
-                            animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ 
-                                transform: expression === 'happy' 
-                                    ? 'translateX(25px) scaleX(-1)' // <
-                                    : expression === 'angry'
-                                    ? 'translateX(30px)' // \
-                                    : 'translateX(25px)',
-                             }}
                         />
                          {/* Right Eye */}
                          <motion.path
+                            d={eyeVariants[expression].right}
                             fill="transparent"
                             stroke="black"
                             strokeWidth={1.5}
                             strokeLinecap="round"
-                            variants={eyeVariants}
-                            animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ 
-                                transform: expression === 'happy'
-                                    ? 'translateX(65px)' // >
-                                    :  expression === 'angry'
-                                    ? 'translateX(70px) scaleX(-1)' // /
-                                    : 'translateX(55px)',
-                             }}
                         />
 
                         {/* Mouth */}
                         <motion.path
+                           d={mouthVariants[expression].d}
                            fill="transparent"
                            stroke="black"
                            strokeWidth={1.5}
                            strokeLinecap="round"
-                           variants={mouthVariants}
-                           animate={expression}
+                           animate={{ opacity: mouthVariants[expression].opacity }}
                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                         />
                     </svg>
