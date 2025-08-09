@@ -14,6 +14,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
+import { RimuruFace } from '@/components/rimuru-face';
 import { motion, useMotionValue } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -90,19 +91,22 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
     }
 
     const renderEmojiFace = (emoji: EmojiState) => {
-        const Component = emoji.model === 'loki' ? ClockFace : Face;
-        return (
-          <Component 
-            {...emoji}
-            animation_type={emoji.animation_type}
-            color={emoji.emoji_color}
-            isDragging={false}
-            isInteractive={false}
-            feature_offset_x={featureOffsetX}
-            feature_offset_y={featureOffsetY}
-            setColor={() => {}}
-          />
-        );
+        const props = {
+          ...emoji,
+          animation_type: emoji.animation_type,
+          color: emoji.emoji_color,
+          isDragging: false,
+          isInteractive: false,
+          feature_offset_x: featureOffsetX,
+          feature_offset_y: featureOffsetY,
+          setColor: () => {},
+        };
+        switch(emoji.model) {
+            case 'loki': return <ClockFace {...props} />;
+            case 'rimuru': return <RimuruFace {...props} />;
+            case 'emoji':
+            default: return <Face {...props} />;
+        }
     };
 
     const handleSetMood = async () => {

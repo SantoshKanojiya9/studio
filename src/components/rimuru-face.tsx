@@ -110,13 +110,13 @@ export const RimuruFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
   const eyeVariants = {
-    neutral: { left: "M 0 0 L -30 0", right: "M 0 0 L 30 0" },
-    happy:   { right: "M 15 -10 L 0 0 L 15 10", left: "M -15 -10 L 0 0 L -15 10" },
-    angry:   { left: "M -15 -10 L 0 0", right: "M 15 -10 L 0 0" },
-    sad:     { right: "M 0 5 C 15 15, 30 15, 45 5", left: "M 0 5 C -15 15, -30 15, -45 5" },
-    surprised: { right: "M 0 -10 C 15 -20, 30 -20, 45 -10", left: "M 0 -10 C -15 -20, -30 -20, -45 -10" },
-    scared:  { right: "M 0 0 L 30 0", left: "M 0 0 L -30 0"},
-    love:    { right: "M 0 -5 C 15 -15, 30 -15, 45 -5", left: "M 0 -5 C -15 -15, -30 -15, -45 -5" },
+    neutral: { left: "M -15 0 L 15 0", right: "M -15 0 L 15 0" }, // -- --
+    happy:   { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" }, // > <
+    angry:   { left: "M -10 -10 L 10 10", right: "M 10 -10 L -10 10" }, // \ /
+    sad:     { left: "M 0 5 C -15 15, -30 15, -45 5", right: "M 0 5 C 15 15, 30 15, 45 5" },
+    surprised: { left: "M -20 -10 C -10 -20, 10 -20, 20 -10", right: "M -20 -10 C -10 -20, 10 -20, 20 -10" },
+    scared:  { left: "M -15 0 L 15 0", right: "M -15 0 L 15 0"},
+    love:    { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" },
   };
 
   const mouthVariants = {
@@ -198,7 +198,7 @@ export const RimuruFace = ({
 
                     <svg width="180" height="180" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-4">
                         {/* Eyes */}
-                        <motion.g transform="translate(35, 50)">
+                        <motion.g transform="translate(30, 50)">
                              <motion.path
                                 d={eyeVariants[expression].left}
                                 fill="transparent"
@@ -209,7 +209,7 @@ export const RimuruFace = ({
                                 transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                             />
                         </motion.g>
-                         <motion.g transform="translate(65, 50)">
+                         <motion.g transform="translate(70, 50)">
                             <motion.path
                                 d={eyeVariants[expression].right}
                                 fill="transparent"

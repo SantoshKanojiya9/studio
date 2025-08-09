@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
+import { RimuruFace } from '@/components/rimuru-face';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,19 +87,22 @@ const PostContent = ({
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
 
     const renderEmojiFace = (emoji: EmojiState) => {
-        const Component = emoji.model === 'loki' ? ClockFace : Face;
-        return (
-          <Component 
-            {...emoji}
-            animation_type={emoji.animation_type}
-            color={emoji.emoji_color}
-            isDragging={false}
-            isInteractive={false}
-            feature_offset_x={featureOffsetX}
-            feature_offset_y={featureOffsetY}
-            setColor={() => {}}
-          />
-        );
+        const props = {
+          ...emoji,
+          animation_type: emoji.animation_type,
+          color: emoji.emoji_color,
+          isDragging: false,
+          isInteractive: false,
+          feature_offset_x: featureOffsetX,
+          feature_offset_y: featureOffsetY,
+          setColor: () => {},
+        };
+        switch(emoji.model) {
+            case 'loki': return <ClockFace {...props} />;
+            case 'rimuru': return <RimuruFace {...props} />;
+            case 'emoji':
+            default: return <Face {...props} />;
+        }
     };
 
     return (
@@ -413,20 +417,22 @@ export function PostView({
   };
 
   const renderEmojiFace = (emoji: EmojiState) => {
-    const Component = emoji.model === 'loki' ? ClockFace : Face;
-    const animationType = isMoodView ? 'random' : emoji.animation_type;
-    return (
-      <Component 
-        {...emoji}
-        animation_type={animationType}
-        color={emoji.emoji_color}
-        isDragging={false}
-        isInteractive={false}
-        feature_offset_x={featureOffsetX}
-        feature_offset_y={featureOffsetY}
-        setColor={() => {}}
-      />
-    );
+    const props = {
+      ...emoji,
+      animation_type: isMoodView ? 'random' : emoji.animation_type,
+      color: emoji.emoji_color,
+      isDragging: false,
+      isInteractive: false,
+      feature_offset_x: featureOffsetX,
+      feature_offset_y: featureOffsetY,
+      setColor: () => {},
+    };
+    switch(emoji.model) {
+        case 'loki': return <ClockFace {...props} />;
+        case 'rimuru': return <RimuruFace {...props} />;
+        case 'emoji':
+        default: return <Face {...props} />;
+    }
   };
   
   // MOOD / STORY VIEW

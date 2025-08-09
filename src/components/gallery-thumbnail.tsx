@@ -4,6 +4,7 @@
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
+import { RimuruFace } from '@/components/rimuru-face';
 import { cn } from '@/lib/utils';
 import { motion, useMotionValue } from 'framer-motion';
 import React from 'react';
@@ -33,6 +34,52 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
         emojiToRender.shape = 'default';
     }
 
+    const renderModel = () => {
+        switch(emojiToRender.model) {
+            case 'loki':
+                return (
+                    <ClockFace 
+                        {...emojiToRender}
+                        animation_type={emojiToRender.animation_type}
+                        color={emojiToRender.emoji_color}
+                        isDragging={false}
+                        isInteractive={false}
+                        feature_offset_x={featureOffsetX}
+                        feature_offset_y={featureOffsetY}
+                        setColor={() => {}}
+                    />
+                );
+            case 'rimuru':
+                return (
+                    <RimuruFace
+                         {...emojiToRender}
+                        animation_type={emojiToRender.animation_type}
+                        color={emojiToRender.emoji_color}
+                        isDragging={false}
+                        isInteractive={false}
+                        feature_offset_x={featureOffsetX}
+                        feature_offset_y={featureOffsetY}
+                        setColor={() => {}}
+                    />
+                );
+            case 'emoji':
+            default:
+                return (
+                    <Face 
+                        {...emojiToRender}
+                        animation_type={emojiToRender.animation_type}
+                        color={emojiToRender.emoji_color}
+                        isDragging={false}
+                        isInteractive={false}
+                        feature_offset_x={featureOffsetX}
+                        feature_offset_y={featureOffsetY}
+                        setColor={() => {}}
+                    />
+                );
+        }
+    }
+
+
     return (
         <div 
             className="w-full h-full shadow-[inset_0_-4px_6px_rgba(0,0,0,0.1)] relative"
@@ -46,29 +93,7 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
                 animate={{ scale: 0.35 }}
                 transition={{ duration: 0 }}
             >
-             {emojiToRender.model === 'loki' ? (
-                <ClockFace 
-                    {...emojiToRender}
-                    animation_type={emojiToRender.animation_type}
-                    color={emojiToRender.emoji_color}
-                    isDragging={false}
-                    isInteractive={false}
-                    feature_offset_x={featureOffsetX}
-                    feature_offset_y={featureOffsetY}
-                    setColor={() => {}}
-                />
-            ) : (
-                <Face 
-                    {...emojiToRender}
-                    animation_type={emojiToRender.animation_type}
-                    color={emojiToRender.emoji_color}
-                    isDragging={false}
-                    isInteractive={false}
-                    feature_offset_x={featureOffsetX}
-                    feature_offset_y={featureOffsetY}
-                    setColor={() => {}}
-                />
-            )}
+             {renderModel()}
             </motion.div>
         </div>
     );
