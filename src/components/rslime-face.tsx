@@ -111,13 +111,13 @@ export const RslimeFace = ({
 
 
   const eyeVariants = {
-    neutral: { d: "M25,45 C35,55 45,55 55,45" },
-    happy: { d: "M25,45 C35,35 45,35 55,45" },
-    angry: { d: "M25,40 C35,45 45,45 55,40" },
-    sad: { d: "M25,50 C35,60 45,60 55,50" },
-    surprised: { d: "M25,40 C35,30 45,30 55,40" },
-    scared: { d: "M25,45 C35,55 45,55 55,45" },
-    love: { d: "M25,45 C35,35 45,35 55,45" },
+    neutral: { d: "M20,45 C35,55 55,55 70,45" },
+    happy: { d: "M20,45 C35,35 55,35 70,45" },
+    angry: { d: "M20,40 C35,45 55,45 70,40" },
+    sad: { d: "M20,50 C35,60 55,60 70,50" },
+    surprised: { d: "M20,40 C35,30 55,30 70,40" },
+    scared: { d: "M20,45 C35,55 55,55 70,45" },
+    love: { d: "M20,45 C35,35 55,35 70,45" },
   };
 
   const mouthVariants = {
@@ -214,7 +214,7 @@ export const RslimeFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transform: 'translateX(45px)' }}
+                            style={{ transform: 'translateX(50px) scaleX(-1)' }}
                         />
                         {/* Mouth */}
                         <motion.path
