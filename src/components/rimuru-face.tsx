@@ -108,6 +108,37 @@ export const RimuruFace = ({
     }
     return stopAnimations;
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
+  
+  const eyeVariants = {
+    neutral:   { d: "M 20,50 C 30,55 50,55 60,50" },
+    happy:     { d: "M 20,50 C 30,55 50,55 60,50" }, // Same as neutral but with blush
+    love:      { d: "M 20,50 C 30,55 50,55 60,50" }, // Same as happy but with blush lines
+    angry:     { d: "M 25,45 L 55,60" }, // For the '\' eye
+    sad:       { d: "M 20,55 C 30,50 50,50 60,55" },
+    surprised: { d: "M 20,45 C 30,40 50,40 60,45" },
+    scared:    { d: "M 20,45 C 30,35 50,35 60,45" },
+  };
+  
+  const mouthVariants = {
+    neutral: { d: "", opacity: 0 },
+    happy: { d: "", opacity: 0 },
+    love: { d: "", opacity: 0 },
+    angry: { d: "", opacity: 0 },
+    sad: { d: "M 45,65 L 50,70 L 55,65", opacity: 1 },
+    surprised: { d: "M 40,65 C 50,75 60,65", opacity: 1 },
+    scared: { d: "M 40,70 Q 50,60 60,70", opacity: 1 },
+  };
+
+  const blushVariants = {
+    neutral: { opacity: 0 },
+    happy: { opacity: 0.8 },
+    love: { opacity: 0.8 },
+    angry: { opacity: 0 },
+    sad: { opacity: 0.8 },
+    surprised: { opacity: 0 },
+    scared: { opacity: 0 },
+  };
+
 
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
@@ -151,6 +182,76 @@ export const RimuruFace = ({
                 <div className="absolute top-4 left-6 w-16 h-8 bg-white/70 rounded-full" style={{ filter: 'blur(10px)', transform: 'rotate(-30deg)' }}></div>
                 <div className="absolute top-8 right-8 w-10 h-5 bg-white/50 rounded-full" style={{ filter: 'blur(8px)', transform: 'rotate(20deg)' }}></div>
                 <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-5"></div>
+                
+                <motion.div
+                    className="absolute inset-0 flex items-center justify-center"
+                    style={{ x: feature_offset_x, y: feature_offset_y }}
+                    transition={{ duration: 1.5, type: 'spring' }}
+                >
+                    <motion.div className="flex justify-between w-48 absolute top-[140px]"
+                        variants={blushVariants}
+                        animate={expression}
+                        transition={{ duration: 0.3, type: "spring" }}
+                    >
+                        <div className="relative w-12 h-6">
+                            <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
+                             {expression === 'love' && (
+                                <div className="absolute inset-0 flex justify-center items-center gap-1">
+                                    <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
+                                    <div className="w-px h-3 bg-black/70"></div>
+                                    <div className="w-px h-3 bg-black/70 transform rotate-[15deg]"></div>
+                                </div>
+                            )}
+                        </div>
+                         <div className="relative w-12 h-6">
+                            <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
+                            {expression === 'love' && (
+                                <div className="absolute inset-0 flex justify-center items-center gap-1">
+                                    <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
+                                    <div className="w-px h-3 bg-black/70"></div>
+                                    <div className="w-px h-3 bg-black/70 transform rotate-[15deg]"></div>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                
+                    <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-5">
+                        {/* Left Eye */}
+                        <motion.path
+                            fill="transparent"
+                            stroke="black"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            variants={eyeVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+                            style={{ transform: expression === 'angry' ? 'translateX(-15px)' : 'translateX(-20px)' }}
+                        />
+                         {/* Right Eye */}
+                         <motion.path
+                            fill="transparent"
+                            stroke="black"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            variants={eyeVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+                            style={{ transform: expression === 'angry' ? 'translateX(15px) scaleX(-1)' : 'translateX(20px) scaleX(-1)' }}
+                        />
+
+                        {/* Mouth */}
+                        <motion.path
+                           fill="transparent"
+                           stroke="black"
+                           strokeWidth={1.5}
+                           strokeLinecap="round"
+                           variants={mouthVariants}
+                           animate={expression}
+                           transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
+                        />
+                    </svg>
+
+                </motion.div>
             </motion.div>
         </motion.div>
       </motion.div>
