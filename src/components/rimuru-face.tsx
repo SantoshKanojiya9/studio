@@ -47,7 +47,7 @@ export const RimuruFace = ({
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
-  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+  const allExpressions: Expression[] = ['happy']; // Only one expression for now
 
   useEffect(() => {
     setExpression(initialExpression);
@@ -107,37 +107,37 @@ export const RimuruFace = ({
              // 'none' or other cases
     }
     return stopAnimations;
-  }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
+  }, [animation_type, isDragging, feature_offset_x, feature_offset_y, allExpressions]);
 
-  const eyeVariants = {
-    neutral: { left: "M 35 50 L 45 50", right: "M 65 50 L 55 50" },
-    happy: { left: "M 30 45 L 45 50 L 30 55", right: "M 70 45 L 55 50 L 70 55" }, // > <
-    angry: { left: "M 35 42 L 48 55", right: "M 65 42 L 52 55" }, // \ /
-    sad: { left: "M 35 55 L 45 45", right: "M 65 55 L 55 45" },
-    surprised: { left: "M 30 40 C 35 30, 45 30, 50 40", right: "M 70 40 C 65 30, 55 30, 50 40" },
-    scared: { left: "M 35 50 L 45 50", right: "M 65 50 L 55 50" },
-    love: { left: "M 30 45 C 25 55, 45 55, 45 45", right: "M 70 45 C 75 55, 55 55, 55 45" },
-  };
+    const eyeVariants = {
+        happy: { left: "M 25 45 C 35 55, 50 55, 60 45", right: "M 75 45 C 65 55, 50 55, 40 45" },
+        neutral: { left: "", right: "" },
+        angry: { left: "", right: "" },
+        sad: { left: "", right: "" },
+        surprised: { left: "", right: "" },
+        scared: { left: "", right: "" },
+        love: { left: "", right: "" },
+    };
 
-  const mouthVariants = {
-    neutral: { d: "M 45 70 L 55 70", opacity: 1 },
-    happy: { d: "M 40 60 C 45 70, 55 70, 60 60", opacity: 0 },
-    angry: { d: "M 45 70 L 55 70", opacity: 1 },
-    sad: { d: "M 40 70 C 45 60, 55 60, 60 70", opacity: 1 },
-    surprised: { d: "M 45 65 A 5 5 0 0 1 55 65 A 5 5 0 0 1 45 65 Z", opacity: 1 },
-    scared: { d: "M 40 60 Q 50 70 60 60", opacity: 1 },
-    love: { d: "M 45 65 C 48 70, 52 70, 55 65", opacity: 0 },
-  };
+    const mouthVariants = {
+        happy: { d: "M 40 65 C 50 80, 70 80, 80 65 L 40 65 Z" },
+        neutral: { d: "" },
+        angry: { d: "" },
+        sad: { d: "" },
+        surprised: { d: "" },
+        scared: { d: "" },
+        love: { d: "" },
+    };
 
-  const blushVariants = {
-    neutral: { opacity: 0 },
-    happy: { opacity: 0.8 },
-    angry: { opacity: 0 },
-    sad: { opacity: 0 },
-    surprised: { opacity: 0 },
-    scared: { opacity: 0.5 },
-    love: { opacity: 1 },
-  };
+    const blushVariants = {
+        happy: { opacity: 0.7 },
+        neutral: { opacity: 0 },
+        angry: { opacity: 0 },
+        sad: { opacity: 0 },
+        surprised: { opacity: 0 },
+        scared: { opacity: 0 },
+        love: { opacity: 0 },
+    };
 
 
   const getShapeClipPath = (s: ShapeType) => {
@@ -146,7 +146,7 @@ export const RimuruFace = ({
         square: '10%',
         squircle: '30%',
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-        blob: '50% 50% 40% 40% / 60% 60% 40% 40%',
+        blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };
@@ -188,17 +188,21 @@ export const RimuruFace = ({
                     style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
-                    <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-8">
+                    <svg width="200" height="200" viewBox="0 0 120 120" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                          {/* Blush */}
+                        <defs>
+                            <filter id="blushFilter" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+                            </filter>
+                        </defs>
                         <motion.g
                             variants={blushVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: "spring" }}
+                            filter="url(#blushFilter)"
                         >
-                            <path d="M 30 65 L 40 65" stroke="black" strokeWidth={2} strokeLinecap="round" />
-                            <path d="M 35 60 L 35 70" stroke="black" strokeWidth={2} strokeLinecap="round" />
-                            <path d="M 60 65 L 70 65" stroke="black" strokeWidth={2} strokeLinecap="round" />
-                            <path d="M 65 60 L 65 70" stroke="black" strokeWidth={2} strokeLinecap="round" />
+                            <ellipse cx="35" cy="70" rx="15" ry="6" fill="#ff7f7f" />
+                            <ellipse cx="85" cy="70" rx="15" ry="6" fill="#ff7f7f" />
                         </motion.g>
 
                         {/* Left Eye */}
@@ -206,7 +210,7 @@ export const RimuruFace = ({
                             d={eyeVariants[expression].left}
                             fill="transparent"
                             stroke="black"
-                            strokeWidth={3}
+                            strokeWidth="2.5"
                             strokeLinecap="round"
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                         />
@@ -215,19 +219,20 @@ export const RimuruFace = ({
                             d={eyeVariants[expression].right}
                             fill="transparent"
                             stroke="black"
-                            strokeWidth={3}
+                            strokeWidth="2.5"
                             strokeLinecap="round"
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+                            transform="translate(120, 0) scale(-1, 1)"
                         />
 
                         {/* Mouth */}
                         <motion.path
                            d={mouthVariants[expression].d}
-                           fill="transparent"
+                           fill="black"
                            stroke="black"
-                           strokeWidth={3}
+                           strokeWidth="2.5"
                            strokeLinecap="round"
-                           animate={{ opacity: mouthVariants[expression].opacity }}
+                           strokeLinejoin="round"
                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                         />
                     </svg>
