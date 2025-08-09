@@ -765,7 +765,6 @@ const DesignPageContent = () => {
                     show_mustache={show_mustache} 
                     shape={shape}
                     eye_style={eye_style}
-                    mouth_style={mouth_style}
                     eyebrow_style={eyebrow_style}
                     animation_type={animation_type}
                     isDragging={isDragging}

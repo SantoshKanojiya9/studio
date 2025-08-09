@@ -13,8 +13,6 @@ export const RslimeFace = ({
     show_mustache,
     shape,
     eye_style,
-    mouth_style,
-    eyebrow_style,
     animation_type,
     isDragging,
     isInteractive = true,
@@ -31,7 +29,6 @@ export const RslimeFace = ({
     show_mustache: boolean,
     shape: ShapeType;
     eye_style: FeatureStyle;
-    mouth_style: FeatureStyle;
     eyebrow_style: FeatureStyle;
     animation_type: AnimationType;
     isDragging: boolean;
@@ -110,13 +107,13 @@ export const RslimeFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
   const eyeVariants = {
-    neutral: { d: "M10,45 C25,55 45,55 60,45" },
-    happy:   { d: "M10,45 C25,35 45,35 60,45" },
-    angry:   { d: "M10,40 C25,50 45,50 60,40" },
-    sad:     { d: "M10,50 C25,60 45,60 60,50" },
-    surprised: { d: "M10,40 C25,30 45,30 60,40" },
-    scared:  { d: "M10,45 C25,55 45,55 60,45" },
-    love:    { d: "M10,45 C25,35 45,35 60,45" },
+    neutral: { d: "M15,50 C30,40 50,40 65,50" },
+    happy:   { d: "M15,45 C30,35 50,35 65,45" },
+    angry:   { d: "M15,55 C30,65 50,65 65,55" },
+    sad:     { d: "M15,50 C30,60 50,60 65,50" },
+    surprised: { d: "M15,40 C30,30 50,30 65,40" },
+    scared:  { d: "M15,45 C30,55 50,55 65,45" },
+    love:    { d: "M15,45 C30,35 50,35 65,45" },
   };
 
   const blushVariants = {
@@ -194,7 +191,7 @@ export const RslimeFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transform: 'translateX(-20px)' }}
+                            style={{ transform: 'translateX(-15px)' }}
                         />
                          <motion.path
                             fill="transparent"
@@ -204,7 +201,7 @@ export const RslimeFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transform: 'translateX(50px) scaleX(-1)' }}
+                            style={{ transform: 'translateX(45px) scaleX(-1)' }}
                         />
                     </svg>
                     
