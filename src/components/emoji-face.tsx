@@ -161,7 +161,7 @@ export const Face = ({
 
   const expressionMouthVariants = {
     neutral: { d: mouthVariants[mouth_style]?.d || mouthVariants.default.d, fill: "transparent" },
-    happy: { d: "M 30 50 C 30 75, 70 75, 70 50 Z", fill: "black" },
+    happy: { d: "M 30 50 Q 50 75 70 50", fill: "transparent" },
     angry: { d: "M 25 60 Q 50 35 75 60", fill: "transparent" },
     sad: { d: "M 30 60 Q 50 50 70 60", fill: "transparent" },
     surprised: { d: "M 40 55 Q 50 70 60 55 A 10 10 0 0 1 40 55", fill: "transparent" },
