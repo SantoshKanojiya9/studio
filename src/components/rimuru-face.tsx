@@ -111,7 +111,7 @@ export const RimuruFace = ({
 
   const eyeVariants = {
     neutral: { left: "M 0 0 L -30 0", right: "M 0 0 L 30 0" },
-    happy:   { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" },
+    happy:   { right: "M 15 -10 L 0 0 L 15 10", left: "M -15 -10 L 0 0 L -15 10" },
     angry:   { left: "M -15 -10 L 0 0", right: "M 15 -10 L 0 0" },
     sad:     { right: "M 0 5 C 15 15, 30 15, 45 5", left: "M 0 5 C -15 15, -30 15, -45 5" },
     surprised: { right: "M 0 -10 C 15 -20, 30 -20, 45 -10", left: "M 0 -10 C -15 -20, -30 -20, -45 -10" },
