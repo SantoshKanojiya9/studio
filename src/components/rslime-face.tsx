@@ -111,23 +111,23 @@ export const RslimeFace = ({
 
 
   const eyeVariants = {
-    neutral: { d: "M20,45 C35,55 55,55 70,45" },
-    happy: { d: "M20,45 C35,35 55,35 70,45" },
-    angry: { d: "M20,40 C35,45 55,45 70,40" },
-    sad: { d: "M20,50 C35,60 55,60 70,50" },
-    surprised: { d: "M20,40 C35,30 55,30 70,40" },
-    scared: { d: "M20,45 C35,55 55,55 70,45" },
-    love: { d: "M20,45 C35,35 55,35 70,45" },
+    neutral: { d: "M10,45 C25,55 45,55 60,45" },
+    happy:   { d: "M10,45 C25,35 45,35 60,45" },
+    angry:   { d: "M10,40 C25,50 45,50 60,40" },
+    sad:     { d: "M10,50 C25,60 45,60 60,50" },
+    surprised: { d: "M10,40 C25,30 45,30 60,40" },
+    scared:  { d: "M10,45 C25,55 45,55 60,45" },
+    love:    { d: "M10,45 C25,35 45,35 60,45" },
   };
 
   const mouthVariants = {
-    neutral: { opacity: 0 },
-    happy: { opacity: 0 },
-    angry: { opacity: 0 },
-    sad: { d: "M 45 65 Q 50 70 55 65", opacity: 1 },
-    surprised: { d: "M 48 65 A 4 4 0 0 1 52 65 Z", opacity: 1 },
-    scared: { d: "M 40 68 Q 50 72 60 68", opacity: 1 },
-    love: { opacity: 0 },
+    neutral: { opacity: 0, scale: 0.5 },
+    happy:   { opacity: 0, scale: 0.5 },
+    angry:   { opacity: 0, scale: 0.5 },
+    sad:     { d: "M 45 70 Q 50 75 55 70", opacity: 1, scale: 1 },
+    surprised: { d: "M 48 70 A 4 4 0 0 1 52 70 Z", opacity: 1, scale: 1 },
+    scared:  { d: "M 40 72 Q 50 78 60 72", opacity: 1, scale: 1 },
+    love:    { opacity: 0, scale: 0.5 },
   };
   
   const blushVariants = {
@@ -205,6 +205,7 @@ export const RslimeFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+                            style={{ transform: 'translateX(-20px)' }}
                         />
                          <motion.path
                             fill="transparent"
@@ -224,7 +225,8 @@ export const RslimeFace = ({
                             strokeLinecap="round"
                             variants={mouthVariants}
                             animate={expression}
-                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
+                            transition={{ duration: 0.2, type: 'spring', stiffness: 400, damping: 15 }}
+                            style={{ transformOrigin: '50% 70%' }}
                         />
                     </svg>
                     
