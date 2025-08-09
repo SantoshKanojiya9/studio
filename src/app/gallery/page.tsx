@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getIsLiked, getLikeCount, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -51,8 +51,13 @@ interface ProfileUser {
     is_private: boolean;
 }
 
+interface GalleryEmoji extends EmojiState {
+    like_count: number;
+    is_liked: boolean;
+}
+
 function GalleryPageContent() {
-    const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
+    const [savedEmojis, setSavedEmojis] = React.useState<GalleryEmoji[]>([]);
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -125,14 +130,25 @@ function GalleryPageContent() {
                     setSavedEmojis([]);
                 } else {
                     // Fetch user emojis
-                    const { data, error } = await supabase
+                    const { data: emojiData, error } = await supabase
                         .from('emojis')
                         .select('*, user:users!inner(id, name, picture)')
                         .eq('user_id', viewingUserId)
                         .order('created_at', { ascending: false });
 
                     if (error) throw new Error(error.message);
-                    setSavedEmojis(data as unknown as EmojiState[]);
+
+                     // Pre-fetch like data for instant post view
+                    const emojisWithLikes = await Promise.all(
+                        (emojiData as EmojiState[]).map(async (emoji) => {
+                            const [like_count, is_liked] = await Promise.all([
+                                getLikeCount(emoji.id),
+                                getIsLiked(emoji.id),
+                            ]);
+                            return { ...emoji, like_count, is_liked };
+                        })
+                    );
+                    setSavedEmojis(emojisWithLikes);
                 }
 
 
@@ -376,7 +392,7 @@ function GalleryPageContent() {
         </header>
     );
     
-    const selectedEmoji = selectedEmojiId ? savedEmojis.find(e => e.id === selectedEmojiId) : null;
+    const selectedEmojiIndex = selectedEmojiId ? savedEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
     
     if (!authUser && !userId) {
         return (
@@ -396,10 +412,10 @@ function GalleryPageContent() {
     return (
         <>
             <div className="flex h-full w-full flex-col overflow-x-hidden">
-            {selectedEmoji ? (
+            {selectedEmojiId && selectedEmojiIndex > -1 ? (
                     <PostView 
                         emojis={savedEmojis}
-                        initialIndex={savedEmojis.findIndex(e => e.id === selectedEmojiId)}
+                        initialIndex={selectedEmojiIndex}
                         onClose={() => setSelectedEmojiId(null)}
                         onDelete={isOwnProfile ? handleDelete : undefined}
                     />
@@ -536,5 +552,3 @@ export default function GalleryPage() {
         </React.Suspense>
     );
 }
-
-    

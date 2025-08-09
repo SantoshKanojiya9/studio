@@ -36,7 +36,7 @@ import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-mo
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { setMood, removeMood, recordMoodView, getMoodViewers, getIsLiked, getLikeCount } from '@/app/actions';
+import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actions';
 import { LikeButton } from './like-button';
 import { LikerListSheet } from './liker-list-sheet';
 
@@ -58,8 +58,8 @@ interface Viewer {
 }
 
 interface PostViewEmoji extends EmojiState {
-    like_count?: number;
-    is_liked?: boolean;
+    like_count: number;
+    is_liked: boolean;
 }
 
 interface PostViewProps {
@@ -81,7 +81,7 @@ const PostContent = ({
     onSetMood: (id: string) => void,
 }) => {
     const { user } = useAuth();
-    const [localLikeCount, setLocalLikeCount] = useState(emoji.like_count ?? 0);
+    const [localLikeCount, setLocalLikeCount] = useState(emoji.like_count);
     const [showLikers, setShowLikers] = useState(false);
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
@@ -208,45 +208,28 @@ export function PostView({
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [isViewersSheetOpen, setIsViewersSheetOpen] = useState(false);
   const [isFetchingViewers, setIsFetchingViewers] = useState(false);
-  const [localEmojis, setLocalEmojis] = useState<(PostViewEmoji | Mood)[]>([]);
-
+  
+  // No more local state for emojis, use props directly
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const animationControls = useAnimation();
   
-  useEffect(() => {
-    const fetchLikeData = async () => {
-        const emojisWithLikes = await Promise.all(
-            emojis.map(async (emoji) => {
-                if ('mood_id' in emoji) return emoji; // It's a mood, no need to fetch likes here.
-                const [like_count, is_liked] = await Promise.all([
-                    getLikeCount(emoji.id),
-                    getIsLiked(emoji.id),
-                ]);
-                return { ...emoji, like_count, is_liked };
-            })
-        );
-        setLocalEmojis(emojisWithLikes);
-    };
-    fetchLikeData();
-  }, [emojis]);
-
-  const currentEmojiState = localEmojis[currentIndex];
+  const currentEmojiState = emojis[currentIndex];
 
   const isCurrentEmojiMood = (emoji: PostViewEmoji | Mood): emoji is Mood => {
     return 'mood_id' in emoji;
   }
   
   const goToNext = useCallback(() => {
-    if (currentIndex < localEmojis.length - 1) {
+    if (currentIndex < emojis.length - 1) {
       setDirection(1);
       setCurrentIndex((prev) => prev + 1);
     } else {
-      onClose(localEmojis);
+      onClose(emojis);
     }
-  }, [currentIndex, localEmojis, onClose]);
+  }, [currentIndex, emojis, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -345,7 +328,7 @@ export function PostView({
         if (onDelete) {
             onDelete(currentEmojiState.mood_id.toString());
         }
-        onClose(localEmojis);
+        onClose(emojis);
     } catch (error: any) {
         toast({ title: "Error removing mood", description: error.message, variant: 'destructive' });
     }
@@ -381,14 +364,7 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   if (!currentEmojiState) {
-    if (emojis.length > 0 && localEmojis.length === 0) {
-        return (
-            <div className="flex h-full w-full flex-col items-center justify-center bg-black">
-                <Loader2 className="h-8 w-8 animate-spin text-white" />
-            </div>
-        );
-    }
-    onClose(localEmojis);
+    onClose(emojis);
     return null;
   }
   
@@ -441,12 +417,12 @@ export function PostView({
         <motion.div 
             className="h-full w-full flex flex-col bg-black relative"
             onPanEnd={(_, info) => {
-                if (info.offset.y > 100) onClose(localEmojis);
+                if (info.offset.y > 100) onClose(emojis);
             }}
         >
             <div className="absolute top-0 left-0 right-0 p-3 z-20">
                 <div className="flex items-center gap-2">
-                    {localEmojis.map((_, index) => (
+                    {emojis.map((_, index) => (
                         <div key={index} className="w-full bg-gray-500/50 rounded-full h-1">
                             <motion.div 
                                 className="bg-white h-1 rounded-full"
@@ -481,7 +457,7 @@ export function PostView({
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         )}
-                        <button onClick={() => onClose(localEmojis)} className="text-white">
+                        <button onClick={() => onClose(emojis)} className="text-white">
                             <X size={24} />
                         </button>
                     </div>
@@ -562,7 +538,7 @@ export function PostView({
     <>
         <div className="h-full w-full flex flex-col bg-background">
             <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-                <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
+                <Button variant="ghost" size="icon" onClick={() => onClose(emojis)}>
                 <ArrowLeft />
                 </Button>
                 <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
@@ -572,13 +548,21 @@ export function PostView({
             <div 
                 ref={scrollContainerRef}
                 className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+                onClick={(e) => {
+                     // Check if the click target or its parent is the feed post container itself, not its children
+                     const target = e.target as HTMLElement;
+                     if (target.dataset.isFeedPostContainer) {
+                         onClose(emojis);
+                     }
+                }}
+                data-is-feed-post-container={true}
             >
-                {localEmojis.map((emoji) => {
+                {emojis.map((emoji) => {
                     if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
                     return (
                         <PostContent 
                             key={emoji.id} 
-                            emoji={emoji} 
+                            emoji={emoji as PostViewEmoji} 
                             onDelete={handleDeleteClick} 
                             onSetMood={handleSetMoodClick}
                         />
@@ -586,7 +570,6 @@ export function PostView({
                 })}
             </div>
         </div>
-
         <AlertDialog open={!!emojiToSetMood} onOpenChange={(isOpen) => !isOpen && setEmojiToSetMood(null)}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -603,23 +586,20 @@ export function PostView({
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-
-        {emojiToDelete && (
-            <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Do you want to delete this post? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        )}
+        <AlertDialog open={!!emojiToDelete} onOpenChange={(isOpen) => !isOpen && setEmojiToDelete(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Do you want to delete this post? This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setEmojiToDelete(null)}>No</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete it</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }
