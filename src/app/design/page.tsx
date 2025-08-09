@@ -630,7 +630,7 @@ const DesignPageContent = () => {
                 <Palette className="h-4 w-4" />
                 <span className="text-xs mt-1">Colors</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')} disabled={model === 'loki'}>
+            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')} disabled={isLoki}>
                 <Glasses className="h-4 w-4" />
                 <span className="text-xs mt-1">Accessories</span>
             </Button>
@@ -723,8 +723,8 @@ const DesignPageContent = () => {
                     expression={expression} 
                     color={emoji_color} 
                     setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses} 
-                    show_mustache={show_mustache} 
+                    show_sunglasses={false} 
+                    show_mustache={false} 
                     shape={shape}
                     eye_style={eye_style}
                     mouth_style={mouth_style}
