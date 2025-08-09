@@ -616,7 +616,7 @@ const DesignPageContent = () => {
                     <Smile className="h-4 w-4" />
                     <span className="text-xs mt-1">Expressions</span>
                 </Button>
-                {model !== 'loki' && (
+                {model === 'emoji' && (
                   <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
                       <UserIcon className="h-4 w-4" />
                       <span className="text-xs mt-1">Face</span>

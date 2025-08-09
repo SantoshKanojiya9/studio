@@ -111,7 +111,7 @@ export const RslimeFace = ({
 
 
   const eyeVariants = {
-    neutral: { d: "M 25 40 C 35 35, 45 35, 50 40 M 75 40 C 65 35, 55 35, 50 40" },
+    neutral: { d: "M 25 40 C 35 30, 45 30, 50 40 M 75 40 C 65 30, 55 30, 50 40" },
     happy: { d: "M 20 45 C 35 30, 45 35, 50 42 M 80 45 C 65 30, 55 35, 50 42" },
     angry: { d: "M 20 38 C 35 45, 45 42, 50 40 M 80 38 C 65 45, 55 42, 50 40" },
     sad: { d: "M 20 40 C 35 50, 45 48, 50 45 M 80 40 C 65 50, 55 48, 50 45" },
@@ -121,7 +121,7 @@ export const RslimeFace = ({
   };
 
   const mouthVariants = {
-    neutral: { d: "M 40 60 H 60", opacity: 0.8 },
+    neutral: { d: "M 45 60 A 5 5 0 0 1 55 60 A 5 5 0 0 1 45 60 Z", opacity: 0.9 },
     happy: { d: "M 35 55 Q 50 70 65 55" },
     angry: { d: "M 35 65 Q 50 50 65 65" },
     sad: { d: "M 35 65 Q 50 60 65 65" },
@@ -208,7 +208,7 @@ export const RslimeFace = ({
                         />
                         {/* Mouth */}
                         <motion.path
-                            fill="transparent"
+                            fill={mouth_style === 'default' ? 'black' : 'transparent'}
                             stroke="black"
                             strokeWidth={3}
                             strokeLinecap="round"
