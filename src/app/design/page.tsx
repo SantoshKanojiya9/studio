@@ -382,16 +382,27 @@ const DesignPageContent = () => {
   
   const handleModelChange = (newModel: ModelType) => {
     if (model === newModel) return;
-    setModel(newModel);
+
+    // Reset common properties to their defaults for a clean slate
+    setExpression('neutral');
+    setShape('default');
+    setEyeStyle('default');
+    setMouthStyle('default');
+    setEyebrowStyle('default');
+    setShowSunglasses(false);
+    setShowMustache(false);
+    feature_offset_x.set(0);
+    feature_offset_y.set(0);
     
+    // Set model-specific defaults
     if (newModel === 'loki') {
         setEmojiColor(defaultLokiColor);
-        if (shape === 'blob') {
-            setShape('default');
-        }
     } else {
         setEmojiColor(defaultEmojiColor);
     }
+
+    // Finally, set the new model
+    setModel(newModel);
   }
 
   const renderMenu = () => {
