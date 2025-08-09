@@ -110,23 +110,23 @@ export const RimuruFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
   
   const eyeVariants = {
-    neutral:   { d: "M 20,50 C 30,55 50,55 60,50" },
-    happy:     { d: "M 20,50 C 30,55 50,55 60,50" }, // Same as neutral but with blush
-    love:      { d: "M 20,50 C 30,55 50,55 60,50" }, // Same as happy but with blush lines
-    angry:     { d: "M 25,45 L 55,60" }, // For the '\' eye
-    sad:       { d: "M 20,55 C 30,50 50,50 60,55" },
-    surprised: { d: "M 20,45 C 30,40 50,40 60,45" },
-    scared:    { d: "M 20,45 C 30,35 50,35 60,45" },
+    neutral:   { d: "M 30,50 L 45,50" },
+    happy:     { d: "M 30,45 L 40,55 L 30,65" }, // > shape
+    love:      { d: "M 30,45 C 40,50 50,60 60,65" },
+    angry:     { d: "M 30,45 L 45,60" }, // \ shape
+    sad:       { d: "M 30,60 C 40,50 50,50 60,55" },
+    surprised: { d: "M 30,45 C 40,35 50,35 60,45" },
+    scared:    { d: "M 30,45 C 40,35 50,35 60,45" },
   };
   
   const mouthVariants = {
     neutral: { d: "", opacity: 0 },
     happy: { d: "", opacity: 0 },
-    love: { d: "", opacity: 0 },
+    love: { d: "M 45,70 C 50,75 55,75 60,70", opacity: 1},
     angry: { d: "", opacity: 0 },
-    sad: { d: "M 45,65 L 50,70 L 55,65", opacity: 1 },
-    surprised: { d: "M 40,65 C 50,75 60,65", opacity: 1 },
-    scared: { d: "M 40,70 Q 50,60 60,70", opacity: 1 },
+    sad: { d: "M 45,70 Q 50,60 55,70", opacity: 1 },
+    surprised: { d: "M 45,65 A 10 10 0 0 0 55 65 Z", opacity: 1 }, // open mouth circle
+    scared: { d: "M 45,70 Q 50,60 55,70", opacity: 1 },
   };
 
   const blushVariants = {
@@ -134,7 +134,7 @@ export const RimuruFace = ({
     happy: { opacity: 0.8 },
     love: { opacity: 0.8 },
     angry: { opacity: 0 },
-    sad: { opacity: 0.8 },
+    sad: { opacity: 0 },
     surprised: { opacity: 0 },
     scared: { opacity: 0 },
   };
@@ -188,14 +188,14 @@ export const RimuruFace = ({
                     style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
-                    <motion.div className="flex justify-between w-48 absolute top-[140px]"
+                    <motion.div className="flex justify-between w-48 absolute top-[135px]"
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
                     >
                         <div className="relative w-12 h-6">
                             <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
-                             {expression === 'love' && (
+                             {(expression === 'love') && (
                                 <div className="absolute inset-0 flex justify-center items-center gap-1">
                                     <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
                                     <div className="w-px h-3 bg-black/70"></div>
@@ -205,7 +205,7 @@ export const RimuruFace = ({
                         </div>
                          <div className="relative w-12 h-6">
                             <div className="w-full h-full bg-pink-300/80 rounded-full" style={{ filter: 'blur(1px)'}} />
-                            {expression === 'love' && (
+                            {(expression === 'love') && (
                                 <div className="absolute inset-0 flex justify-center items-center gap-1">
                                     <div className="w-px h-3 bg-black/70 transform rotate-[-15deg]"></div>
                                     <div className="w-px h-3 bg-black/70"></div>
@@ -215,7 +215,7 @@ export const RimuruFace = ({
                         </div>
                     </motion.div>
                 
-                    <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-5">
+                    <svg width="200" height="200" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-8">
                         {/* Left Eye */}
                         <motion.path
                             fill="transparent"
@@ -225,7 +225,13 @@ export const RimuruFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transform: expression === 'angry' ? 'translateX(-15px)' : 'translateX(-20px)' }}
+                            style={{ 
+                                transform: expression === 'happy' 
+                                    ? 'translateX(25px) scaleX(-1)' // <
+                                    : expression === 'angry'
+                                    ? 'translateX(30px)' // \
+                                    : 'translateX(25px)',
+                             }}
                         />
                          {/* Right Eye */}
                          <motion.path
@@ -236,7 +242,13 @@ export const RimuruFace = ({
                             variants={eyeVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transform: expression === 'angry' ? 'translateX(15px) scaleX(-1)' : 'translateX(20px) scaleX(-1)' }}
+                            style={{ 
+                                transform: expression === 'happy'
+                                    ? 'translateX(65px)' // >
+                                    :  expression === 'angry'
+                                    ? 'translateX(70px) scaleX(-1)' // /
+                                    : 'translateX(55px)',
+                             }}
                         />
 
                         {/* Mouth */}
