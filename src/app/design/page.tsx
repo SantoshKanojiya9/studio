@@ -344,7 +344,7 @@ const DesignPageContent = () => {
   const handleModelChange = (newModel: ModelType) => {
     if (model === newModel) return;
 
-    // Reset common properties to their defaults for a clean slate
+    // Reset all common properties to their defaults for a clean slate
     setExpression('neutral');
     setShape('default');
     setEyeStyle('default');
@@ -354,6 +354,8 @@ const DesignPageContent = () => {
     setShowMustache(false);
     feature_offset_x.set(0);
     feature_offset_y.set(0);
+    setSelectedFilter(null);
+    setAnimationType('random');
     
     // Set model-specific defaults
     if (newModel === 'loki') {
@@ -440,14 +442,7 @@ const DesignPageContent = () => {
           </>
         );
       case 'shapes':
-        const shapes: { name: ShapeType; label: string }[] = model === 'loki' 
-        ? [
-            { name: 'default', label: 'Default' },
-            { name: 'square', label: 'Square' },
-            { name: 'squircle', label: 'Squircle' },
-            { name: 'tear', label: 'Tear' },
-        ]
-        : [
+        const shapes: { name: ShapeType; label: string }[] = [
           { name: 'default', label: 'Default' },
           { name: 'square', label: 'Square' },
           { name: 'squircle', label: 'Squircle' },
@@ -461,7 +456,11 @@ const DesignPageContent = () => {
             {shapes.map(({ name, label }) => (
                 <Tooltip key={name}>
                     <TooltipTrigger asChild>
-                        <Button variant={shape === name ? 'secondary' : 'ghost'} onClick={() => handleShapeToggle(name)}>
+                        <Button 
+                            variant={shape === name ? 'secondary' : 'ghost'} 
+                            onClick={() => handleShapeToggle(name)}
+                            disabled={model === 'loki' && name === 'blob'}
+                        >
                             {label}
                         </Button>
                     </TooltipTrigger>
@@ -491,7 +490,7 @@ const DesignPageContent = () => {
                         <Input id="face-color-input" type="color" value={emoji_color} onChange={(e) => setEmojiColor(e.target.value)} className="sr-only" />
                     </Label>
                 </TooltipTrigger>
-                <TooltipContent><p>Face Color</p></TooltipContent>
+                <TooltipContent><p>{model === 'loki' ? 'Clock Color' : 'Face Color'}</p></TooltipContent>
             </Tooltip>
           </>
         );
@@ -594,69 +593,47 @@ const DesignPageContent = () => {
       case 'eyebrows':
         return renderFeatureMenu('eyebrow', eyebrow_style);
       default: // 'main'
-        const commonTools = (
-          <>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
-                <RotateCcw className="h-4 w-4" />
-                <span className="text-xs mt-1">New</span>
-            </Button>
-             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleSave}>
-                <Save className="h-4 w-4" />
-                <span className="text-xs mt-1">Save</span>
-            </Button>
-            <Separator orientation="vertical" className="h-full mx-1" />
-             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('caption')}>
-                <Captions className="h-4 w-4" />
-                <span className="text-xs mt-1">Caption</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
-                <Smile className="h-4 w-4" />
-                <span className="text-xs mt-1">Expressions</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
-                <UserIcon className="h-4 w-4" />
-                <span className="text-xs mt-1">Face</span>
-            </Button>
-             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
-                <Sparkles className="h-4 w-4" />
-                <span className="text-xs mt-1">Animations</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('shapes')}>
-                <Square className="h-4 w-4" />
-                <span className="text-xs mt-1">Shapes</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
-                <Palette className="h-4 w-4" />
-                <span className="text-xs mt-1">Colors</span>
-            </Button>
-          </>
-        );
-
-        if (model === 'emoji') {
-            return (
-                <>
-                    {commonTools}
+        return (
+            <>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
+                    <RotateCcw className="h-4 w-4" />
+                    <span className="text-xs mt-1">New</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleSave}>
+                    <Save className="h-4 w-4" />
+                    <span className="text-xs mt-1">Save</span>
+                </Button>
+                <Separator orientation="vertical" className="h-full mx-1" />
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('caption')}>
+                    <Captions className="h-4 w-4" />
+                    <span className="text-xs mt-1">Caption</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
+                    <Smile className="h-4 w-4" />
+                    <span className="text-xs mt-1">Expressions</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
+                    <UserIcon className="h-4 w-4" />
+                    <span className="text-xs mt-1">Face</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
+                    <Sparkles className="h-4 w-4" />
+                    <span className="text-xs mt-1">Animations</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('shapes')}>
+                    <Square className="h-4 w-4" />
+                    <span className="text-xs mt-1">Shapes</span>
+                </Button>
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
+                    <Palette className="h-4 w-4" />
+                    <span className="text-xs mt-1">Colors</span>
+                </Button>
+                {model === 'emoji' && (
                     <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
                         <Glasses className="h-4 w-4" />
                         <span className="text-xs mt-1">Accessories</span>
                     </Button>
-                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
-                        <Camera className="h-4 w-4" />
-                        <span className="text-xs mt-1">Filters</span>
-                    </Button>
-                    <Separator orientation="vertical" className="h-full mx-1" />
-                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
-                        <Wand2 className="h-4 w-4" />
-                        <span className="text-xs mt-1">Random</span>
-                    </Button>
-                </>
-            );
-        }
-
-        // Loki model toolbox
-        return (
-            <>
-                {commonTools}
+                )}
                 <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
                     <Camera className="h-4 w-4" />
                     <span className="text-xs mt-1">Filters</span>
@@ -667,7 +644,7 @@ const DesignPageContent = () => {
                     <span className="text-xs mt-1">Random</span>
                 </Button>
             </>
-        )
+        );
     }
   };
 
@@ -746,8 +723,8 @@ const DesignPageContent = () => {
                     expression={expression} 
                     color={emoji_color} 
                     setColor={setEmojiColor}
-                    show_sunglasses={false} 
-                    show_mustache={false} 
+                    show_sunglasses={false}
+                    show_mustache={false}
                     shape={shape}
                     eye_style={eye_style}
                     mouth_style={mouth_style}
