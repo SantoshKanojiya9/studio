@@ -49,13 +49,14 @@ export const RimuruFace = ({
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
   const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
 
+  const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+
   useEffect(() => {
     setExpression(initialExpression);
   }, [initialExpression]);
 
   // Dedicated effect for animations
   useEffect(() => {
-    const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'love'];
     const stopAnimations = () => {
       if (animationControlsX.current) animationControlsX.current.stop();
       if (animationControlsY.current) animationControlsY.current.stop();
@@ -92,6 +93,7 @@ export const RimuruFace = ({
         animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
     };
 
+    // Stop any existing animations before starting new ones
     stopAnimations();
 
     switch (animation_type) {
@@ -123,39 +125,57 @@ export const RimuruFace = ({
              // 'none' or other cases, do nothing
     }
 
+    // Cleanup function to stop animations when the component unmounts or dependencies change
     return stopAnimations;
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
 
-    const eyeVariants = {
-        love:    { left: "M 20,55 C 35,65 50,65 65,55", right: "M 85,55 C 100,65 115,65 130,55" },
-        neutral: { left: "M 20,60 L 65,60", right: "M 85,60 L 130,60" }, // -- --
-        happy:   { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" }, // U U
-        angry:   { left: "M 20,55 L 65,65", right: "M 85,65 L 130,55" }, // \ /
-        sad:     { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" }, // n n
-        surprised: { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" }, // Same as happy for now
-        scared:  { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" }, // Same as sad for now
-    };
+  const eyeVariants = {
+    // Happy, content face from reference
+    love:    { left: "M 25,58 C 35,62 50,62 60,58", right: "M 90,55 C 100,59 115,59 125,55" },
+    // Simple smile from reference
+    happy:   { left: "M 25,58 C 35,52 50,52 60,58", right: "M 90,58 C 100,52 115,52 125,58" },
+    // Angry face from reference: \ /
+    angry:   { left: "M 25,55 L 60,65", right: "M 90,65 L 125,55" },
+    // Sad face from reference
+    sad:     { left: "M 25,65 C 35,72 50,72 60,65", right: "M 90,65 C 100,72 115,72 125,65" },
+    // Surprised face from reference
+    surprised: { left: "M 25,55 C 42.5,45 60,55 60,55", right: "M 90,55 C 107.5,45 125,55 125,55" },
+    // Neutral face from reference: – –
+    neutral: { left: "M 25,60 L 60,60", right: "M 90,60 L 125,60" },
+    // Scared face
+    scared: { left: "M 25,65 C 35,72 50,72 60,65", right: "M 90,65 C 100,72 115,72 125,65" },
+  };
 
-    const mouthVariants = {
-        love:    { d: "M 55,80 Q 75,90 95,80" },
-        neutral: { d: "" }, // No mouth
-        happy:   { d: "M 55,80 Q 75,95 95,80" },
-        angry:   { d: "M 55,85 L 95,85" },
-        sad:     { d: "M 65,90 Q 75,80 85,90" },
-        surprised: { d: "M 65, 80 A 10 10 0 0 1 85, 80 A 10 10 0 0 1 65 80 Z"},
-        scared:  { d: "M 55,90 Q 75,80 95,90" },
-    };
+  const mouthVariants = {
+    love:    { d: "M 65,82 C 75,87 85,87 95,82" },
+    happy:   { d: "M 65,82 C 75,92 85,92 95,82" },
+    angry:   { d: "M 65,85 L 95,85" },
+    sad:     { d: "M 70,90 L 90,90" },
+    surprised: { d: "M 70, 82 A 10 10 0 0 1 90, 82 A 10 10 0 0 1 70 82 Z" },
+    neutral: { d: "M 75,85 L 85,85" },
+    scared: { d: "M 65, 90 C 75,80 85,80 95,90" },
+  };
   
     const blushVariants = {
-        love: { opacity: 0.7 },
-        happy: { opacity: 0.7 },
+        love: { opacity: 1 },
+        happy: { opacity: 1 },
         neutral: { opacity: 0 },
         angry: { opacity: 0 },
         sad: { opacity: 0 },
         surprised: { opacity: 0 },
         scared: { opacity: 0 },
     };
+
+    const hashBlushVariants = {
+        love: { opacity: 1 },
+        happy: { opacity: 0 },
+        neutral: { opacity: 0 },
+        angry: { opacity: 0 },
+        sad: { opacity: 0 },
+        surprised: { opacity: 0 },
+        scared: { opacity: 0 },
+    }
   
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
@@ -203,20 +223,11 @@ export const RimuruFace = ({
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
                     <svg width="200" height="200" viewBox="0 0 150 150" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        {/* Blush */}
-                        <motion.g
-                            variants={blushVariants}
-                            animate={expression}
-                            transition={{ duration: 0.3, type: "spring" }}
-                        >
-                           <defs>
-                              <filter id="blush-blur" x="-50%" y="-50%" width="200%" height="200%">
-                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
-                              </filter>
-                            </defs>
-                            <ellipse cx="45" cy="75" rx="12" ry="6" fill="#FF69B4" filter="url(#blush-blur)" />
-                            <ellipse cx="105" cy="75" rx="12" ry="6" fill="#FF69B4" filter="url(#blush-blur)" />
-                        </motion.g>
+                       <defs>
+                          <filter id="blush-blur" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+                          </filter>
+                        </defs>
 
                         {/* Eyes */}
                         <motion.path
@@ -243,6 +254,34 @@ export const RimuruFace = ({
                            strokeLinecap="round"
                            strokeLinejoin="round"
                         />
+                         {/* Blush */}
+                        <motion.g
+                            variants={blushVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: "spring" }}
+                        >
+                            <ellipse cx="42" cy="78" rx="15" ry="8" fill="#FF69B4" filter="url(#blush-blur)" />
+                            <ellipse cx="108" cy="78" rx="15" ry="8" fill="#FF69B4" filter="url(#blush-blur)" />
+                        </motion.g>
+
+                        {/* Hash mark blush */}
+                        <motion.g
+                            variants={hashBlushVariants}
+                            animate={expression}
+                            stroke="black"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            transition={{ duration: 0.3, type: "spring" }}
+                        >
+                           {/* Left Blush */}
+                           <path d="M 38,75 L 46,81" />
+                           <path d="M 42,73 L 42,83" />
+                           <path d="M 46,75 L 38,81" />
+                           {/* Right Blush */}
+                           <path d="M 104,75 L 112,81" />
+                           <path d="M 108,73 L 108,83" />
+                           <path d="M 112,75 L 104,81" />
+                        </motion.g>
                     </svg>
                 </motion.div>
             </motion.div>
