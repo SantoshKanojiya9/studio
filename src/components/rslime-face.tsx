@@ -111,33 +111,33 @@ export const RslimeFace = ({
 
 
   const eyeVariants = {
-    neutral: { d: "M 25 40 C 35 30, 45 30, 50 40 M 75 40 C 65 30, 55 30, 50 40" },
-    happy: { d: "M 20 45 C 35 30, 45 35, 50 42 M 80 45 C 65 30, 55 35, 50 42" },
-    angry: { d: "M 20 38 C 35 45, 45 42, 50 40 M 80 38 C 65 45, 55 42, 50 40" },
-    sad: { d: "M 20 40 C 35 50, 45 48, 50 45 M 80 40 C 65 50, 55 48, 50 45" },
-    surprised: { d: "M 25 35 C 35 25, 45 28, 50 35 M 75 35 C 65 25, 55 28, 50 35" },
-    scared: { d: "M 20 30 C 40 45, 45 40, 50 38 M 80 30 C 60 45, 55 40, 50 38" },
-    love: { d: "M 20 45 C 35 30, 45 35, 50 42 M 80 45 C 65 30, 55 35, 50 42" },
+    neutral: { d: "M25,45 C35,55 45,55 55,45" },
+    happy: { d: "M25,45 C35,35 45,35 55,45" },
+    angry: { d: "M25,40 C35,45 45,45 55,40" },
+    sad: { d: "M25,50 C35,60 45,60 55,50" },
+    surprised: { d: "M25,40 C35,30 45,30 55,40" },
+    scared: { d: "M25,45 C35,55 45,55 55,45" },
+    love: { d: "M25,45 C35,35 45,35 55,45" },
   };
 
   const mouthVariants = {
-    neutral: { d: "M 45 60 A 5 5 0 0 1 55 60 A 5 5 0 0 1 45 60 Z", opacity: 0.9 },
-    happy: { d: "M 35 55 Q 50 70 65 55" },
-    angry: { d: "M 35 65 Q 50 50 65 65" },
-    sad: { d: "M 35 65 Q 50 60 65 65" },
-    surprised: { d: "M 45 60 A 5 5 0 0 1 55 60 A 5 5 0 0 1 45 60 Z" },
-    scared: { d: "M 35 55 C 40 70, 60 70, 65 55" },
-    love: { d: "M 35 55 Q 50 80 65 55" },
+    neutral: { opacity: 0 },
+    happy: { opacity: 0 },
+    angry: { opacity: 0 },
+    sad: { d: "M 45 65 Q 50 70 55 65", opacity: 1 },
+    surprised: { d: "M 48 65 A 4 4 0 0 1 52 65 Z", opacity: 1 },
+    scared: { d: "M 40 68 Q 50 72 60 68", opacity: 1 },
+    love: { opacity: 0 },
   };
   
   const blushVariants = {
-    neutral: { opacity: 0 },
-    happy: { opacity: 0.7, y: 5 },
-    angry: { opacity: 0, y: 0 },
-    sad: { opacity: 0.5, y: 8 },
-    surprised: { opacity: 0.2, y: 5 },
-    scared: { opacity: 0.6, y: 8 },
-    love: { opacity: 0.9, y: 5 },
+    neutral: { opacity: 0.8 },
+    happy: { opacity: 0.8 },
+    angry: { opacity: 0 },
+    sad: { opacity: 0.8 },
+    surprised: { opacity: 0 },
+    scared: { opacity: 0 },
+    love: { opacity: 0.8 },
   }
   
   const getShapeClipPath = (s: ShapeType) => {
@@ -206,11 +206,21 @@ export const RslimeFace = ({
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                         />
-                        {/* Mouth */}
-                        <motion.path
-                            fill={mouth_style === 'default' ? 'black' : 'transparent'}
+                         <motion.path
+                            fill="transparent"
                             stroke="black"
                             strokeWidth={3}
+                            strokeLinecap="round"
+                            variants={eyeVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+                            style={{ transform: 'translateX(45px)' }}
+                        />
+                        {/* Mouth */}
+                        <motion.path
+                            fill={'black'}
+                            stroke="black"
+                            strokeWidth={2}
                             strokeLinecap="round"
                             variants={mouthVariants}
                             animate={expression}
