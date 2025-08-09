@@ -134,7 +134,7 @@ export const RimuruFace = ({
     // Happy, content face from reference
     love:    { left: "M 25,58 C 35,62 50,62 60,58", right: "M 90,55 C 100,59 115,59 125,55" },
     // > < expression
-    happy:   { left: "M 25 55 L 60 65", right: "M 90 65 L 125 55" },
+    happy:   { left: "M 35 55 L 50 65 L 35 75", right: "M 115 55 L 100 65 L 115 75" },
     // Angry face from reference: \ /
     angry:   { left: "M 25,55 L 60,65", right: "M 90,65 L 125,55" },
     // Sad face from reference
@@ -149,7 +149,7 @@ export const RimuruFace = ({
 
   const mouthVariants = {
     love:    { d: "M 65,82 C 75,87 85,87 95,82" },
-    happy:   { d: "M 65,82 C 75,92 85,92 95,82" },
+    happy:   { d: "M 75,85 C 80,95 90,95 95,85" },
     angry:   { d: "M 65,85 L 95,85" },
     sad:     { d: "M 70,90 L 90,90" },
     surprised: { d: "M 70, 82 A 10 10 0 0 1 90, 82 A 10 10 0 0 1 70 82 Z" },
@@ -249,9 +249,10 @@ export const RimuruFace = ({
                             variants={blushVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: "spring" }}
+                            filter="url(#blush-blur)"
                         >
-                            <ellipse cx="42" cy="78" rx="15" ry="8" fill="#FF69B4" filter="url(#blush-blur)" />
-                            <ellipse cx="108" cy="78" rx="15" ry="8" fill="#FF69B4" filter="url(#blush-blur)" />
+                            <ellipse cx="40" cy="75" rx="15" ry="8" fill="#FF69B4" />
+                            <ellipse cx="110" cy="75" rx="15" ry="8" fill="#FF69B4" />
                         </motion.g>
 
                     </svg>
