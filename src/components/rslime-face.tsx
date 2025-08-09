@@ -119,16 +119,6 @@ export const RslimeFace = ({
     scared:  { d: "M10,45 C25,55 45,55 60,45" },
     love:    { d: "M10,45 C25,35 45,35 60,45" },
   };
-
-  const mouthVariants = {
-    neutral: { opacity: 0, scale: 0.5 },
-    happy:   { opacity: 0, scale: 0.5 },
-    angry:   { opacity: 0, scale: 0.5 },
-    sad:     { d: "M 45 70 Q 50 75 55 70", opacity: 1, scale: 1 },
-    surprised: { d: "M 48 70 A 4 4 0 0 1 52 70 Z", opacity: 1, scale: 1 },
-    scared:  { d: "M 40 72 Q 50 78 60 72", opacity: 1, scale: 1 },
-    love:    { opacity: 0, scale: 0.5 },
-  };
   
   const blushVariants = {
     neutral: { opacity: 0.8 },
@@ -216,17 +206,6 @@ export const RslimeFace = ({
                             animate={expression}
                             transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                             style={{ transform: 'translateX(50px) scaleX(-1)' }}
-                        />
-                        {/* Mouth */}
-                        <motion.path
-                            fill={'black'}
-                            stroke="black"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            variants={mouthVariants}
-                            animate={expression}
-                            transition={{ duration: 0.2, type: 'spring', stiffness: 400, damping: 15 }}
-                            style={{ transformOrigin: '50% 70%' }}
                         />
                     </svg>
                     
