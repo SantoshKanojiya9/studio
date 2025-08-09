@@ -260,14 +260,14 @@ export default function MoodPage() {
 
         const { data: moodData, error: moodError } = await supabase
             .from('moods')
-            .select(`
+            .select(\`
                 id,
                 user_id,
                 created_at,
                 mood_user:users!moods_user_id_fkey(id, name, picture),
                 emoji:emojis!inner(*, user:users!inner(id, name, picture)),
                 views:mood_views(viewer_id)
-            `)
+            \`)
             .in('user_id', userIds)
             .gte('created_at', twentyFourHoursAgo)
             .order('created_at', { ascending: false });
@@ -335,7 +335,9 @@ export default function MoodPage() {
             moodPageCache.moods = moodsData;
             moodPageCache.feedPosts = postsData;
             moodPageCache.page = 1;
+            moodPageCache.hasMore = postsData.length === 5;
             setPage(1);
+            setHasMore(postsData.length === 5);
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
         } finally {
@@ -377,11 +379,9 @@ export default function MoodPage() {
 
     // Infinite scroll observer
     useEffect(() => {
-        if (isLoading || isFetchingMore || !hasMore) return;
-
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting) {
+                if (entries[0].isIntersecting && hasMore && !isFetchingMore) {
                     setIsFetchingMore(true);
                     const nextPage = page + 1;
                     fetchPosts(nextPage).then((newPosts) => {
@@ -393,7 +393,7 @@ export default function MoodPage() {
                     });
                 }
             },
-            { threshold: 1.0 }
+            { root: null, rootMargin: "0px", threshold: 1.0 }
         );
 
         const currentLoader = loaderRef.current;
@@ -406,7 +406,7 @@ export default function MoodPage() {
                 observer.unobserve(currentLoader);
             }
         };
-    }, [isLoading, isFetchingMore, hasMore, page, fetchPosts]);
+    }, [hasMore, isFetchingMore, page, fetchPosts]);
 
     const handleRefresh = async () => {
         moodPageCache.feedPosts = null; // Clear cache to force reload
@@ -521,12 +521,11 @@ export default function MoodPage() {
                             <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} />
                         ))}
                     </div>
-                    {isFetchingMore && (
-                        <div className="flex justify-center items-center p-4">
+                    {hasMore && (
+                        <div ref={loaderRef} className="flex justify-center items-center p-4">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
                     )}
-                    <div ref={loaderRef} />
                  </>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
@@ -541,3 +540,5 @@ export default function MoodPage() {
     </div>
   );
 }
+
+    
