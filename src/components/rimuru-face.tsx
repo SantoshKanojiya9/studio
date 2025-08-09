@@ -128,37 +128,29 @@ export const RimuruFace = ({
 
 
     const eyeVariants = {
-        // Content happy face with blush
         love:    { left: "M 20,55 C 35,65 50,65 65,55", right: "M 85,55 C 100,65 115,65 130,55" },
-        // Neutral, slightly smiling
-        neutral: { left: "M 20,60 C 35,55 50,55 65,60", right: "M 85,60 C 100,55 115,55 130,60" },
-        // Wide smile, no blush
-        happy:   { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" },
-        // Angry \ /
-        angry:   { left: "M 20,55 L 65,65", right: "M 85,65 L 130,55" },
-        // Sad
-        sad:     { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" },
-        // Surprised O.O
-        surprised: { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" },
-         // Scared (same as sad for now)
-        scared:  { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" },
+        neutral: { left: "M 20,60 L 65,60", right: "M 85,60 L 130,60" }, // -- --
+        happy:   { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" }, // U U
+        angry:   { left: "M 20,55 L 65,65", right: "M 85,65 L 130,55" }, // \ /
+        sad:     { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" }, // n n
+        surprised: { left: "M 20,60 C 35,50 50,50 65,60", right: "M 85,60 C 100,50 115,50 130,60" }, // Same as happy for now
+        scared:  { left: "M 20,65 C 35,75 50,75 65,65", right: "M 85,65 C 100,75 115,75 130,65" }, // Same as sad for now
     };
 
     const mouthVariants = {
         love:    { d: "M 55,80 Q 75,90 95,80" },
-        neutral: { d: "M 55,80 Q 75,85 95,80" },
+        neutral: { d: "" }, // No mouth
         happy:   { d: "M 55,80 Q 75,95 95,80" },
         angry:   { d: "M 55,85 L 95,85" },
         sad:     { d: "M 65,90 Q 75,80 85,90" },
         surprised: { d: "M 65, 80 A 10 10 0 0 1 85, 80 A 10 10 0 0 1 65 80 Z"},
         scared:  { d: "M 55,90 Q 75,80 95,90" },
-        love:    { d: "M 55,80 Q 75,90 95,80" }
     };
   
     const blushVariants = {
-        love: { opacity: 0.8 },
+        love: { opacity: 0.7 },
+        happy: { opacity: 0.7 },
         neutral: { opacity: 0 },
-        happy: { opacity: 0 },
         angry: { opacity: 0 },
         sad: { opacity: 0 },
         surprised: { opacity: 0 },
@@ -217,20 +209,13 @@ export const RimuruFace = ({
                             animate={expression}
                             transition={{ duration: 0.3, type: "spring" }}
                         >
-                            {/* Left Blush */}
-                            <g transform="translate(45, 75) rotate(-15)">
-                                <path d="M -10 0 L 10 0" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M 0 -10 L 0 10" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M -7 -7 L 7 7" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M -7 7 L 7 -7" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                            </g>
-                            {/* Right Blush */}
-                             <g transform="translate(105, 75) rotate(15)">
-                                <path d="M -10 0 L 10 0" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M 0 -10 L 0 10" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M -7 -7 L 7 7" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M -7 7 L 7 -7" stroke="#FF69B4" strokeWidth="2" strokeLinecap="round" />
-                            </g>
+                           <defs>
+                              <filter id="blush-blur" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+                              </filter>
+                            </defs>
+                            <ellipse cx="45" cy="75" rx="12" ry="6" fill="#FF69B4" filter="url(#blush-blur)" />
+                            <ellipse cx="105" cy="75" rx="12" ry="6" fill="#FF69B4" filter="url(#blush-blur)" />
                         </motion.g>
 
                         {/* Eyes */}
