@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount, getLikeCount, getIsLiked } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -128,17 +128,23 @@ function GalleryPageContent() {
                 if (userProfile.is_private && tempSupportStatus !== 'approved' && !isOwnProfile) {
                     setSavedEmojis([]);
                 } else {
-                    const { data: rpcData, error: rpcError } = await supabase.rpc('get_posts_for_user_profile', {
-                        profile_user_id: viewingUserId,
-                        current_user_id: authUser?.id
-                    });
+                     const { data: emojis, error: emojisError } = await supabase
+                        .from('emojis')
+                        .select('*, user:users(id, name, picture)')
+                        .eq('user_id', viewingUserId)
+                        .order('created_at', { ascending: false });
 
-                    if (rpcError) {
-                        console.error('Error fetching gallery posts via RPC:', rpcError);
-                        throw rpcError;
-                    }
+                    if (emojisError) throw emojisError;
 
-                    setSavedEmojis(rpcData as GalleryEmoji[]);
+                    // Now fetch like counts and is_liked status for each emoji
+                    const emojisWithLikes = await Promise.all(
+                        emojis.map(async (emoji) => {
+                            const like_count = await getLikeCount(emoji.id);
+                            const is_liked = authUser ? await getIsLiked(emoji.id) : false;
+                            return { ...emoji, like_count, is_liked };
+                        })
+                    );
+                    setSavedEmojis(emojisWithLikes as GalleryEmoji[]);
                 }
 
 
