@@ -303,6 +303,7 @@ export default function MoodPage() {
     }, [user, supabase]);
 
     const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
+        setIsFetchingMore(true);
         try {
             const newPosts = await getFeedPosts({ page: pageNum, limit });
             
@@ -310,35 +311,47 @@ export default function MoodPage() {
                 setHasMore(false);
                 moodPageCache.hasMore = false;
             }
-            return newPosts as FeedPostType[];
+
+            setFeedPosts(prev => [...prev, ...newPosts]);
+            moodPageCache.feedPosts = [...(moodPageCache.feedPosts || []), ...newPosts];
+            
+            const nextPage = pageNum + 1;
+            setPage(nextPage);
+            moodPageCache.page = nextPage;
+
         } catch (error: any) {
             console.error("Failed to fetch posts:", error);
             toast({ title: "Failed to load more posts", description: error.message, variant: "destructive" });
-            return [];
+        } finally {
+            setIsFetchingMore(false);
         }
     }, [toast]);
 
     const loadInitialData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [moodsData, postsData] = await Promise.all([
+            const [moodsData] = await Promise.all([
                 fetchMoods(),
-                fetchPosts(1)
+                fetchPosts(1, 5).then(posts => {
+                    setFeedPosts(posts as FeedPostType[]);
+                    moodPageCache.feedPosts = posts as FeedPostType[];
+                    moodPageCache.page = 1;
+                    const hasMorePosts = posts.length === 5;
+                    setHasMore(hasMorePosts);
+                    moodPageCache.hasMore = hasMorePosts;
+                })
             ]);
             setMoods(moodsData);
-            setFeedPosts(postsData);
             moodPageCache.moods = moodsData;
-            moodPageCache.feedPosts = postsData;
-            moodPageCache.page = 1;
-            moodPageCache.hasMore = postsData.length === 5;
-            setPage(1);
-            setHasMore(postsData.length === 5);
+
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
         } finally {
             setIsLoading(false);
         }
-    }, [fetchMoods, fetchPosts, toast]);
+    // We modify fetchPosts to call setIsFetchingMore and update its own state now.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchMoods, toast]);
     
     // Initial load from cache or server
     useEffect(() => {
@@ -372,39 +385,35 @@ export default function MoodPage() {
         }
     }, []);
 
-    // Infinite scroll observer
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isFetchingMore) {
-                    setIsFetchingMore(true);
-                    const nextPage = page + 1;
-                    fetchPosts(nextPage).then((newPosts) => {
-                        setFeedPosts((prev) => [...prev, ...newPosts]);
-                        setPage(nextPage);
-                        moodPageCache.page = nextPage;
-                        moodPageCache.feedPosts = [...(moodPageCache.feedPosts || []), ...newPosts];
-                        setIsFetchingMore(false);
-                    });
-                }
-            },
-            { root: null, rootMargin: "0px", threshold: 1.0 }
-        );
-
-        const currentLoader = loaderRef.current;
-        if (currentLoader) {
-            observer.observe(currentLoader);
+    const observer = useRef<IntersectionObserver>();
+    const loadMoreCallback = useCallback((entries: IntersectionObserverEntry[]) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isFetchingMore) {
+           fetchPosts(page);
         }
+    }, [fetchPosts, hasMore, isFetchingMore, page]);
 
-        return () => {
-            if (currentLoader) {
-                observer.unobserve(currentLoader);
-            }
-        };
-    }, [hasMore, isFetchingMore, page, fetchPosts]);
+    useEffect(() => {
+       const option = {
+         root: null,
+         rootMargin: '0px',
+         threshold: 1.0
+       }
+       observer.current = new IntersectionObserver(loadMoreCallback, option);
+       if (loaderRef.current) observer.current.observe(loaderRef.current);
+       
+       return () => {
+         if(loaderRef.current && observer.current) {
+            observer.current.unobserve(loaderRef.current);
+         }
+       }
+    }, [loadMoreCallback]);
 
     const handleRefresh = async () => {
         moodPageCache.feedPosts = null; // Clear cache to force reload
+        setFeedPosts([]); // clear posts on screen
+        setPage(1); // reset page count
+        moodPageCache.page = 1;
         await loadInitialData();
     }
     
@@ -505,7 +514,7 @@ export default function MoodPage() {
         </div>
       
         <div className="flex-1">
-            {isLoading ? (
+            {isLoading && feedPosts.length === 0 ? (
                 <div className="flex h-full w-full items-center justify-center pt-10">
                     <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                 </div>
