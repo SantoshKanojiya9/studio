@@ -133,8 +133,8 @@ export const RimuruFace = ({
   const eyeVariants = {
     // Happy, content face from reference
     love:    { left: "M 25,58 C 35,62 50,62 60,58", right: "M 90,55 C 100,59 115,59 125,55" },
-    // Simple smile from reference
-    happy:   { left: "M 25,58 C 35,52 50,52 60,58", right: "M 90,58 C 100,52 115,52 125,58" },
+    // > < expression
+    happy:   { left: "M 25 55 L 60 65", right: "M 90 65 L 125 55" },
     // Angry face from reference: \ /
     angry:   { left: "M 25,55 L 60,65", right: "M 90,65 L 125,55" },
     // Sad face from reference
@@ -144,7 +144,7 @@ export const RimuruFace = ({
     // Neutral face from reference: – –
     neutral: { left: "M 25,60 L 60,60", right: "M 90,60 L 125,60" },
     // Scared face
-    scared: { left: "M 25,65 C 35,72 50,72 60,65", right: "M 90,65 C 100,72 115,72 125,65" },
+    scared: { left: "M 25,65 C 35,55 50,55 60,65", right: "M 90,65 C 100,55 115,55 125,65" },
   };
 
   const mouthVariants = {
@@ -159,23 +159,13 @@ export const RimuruFace = ({
   
     const blushVariants = {
         love: { opacity: 1 },
-        happy: { opacity: 1 },
-        neutral: { opacity: 0 },
-        angry: { opacity: 0 },
-        sad: { opacity: 0 },
-        surprised: { opacity: 0 },
-        scared: { opacity: 0 },
-    };
-
-    const hashBlushVariants = {
-        love: { opacity: 1 },
         happy: { opacity: 0 },
         neutral: { opacity: 0 },
         angry: { opacity: 0 },
         sad: { opacity: 0 },
         surprised: { opacity: 0 },
         scared: { opacity: 0 },
-    }
+    };
   
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
@@ -264,24 +254,6 @@ export const RimuruFace = ({
                             <ellipse cx="108" cy="78" rx="15" ry="8" fill="#FF69B4" filter="url(#blush-blur)" />
                         </motion.g>
 
-                        {/* Hash mark blush */}
-                        <motion.g
-                            variants={hashBlushVariants}
-                            animate={expression}
-                            stroke="black"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            transition={{ duration: 0.3, type: "spring" }}
-                        >
-                           {/* Left Blush */}
-                           <path d="M 38,75 L 46,81" />
-                           <path d="M 42,73 L 42,83" />
-                           <path d="M 46,75 L 38,81" />
-                           {/* Right Blush */}
-                           <path d="M 104,75 L 112,81" />
-                           <path d="M 108,73 L 108,83" />
-                           <path d="M 112,75 L 104,81" />
-                        </motion.g>
                     </svg>
                 </motion.div>
             </motion.div>
