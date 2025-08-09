@@ -260,14 +260,9 @@ export default function MoodPage() {
 
         const { data: moodData, error: moodError } = await supabase
             .from('moods')
-            .select(\`
-                id,
-                user_id,
-                created_at,
-                mood_user:users!moods_user_id_fkey(id, name, picture),
-                emoji:emojis!inner(*, user:users!inner(id, name, picture)),
-                views:mood_views(viewer_id)
-            \`)
+            .select(
+                'id,user_id,created_at,mood_user:users!moods_user_id_fkey(id, name, picture),emoji:emojis!inner(*, user:users!inner(id, name, picture)),views:mood_views(viewer_id)'
+            )
             .in('user_id', userIds)
             .gte('created_at', twentyFourHoursAgo)
             .order('created_at', { ascending: false });
@@ -540,5 +535,3 @@ export default function MoodPage() {
     </div>
   );
 }
-
-    
