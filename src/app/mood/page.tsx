@@ -332,14 +332,7 @@ export default function MoodPage() {
         try {
             const [moodsData] = await Promise.all([
                 fetchMoods(),
-                fetchPosts(1, 5).then(posts => {
-                    setFeedPosts(posts as FeedPostType[]);
-                    moodPageCache.feedPosts = posts as FeedPostType[];
-                    moodPageCache.page = 1;
-                    const hasMorePosts = posts.length === 5;
-                    setHasMore(hasMorePosts);
-                    moodPageCache.hasMore = hasMorePosts;
-                })
+                fetchPosts(1, 5)
             ]);
             setMoods(moodsData);
             moodPageCache.moods = moodsData;
@@ -349,9 +342,7 @@ export default function MoodPage() {
         } finally {
             setIsLoading(false);
         }
-    // We modify fetchPosts to call setIsFetchingMore and update its own state now.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchMoods, toast]);
+    }, [fetchMoods, fetchPosts, toast]);
     
     // Initial load from cache or server
     useEffect(() => {
@@ -544,3 +535,4 @@ export default function MoodPage() {
     </div>
   );
 }
+
