@@ -158,7 +158,7 @@ export const RimuruFace = ({
   };
   
   const blushVariants = {
-    love: { opacity: 0.9, scale: 1.1, filter: 'blur(1px)' },
+    love: { opacity: 0.7, scale: 1.1, filter: 'blur(1px)' },
     happy: { opacity: 0, scale: 0.9 },
     neutral: { opacity: 0, scale: 0.8 },
     angry: { opacity: 0, scale: 1.2, y: 5 },
