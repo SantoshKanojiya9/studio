@@ -109,31 +109,26 @@ export const RimuruFace = ({
     return stopAnimations;
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
   
-  const neutralFace = {
-    leftEye: "M 30 45 L 45 55",
-    rightEye: "M 70 45 L 55 55",
-    mouth: "M 42 65 L 58 65"
-  };
-
   const eyeVariants = {
-    neutral:   { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    happy:     { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    angry:     { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    sad:       { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    surprised: { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    scared:    { left: neutralFace.leftEye, right: neutralFace.rightEye },
-    love:      { left: neutralFace.leftEye, right: neutralFace.rightEye },
+    neutral: { left: "M 35 45 L 45 55", right: "M 65 45 L 55 55" },
+    happy: { left: "M 30 50 L 40 45 L 30 40", right: "M 70 50 L 60 45 L 70 40" },
+    angry: { left: "M 35 45 L 45 55", right: "M 65 45 L 55 55" },
+    sad: { left: "M 35 55 L 45 45", right: "M 65 55 L 55 45" },
+    surprised: { left: "M 30 40 C 35 30, 45 30, 50 40", right: "M 70 40 C 65 30, 55 30, 50 40" },
+    scared: { left: "M 35 50 L 45 50", right: "M 65 50 L 55 50" },
+    love: { left: "M 30 45 C 25 55, 45 55, 45 45", right: "M 70 45 C 75 55, 55 55, 55 45" },
   };
   
   const mouthVariants = {
-    neutral: { d: neutralFace.mouth, opacity: 1 },
-    happy: { d: neutralFace.mouth, opacity: 1 },
-    angry: { d: neutralFace.mouth, opacity: 1 },
-    sad: { d: neutralFace.mouth, opacity: 1 },
-    surprised: { d: neutralFace.mouth, opacity: 1 },
-    scared: { d: neutralFace.mouth, opacity: 1 },
-    love: { d: neutralFace.mouth, opacity: 1 },
+    neutral: { d: "M 42 65 L 58 65", opacity: 1 },
+    happy: { d: "M 40 60 C 45 70, 55 70, 60 60", opacity: 1 },
+    angry: { d: "M 42 65 L 58 65", opacity: 1 },
+    sad: { d: "M 40 70 C 45 60, 55 60, 60 70", opacity: 1 },
+    surprised: { d: "M 45 65 A 5 5 0 0 1 55 65 A 5 5 0 0 1 45 65 Z", opacity: 1 },
+    scared: { d: "M 40 60 Q 50 70 60 60", opacity: 1 },
+    love: { d: "M 45 65 C 48 70, 52 70, 55 65", opacity: 1 },
   };
+  
 
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
