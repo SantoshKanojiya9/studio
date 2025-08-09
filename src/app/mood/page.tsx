@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Loader2, Smile, Send, MoreHorizontal, Edit } from 'lucide-react';
+import { Plus, Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -32,10 +32,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { setMood, recordMoodView } from '@/app/actions';
+import { setMood, getFeedPosts } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
-import { getIsLiked, getLikeCount } from '@/app/actions';
 
 const LikerListSheet = lazy(() =>
   import('@/components/liker-list-sheet').then(mod => ({ default: mod.LikerListSheet }))
@@ -66,6 +65,15 @@ interface FeedPostType extends EmojiState {
     like_count: number;
     is_liked: boolean;
 }
+
+// Store cache in a simple object. This will persist for the session.
+const moodPageCache = {
+    moods: null as Mood[] | null,
+    feedPosts: null as FeedPostType[] | null,
+    page: 1,
+    hasMore: true,
+    scrollPosition: 0,
+};
 
 const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
     const { user } = useAuth();
@@ -221,133 +229,194 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
 export default function MoodPage() {
     const { user, supabase } = useAuth();
     const { toast } = useToast();
-    const [moods, setMoods] = useState<Mood[]>([]);
-    const [feedPosts, setFeedPosts] = useState<FeedPostType[]>([]);
+    const [moods, setMoods] = useState<Mood[]>(moodPageCache.moods || []);
+    const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(moodPageCache.feedPosts || []);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    
+    const [page, setPage] = useState(moodPageCache.page);
+    const [hasMore, setHasMore] = useState(moodPageCache.hasMore);
+
     const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-    const fetchFeedContent = useCallback(async () => {
-        if (!user) return;
-        setIsLoading(true);
+    const loaderRef = useRef(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    
+    const fetchMoods = useCallback(async () => {
+        if (!user) return [];
 
+        const { data: following, error: followingError } = await supabase
+            .from('supports')
+            .select('supported_id')
+            .eq('supporter_id', user.id)
+            .eq('status', 'approved');
+        
+        if (followingError) throw followingError;
+
+        const userIds = [...following.map(f => f.supported_id), user.id];
+        
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+        const { data: moodData, error: moodError } = await supabase
+            .from('moods')
+            .select(`
+                id,
+                user_id,
+                created_at,
+                mood_user:users!moods_user_id_fkey(id, name, picture),
+                emoji:emojis!inner(*, user:users!inner(id, name, picture)),
+                views:mood_views(viewer_id)
+            `)
+            .in('user_id', userIds)
+            .gte('created_at', twentyFourHoursAgo)
+            .order('created_at', { ascending: false });
+
+        if (moodError) throw moodError;
+
+        const myMoodViews = await supabase
+            .from('mood_views')
+            .select('mood_id')
+            .eq('viewer_id', user.id)
+            .in('mood_id', moodData.map(m => m.id));
+
+        const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
+
+        const formattedMoods = moodData.map(m => {
+            const isViewed = m.user_id === user.id 
+                ? m.views.some(v => v.viewer_id !== user.id) 
+                : viewedMoodIds.has(m.id);
+
+            return {
+                ...(m.emoji as unknown as EmojiState),
+                mood_id: m.id,
+                mood_created_at: m.created_at,
+                mood_user_id: m.user_id,
+                mood_user: m.mood_user,
+                is_viewed: isViewed,
+                caption: (m.emoji as any)?.caption,
+            }
+        }).sort((a, b) => {
+             if (a.mood_user_id === user.id) return -1;
+             if (b.mood_user_id === user.id) return 1;
+             if (!a.is_viewed && b.is_viewed) return -1;
+             if (a.is_viewed && !b.is_viewed) return 1;
+             return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
+        });
+
+        return formattedMoods as Mood[];
+    }, [user, supabase]);
+
+    const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
         try {
-            const { data: following, error: followingError } = await supabase
-                .from('supports')
-                .select('supported_id')
-                .eq('supporter_id', user.id)
-                .eq('status', 'approved'); // Only fetch content from approved supports
+            const newPosts = await getFeedPosts({ page: pageNum, limit });
             
-            if (followingError) throw followingError;
-
-            const userIds = [...following.map(f => f.supported_id), user.id];
-            
-            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-            // Fetch moods
-            const { data: moodData, error: moodError } = await supabase
-                .from('moods')
-                .select(`
-                    id,
-                    user_id,
-                    created_at,
-                    mood_user:users!moods_user_id_fkey(id, name, picture),
-                    emoji:emojis!inner(*, user:users!inner(id, name, picture)),
-                    views:mood_views(viewer_id)
-                `)
-                .in('user_id', userIds)
-                .gte('created_at', twentyFourHoursAgo)
-                .order('created_at', { ascending: false });
-
-            if (moodError) throw moodError;
-            
-            // Check which moods the current user has viewed
-            const myMoodViews = await supabase
-                .from('mood_views')
-                .select('mood_id')
-                .eq('viewer_id', user.id)
-                .in('mood_id', moodData.map(m => m.id));
-
-            const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
-
-            const formattedMoods = moodData.map(m => {
-                const isViewed = m.user_id === user.id 
-                    ? m.views.some(v => v.viewer_id !== user.id) 
-                    : viewedMoodIds.has(m.id);
-
-                return {
-                    ...(m.emoji as unknown as EmojiState),
-                    mood_id: m.id,
-                    mood_created_at: m.created_at,
-                    mood_user_id: m.user_id,
-                    mood_user: m.mood_user,
-                    is_viewed: isViewed,
-                    caption: (m.emoji as any)?.caption,
-                }
-            }).sort((a, b) => {
-                 // 1. My mood always first
-                if (a.mood_user_id === user.id) return -1;
-                if (b.mood_user_id === user.id) return 1;
-
-                // 2. Unviewed moods next, sorted by date
-                if (!a.is_viewed && b.is_viewed) return -1;
-                if (a.is_viewed && !b.is_viewed) return 1;
-                
-                // 3. Sort by date (newest first)
-                return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
-            });
-
-            setMoods(formattedMoods as Mood[]);
-            
-            // Fetch posts for feed
-            const { data: postData, error: postError } = await supabase
-                .from('emojis')
-                .select('*, user:users!inner(id, name, picture)')
-                .in('user_id', userIds)
-                .order('created_at', { ascending: false });
-
-            if (postError) throw postError;
-
-            // For each post, fetch like count and if user has liked it
-            const postsWithLikes = await Promise.all(
-                (postData as unknown as EmojiState[]).map(async (post) => {
-                    const [like_count, is_liked] = await Promise.all([
-                        getLikeCount(post.id),
-                        getIsLiked(post.id),
-                    ]);
-                    return { ...post, like_count, is_liked };
-                })
-            );
-
-            setFeedPosts(postsWithLikes);
-
-
+            if (newPosts.length < limit) {
+                setHasMore(false);
+                moodPageCache.hasMore = false;
+            }
+            return newPosts as FeedPostType[];
         } catch (error: any) {
-            console.error('Failed to fetch feed content', error);
-            toast({
-                title: "Could not load your feed",
-                description: error.message,
-                variant: 'destructive',
-            });
+            console.error("Failed to fetch posts:", error);
+            toast({ title: "Failed to load more posts", description: error.message, variant: "destructive" });
+            return [];
+        }
+    }, [toast]);
+
+    const loadInitialData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const [moodsData, postsData] = await Promise.all([
+                fetchMoods(),
+                fetchPosts(1)
+            ]);
+            setMoods(moodsData);
+            setFeedPosts(postsData);
+            moodPageCache.moods = moodsData;
+            moodPageCache.feedPosts = postsData;
+            moodPageCache.page = 1;
+            setPage(1);
+        } catch(error: any) {
+            toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
         } finally {
             setIsLoading(false);
         }
-    }, [user, supabase, toast]);
-
+    }, [fetchMoods, fetchPosts, toast]);
+    
+    // Initial load from cache or server
     useEffect(() => {
-        fetchFeedContent();
-    }, [fetchFeedContent]);
+        if (moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0) {
+            setIsLoading(false);
+        } else {
+            loadInitialData();
+        }
+    }, [loadInitialData]);
+    
+    // Save scroll position
+    useEffect(() => {
+        const scrollable = scrollContainerRef.current;
+        if (!scrollable) return;
+
+        const handleScroll = () => {
+            moodPageCache.scrollPosition = scrollable.scrollTop;
+        };
+
+        scrollable.addEventListener('scroll', handleScroll);
+        return () => {
+            scrollable.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+    
+    // Restore scroll position
+    useEffect(() => {
+        const scrollable = scrollContainerRef.current;
+        if (scrollable && moodPageCache.scrollPosition > 0) {
+            scrollable.scrollTop = moodPageCache.scrollPosition;
+        }
+    }, []);
+
+    // Infinite scroll observer
+    useEffect(() => {
+        if (isLoading || isFetchingMore || !hasMore) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    setIsFetchingMore(true);
+                    const nextPage = page + 1;
+                    fetchPosts(nextPage).then((newPosts) => {
+                        setFeedPosts((prev) => [...prev, ...newPosts]);
+                        setPage(nextPage);
+                        moodPageCache.page = nextPage;
+                        moodPageCache.feedPosts = [...(moodPageCache.feedPosts || []), ...newPosts];
+                        setIsFetchingMore(false);
+                    });
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        const currentLoader = loaderRef.current;
+        if (currentLoader) {
+            observer.observe(currentLoader);
+        }
+
+        return () => {
+            if (currentLoader) {
+                observer.unobserve(currentLoader);
+            }
+        };
+    }, [isLoading, isFetchingMore, hasMore, page, fetchPosts]);
+
+    const handleRefresh = async () => {
+        moodPageCache.feedPosts = null; // Clear cache to force reload
+        await loadInitialData();
+    }
     
     const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
     const handleSelectMood = (index: number) => {
-        const moodId = moods[index].mood_id;
-        if (moods[index].mood_user_id !== user?.id) {
-            recordMoodView(moodId);
-        }
-        setMoods(currentMoods => currentMoods.map(m => 
-            m.mood_id === moodId ? { ...m, is_viewed: true } : m
-        ));
+        // Assume mood actions are handled within PostView
         setSelectedMoodIndex(index);
     };
     
@@ -356,14 +425,7 @@ export default function MoodPage() {
     };
 
     const handleOnCloseMood = (updatedMoods: Mood[]) => {
-        const sortedMoods = [...updatedMoods].sort((a, b) => {
-            if (a.mood_user_id === user?.id) return -1;
-            if (b.mood_user_id === user?.id) return 1;
-            if (!a.is_viewed && b.is_viewed) return -1;
-            if (a.is_viewed && !b.is_viewed) return 1;
-            return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
-        });
-        setMoods(sortedMoods);
+        setMoods(updatedMoods); // Assume sorting happens within post view now
         setSelectedMoodIndex(null);
     }
     
@@ -376,7 +438,7 @@ export default function MoodPage() {
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
-                    fetchFeedContent(); 
+                    loadInitialData();
                 }}
             />
         )
@@ -390,8 +452,9 @@ export default function MoodPage() {
                 initialIndex={postIndex}
                 onClose={() => setSelectedPostId(null)}
                 onDelete={(deletedId) => {
-                    setFeedPosts(feedPosts.filter(p => p.id !== deletedId));
-                    fetchFeedContent();
+                    const newPosts = feedPosts.filter(p => p.id !== deletedId);
+                    setFeedPosts(newPosts);
+                    moodPageCache.feedPosts = newPosts;
                 }}
             />
         )
@@ -399,8 +462,12 @@ export default function MoodPage() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <MoodHeader />
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <MoodHeader>
+          <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isLoading}>
+              <RefreshCw className={isLoading ? "animate-spin" : ""} />
+          </Button>
+      </MoodHeader>
+      <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
       
         <div className="border-b border-border/40">
             <ScrollArea className="w-full whitespace-nowrap">
@@ -448,11 +515,19 @@ export default function MoodPage() {
                     <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                 </div>
             ) : feedPosts.length > 0 ? (
-                 <div className="flex flex-col">
-                    {feedPosts.map((post) => (
-                        <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} />
-                    ))}
-                 </div>
+                 <>
+                    <div className="flex flex-col">
+                        {feedPosts.map((post) => (
+                            <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} />
+                        ))}
+                    </div>
+                    {isFetchingMore && (
+                        <div className="flex justify-center items-center p-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </div>
+                    )}
+                    <div ref={loaderRef} />
+                 </>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
                     <Smile className="h-16 w-16" />

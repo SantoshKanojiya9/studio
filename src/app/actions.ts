@@ -526,4 +526,43 @@ export async function getNotifications() {
     return data;
 }
 
+// --- Feed Actions ---
+export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const { data: following, error: followingError } = await supabase
+        .from('supports')
+        .select('supported_id')
+        .eq('supporter_id', user.id)
+        .eq('status', 'approved');
+
+    if (followingError) throw followingError;
+
+    const userIds = [...following.map(f => f.supported_id), user.id];
     
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data: postData, error: postError } = await supabase
+        .from('emojis')
+        .select('*, user:users!inner(id, name, picture)')
+        .in('user_id', userIds)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (postError) throw postError;
+
+    const postsWithLikes = await Promise.all(
+        postData.map(async (post) => {
+            const [like_count, is_liked] = await Promise.all([
+                getLikeCount(post.id),
+                getIsLiked(post.id),
+            ]);
+            return { ...post, like_count, is_liked };
+        })
+    );
+
+    return postsWithLikes;
+}
