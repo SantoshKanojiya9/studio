@@ -341,6 +341,31 @@ const DesignPageContent = () => {
     }
   };
 
+  const handleModelChange = (newModel: ModelType) => {
+    if (model === newModel) return;
+
+    // Reset common properties to their defaults for a clean slate
+    setExpression('neutral');
+    setShape('default');
+    setEyeStyle('default');
+    setMouthStyle('default');
+    setEyebrowStyle('default');
+    setShowSunglasses(false);
+    setShowMustache(false);
+    feature_offset_x.set(0);
+    feature_offset_y.set(0);
+    
+    // Set model-specific defaults
+    if (newModel === 'loki') {
+        setEmojiColor(defaultLokiColor);
+    } else {
+        setEmojiColor(defaultEmojiColor);
+    }
+
+    // Finally, set the new model
+    setModel(newModel);
+  }
+
   const renderFeatureMenu = (
     type: 'eye' | 'mouth' | 'eyebrow', 
     currentStyle: FeatureStyle
@@ -380,33 +405,7 @@ const DesignPageContent = () => {
     )
   }
   
-  const handleModelChange = (newModel: ModelType) => {
-    if (model === newModel) return;
-
-    // Reset common properties to their defaults for a clean slate
-    setExpression('neutral');
-    setShape('default');
-    setEyeStyle('default');
-    setMouthStyle('default');
-    setEyebrowStyle('default');
-    setShowSunglasses(false);
-    setShowMustache(false);
-    feature_offset_x.set(0);
-    feature_offset_y.set(0);
-    
-    // Set model-specific defaults
-    if (newModel === 'loki') {
-        setEmojiColor(defaultLokiColor);
-    } else {
-        setEmojiColor(defaultEmojiColor);
-    }
-
-    // Finally, set the new model
-    setModel(newModel);
-  }
-
   const renderMenu = () => {
-    const isLoki = model === 'loki';
     switch (activeMenu) {
       case 'caption':
         return (
@@ -441,7 +440,7 @@ const DesignPageContent = () => {
           </>
         );
       case 'shapes':
-        const shapes: { name: ShapeType; label: string }[] = isLoki 
+        const shapes: { name: ShapeType; label: string }[] = model === 'loki' 
         ? [
             { name: 'default', label: 'Default' },
             { name: 'square', label: 'Square' },
@@ -595,7 +594,7 @@ const DesignPageContent = () => {
       case 'eyebrows':
         return renderFeatureMenu('eyebrow', eyebrow_style);
       default: // 'main'
-        return (
+        const commonTools = (
           <>
             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
                 <RotateCcw className="h-4 w-4" />
@@ -630,21 +629,45 @@ const DesignPageContent = () => {
                 <Palette className="h-4 w-4" />
                 <span className="text-xs mt-1">Colors</span>
             </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')} disabled={isLoki}>
-                <Glasses className="h-4 w-4" />
-                <span className="text-xs mt-1">Accessories</span>
-            </Button>
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
-                <Camera className="h-4 w-4" />
-                <span className="text-xs mt-1">Filters</span>
-            </Button>
-            <Separator orientation="vertical" className="h-full mx-1" />
-            <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
-                <Wand2 className="h-4 w-4" />
-                <span className="text-xs mt-1">Random</span>
-            </Button>
           </>
         );
+
+        if (model === 'emoji') {
+            return (
+                <>
+                    {commonTools}
+                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
+                        <Glasses className="h-4 w-4" />
+                        <span className="text-xs mt-1">Accessories</span>
+                    </Button>
+                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
+                        <Camera className="h-4 w-4" />
+                        <span className="text-xs mt-1">Filters</span>
+                    </Button>
+                    <Separator orientation="vertical" className="h-full mx-1" />
+                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
+                        <Wand2 className="h-4 w-4" />
+                        <span className="text-xs mt-1">Random</span>
+                    </Button>
+                </>
+            );
+        }
+
+        // Loki model toolbox
+        return (
+            <>
+                {commonTools}
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
+                    <Camera className="h-4 w-4" />
+                    <span className="text-xs mt-1">Filters</span>
+                </Button>
+                <Separator orientation="vertical" className="h-full mx-1" />
+                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
+                    <Wand2 className="h-4 w-4" />
+                    <span className="text-xs mt-1">Random</span>
+                </Button>
+            </>
+        )
     }
   };
 
