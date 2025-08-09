@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -16,6 +16,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
+import { RimuruFace } from '@/components/rimuru-face';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -35,7 +36,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki';
+type ModelType = 'emoji' | 'loki' | 'rimuru';
 
 
 export type EmojiState = {
@@ -96,6 +97,7 @@ const DesignPageContent = () => {
   const defaultBackgroundColor = '#0a0a0a';
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
+  const defaultRimuruColor = '#3498db';
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -360,6 +362,8 @@ const DesignPageContent = () => {
     // Set model-specific defaults
     if (newModel === 'loki') {
         setEmojiColor(defaultLokiColor);
+    } else if (newModel === 'rimuru') {
+        setEmojiColor(defaultRimuruColor);
     } else {
         setEmojiColor(defaultEmojiColor);
     }
@@ -459,7 +463,7 @@ const DesignPageContent = () => {
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={model === 'loki' && name === 'blob'}
+                            disabled={(model === 'loki' || model === 'rimuru') && name === 'blob'}
                         >
                             {label}
                         </Button>
@@ -630,7 +634,7 @@ const DesignPageContent = () => {
                     <Palette className="h-4 w-4" />
                     <span className="text-xs mt-1">Colors</span>
                 </Button>
-                {model === 'emoji' && (
+                {(model === 'emoji' || model === 'rimuru') && (
                     <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
                         <Glasses className="h-4 w-4" />
                         <span className="text-xs mt-1">Accessories</span>
@@ -656,6 +660,77 @@ const DesignPageContent = () => {
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
     )
+  }
+
+  const renderModel = () => {
+    switch(model) {
+        case 'emoji':
+            return (
+                 <Face 
+                    expression={expression} 
+                    color={emoji_color} 
+                    setColor={setEmojiColor}
+                    show_sunglasses={show_sunglasses} 
+                    show_mustache={show_mustache} 
+                    shape={shape}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
+                    animation_type={animation_type}
+                    isDragging={isDragging}
+                    isInteractive={true}
+                    onPan={handlePan}
+                    onPanStart={handlePanStart}
+                    onPanEnd={handlePanEnd}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
+                />
+            );
+        case 'loki':
+            return (
+                 <ClockFace 
+                    expression={expression} 
+                    color={emoji_color} 
+                    setColor={setEmojiColor}
+                    show_sunglasses={show_sunglasses}
+                    show_mustache={show_mustache}
+                    shape={shape}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
+                    animation_type={animation_type}
+                    isDragging={isDragging}
+                    isInteractive={true}
+                    onPan={handlePan}
+                    onPanStart={handlePanStart}
+                    onPanEnd={handlePanEnd}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
+                />
+            );
+        case 'rimuru':
+            return (
+                <RimuruFace
+                    expression={expression}
+                    color={emoji_color}
+                    setColor={setEmojiColor}
+                    show_sunglasses={show_sunglasses}
+                    show_mustache={show_mustache}
+                    shape={shape}
+                    eye_style={eye_style}
+                    mouth_style={mouth_style}
+                    eyebrow_style={eyebrow_style}
+                    animation_type={animation_type}
+                    isDragging={isDragging}
+                    isInteractive={true}
+                    onPan={handlePan}
+                    onPanStart={handlePanStart}
+                    onPanEnd={handlePanEnd}
+                    feature_offset_x={feature_offset_x}
+                    feature_offset_y={feature_offset_y}
+                />
+            );
+    }
   }
 
   return (
@@ -691,6 +766,18 @@ const DesignPageContent = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>Loki Clock Model</p></TooltipContent>
               </Tooltip>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button
+                          size="icon"
+                          variant={model === 'rimuru' ? 'secondary' : 'ghost'}
+                          onClick={() => handleModelChange('rimuru')}
+                      >
+                          <Droplet className="h-5 w-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
+              </Tooltip>
           </div>
           
           <motion.div
@@ -700,47 +787,7 @@ const DesignPageContent = () => {
               filter: selected_filter && selected_filter !== 'None' ? `${selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
             }}
           >
-            {model === 'emoji' ? (
-                <Face 
-                    expression={expression} 
-                    color={emoji_color} 
-                    setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses} 
-                    show_mustache={show_mustache} 
-                    shape={shape}
-                    eye_style={eye_style}
-                    mouth_style={mouth_style}
-                    eyebrow_style={eyebrow_style}
-                    animation_type={animation_type}
-                    isDragging={isDragging}
-                    isInteractive={true}
-                    onPan={handlePan}
-                    onPanStart={handlePanStart}
-                    onPanEnd={handlePanEnd}
-                    feature_offset_x={feature_offset_x}
-                    feature_offset_y={feature_offset_y}
-                />
-            ) : (
-                <ClockFace 
-                    expression={expression} 
-                    color={emoji_color} 
-                    setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses}
-                    show_mustache={show_mustache}
-                    shape={shape}
-                    eye_style={eye_style}
-                    mouth_style={mouth_style}
-                    eyebrow_style={eyebrow_style}
-                    animation_type={animation_type}
-                    isDragging={isDragging}
-                    isInteractive={true}
-                    onPan={handlePan}
-                    onPanStart={handlePanStart}
-                    onPanEnd={handlePanEnd}
-                    feature_offset_x={feature_offset_x}
-                    feature_offset_y={feature_offset_y}
-                />
-            )}
+            {renderModel()}
           </motion.div>
         </div>
 
