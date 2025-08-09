@@ -181,8 +181,7 @@ function GalleryPageContent() {
                 table: 'supports',
                 filter: `or(supporter_id.eq.${viewingUserId},supported_id.eq.${viewingUserId})`
             },
-            (payload) => {
-                console.log('Support change detected:', payload);
+            () => {
                 fetchSupportData();
             })
             .subscribe();
