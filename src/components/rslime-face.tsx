@@ -109,7 +109,6 @@ export const RslimeFace = ({
     return stopAnimations;
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
-
   const eyeVariants = {
     neutral: { d: "M10,45 C25,55 45,55 60,45" },
     happy:   { d: "M10,45 C25,35 45,35 60,45" },
@@ -119,7 +118,7 @@ export const RslimeFace = ({
     scared:  { d: "M10,45 C25,55 45,55 60,45" },
     love:    { d: "M10,45 C25,35 45,35 60,45" },
   };
-  
+
   const blushVariants = {
     neutral: { opacity: 0.8 },
     happy: { opacity: 0.8 },
