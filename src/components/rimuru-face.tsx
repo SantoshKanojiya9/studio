@@ -157,15 +157,15 @@ export const RimuruFace = ({
     scared: { d: "M 65, 90 C 75,80 85,80 95,90" },
   };
   
-    const blushVariants = {
-        love: { opacity: 1 },
-        happy: { opacity: 0 },
-        neutral: { opacity: 0 },
-        angry: { opacity: 0 },
-        sad: { opacity: 0 },
-        surprised: { opacity: 0 },
-        scared: { opacity: 0 },
-    };
+  const blushVariants = {
+    love: { opacity: 0.9, scale: 1.1, filter: 'blur(1px)' },
+    happy: { opacity: 0, scale: 0.9 },
+    neutral: { opacity: 0, scale: 0.8 },
+    angry: { opacity: 0, scale: 1.2, y: 5 },
+    sad: { opacity: 0, scale: 0.9 },
+    surprised: { opacity: 0, scale: 0.9 },
+    scared: { opacity: 0, scale: 1.2 },
+  };
   
   const getShapeClipPath = (s: ShapeType) => {
     const paths: Record<ShapeType, string> = {
@@ -212,13 +212,24 @@ export const RimuruFace = ({
                     style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
+                    <motion.div
+                        className="absolute flex justify-between w-56"
+                        style={{ top: '135px'}}
+                    >
+                         <motion.div 
+                            className="w-12 h-6 bg-pink-400 rounded-full"
+                            variants={blushVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: "spring" }}
+                        />
+                        <motion.div 
+                            className="w-12 h-6 bg-pink-400 rounded-full"
+                            variants={blushVariants}
+                            animate={expression}
+                            transition={{ duration: 0.3, type: "spring" }}
+                        />
+                    </motion.div>
                     <svg width="200" height="200" viewBox="0 0 150 150" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                       <defs>
-                          <filter id="blush-blur" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
-                          </filter>
-                        </defs>
-
                         {/* Eyes */}
                         <motion.path
                             d={eyeVariants[expression]?.left}
@@ -244,16 +255,6 @@ export const RimuruFace = ({
                            strokeLinecap="round"
                            strokeLinejoin="round"
                         />
-                         {/* Blush */}
-                        <motion.g
-                            variants={blushVariants}
-                            animate={expression}
-                            transition={{ duration: 0.3, type: "spring" }}
-                            filter="url(#blush-blur)"
-                        >
-                            <ellipse cx="40" cy="75" rx="15" ry="8" fill="#FF69B4" />
-                            <ellipse cx="110" cy="75" rx="15" ry="8" fill="#FF69B4" />
-                        </motion.g>
 
                     </svg>
                 </motion.div>
