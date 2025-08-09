@@ -252,15 +252,24 @@ function GalleryPageContent() {
         if (!authUser || !viewingUserId || !profileUser || isOwnProfile || isSupportLoading) return;
 
         setIsSupportLoading(true);
+
+        const wasSupported = supportStatus === 'approved' || supportStatus === 'pending';
+        const previousStatus = supportStatus;
+
+        // Optimistic UI updates
+        setSupportStatus(wasSupported ? null : (profileUser.is_private ? 'pending' : 'approved'));
+        setSupporterCount(prev => prev + (wasSupported ? -1 : 1));
+
         try {
-            if (supportStatus === 'approved' || supportStatus === 'pending') {
+            if (wasSupported) {
                 await unsupportUser(viewingUserId);
-                setSupportStatus(null);
             } else {
                 await supportUser(viewingUserId, profileUser.is_private);
-                setSupportStatus(profileUser.is_private ? 'pending' : 'approved');
             }
         } catch (error: any) {
+            // Revert on error
+            setSupportStatus(previousStatus);
+            setSupporterCount(prev => prev + (wasSupported ? 1 : -1));
             console.error("Support error:", error);
             toast({
                 title: "Something went wrong",
