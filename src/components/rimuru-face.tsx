@@ -217,13 +217,13 @@ export const RimuruFace = ({
                         style={{ top: '135px'}}
                     >
                          <motion.div 
-                            className="w-12 h-6 bg-pink-400 rounded-full"
+                            className="w-12 h-6 bg-pink-300 rounded-full"
                             variants={blushVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: "spring" }}
                         />
                         <motion.div 
-                            className="w-12 h-6 bg-pink-400 rounded-full"
+                            className="w-12 h-6 bg-pink-300 rounded-full"
                             variants={blushVariants}
                             animate={expression}
                             transition={{ duration: 0.3, type: "spring" }}
