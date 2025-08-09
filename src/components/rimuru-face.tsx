@@ -110,29 +110,29 @@ export const RimuruFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
   const eyeVariants = {
-    neutral: { right: "M 0 0 L 30 5", left: "M 0 0 L -15 0"},
-    happy:   { right: "M 0 -5 C 15 -15, 30 -15, 45 -5", left: "M 0 -5 C -15 -15, -30 -15, -45 -5" },
-    angry:   { right: "M 0 5 L 35 -5", left: "M 0 0 L -15 0" },
+    neutral: { right: "M 0 0 L 30 5", left: "M 0 0 L 30 5"},
+    happy:   { right: "M -15 -10 L 0 0 L -15 10", left: "M 15 -10 L 0 0 L 15 10" },
+    angry:   { right: "M -15 -10 L 0 0", left: "M 15 -10 L 0 0" },
     sad:     { right: "M 0 5 C 15 15, 30 15, 45 5", left: "M 0 5 C -15 15, -30 15, -45 5" },
     surprised: { right: "M 0 -10 C 15 -20, 30 -20, 45 -10", left: "M 0 -10 C -15 -20, -30 -20, -45 -10" },
-    scared:  { right: "M 0 0 L 30 0", left: "M 0 0 L -15 0"},
+    scared:  { right: "M 0 0 L 30 0", left: "M 0 0 L -30 0"},
     love:    { right: "M 0 -5 C 15 -15, 30 -15, 45 -5", left: "M 0 -5 C -15 -15, -30 -15, -45 -5" },
   };
 
   const mouthVariants = {
     neutral: { opacity: 0 },
     happy: { opacity: 0 },
-    angry: { d: "M -15 0 Q 0 -10 15 0", opacity: 1 },
+    angry: { d: "M -15 0 L 15 0", opacity: 1 },
     sad: { d: "M -15 0 Q 0 10 15 0", opacity: 1 },
     surprised: { d: "M -10 0 Q 0 5 10 0 A 5 5 0 0 1 -10 0", opacity: 1 },
     scared: { d: "M -15 -5 Q 0 5 15 -5", opacity: 1 },
     love: { opacity: 0 },
   };
-
+  
   const blushVariants = {
     neutral: { opacity: 0 },
     happy: { opacity: 0.8 },
-    angry: { opacity: 0.7 },
+    angry: { opacity: 0 },
     sad: { opacity: 0.8 },
     surprised: { opacity: 0.3 },
     scared: { opacity: 0.5 },
@@ -187,7 +187,7 @@ export const RimuruFace = ({
                     style={{ x: feature_offset_x, y: feature_offset_y }}
                     transition={{ duration: 1.5, type: 'spring' }}
                 >
-                    <motion.div className="flex justify-between w-48 absolute top-[155px]"
+                    <motion.div className="flex justify-between w-48 absolute top-[135px]"
                         variants={blushVariants}
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
@@ -198,28 +198,31 @@ export const RimuruFace = ({
 
                     <svg width="180" height="180" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-4">
                         {/* Eyes */}
-                        <g transform="translate(30, 50)">
-                            <motion.path
+                        <motion.g transform="translate(35, 50)">
+                             <motion.path
                                 d={eyeVariants[expression].left}
                                 fill="transparent"
                                 stroke="black"
                                 strokeWidth={3}
                                 strokeLinecap="round"
+                                animate={{ d: eyeVariants[expression].left }}
                                 transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                             />
-                        </g>
-                         <g transform="translate(60, 50)">
+                        </motion.g>
+                         <motion.g transform="translate(65, 50)">
                             <motion.path
                                 d={eyeVariants[expression].right}
                                 fill="transparent"
                                 stroke="black"
                                 strokeWidth={3}
                                 strokeLinecap="round"
+                                animate={{ d: eyeVariants[expression].right }}
                                 transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                             />
-                        </g>
+                        </motion.g>
+
                         {/* Mouth */}
-                        <g transform="translate(45, 65)">
+                        <g transform="translate(50, 65)">
                             <motion.path
                                 d={mouthVariants[expression].d}
                                 animate={{ opacity: mouthVariants[expression].opacity, scale: mouthVariants[expression].opacity === 1 ? 1 : 0.5 }}
