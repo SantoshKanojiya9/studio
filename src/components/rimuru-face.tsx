@@ -110,9 +110,9 @@ export const RimuruFace = ({
   }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
 
   const eyeVariants = {
-    neutral: { right: "M 0 0 L 30 5", left: "M 0 0 L 30 5"},
-    happy:   { left: "M -15 -10 L 0 0 L -15 10", right: "M 15 -10 L 0 0 L 15 10" },
-    angry:   { right: "M -15 -10 L 0 0", left: "M 15 -10 L 0 0" },
+    neutral: { left: "M 0 0 L -30 0", right: "M 0 0 L 30 0" },
+    happy:   { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" },
+    angry:   { left: "M -15 -10 L 0 0", right: "M 15 -10 L 0 0" },
     sad:     { right: "M 0 5 C 15 15, 30 15, 45 5", left: "M 0 5 C -15 15, -30 15, -45 5" },
     surprised: { right: "M 0 -10 C 15 -20, 30 -20, 45 -10", left: "M 0 -10 C -15 -20, -30 -20, -45 -10" },
     scared:  { right: "M 0 0 L 30 0", left: "M 0 0 L -30 0"},
