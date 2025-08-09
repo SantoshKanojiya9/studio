@@ -111,22 +111,22 @@ export const RimuruFace = ({
 
   const eyeVariants = {
     neutral: { left: "M -15 0 L 15 0", right: "M -15 0 L 15 0" }, // -- --
-    happy:   { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" }, // > <
+    happy: { left: "M 10 -10 L -10 0 L 10 10", right: "M -10 -10 L 10 0 L -10 10" }, // < >
     angry:   { left: "M -10 -10 L 10 10", right: "M 10 -10 L -10 10" }, // \ /
-    sad:     { left: "M 0 5 C -15 15, -30 15, -45 5", right: "M 0 5 C 15 15, 30 15, 45 5" },
+    sad:     { left: "M -20 10 C -10 20, 10 20, 20 10", right: "M -20 10 C -10 20, 10 20, 20 10" },
     surprised: { left: "M -20 -10 C -10 -20, 10 -20, 20 -10", right: "M -20 -10 C -10 -20, 10 -20, 20 -10" },
     scared:  { left: "M -15 0 L 15 0", right: "M -15 0 L 15 0"},
-    love:    { left: "M 15 -10 L 0 0 L 15 10", right: "M -15 -10 L 0 0 L -15 10" },
+    love:    { left: "M -20 0 C -10 15, 10 15, 20 0", right: "M -20 0 C -10 15, 10 15, 20 0" },
   };
 
   const mouthVariants = {
-    neutral: { opacity: 0 },
-    happy: { opacity: 0 },
+    neutral: { d: "M 0 0", opacity: 0 },
+    happy: { d: "M 0 0", opacity: 0 },
     angry: { d: "M -15 0 L 15 0", opacity: 1 },
     sad: { d: "M -15 0 Q 0 10 15 0", opacity: 1 },
     surprised: { d: "M -10 0 Q 0 5 10 0 A 5 5 0 0 1 -10 0", opacity: 1 },
     scared: { d: "M -15 -5 Q 0 5 15 -5", opacity: 1 },
-    love: { opacity: 0 },
+    love: { d: "M -15 0 C -5 20, 5 20, 15 0 Z", opacity: 1 },
   };
   
   const blushVariants = {
@@ -192,13 +192,25 @@ export const RimuruFace = ({
                         animate={expression}
                         transition={{ duration: 0.3, type: "spring" }}
                     >
-                        <div className="w-10 h-5 bg-pink-300/80 rounded-full" style={{ filter: 'blur(2px)'}} />
-                        <div className="w-10 h-5 bg-pink-300/80 rounded-full" style={{ filter: 'blur(2px)'}} />
+                        <div className="w-10 h-5 bg-pink-300/80 rounded-full relative" style={{ filter: 'blur(2px)'}}>
+                          <div className="absolute inset-0 flex items-center justify-center gap-1.5">
+                            <div className="w-0.5 h-3 bg-black/50 transform -rotate-12"></div>
+                            <div className="w-0.5 h-3 bg-black/50"></div>
+                            <div className="w-0.5 h-3 bg-black/50 transform rotate-12"></div>
+                          </div>
+                        </div>
+                        <div className="w-10 h-5 bg-pink-300/80 rounded-full relative" style={{ filter: 'blur(2px)'}}>
+                           <div className="absolute inset-0 flex items-center justify-center gap-1.5">
+                            <div className="w-0.5 h-3 bg-black/50 transform -rotate-12"></div>
+                            <div className="w-0.5 h-3 bg-black/50"></div>
+                            <div className="w-0.5 h-3 bg-black/50 transform rotate-12"></div>
+                          </div>
+                        </div>
                     </motion.div>
 
-                    <svg width="180" height="180" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-4">
+                    <svg width="180" height="180" viewBox="0 0 100 100" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -mt-8">
                         {/* Eyes */}
-                        <motion.g transform="translate(30, 50)">
+                        <motion.g transform="translate(28, 50)">
                              <motion.path
                                 d={eyeVariants[expression].left}
                                 fill="transparent"
@@ -209,7 +221,7 @@ export const RimuruFace = ({
                                 transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
                             />
                         </motion.g>
-                         <motion.g transform="translate(70, 50)">
+                         <motion.g transform="translate(72, 50)">
                             <motion.path
                                 d={eyeVariants[expression].right}
                                 fill="transparent"
@@ -222,14 +234,18 @@ export const RimuruFace = ({
                         </motion.g>
 
                         {/* Mouth */}
-                        <g transform="translate(50, 65)">
+                        <g transform="translate(50, 70)">
                             <motion.path
-                                d={mouthVariants[expression].d}
-                                animate={{ opacity: mouthVariants[expression].opacity, scale: mouthVariants[expression].opacity === 1 ? 1 : 0.5 }}
-                                fill="transparent"
+                                fill="black"
                                 stroke="black"
                                 strokeWidth={2}
                                 strokeLinecap="round"
+                                d={mouthVariants[expression].d}
+                                animate={{ 
+                                    opacity: mouthVariants[expression].opacity, 
+                                    scale: mouthVariants[expression].opacity === 1 ? 1 : 0.5,
+                                    d: mouthVariants[expression].d
+                                }}
                                 transition={{ duration: 0.2, type: 'spring', stiffness: 300, damping: 20, delay: 0.05 }}
                             />
                         </g>
