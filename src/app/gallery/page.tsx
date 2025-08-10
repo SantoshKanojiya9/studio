@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount, getGalleryDataForUser } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -57,7 +57,7 @@ interface GalleryEmoji extends EmojiState {
 }
 
 function GalleryPageContent() {
-    const [savedEmojis, setSavedEmojis] = React.useState<GalleryEmoji[]>([]);
+    const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -104,24 +104,57 @@ function GalleryPageContent() {
             if (!viewingUserId) {
                 setIsLoading(false);
                 return;
-            }
+            };
 
             setIsLoading(true);
             try {
-                const galleryData = await getGalleryDataForUser(viewingUserId);
+                // Fetch user profile info
+                const { data: userProfile, error: userError } = await supabase
+                    .from('users')
+                    .select('id, name, picture, is_private')
+                    .eq('id', viewingUserId)
+                    .single();
+                
+                if (userError || !userProfile) {
+                     throw new Error(userError?.message || "User profile not found.");
+                }
+                
+                setProfileUser(userProfile as ProfileUser);
 
-                if (!galleryData || !galleryData.user_profile) {
-                     throw new Error("User profile not found.");
+                // Fetch support status and counts
+                await fetchSupportData();
+                
+                // Determine if we can view the content
+                const isApproved = supportStatus === 'approved';
+                const canViewContent = !userProfile.is_private || isOwnProfile || isApproved;
+
+                if (canViewContent) {
+                    // Fetch user's emoji posts
+                    const { data: emojiData, error: emojiError } = await supabase
+                        .from('emojis')
+                        .select('*')
+                        .eq('user_id', viewingUserId)
+                        .order('created_at', { ascending: false });
+
+                    if (emojiError) throw emojiError;
+                    
+                    setSavedEmojis(emojiData as unknown as EmojiState[]);
+                } else {
+                    setSavedEmojis([]); // Clear posts if not viewable
+                }
+                
+                // Check if user has a mood
+                const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+                const { count: moodCount, error: moodError } = await supabase
+                    .from('moods')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', viewingUserId)
+                    .gte('created_at', twentyFourHoursAgo);
+                
+                if (!moodError) {
+                    setHasMood((moodCount ?? 0) > 0);
                 }
 
-                const { user_profile, posts, supporter_count, supporting_count, support_status, has_mood } = galleryData;
-
-                setProfileUser(user_profile as ProfileUser);
-                setSavedEmojis((posts || []) as GalleryEmoji[]);
-                setSupporterCount(supporter_count);
-                setSupportingCount(supporting_count);
-                setSupportStatus(support_status);
-                setHasMood(has_mood);
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -137,13 +170,14 @@ function GalleryPageContent() {
                 setIsLoading(false);
             }
         };
-
+        
         if (viewingUserId) {
             fetchProfileData();
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, isOwnProfile, router, authUser]);
+
+    }, [viewingUserId, toast, isOwnProfile, router, fetchSupportData, supabase, supportStatus]);
 
     // Real-time listener for support counts
     React.useEffect(() => {
@@ -374,7 +408,7 @@ function GalleryPageContent() {
             <div className="flex h-full w-full flex-col overflow-x-hidden">
             {selectedEmojiId && selectedEmojiIndex > -1 ? (
                     <PostView 
-                        emojis={savedEmojis}
+                        emojis={savedEmojis as GalleryEmoji[]}
                         initialIndex={selectedEmojiIndex}
                         onClose={() => setSelectedEmojiId(null)}
                         onDelete={isOwnProfile ? handleDelete : undefined}

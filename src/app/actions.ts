@@ -544,22 +544,3 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     }
     return data || [];
 }
-
-
-// --- Gallery Actions ---
-export async function getGalleryDataForUser(profileUserId: string) {
-    const supabase = createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const { data, error } = await supabase.rpc('get_gallery_for_user', {
-        p_user_id: profileUserId,
-        p_current_user_id: user?.id,
-    });
-
-    if (error) {
-        console.error('Error fetching gallery data:', error);
-        throw error;
-    }
-
-    return data[0];
-}
