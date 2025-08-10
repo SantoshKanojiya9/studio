@@ -500,67 +500,27 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const offset = (page - 1) * limit;
 
-    // 1. Fetch notifications
-    const { data: notifications, error: notificationsError } = await supabase
-        .from('notifications')
-        .select(`
-            id,
-            type,
-            created_at,
-            emoji_id,
-            actor:users!notifications_actor_id_fkey (id, name, picture, is_private),
-            emoji:emojis (id, background_color, emoji_color, expression, model, shape, eye_style, mouth_style, eyebrow_style, show_sunglasses, show_mustache, feature_offset_x, feature_offset_y, selected_filter)
-        `)
-        .eq('recipient_id', user.id)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+    const { data, error } = await supabase
+        .rpc('get_user_notifications', {
+            p_user_id: user.id,
+            p_limit: limit,
+            p_offset: offset
+        });
 
-    if (notificationsError) {
-        console.error('Error fetching notifications:', notificationsError);
-        throw notificationsError;
-    }
-    if (!notifications || notifications.length === 0) {
-        return [];
+    if (error) {
+        console.error('Error fetching notifications via RPC:', error);
+        throw error;
     }
 
-    // 2. For 'new_supporter' notifications, check if the current user supports the actor back
-    const supporterActorIds = notifications
-        .filter(n => n.type === 'new_supporter')
-        .map(n => n.actor.id);
-    
-    let supportedBackMap = new Map<string, 'approved' | 'pending' | null>();
-
-    if (supporterActorIds.length > 0) {
-        const { data: supportStatusData, error: supportStatusError } = await supabase
-            .from('supports')
-            .select('supported_id, status')
-            .eq('supporter_id', user.id)
-            .in('supported_id', supporterActorIds);
-
-        if (supportStatusError) {
-            console.error('Error fetching support statuses for notifications:', supportStatusError);
-        } else {
-            supportStatusData.forEach(s => {
-                supportedBackMap.set(s.supported_id, s.status as 'approved' | 'pending');
-            });
-        }
-    }
-
-    // 3. Combine the data
-    const results = notifications.map(n => {
-        if (n.type === 'new_supporter') {
-            return {
-                ...n,
-                actor_support_status: supportedBackMap.get(n.actor.id) || null
-            };
-        }
-        return n;
-    });
-
-    return results;
+    // The RPC returns data in a slightly different shape, so we format it
+    // to match the component's expectations.
+    return (data || []).map(n => ({
+        ...n,
+        actor: n.actor,
+        emoji: n.emoji,
+    }));
 }
 
 // --- Feed & Gallery Actions ---
