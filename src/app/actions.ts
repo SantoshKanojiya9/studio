@@ -503,7 +503,8 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error } = await supabase
+    // 1. Fetch notifications
+    const { data: notifications, error: notificationsError } = await supabase
         .from('notifications')
         .select(`
             id,
@@ -517,11 +518,49 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         .order('created_at', { ascending: false })
         .range(from, to);
 
-    if (error) {
-        console.error('Error fetching notifications:', error);
-        throw error;
+    if (notificationsError) {
+        console.error('Error fetching notifications:', notificationsError);
+        throw notificationsError;
     }
-    return data;
+    if (!notifications || notifications.length === 0) {
+        return [];
+    }
+
+    // 2. For 'new_supporter' notifications, check if the current user supports the actor back
+    const supporterActorIds = notifications
+        .filter(n => n.type === 'new_supporter')
+        .map(n => n.actor.id);
+    
+    let supportedBackMap = new Map<string, 'approved' | 'pending' | null>();
+
+    if (supporterActorIds.length > 0) {
+        const { data: supportStatusData, error: supportStatusError } = await supabase
+            .from('supports')
+            .select('supported_id, status')
+            .eq('supporter_id', user.id)
+            .in('supported_id', supporterActorIds);
+
+        if (supportStatusError) {
+            console.error('Error fetching support statuses for notifications:', supportStatusError);
+        } else {
+            supportStatusData.forEach(s => {
+                supportedBackMap.set(s.supported_id, s.status as 'approved' | 'pending');
+            });
+        }
+    }
+
+    // 3. Combine the data
+    const results = notifications.map(n => {
+        if (n.type === 'new_supporter') {
+            return {
+                ...n,
+                actor_support_status: supportedBackMap.get(n.actor.id) || null
+            };
+        }
+        return n;
+    });
+
+    return results;
 }
 
 // --- Feed & Gallery Actions ---

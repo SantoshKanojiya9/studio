@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Loader2, UserPlus, Heart, Check, X } from 'lucide-react';
-import { getNotifications, respondToSupportRequest, getSupportStatus, supportUser, unsupportUser } from '../actions';
+import { Loader2, UserPlus, Heart, Check } from 'lucide-react';
+import { getNotifications, respondToSupportRequest, supportUser, unsupportUser } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
@@ -33,6 +33,7 @@ interface Notification {
   emoji_id: string | null;
   actor: Actor;
   emoji: EmojiState | null;
+  actor_support_status?: 'approved' | 'pending' | null;
 }
 
 const notificationsCache: {
@@ -63,37 +64,33 @@ const timeSince = (date: Date) => {
 };
 
 const SupportNotification = React.memo(({ notification }: { notification: Notification }) => {
-    const { actor, created_at, id } = notification;
+    const { actor, created_at } = notification;
     const { user: currentUser } = useAuth();
     const { toast } = useToast();
-    const [supportStatus, setSupportStatus] = useState<'approved' | 'pending' | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-     useEffect(() => {
-        if (!currentUser) {
-            setIsLoading(false);
-            return;
-        }
-        getSupportStatus(currentUser.id, actor.id).then(status => {
-            setSupportStatus(status);
-            setIsLoading(false);
-        });
-    }, [currentUser, actor.id]);
+    const [supportStatus, setSupportStatus] = useState(notification.actor_support_status);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSupportToggle = async () => {
         if (!currentUser || isLoading) return;
 
+        const previousStatus = supportStatus;
         setIsLoading(true);
+
+        // Optimistic update
+        const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
+        const newOptimisticStatus = isCurrentlySupported ? null : (actor.is_private ? 'pending' : 'approved');
+        setSupportStatus(newOptimisticStatus);
+
         try {
-            if (supportStatus === 'approved' || supportStatus === 'pending') {
+            if (isCurrentlySupported) {
                 await unsupportUser(actor.id);
-                setSupportStatus(null);
             } else {
                 await supportUser(actor.id, actor.is_private);
-                setSupportStatus(actor.is_private ? 'pending' : 'approved');
             }
         } catch (error: any) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
+            // Revert on error
+            setSupportStatus(previousStatus);
         } finally {
             setIsLoading(false);
         }
@@ -194,8 +191,14 @@ export default function NotificationsPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async (pageNum: number, limit = 15) => {
-    if (!user) return;
-    setIsFetchingMore(true);
+    if (!user || isFetchingMore) return;
+    
+    if (pageNum === 1) {
+        setIsLoading(true);
+    } else {
+        setIsFetchingMore(true);
+    }
+
     try {
         const newNotifications = await getNotifications({ page: pageNum, limit });
         if (newNotifications.length < limit) {
@@ -204,9 +207,13 @@ export default function NotificationsPage() {
         }
 
         setNotifications(prev => {
+            if (pageNum === 1) {
+                 notificationsCache.items = newNotifications;
+                 return newNotifications;
+            }
             const existingIds = new Set(prev.map(n => n.id));
             const uniqueNew = newNotifications.filter(n => !existingIds.has(n.id));
-            const updated = [...prev, ...uniqueNew] as Notification[];
+            const updated = [...prev, ...uniqueNew];
             notificationsCache.items = updated;
             return updated;
         });
@@ -219,14 +226,20 @@ export default function NotificationsPage() {
         console.error("Failed to fetch notifications", error);
         toast({ title: "Error", description: "Could not load notifications.", variant: "destructive"});
     } finally {
+        setIsLoading(false);
         setIsFetchingMore(false);
     }
-  }, [user, toast]);
+  }, [user, toast, isFetchingMore]);
 
+  // Initial load effect
   useEffect(() => {
-    if (user && notifications.length === 0) {
-        setIsLoading(true);
-        fetchNotifications(1).finally(() => setIsLoading(false));
+    if (user && notificationsCache.items.length === 0) {
+        fetchNotifications(1);
+    } else {
+        setNotifications(notificationsCache.items);
+        setPage(notificationsCache.page);
+        setHasMore(notificationsCache.hasMore);
+        setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -238,7 +251,7 @@ export default function NotificationsPage() {
         if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
             fetchNotifications(page);
         }
-    }, { root: null, rootMargin: '200px', threshold: 0 });
+    }, { root: scrollContainerRef.current, rootMargin: '200px', threshold: 0 });
 
     const currentLoader = loaderRef.current;
     if (currentLoader) observer.observe(currentLoader);
@@ -257,13 +270,14 @@ export default function NotificationsPage() {
           notificationsCache.scrollPosition = scrollable.scrollTop;
       };
 
-      if (notificationsCache.scrollPosition > 0) {
+      // Restore scroll position only if not loading initial data
+      if (!isLoading && notificationsCache.scrollPosition > 0) {
           scrollable.scrollTop = notificationsCache.scrollPosition;
       }
 
       scrollable.addEventListener('scroll', handleScroll, { passive: true });
       return () => scrollable.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isLoading]);
   
   const handleRequestResponded = (notificationId: number) => {
     const updatedNotifications = notifications.filter(n => n.id !== notificationId);
