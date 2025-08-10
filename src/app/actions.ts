@@ -570,18 +570,16 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     
     const postIds = posts.map(p => p.id);
 
-    // 3. Get like counts for those posts
-    const { data: likeCounts, error: likeCountsError } = await supabase
-        .from('likes')
-        .select('emoji_id, count:emoji_id')
-        .in('emoji_id', postIds)
-        .groupBy('emoji_id');
+    // 3. Get like counts for those posts using the new RPC function
+    const { data: likeCountsData, error: likeCountsError } = await supabase
+        .rpc('get_like_counts_for_posts', { post_ids: postIds });
 
     if (likeCountsError) {
         console.error('Error fetching like counts:', likeCountsError);
         throw likeCountsError;
     }
-    const likeCountMap = new Map(likeCounts?.map(l => [l.emoji_id, l.count]) || []);
+    const likeCountMap = new Map(likeCountsData?.map(l => [l.emoji_id, l.like_count]) || []);
+
 
     // 4. Check which posts the current user has liked
     const { data: userLikes, error: userLikesError } = await supabase
