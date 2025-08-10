@@ -115,15 +115,16 @@ const PostContent = memo(({
     };
 
     const handleLike = useCallback(async () => {
-        if (!user) return;
+        if (!user || isLikedState) return;
         
-        if (!isLikedState) {
-            setIsLikedState(true);
-            setLocalLikeCount(prev => prev + 1);
-            setShowHeart(true);
-            setTimeout(() => setShowHeart(false), 800);
-            await likePost(emoji.id);
-        }
+        // This function is just for the double-tap, so we only handle the "like" case.
+        // The LikeButton component handles both liking and unliking.
+        setIsLikedState(true);
+        setLocalLikeCount(prev => prev + 1);
+        setShowHeart(true);
+        setTimeout(() => setShowHeart(false), 800);
+        await likePost(emoji.id);
+
     }, [isLikedState, user, emoji.id]);
 
     return (

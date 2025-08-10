@@ -52,8 +52,8 @@ export const LikeButton = ({
   postId: string;
   initialLikes: number;
   isInitiallyLiked: boolean;
-  onLikeCountChange?: (newCount: number) => void;
-  onIsLikedChange?: (isLiked: boolean) => void;
+  onLikeCountChange: (newCount: number) => void;
+  onIsLikedChange: (isLiked: boolean) => void;
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -65,12 +65,6 @@ export const LikeButton = ({
     setIsLiked(isInitiallyLiked);
     setLikeCount(initialLikes);
   }, [isInitiallyLiked, initialLikes]);
-  
-  useEffect(() => {
-    if (onIsLikedChange) {
-      onIsLikedChange(isLiked);
-    }
-  }, [isLiked, onIsLikedChange]);
 
   useEffect(() => {
     if (showHearts) {
@@ -91,9 +85,7 @@ export const LikeButton = ({
         async () => {
             const newCount = await getLikeCount(postId);
             setLikeCount(newCount);
-            if (onLikeCountChange) {
-                onLikeCountChange(newCount);
-            }
+            onLikeCountChange(newCount);
         }
       )
       .subscribe();
@@ -116,15 +108,15 @@ export const LikeButton = ({
 
     // Optimistic UI updates
     const wasLiked = isLiked;
-    setIsLiked(!wasLiked);
-    
-    const newOptimisticCount = wasLiked ? likeCount - 1 : likeCount + 1;
-    setLikeCount(newOptimisticCount);
-    if(onLikeCountChange) {
-        onLikeCountChange(newOptimisticCount);
-    }
+    const newLikedState = !wasLiked;
+    const newLikeCount = newLikedState ? likeCount + 1 : Math.max(0, likeCount - 1);
 
-    if (!wasLiked) {
+    setIsLiked(newLikedState);
+    setLikeCount(newLikeCount);
+    onIsLikedChange(newLikedState);
+    onLikeCountChange(newLikeCount);
+
+    if (newLikedState) {
         setShowHearts(true);
     }
 
@@ -137,11 +129,9 @@ export const LikeButton = ({
     } catch (error) {
       // Revert UI on error
       setIsLiked(wasLiked);
-       const newRevertedCount = wasLiked ? likeCount + 1 : likeCount - 1;
-       setLikeCount(newRevertedCount);
-       if (onLikeCountChange) {
-           onLikeCountChange(newRevertedCount);
-       }
+      setLikeCount(likeCount);
+      onIsLikedChange(wasLiked);
+      onLikeCountChange(likeCount);
       toast({
         title: "Something went wrong",
         description: "Could not update like status. Please try again.",
@@ -161,7 +151,7 @@ export const LikeButton = ({
         onClick={handleClick}
       />
       <AnimatePresence>
-        {showHearts && !isLiked && ( // Show only on like, not on unlike
+        {showHearts && (
             <>
               <AnimatedHeart delay={0} gradientId="grad1" colors={['#FF0000', '#FFFF00']} />
               <AnimatedHeart delay={0.1} gradientId="grad2" colors={['#FFFF00', '#8A2BE2']} />
