@@ -380,18 +380,14 @@ export async function recordMoodView(moodId: number) {
 export async function getMoodViewers(moodId: number): Promise<{ id: string; name: string; picture: string; }[]> {
     const supabase = createSupabaseServerClient();
     const { data, error } = await supabase
-        .from('mood_views')
-        .select('user:users!inner(id, name, picture)')
-        .eq('mood_id', moodId)
-        .order('viewed_at', { ascending: false });
+        .rpc('get_mood_viewers', { p_mood_id: moodId });
 
     if (error) {
         console.error('Error getting mood viewers:', error);
         return [];
     }
     
-    // The data is nested, so we need to flatten it.
-    return data.map(v => v.user) as { id: string; name: string; picture: string; }[];
+    return data as { id: string; name: string; picture: string; }[];
 }
 
 // --- Like Actions ---
@@ -700,5 +696,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     
     return data as unknown as EmojiState[];
 }
+
+    
 
     
