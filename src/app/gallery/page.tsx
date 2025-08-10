@@ -102,7 +102,11 @@ function GalleryPageContent() {
 
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
-        setIsLoading(true);
+        
+        // This part can show a loader for the whole page initially
+        const profileWasLoading = !profileUser;
+        if (profileWasLoading) setIsLoading(true);
+
         try {
             // Fetch primary user data and counts first
             const { data: userProfile, error: userError } = await supabase
@@ -110,6 +114,7 @@ function GalleryPageContent() {
                 .select('id, name, picture, is_private')
                 .eq('id', viewingUserId)
                 .single();
+
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
             setProfileUser(userProfile as ProfileUser);
 
@@ -126,9 +131,9 @@ function GalleryPageContent() {
             setPostCount(postCountResult.count ?? 0);
             
             // Now that primary data is loaded, content can be shown
-            setIsLoading(false); 
+            if (profileWasLoading) setIsLoading(false); 
 
-            // Fetch support status separately
+            // Fetch support status separately and only show a loader on the button
             if (!isOwnProfile && authUser) {
                 setIsSupportLoading(true);
                 getSupportStatus(authUser.id, viewingUserId)
@@ -137,7 +142,7 @@ function GalleryPageContent() {
             } else {
                 setIsSupportLoading(false);
             }
-
+            
             // After all profile info is available, fetch posts if needed
             const canView = !userProfile.is_private || isOwnProfile || supportStatus === 'approved';
              if (galleryCache[viewingUserId] && galleryCache[viewingUserId].posts.length === 0 && canView) {
@@ -147,7 +152,7 @@ function GalleryPageContent() {
         } catch (error: any) {
             console.error("Failed to load profile info:", error);
             toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
-            setIsLoading(false);
+            if (profileWasLoading) setIsLoading(false);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
@@ -318,6 +323,9 @@ function GalleryPageContent() {
             } else {
                 await supportUser(viewingUserId, profileUser.is_private);
             }
+            // After the action, refetch the true status to ensure consistency
+            const newStatus = await getSupportStatus(authUser.id, viewingUserId);
+            setSupportStatus(newStatus);
         } catch (error: any) {
             // Revert on error
             setSupportStatus(previousStatus);
