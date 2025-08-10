@@ -267,10 +267,11 @@ export function PostView({
     if (currentIndex < emojis.length - 1) {
       setDirection(1);
       setCurrentIndex((prev) => prev + 1);
-    } else {
+    } else if (!isMoodView) {
+      // Only close if not in mood view to allow manual closing
       onClose(emojis);
     }
-  }, [currentIndex, emojis, onClose]);
+  }, [currentIndex, emojis, onClose, isMoodView]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -289,7 +290,7 @@ export function PostView({
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
-        if (!isCurrentEmojiMood(currentEmojiState)?.is_viewed) {
+        if (!currentEmojiState.is_viewed) {
              recordMoodView(currentEmojiState.mood_id);
              // We can optimistically update the state
              const updatedEmojis = [...emojis];
@@ -308,7 +309,19 @@ export function PostView({
         if (isViewersSheetOpen) {
             animationControls.stop();
         } else {
-            startAnimation();
+            const controls = animationControls.get("width");
+            // This is a bit of a hack, but Framer Motion doesn't have a simple "resume" API.
+            // We get the current animation state and restart it from there.
+            if (typeof controls === 'string' && controls.endsWith('%')) {
+                const currentWidth = parseFloat(controls);
+                const remainingDuration = 10 * (1 - currentWidth / 100);
+                 animationControls.start({
+                    width: '100%',
+                    transition: { duration: remainingDuration, ease: 'linear' }
+                });
+            } else {
+                 startAnimation();
+            }
         }
     }
   }, [isViewersSheetOpen, isMoodView, animationControls, startAnimation]);
@@ -634,3 +647,4 @@ export function PostView({
     </>
   );
 }
+
