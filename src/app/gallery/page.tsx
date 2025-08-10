@@ -85,7 +85,7 @@ function GalleryPageContent() {
     const [supportStatus, setSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
-    const [isSupportLoading, setIsSupportLoading] = React.useState(false);
+    const [isSupportLoading, setIsSupportLoading] = React.useState(true);
     const [hasMood, setHasMood] = React.useState(false);
     const [postCount, setPostCount] = React.useState(0);
     
@@ -102,34 +102,54 @@ function GalleryPageContent() {
 
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
+        setIsLoading(true);
         try {
+            // Fetch primary user data and counts first
             const { data: userProfile, error: userError } = await supabase
                 .from('users')
                 .select('id, name, picture, is_private')
                 .eq('id', viewingUserId)
                 .single();
-
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
-            
             setProfileUser(userProfile as ProfileUser);
 
-            const [supporters, following, status, moodResult, postCountResult] = await Promise.all([
+            const [supporters, following, moodResult, postCountResult] = await Promise.all([
                 getSupporterCount(viewingUserId),
                 getSupportingCount(viewingUserId),
-                !isOwnProfile && authUser ? getSupportStatus(authUser.id, viewingUserId) : Promise.resolve(null),
                 supabase.from('moods').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
                 supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
             ]);
 
             setSupporterCount(supporters);
             setSupportingCount(following);
-            setSupportStatus(status);
             setHasMood((moodResult.count ?? 0) > 0);
             setPostCount(postCountResult.count ?? 0);
+            
+            // Now that primary data is loaded, content can be shown
+            setIsLoading(false); 
+
+            // Fetch support status separately
+            if (!isOwnProfile && authUser) {
+                setIsSupportLoading(true);
+                getSupportStatus(authUser.id, viewingUserId)
+                    .then(setSupportStatus)
+                    .finally(() => setIsSupportLoading(false));
+            } else {
+                setIsSupportLoading(false);
+            }
+
+            // After all profile info is available, fetch posts if needed
+            const canView = !userProfile.is_private || isOwnProfile || supportStatus === 'approved';
+             if (galleryCache[viewingUserId] && galleryCache[viewingUserId].posts.length === 0 && canView) {
+                await fetchPosts(1);
+            }
+
         } catch (error: any) {
             console.error("Failed to load profile info:", error);
             toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
+            setIsLoading(false);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
 
     const fetchPosts = useCallback(async (pageNum: number) => {
@@ -179,23 +199,10 @@ function GalleryPageContent() {
             };
         }
         
-        const canViewContent = !profileUser?.is_private || isOwnProfile || supportStatus === 'approved';
-
-        const loadData = async () => {
-            setIsLoading(true);
-            await fetchProfileInfo();
-            // Re-check canViewContent with potentially updated profile info
-            const updatedCanView = !profileUser?.is_private || isOwnProfile || supportStatus === 'approved';
-            if (galleryCache[viewingUserId] && galleryCache[viewingUserId].posts.length === 0 && updatedCanView) {
-                await fetchPosts(1);
-            }
-            setIsLoading(false);
-        };
-        
-        loadData();
+        fetchProfileInfo();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewingUserId, isOwnProfile, supportStatus]);
+    }, [viewingUserId]);
     
      // Infinite scroll observer
     useEffect(() => {
@@ -233,7 +240,7 @@ function GalleryPageContent() {
             scrollable.scrollTop = galleryCache[viewingUserId].scrollPosition;
         }
 
-        scrollable.addEventListener('scroll', handleScroll, { passive: true });
+        scrollable.addEventListener('scroll', { passive: true });
         return () => {
             scrollable.removeEventListener('scroll', handleScroll);
         };
@@ -441,7 +448,7 @@ function GalleryPageContent() {
                 <>
                     <ProfileHeader />
                     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
-                        {isLoading && savedEmojis.length === 0 ? (
+                        {isLoading ? (
                             <div className="flex h-full items-center justify-center">
                                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
