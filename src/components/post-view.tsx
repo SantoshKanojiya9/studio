@@ -107,7 +107,7 @@ const PostContent = ({
 
     return (
         <motion.div
-            className="w-full h-full flex-shrink-0 flex flex-col snap-center"
+            className="w-full h-full flex-shrink-0 flex flex-col"
             layout
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -561,7 +561,7 @@ export function PostView({
 
           <div 
               ref={scrollContainerRef}
-              className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+              className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
               onClick={(e) => {
                     const target = e.target as HTMLElement;
                     if (target.dataset.isFeedPostContainer) {
