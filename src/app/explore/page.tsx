@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/use-auth';
 import { getExplorePosts } from '../actions';
+import { LoadingScreen } from '@/components/loading-screen';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -251,9 +252,7 @@ export default function ExplorePage() {
       </div>
       <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
         {isLoading ? (
-             <div className="flex h-full items-center justify-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
+            <LoadingScreen />
         ) : showSearchResults ? (
           <div className="flex flex-col">
              {searchedUsers.length > 0 ? (

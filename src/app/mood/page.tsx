@@ -36,6 +36,7 @@ import {
 import { setMood, getFeedPosts } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
+import { LoadingScreen } from '@/components/loading-screen';
 
 const LikerListSheet = lazy(() =>
   import('@/components/liker-list-sheet').then(mod => ({ default: mod.LikerListSheet }))
@@ -528,9 +529,7 @@ export default function MoodPage() {
       
         <div className="flex-1">
             {isLoading && feedPosts.length === 0 ? (
-                <div className="flex h-full w-full items-center justify-center pt-10">
-                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                </div>
+                <LoadingScreen />
             ) : feedPosts.length > 0 ? (
                  <>
                     <div className="flex flex-col">
