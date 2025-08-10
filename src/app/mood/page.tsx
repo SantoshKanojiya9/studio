@@ -307,17 +307,10 @@ export default function MoodPage() {
 
         if (moodError) throw moodError;
 
-        const myMoodViews = await supabase
-            .from('mood_views')
-            .select('mood_id')
-            .eq('viewer_id', user.id)
-            .in('mood_id', moodData.map(m => m.id));
-
-        const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
-
         const formattedMoods = moodData.map(m => {
             const isOwnMood = m.user_id === user.id;
-            const isViewed = viewedMoodIds.has(m.id);
+            const views = (m.views as unknown as { viewer_id: string }[]) || [];
+            const isViewed = views.some(view => view.viewer_id === user.id);
 
             return {
                 ...(m.emoji as unknown as EmojiState),
