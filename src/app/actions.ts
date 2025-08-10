@@ -513,7 +513,7 @@ type NotificationPayload = {
 }
 
 export async function createNotification(payload: NotificationPayload) {
-    const supabase = createSupabaseServerClient(true); // Use admin client to insert
+    const supabase = createSupabaseServerClient(); // Use non-admin client to trigger realtime
     const { error } = await supabase.from('notifications').insert(payload);
     if (error) {
         console.error('Error creating notification:', error);
