@@ -160,36 +160,40 @@ export async function getSupportingCount(userId: string) {
     return count || 0;
 }
 
-export async function getSupporters(userId: string): Promise<{ id: string; name: string; picture: string; }[]> {
+type UserWithSupportStatus = { id: string; name: string; picture: string; is_private: boolean; support_status: 'approved' | 'pending' | null; };
+
+export async function getSupporters(userId: string): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
-        .from('supports')
-        .select('supporter:users!supports_supporter_id_fkey(id, name, picture)')
-        .eq('supported_id', userId)
-        .eq('status', 'approved');
+        .rpc('get_supporters_with_status', {
+            p_user_id: userId,
+            p_current_user_id: currentUser?.id,
+        });
 
     if (error) {
         console.error('Error getting supporters:', error);
         return [];
     }
-    // The data is nested, so we need to flatten it.
-    return data.map(s => s.supporter) as { id: string; name: string; picture: string; }[];
+    return data as UserWithSupportStatus[];
 }
 
-export async function getSupporting(userId: string): Promise<{ id: string; name: string; picture: string; }[]> {
+export async function getSupporting(userId: string): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
-        .from('supports')
-        .select('supported:users!supports_supported_id_fkey(id, name, picture)')
-        .eq('supporter_id', userId)
-        .eq('status', 'approved');
+        .rpc('get_supporting_with_status', {
+            p_user_id: userId,
+            p_current_user_id: currentUser?.id
+        });
 
     if (error) {
         console.error('Error getting supporting list:', error);
         return [];
     }
-    // The data is nested, so we need to flatten it.
-    return data.map(s => s.supported) as { id: string; name: string; picture: string; }[];
+    return data as UserWithSupportStatus[];
 }
 
 

@@ -13,37 +13,31 @@ import { Loader2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
-import { getSupporters, getSupporting, getSupportStatus, supportUser, unsupportUser } from '@/app/actions';
+import { getSupporters, getSupporting, supportUser, unsupportUser } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
   name: string;
   picture: string;
-  is_private?: boolean; // We might not always have this
+  is_private: boolean;
+  support_status: 'approved' | 'pending' | null;
 }
 
 interface UserListItemProps {
   itemUser: User;
-  currentUser: { id: string, is_private: boolean } | null;
-  onSupportChange: (userId: string, isNowSupported: boolean) => void;
+  currentUser: { id: string } | null;
+  onSupportChange: (userId: string, newStatus: 'approved' | 'pending' | null) => void;
 }
 
 const UserListItem = React.memo(({ itemUser, currentUser, onSupportChange }: UserListItemProps) => {
-    const [supportStatus, setSupportStatus] = useState<'approved' | 'pending' | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [supportStatus, setSupportStatus] = useState(itemUser.support_status);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
-        if (!currentUser) {
-            setIsLoading(false);
-            return;
-        }
-        getSupportStatus(currentUser.id, itemUser.id).then(status => {
-            setSupportStatus(status);
-            setIsLoading(false);
-        });
-    }, [currentUser, itemUser.id]);
+        setSupportStatus(itemUser.support_status);
+    }, [itemUser.support_status]);
 
     const handleSupportToggle = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -51,23 +45,23 @@ const UserListItem = React.memo(({ itemUser, currentUser, onSupportChange }: Use
         if (!currentUser || isLoading) return;
 
         setIsLoading(true);
+        const previousStatus = supportStatus;
+        const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
+        const newOptimisticStatus = isCurrentlySupported ? null : (itemUser.is_private ? 'pending' : 'approved');
+
+        setSupportStatus(newOptimisticStatus);
+
         try {
-            if (supportStatus === 'approved' || supportStatus === 'pending') {
+            if (isCurrentlySupported) {
                 await unsupportUser(itemUser.id);
-                onSupportChange(itemUser.id, false);
-                setSupportStatus(null);
+                onSupportChange(itemUser.id, null);
             } else {
-                // To know if the user is private, we'd need to fetch that info.
-                // For now, let's assume we can pass it or have a fallback.
-                // A better approach would be to fetch the user's `is_private` status here if not available.
-                // For simplicity, we'll refetch in the parent component for now.
-                const isPrivate = itemUser.is_private ?? false;
-                await supportUser(itemUser.id, isPrivate);
-                onSupportChange(itemUser.id, true);
-                setSupportStatus(isPrivate ? 'pending' : 'approved');
+                await supportUser(itemUser.id, itemUser.is_private);
+                onSupportChange(itemUser.id, newOptimisticStatus);
             }
         } catch (error: any) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
+            setSupportStatus(previousStatus); // Revert on error
         } finally {
             setIsLoading(false);
         }
@@ -111,8 +105,6 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
     const [isLoading, setIsLoading] = useState(false);
     const { user: currentUser } = useAuth();
     
-    const [supportChangeTracker, setSupportChangeTracker] = useState(0);
-
     useEffect(() => {
         const fetchUsers = async () => {
             if (!type || !userId) {
@@ -139,21 +131,16 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
         if (open) {
             fetchUsers();
         }
-    }, [type, userId, open, supportChangeTracker]);
+    }, [type, userId, open]);
     
-    const handleSupportChange = (changedUserId: string, isNowSupported: boolean) => {
-        // If the list is the current user's "supporting" list, update it optimistically
-        if (currentUser && currentUser.id === userId && type === 'supporting') {
-            if (isNowSupported) {
-                 // We have to refetch to get the full user object with `is_private` for the button logic
-                 setSupportChangeTracker(c => c + 1);
-            } else {
-                 setUserList(currentList => currentList.filter(u => u.id !== changedUserId));
-            }
-        } else {
-            // For other lists (like someone else's supporters), just refetch to be safe.
-            setSupportChangeTracker(c => c + 1);
-        }
+    const handleSupportChange = (changedUserId: string, newStatus: 'approved' | 'pending' | null) => {
+        setUserList(currentList => 
+            currentList.map(user => 
+                user.id === changedUserId 
+                ? { ...user, support_status: newStatus } 
+                : user
+            )
+        );
     }
 
     const title = type === 'supporters' ? 'Supporters' : 'Supporting';
