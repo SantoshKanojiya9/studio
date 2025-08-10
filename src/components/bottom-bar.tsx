@@ -39,13 +39,16 @@ export function BottomBar() {
 
     const channel = supabase
       .channel('realtime-notifications')
-      .on('postgres_changes', { 
+      .on(
+        'postgres_changes', 
+        { 
             event: 'INSERT', 
             schema: 'public', 
             table: 'notifications', 
             filter: `recipient_id=eq.${user.id}` 
         }, 
         (payload) => {
+            console.log('New notification received!', payload);
             setHasNewNotifications(true);
         }
       )
@@ -120,5 +123,3 @@ export function BottomBar() {
     </footer>
   );
 }
-
-    
