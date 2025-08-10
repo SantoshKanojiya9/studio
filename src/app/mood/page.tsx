@@ -373,6 +373,10 @@ export default function MoodPage() {
     }, [toast, isFetchingMore]);
 
     const loadInitialData = useCallback(async () => {
+        if (!user) {
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
         try {
             const [moodsData, postsData] = await Promise.all([
@@ -392,15 +396,11 @@ export default function MoodPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [fetchMoods, fetchPosts, toast]);
+    }, [fetchMoods, fetchPosts, toast, user]);
     
     // Initial load from cache or server
     useEffect(() => {
-        if (user) {
-            loadInitialData();
-        } else {
-            setIsLoading(false);
-        }
+        loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
     
