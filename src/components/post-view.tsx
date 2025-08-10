@@ -31,12 +31,12 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, MoreHorizontal, Edit, Trash2, Send, Smile, X, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Trash2, Send, Smile, X, Eye, Loader2, Heart } from 'lucide-react';
 import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actions';
+import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
 
 const LikerListSheet = lazy(() => import('./liker-list-sheet').then(mod => ({ default: mod.LikerListSheet })));
@@ -88,7 +88,10 @@ const PostContent = memo(({
 }) => {
     const { user } = useAuth();
     const [localLikeCount, setLocalLikeCount] = useState(emoji.like_count);
+    const [isLikedState, setIsLikedState] = useState(emoji.is_liked);
     const [showLikers, setShowLikers] = useState(false);
+    const [showHeart, setShowHeart] = useState(false);
+
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
 
@@ -110,6 +113,18 @@ const PostContent = memo(({
             default: return <Face {...props} />;
         }
     };
+
+    const handleLike = useCallback(async () => {
+        if (!user) return;
+        
+        if (!isLikedState) {
+            setIsLikedState(true);
+            setLocalLikeCount(prev => prev + 1);
+            setShowHeart(true);
+            setTimeout(() => setShowHeart(false), 800);
+            await likePost(emoji.id);
+        }
+    }, [isLikedState, user, emoji.id]);
 
     return (
         <div
@@ -158,13 +173,27 @@ const PostContent = memo(({
             </div>
 
             <div 
-                className="flex-1 flex items-center justify-center min-h-0"
+                className="flex-1 flex items-center justify-center min-h-0 relative"
                 style={{ 
                     backgroundColor: emoji.background_color,
                     filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
                 }}
+                onDoubleClick={handleLike}
             >
                 {renderEmojiFace(emoji)}
+                 <AnimatePresence>
+                    {showHeart && (
+                        <motion.div
+                            className="absolute inset-0 flex items-center justify-center"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 1.2, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: 'easeIn' }}
+                        >
+                            <Heart className="w-24 h-24 text-white/90" fill="currentColor" />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             <div className="px-4 pt-3 pb-4">
@@ -174,6 +203,7 @@ const PostContent = memo(({
                         initialLikes={emoji.like_count ?? 0} 
                         isInitiallyLiked={emoji.is_liked ?? false} 
                         onLikeCountChange={setLocalLikeCount}
+                        onIsLikedChange={setIsLikedState}
                     />
                     <Send className="h-6 w-6 cursor-pointer" onClick={() => onSetMood(emoji.id)} />
                 </div>

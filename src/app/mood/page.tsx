@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, lazy, Suspense, useRef, memo }
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw } from 'lucide-react';
+import { Plus, Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw, Heart } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,7 @@ import dynamic from 'next/dynamic';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 import { RimuruFace } from '@/components/rimuru-face';
-import { motion, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -33,7 +33,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { setMood, getFeedPosts } from '@/app/actions';
+import { setMood, getFeedPosts, likePost } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 
@@ -85,7 +85,9 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
     const [currentLikeCount, setCurrentLikeCount] = useState(emoji.like_count);
+    const [isLikedState, setIsLikedState] = useState(emoji.is_liked);
     const [showLikers, setShowLikers] = useState(false);
+    const [showHeart, setShowHeart] = useState(false);
     
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
@@ -130,6 +132,18 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
             });
         }
     };
+
+    const handleLike = useCallback(async () => {
+        if (!user) return;
+        
+        if (!isLikedState) {
+            setIsLikedState(true);
+            setCurrentLikeCount(prev => prev + 1);
+            setShowHeart(true);
+            setTimeout(() => setShowHeart(false), 800);
+            await likePost(emoji.id);
+        }
+    }, [isLikedState, user, emoji.id]);
     
     const onSendClick = () => {
         if (user) {
@@ -176,6 +190,7 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
                       backgroundColor: emoji.background_color,
                       filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
                     }}
+                    onDoubleClick={handleLike}
                 >
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-full h-full flex items-center justify-center">
@@ -184,6 +199,19 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
                             </motion.div>
                         </div>
                     </div>
+                     <AnimatePresence>
+                        {showHeart && (
+                            <motion.div
+                                className="absolute inset-0 flex items-center justify-center"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 1.2, opacity: 0 }}
+                                transition={{ duration: 0.4, ease: 'easeIn' }}
+                            >
+                                <Heart className="w-24 h-24 text-white/90" fill="currentColor" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
                 <div className="px-4 pt-3 pb-4">
                     <div className="flex items-center gap-4">
@@ -192,6 +220,7 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
                             initialLikes={emoji.like_count} 
                             isInitiallyLiked={emoji.is_liked}
                             onLikeCountChange={setCurrentLikeCount}
+                            onIsLikedChange={setIsLikedState}
                         />
                         <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
                     </div>

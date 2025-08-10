@@ -8,39 +8,7 @@ import { likePost, unlikePost, getLikeCount } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
-
-const BtsHandIcon = ({ isLiked, ...props }: React.SVGProps<SVGSVGElement> & { isLiked: boolean }) => (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={cn("cursor-pointer transition-transform duration-200 ease-in-out hover:scale-110 active:scale-95", props.className)}
-      {...props}
-    >
-        <motion.path
-            d="M8.5 14.5C8.5 14.5 7.5 19.5 9.5 21.5C11.5 23.5 15.5 22.5 15.5 22.5M12.5 5C12.5 5 12.5 2 14.5 2C16.5 2 15.5 5 15.5 5M12.5 5C12.5 5 11.5 2 9.5 2C7.5 2 8.5 5 8.5 5M12.5 5L8.5 14.5"
-            stroke={isLiked ? 'hsl(var(--primary))' : 'currentColor'}
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={false}
-            animate={{ stroke: isLiked ? 'hsl(var(--primary))' : 'currentColor' }}
-            transition={{ duration: 0.3 }}
-        />
-        <motion.path
-            d="M12.5 12L15.5 5"
-            stroke={isLiked ? 'hsl(var(--primary))' : 'currentColor'}
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={false}
-            animate={{ stroke: isLiked ? 'hsl(var(--primary))' : 'currentColor' }}
-            transition={{ duration: 0.3 }}
-        />
-    </svg>
-);
+import { Heart } from 'lucide-react';
 
 const AnimatedHeart = ({ delay, gradientId, colors }: { delay: number, gradientId: string, colors: [string, string] }) => (
     <motion.svg
@@ -79,11 +47,13 @@ export const LikeButton = ({
   initialLikes,
   isInitiallyLiked,
   onLikeCountChange,
+  onIsLikedChange
 }: {
   postId: string;
   initialLikes: number;
   isInitiallyLiked: boolean;
   onLikeCountChange?: (newCount: number) => void;
+  onIsLikedChange?: (isLiked: boolean) => void;
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -96,6 +66,12 @@ export const LikeButton = ({
     setLikeCount(initialLikes);
   }, [isInitiallyLiked, initialLikes]);
   
+  useEffect(() => {
+    if (onIsLikedChange) {
+      onIsLikedChange(isLiked);
+    }
+  }, [isLiked, onIsLikedChange]);
+
   useEffect(() => {
     if (showHearts) {
       const timer = setTimeout(() => setShowHearts(false), 1200);
@@ -142,14 +118,11 @@ export const LikeButton = ({
     const wasLiked = isLiked;
     setIsLiked(!wasLiked);
     
-    // The realtime listener will handle the count update,
-    // but we can do it optimistically for a faster feel.
     const newOptimisticCount = wasLiked ? likeCount - 1 : likeCount + 1;
     setLikeCount(newOptimisticCount);
     if(onLikeCountChange) {
         onLikeCountChange(newOptimisticCount);
     }
-
 
     if (!wasLiked) {
         setShowHearts(true);
@@ -180,9 +153,15 @@ export const LikeButton = ({
 
   return (
     <div className="relative flex items-center justify-center">
-      <BtsHandIcon isLiked={isLiked} onClick={handleClick} />
+      <Heart
+        className={cn(
+          "h-6 w-6 cursor-pointer transition-colors duration-200 ease-in-out",
+          isLiked ? "text-red-500 fill-current" : "text-foreground"
+        )}
+        onClick={handleClick}
+      />
       <AnimatePresence>
-        {showHearts && (
+        {showHearts && !isLiked && ( // Show only on like, not on unlike
             <>
               <AnimatedHeart delay={0} gradientId="grad1" colors={['#FF0000', '#FFFF00']} />
               <AnimatedHeart delay={0.1} gradientId="grad2" colors={['#FFFF00', '#8A2BE2']} />
