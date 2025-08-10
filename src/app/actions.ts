@@ -227,12 +227,20 @@ export async function supportUser(supportedId: string, isPrivate: boolean) {
         throw error;
     }
 
-    // Create notification
-    await createNotification({
-        recipient_id: supportedId,
-        actor_id: user.id,
-        type: isPrivate ? 'new_support_request' : 'new_supporter',
-    });
+    // Create notification if the user accepted the follow request
+    if (status === 'approved') {
+        await createNotification({
+            recipient_id: supportedId,
+            actor_id: user.id,
+            type: 'new_supporter',
+        });
+    } else { // It's a private account, so send a request notification
+        await createNotification({
+            recipient_id: supportedId,
+            actor_id: user.id,
+            type: 'new_support_request',
+        });
+    }
 }
 
 export async function unsupportUser(supportedId: string) {
@@ -531,13 +539,8 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         throw error;
     }
 
-    // The RPC returns data in a slightly different shape, so we format it
-    // to match the component's expectations.
-    return (data || []).map(n => ({
-        ...n,
-        actor: n.actor,
-        emoji: n.emoji,
-    }));
+    // The RPC returns data as JSON, so no re-formatting is needed here.
+    return data || [];
 }
 
 // --- Feed & Gallery Actions ---
@@ -605,7 +608,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         console.error('Error fetching user likes:', userLikesError);
         throw userLikesError;
     }
-    const userLikedSet = new Set(userLikes?.map(l => l.emoji_id) || []);
+    const userLikedSet = new Set(userLikes?.map(l => l.id) || []);
 
     // 5. Combine everything
     const feedPosts = posts.map(post => ({

@@ -70,7 +70,9 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
     const [supportStatus, setSupportStatus] = useState(notification.actor_support_status);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSupportToggle = async () => {
+    const handleSupportToggle = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!currentUser || isLoading) return;
 
         const previousStatus = supportStatus;
@@ -109,7 +111,7 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
             </Link>
             <p className="flex-1 text-sm">
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
-                {' became your supporter. '}
+                {' started supporting you. '}
                 <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
             </p>
             <Button
@@ -235,7 +237,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (user && notificationsCache.items.length === 0) {
         fetchNotifications(1);
-    } else {
+    } else if (user) {
         setNotifications(notificationsCache.items);
         setPage(notificationsCache.page);
         setHasMore(notificationsCache.hasMore);
@@ -272,7 +274,7 @@ export default function NotificationsPage() {
 
       // Restore scroll position only if not loading initial data
       if (!isLoading && notificationsCache.scrollPosition > 0) {
-          scrollable.scrollTop = scrollable.scrollTop;
+          scrollable.scrollTop = notificationsCache.scrollPosition;
       }
 
       scrollable.addEventListener('scroll', handleScroll, { passive: true });
@@ -316,22 +318,24 @@ export default function NotificationsPage() {
             );
 
         case 'new_like':
-            if (!emoji) return null;
+            if (!emoji || !emoji.id) return null;
             return (
-                 <Link href={`/gallery`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
+                 <div key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
+                    <Link href={`/gallery?userId=${actor.id}`} className="flex-shrink-0">
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                            <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                     <p className="flex-1 text-sm">
-                        <span className="font-semibold">{actor.name}</span>
+                        <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
                         {' reacted to your post.'}
                         <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
                     </p>
                     <div className="w-12 h-12 flex-shrink-0">
                        <GalleryThumbnail emoji={emoji} onSelect={() => router.push('/gallery')} />
                     </div>
-                </Link>
+                </div>
             );
         
         default:
