@@ -299,6 +299,7 @@ function GalleryPageContent() {
 
         const wasSupported = supportStatus === 'approved' || supportStatus === 'pending';
         const previousStatus = supportStatus;
+        const previousSupporterCount = supporterCount;
 
         // Optimistic UI updates
         setSupportStatus(wasSupported ? null : (profileUser.is_private ? 'pending' : 'approved'));
@@ -313,7 +314,7 @@ function GalleryPageContent() {
         } catch (error: any) {
             // Revert on error
             setSupportStatus(previousStatus);
-            setSupporterCount(prev => prev + (wasSupported ? 1 : -1));
+            setSupporterCount(previousSupporterCount);
             console.error("Support error:", error);
             toast({
                 title: "Something went wrong",
