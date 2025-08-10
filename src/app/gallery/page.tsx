@@ -240,7 +240,7 @@ function GalleryPageContent() {
             scrollable.scrollTop = galleryCache[viewingUserId].scrollPosition;
         }
 
-        scrollable.addEventListener('scroll', { passive: true });
+        scrollable.addEventListener('scroll', handleScroll, { passive: true });
         return () => {
             scrollable.removeEventListener('scroll', handleScroll);
         };
@@ -255,7 +255,7 @@ function GalleryPageContent() {
 
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
-            galleryCache[viewingUserId].posts = updatedEmojis;
+            if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedEmojis;
 
             setSelectedEmojiId(null);
             toast({ title: 'Post deleted', variant: 'success' })
@@ -310,7 +310,7 @@ function GalleryPageContent() {
 
         // Optimistic UI updates
         setSupportStatus(wasSupported ? null : (profileUser.is_private ? 'pending' : 'approved'));
-        setSupporterCount(prev => prev + (wasSupported ? -1 : 1));
+        setSupporterCount(prev => Math.max(0, prev + (wasSupported ? -1 : 1)));
 
         try {
             if (wasSupported) {
