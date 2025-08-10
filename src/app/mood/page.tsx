@@ -316,7 +316,8 @@ export default function MoodPage() {
         const viewedMoodIds = new Set(myMoodViews.data?.map(v => v.mood_id) || []);
 
         const formattedMoods = moodData.map(m => {
-            const isViewed = m.user_id === user.id 
+            const isOwnMood = m.user_id === user.id;
+            const isViewed = isOwnMood 
                 ? m.views.length > 0
                 : viewedMoodIds.has(m.id);
 
@@ -610,5 +611,3 @@ export default function MoodPage() {
     </div>
   );
 }
-
-    
