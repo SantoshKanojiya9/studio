@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense, useRef, memo } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -76,7 +76,7 @@ const moodPageCache = {
     scrollPosition: 0,
 };
 
-const FeedPost = React.memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
+const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -172,6 +172,7 @@ const FeedPost = React.memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelec
                       backgroundColor: emoji.background_color,
                       filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
                     }}
+                    onClick={onSelect}
                 >
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-full h-full flex items-center justify-center">
@@ -545,7 +546,3 @@ export default function MoodPage() {
     </div>
   );
 }
-
-
-
-    

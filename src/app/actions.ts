@@ -3,6 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import type { EmojiState } from '@/app/design/page';
 
 // --- User Profile Actions ---
 
@@ -532,15 +533,75 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const { data, error } = await supabase.rpc('get_feed_for_user', {
-        current_user_id: user.id,
-        page_number: page,
-        page_size: limit,
-    });
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
-    if (error) {
-        console.error('Error fetching feed posts:', error);
-        throw error;
+    // 1. Get list of users the current user is following
+    const { data: supportedUsers, error: supportedError } = await supabase
+        .from('supports')
+        .select('supported_id')
+        .eq('supporter_id', user.id)
+        .eq('status', 'approved');
+
+    if (supportedError) {
+        console.error('Error fetching supported users:', supportedError);
+        throw supportedError;
     }
-    return data || [];
+
+    const supportedIds = supportedUsers.map(s => s.supported_id);
+    const feedUserIds = [...supportedIds, user.id];
+
+    // 2. Fetch posts from those users
+    const { data: posts, error: postsError } = await supabase
+        .from('emojis')
+        .select('*, user:users!inner(*)')
+        .in('user_id', feedUserIds)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (postsError) {
+        console.error('Error fetching feed posts:', postsError);
+        throw postsError;
+    }
+
+    if (!posts || posts.length === 0) {
+        return [];
+    }
+    
+    const postIds = posts.map(p => p.id);
+
+    // 3. Get like counts for those posts
+    const { data: likeCounts, error: likeCountsError } = await supabase
+        .from('likes')
+        .select('emoji_id, count:emoji_id')
+        .in('emoji_id', postIds)
+        .groupBy('emoji_id');
+
+    if (likeCountsError) {
+        console.error('Error fetching like counts:', likeCountsError);
+        throw likeCountsError;
+    }
+    const likeCountMap = new Map(likeCounts?.map(l => [l.emoji_id, l.count]) || []);
+
+    // 4. Check which posts the current user has liked
+    const { data: userLikes, error: userLikesError } = await supabase
+        .from('likes')
+        .select('emoji_id')
+        .eq('user_id', user.id)
+        .in('emoji_id', postIds);
+        
+    if (userLikesError) {
+        console.error('Error fetching user likes:', userLikesError);
+        throw userLikesError;
+    }
+    const userLikedSet = new Set(userLikes?.map(l => l.emoji_id) || []);
+
+    // 5. Combine everything
+    const feedPosts = posts.map(post => ({
+        ...post,
+        like_count: likeCountMap.get(post.id) || 0,
+        is_liked: userLikedSet.has(post.id),
+    }));
+
+    return feedPosts as (EmojiState & { like_count: number; is_liked: boolean })[];
 }
