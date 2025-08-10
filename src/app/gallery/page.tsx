@@ -495,9 +495,11 @@ function GalleryPageContent() {
                            <div className="mt-4 flex gap-2">
                                 {isOwnProfile ? (
                                     <>
-                                        <Button asChild variant="secondary" className="flex-1">
-                                            <Link href="/profile/edit">Edit profile</Link>
-                                        </Button>
+                                        <Link href="/profile/edit" passHref legacyBehavior>
+                                          <Button asChild variant="secondary" className="flex-1">
+                                            <a>Edit profile</a>
+                                          </Button>
+                                        </Link>
                                         <Button variant="secondary" className="flex-1" onClick={handleShareProfile}>Share profile</Button>
                                     </>
                                 ) : (
