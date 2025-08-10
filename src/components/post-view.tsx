@@ -274,36 +274,19 @@ export function PostView({
   }, [isViewersSheetOpen, isMoodView, animationControls, startAnimation]);
 
 
-  // Regular Post view scrolling logic
+  // Effect to scroll to the initial post
   useEffect(() => {
     if (isMoodView) return;
 
     const container = scrollContainerRef.current;
     if (container) {
-      // Set initial scroll position without smooth scrolling
-      container.style.scrollBehavior = 'auto';
-      container.scrollTop = container.offsetHeight * currentIndex;
-      // Re-enable smooth scrolling for user interactions
-      setTimeout(() => {
-        if (container) container.style.scrollBehavior = 'smooth';
-      }, 0);
-
-      const handleScroll = () => {
-        const newIndex = Math.round(container.scrollTop / container.offsetHeight);
-        if (newIndex !== currentIndex) {
-          setCurrentIndex(newIndex);
-        }
-      };
-      
-      const onScroll = () => {
-        // A simple debounce or throttle could be added here if performance is an issue
-        handleScroll();
-      };
-
-      container.addEventListener('scroll', onScroll, { passive: true });
-      return () => container.removeEventListener('scroll', onScroll);
+      const postElement = container.children[initialIndex] as HTMLElement;
+      if (postElement) {
+        container.scrollTop = postElement.offsetTop;
+      }
     }
-  }, [currentIndex, isMoodView]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialIndex, isMoodView]);
 
 
   const handleDeleteClick = (id: string) => {
