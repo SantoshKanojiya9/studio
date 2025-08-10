@@ -209,7 +209,6 @@ export function PostView({
   const [isViewersSheetOpen, setIsViewersSheetOpen] = useState(false);
   const [isFetchingViewers, setIsFetchingViewers] = useState(false);
   
-  // No more local state for emojis, use props directly
   const { user } = useAuth();
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -248,12 +247,19 @@ export function PostView({
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
+        if (!isCurrentEmojiMood(currentEmojiState)?.is_viewed) {
+             recordMoodView(currentEmojiState.mood_id);
+             // We can optimistically update the state
+             const updatedEmojis = [...emojis];
+             const mood = updatedEmojis[currentIndex] as Mood;
+             mood.is_viewed = true;
+        }
         startAnimation();
     }
     return () => {
       animationControls.stop();
     }
-  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, animationControls]);
+  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, animationControls, emojis]);
 
   useEffect(() => {
     if (isMoodView) {
@@ -284,12 +290,17 @@ export function PostView({
   }, [currentIndex, isMoodView]);
 
   useEffect(() => {
-    if (isMoodView) return;
-    const container = scrollContainerRef.current;
-     if (container && !container.dataset.isScrolling) {
-      container.scrollTo({ top: container.offsetHeight * currentIndex, behavior: 'smooth' });
+    if (!isMoodView) {
+        const container = scrollContainerRef.current;
+        if (container) {
+            container.style.scrollBehavior = 'auto'; // Disable smooth scrolling for initial set
+            container.scrollTop = container.offsetHeight * initialIndex;
+            setTimeout(() => {
+                if(container) container.style.scrollBehavior = 'smooth';
+            }, 0);
+        }
     }
-  },[currentIndex, isMoodView]);
+}, [initialIndex, isMoodView]);
 
 
   const handleDeleteClick = (id: string) => {
@@ -552,7 +563,6 @@ export function PostView({
               ref={scrollContainerRef}
               className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
               onClick={(e) => {
-                    // Check if the click target or its parent is the feed post container itself, not its children
                     const target = e.target as HTMLElement;
                     if (target.dataset.isFeedPostContainer) {
                         onClose(emojis);
