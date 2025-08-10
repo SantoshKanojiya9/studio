@@ -36,7 +36,6 @@ import {
 import { setMood, getFeedPosts } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
-import { LoadingScreen } from '@/components/loading-screen';
 
 const LikerListSheet = lazy(() =>
   import('@/components/liker-list-sheet').then(mod => ({ default: mod.LikerListSheet }))
@@ -348,12 +347,17 @@ export default function MoodPage() {
     const loadInitialData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const [moodsData] = await Promise.all([
+            const [moodsData, postsData] = await Promise.all([
                 fetchMoods(),
-                (moodPageCache.feedPosts === null) ? fetchPosts(1, 5) : Promise.resolve()
+                (moodPageCache.feedPosts === null) ? fetchPosts(1, 5) : Promise.resolve(moodPageCache.feedPosts)
             ]);
             setMoods(moodsData);
             moodPageCache.moods = moodsData;
+            
+            if (postsData) {
+                setFeedPosts(postsData);
+                moodPageCache.feedPosts = postsData;
+            }
 
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
@@ -365,15 +369,7 @@ export default function MoodPage() {
     // Initial load from cache or server
     useEffect(() => {
         if (user) {
-            if (moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0) {
-                setFeedPosts(moodPageCache.feedPosts);
-                setMoods(moodPageCache.moods || []);
-                setPage(moodPageCache.page);
-                setHasMore(moodPageCache.hasMore);
-                setIsLoading(false);
-            } else {
-                loadInitialData();
-            }
+            loadInitialData();
         } else {
             setIsLoading(false);
         }
@@ -485,7 +481,11 @@ export default function MoodPage() {
   
   const renderContent = () => {
       if (isLoading) {
-          return <LoadingScreen />;
+          return (
+            <div className="flex h-full w-full flex-col items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          );
       }
 
       if (feedPosts.length > 0) {

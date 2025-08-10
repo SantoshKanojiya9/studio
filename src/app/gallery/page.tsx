@@ -34,7 +34,6 @@ import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
-import { LoadingScreen } from '@/components/loading-screen';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -448,7 +447,7 @@ function GalleryPageContent() {
     }
     
     const canViewContent = !profileUser?.is_private || supportStatus === 'approved' || isOwnProfile;
-    const showLoadingScreen = isLoading || isInitialPostsLoading;
+    const showLoadingScreen = isLoading || (canViewContent && isInitialPostsLoading);
 
     return (
         <>
@@ -465,7 +464,9 @@ function GalleryPageContent() {
                     <ProfileHeader />
                     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
                         {showLoadingScreen ? (
-                            <LoadingScreen />
+                            <div className="flex h-full w-full flex-col items-center justify-center">
+                                <Loader2 className="h-8 w-8 animate-spin" />
+                            </div>
                         ) : (
                         <>
                         <div className="p-4">

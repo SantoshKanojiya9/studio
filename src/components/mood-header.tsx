@@ -26,6 +26,7 @@ import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { deleteUserAccount } from '@/app/actions';
+import { motion } from 'framer-motion';
 
 const EdengramLogo = ({ className }: { className?: string }) => (
     <svg 

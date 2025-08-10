@@ -12,7 +12,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { LoadingScreen } from '@/components/loading-screen';
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -273,7 +272,7 @@ export default function NotificationsPage() {
 
       // Restore scroll position only if not loading initial data
       if (!isLoading && notificationsCache.scrollPosition > 0) {
-          scrollable.scrollTop = notificationsCache.scrollPosition;
+          scrollable.scrollTop = scrollable.scrollTop;
       }
 
       scrollable.addEventListener('scroll', handleScroll, { passive: true });
@@ -345,7 +344,9 @@ export default function NotificationsPage() {
       <NotificationHeader />
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         {isLoading ? (
-            <LoadingScreen />
+            <div className="flex h-full w-full flex-col items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
         ) : notifications.length > 0 ? (
             <>
                 {notifications.map(renderNotification)}
