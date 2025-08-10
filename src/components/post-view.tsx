@@ -275,7 +275,7 @@ export function PostView({
   const goToPrev = () => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex((prev) => prev + 1);
+      setCurrentIndex((prev) => prev - 1);
     }
   };
 
