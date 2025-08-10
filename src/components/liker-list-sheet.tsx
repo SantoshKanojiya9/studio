@@ -25,7 +25,7 @@ interface LikerListSheetProps {
     emojiId: string | undefined;
 }
 
-export function LikerListSheet({ open, onOpenChange, emojiId }: LikerListSheetProps) {
+function LikerListSheet({ open, onOpenChange, emojiId }: LikerListSheetProps) {
     const [likerList, setLikerList] = useState<Liker[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     
@@ -85,3 +85,5 @@ export function LikerListSheet({ open, onOpenChange, emojiId }: LikerListSheetPr
         </Sheet>
     )
 }
+
+export default LikerListSheet;

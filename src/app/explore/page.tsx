@@ -77,6 +77,7 @@ export default function ExplorePage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchPosts = useCallback(async (pageNum: number, limit = 12) => {
+      if (isFetchingMore) return;
       setIsFetchingMore(true);
       try {
           const newPosts = await getExplorePosts({ page: pageNum, limit });
@@ -104,13 +105,15 @@ export default function ExplorePage() {
       } finally {
           setIsFetchingMore(false);
       }
-  }, [toast]);
+  }, [toast, isFetchingMore]);
   
   // Initial data load effect
   useEffect(() => {
-    if (allEmojis.length === 0) {
+    if (allEmojis.length === 0 && hasMore) {
         setIsLoading(true);
         fetchPosts(1).finally(() => setIsLoading(false));
+    } else {
+        setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

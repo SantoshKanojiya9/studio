@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { PostView } from '@/components/post-view';
+import dynamic from 'next/dynamic';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
 
+const PostView = dynamic(() => 
+  import('@/components/post-view').then(mod => mod.PostView),
+  {
+    loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>,
+    ssr: false 
+  }
+);
+
+
 interface ProfileUser {
     id: string;
     name: string;
@@ -45,11 +54,6 @@ interface ProfileUser {
 interface GalleryEmoji extends EmojiState {
     like_count: number;
     is_liked: boolean;
-    user: {
-        id: string;
-        name: string;
-        picture: string;
-    };
 }
 
 const galleryCache: {
@@ -129,7 +133,7 @@ function GalleryPageContent() {
     }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
 
     const fetchPosts = useCallback(async (pageNum: number) => {
-        if (!viewingUserId) return;
+        if (!viewingUserId || isFetchingMore) return;
         setIsFetchingMore(true);
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
@@ -157,7 +161,7 @@ function GalleryPageContent() {
         } finally {
             setIsFetchingMore(false);
         }
-    }, [viewingUserId, toast]);
+    }, [viewingUserId, toast, isFetchingMore]);
 
 
     useEffect(() => {
@@ -177,13 +181,21 @@ function GalleryPageContent() {
         
         const canViewContent = !profileUser?.is_private || isOwnProfile || supportStatus === 'approved';
 
-        setIsLoading(true);
-        Promise.all([
-            fetchProfileInfo(),
-            (galleryCache[viewingUserId].posts.length === 0 && canViewContent) ? fetchPosts(1) : Promise.resolve()
-        ]).finally(() => setIsLoading(false));
+        const loadData = async () => {
+            setIsLoading(true);
+            await fetchProfileInfo();
+            // Re-check canViewContent with potentially updated profile info
+            const updatedCanView = !profileUser?.is_private || isOwnProfile || supportStatus === 'approved';
+            if (galleryCache[viewingUserId] && galleryCache[viewingUserId].posts.length === 0 && updatedCanView) {
+                await fetchPosts(1);
+            }
+            setIsLoading(false);
+        };
+        
+        loadData();
 
-    }, [viewingUserId, fetchProfileInfo, fetchPosts, isOwnProfile, supportStatus, profileUser?.is_private]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewingUserId, isOwnProfile, supportStatus]);
     
      // Infinite scroll observer
     useEffect(() => {

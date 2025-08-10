@@ -68,9 +68,15 @@ interface FeedPostType extends EmojiState {
 }
 
 // Store cache in a simple object. This will persist for the session.
-const moodPageCache = {
-    moods: null as Mood[] | null,
-    feedPosts: null as FeedPostType[] | null,
+const moodPageCache: {
+    moods: Mood[] | null;
+    feedPosts: FeedPostType[] | null;
+    page: number;
+    hasMore: boolean;
+    scrollPosition: number;
+} = {
+    moods: null,
+    feedPosts: null,
     page: 1,
     hasMore: true,
     scrollPosition: 0,
@@ -308,6 +314,7 @@ export default function MoodPage() {
     }, [user, supabase]);
 
     const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
+        if (isFetchingMore) return [];
         setIsFetchingMore(true);
         try {
             const newPosts = await getFeedPosts({ page: pageNum, limit });
@@ -336,14 +343,14 @@ export default function MoodPage() {
         } finally {
             setIsFetchingMore(false);
         }
-    }, [toast]);
+    }, [toast, isFetchingMore]);
 
     const loadInitialData = useCallback(async () => {
         setIsLoading(true);
         try {
             const [moodsData] = await Promise.all([
                 fetchMoods(),
-                fetchPosts(1, 5)
+                (moodPageCache.feedPosts === null) ? fetchPosts(1, 5) : Promise.resolve()
             ]);
             setMoods(moodsData);
             moodPageCache.moods = moodsData;
@@ -358,6 +365,10 @@ export default function MoodPage() {
     // Initial load from cache or server
     useEffect(() => {
         if (moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0) {
+            setFeedPosts(moodPageCache.feedPosts);
+            setMoods(moodPageCache.moods || []);
+            setPage(moodPageCache.page);
+            setHasMore(moodPageCache.hasMore);
             setIsLoading(false);
         } else {
             loadInitialData();
@@ -373,18 +384,16 @@ export default function MoodPage() {
             moodPageCache.scrollPosition = scrollable.scrollTop;
         };
 
-        scrollable.addEventListener('scroll', handleScroll);
+        scrollable.addEventListener('scroll', handleScroll, { passive: true });
+        
+        // Restore scroll position
+        if (moodPageCache.scrollPosition > 0) {
+            scrollable.scrollTop = moodPageCache.scrollPosition;
+        }
+
         return () => {
             scrollable.removeEventListener('scroll', handleScroll);
         };
-    }, []);
-    
-    // Restore scroll position
-    useEffect(() => {
-        const scrollable = scrollContainerRef.current;
-        if (scrollable && moodPageCache.scrollPosition > 0) {
-            scrollable.scrollTop = moodPageCache.scrollPosition;
-        }
     }, []);
 
     const observer = useRef<IntersectionObserver>();
@@ -397,9 +406,9 @@ export default function MoodPage() {
 
     useEffect(() => {
        const option = {
-         root: null,
-         rootMargin: '0px',
-         threshold: 1.0
+         root: scrollContainerRef.current,
+         rootMargin: '400px',
+         threshold: 0
        }
        observer.current = new IntersectionObserver(loadMoreCallback, option);
        if (loaderRef.current) observer.current.observe(loaderRef.current);
@@ -413,16 +422,19 @@ export default function MoodPage() {
 
     const handleRefresh = async () => {
         moodPageCache.feedPosts = null; // Clear cache to force reload
-        setFeedPosts([]); // clear posts on screen
-        setPage(1); // reset page count
+        moodPageCache.moods = null;
         moodPageCache.page = 1;
+        moodPageCache.hasMore = true;
+        setFeedPosts([]);
+        setMoods([]);
+        setPage(1);
+        setHasMore(true);
         await loadInitialData();
     }
     
     const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
     const handleSelectMood = (index: number) => {
-        // Assume mood actions are handled within PostView
         setSelectedMoodIndex(index);
     };
     
@@ -431,7 +443,7 @@ export default function MoodPage() {
     }, []);
 
     const handleOnCloseMood = (updatedMoods: Mood[]) => {
-        setMoods(updatedMoods); // Assume sorting happens within post view now
+        setMoods(updatedMoods);
         setSelectedMoodIndex(null);
     }
     
@@ -479,7 +491,7 @@ export default function MoodPage() {
             <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-4 p-4">
                 {!isLoading && (
-                    <Link href={userHasMood ? "/mood" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? () => handleSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) : undefined}>
+                    <Link href={userHasMood ? "#" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? (e) => { e.preventDefault(); handleSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) } : undefined}>
                         <StoryRing hasStory={userHasMood} isViewed={false}>
                              <Avatar className="h-16 w-16 border-2 border-background">
                                 <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />

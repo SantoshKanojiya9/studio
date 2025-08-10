@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, memo, lazy, Suspense } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
@@ -38,7 +38,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers } from '@/app/actions';
 import { LikeButton } from './like-button';
-import { LikerListSheet } from './liker-list-sheet';
+
+const LikerListSheet = lazy(() => import('./liker-list-sheet').then(mod => ({ default: mod.LikerListSheet })));
 
 interface Mood extends EmojiState {
     mood_id: number;
@@ -119,7 +120,7 @@ const PostContent = memo(({
                     <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
                     <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
-                <span className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</span>
+                <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
                 {user && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -188,7 +189,9 @@ const PostContent = memo(({
                     </p>
                 )}
             </div>
-             <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
+            <Suspense fallback={null}>
+             {showLikers && <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />}
+            </Suspense>
         </div>
     );
 });
@@ -235,7 +238,7 @@ export function PostView({
   const goToPrev = () => {
     if (currentIndex > 0) {
       setDirection(-1);
-      setCurrentIndex((prev) => prev - 1);
+      setCurrentIndex((prev) => prev + 1);
     }
   };
 
