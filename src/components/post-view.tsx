@@ -60,6 +60,11 @@ interface Viewer {
 interface PostViewEmoji extends EmojiState {
     like_count: number;
     is_liked: boolean;
+    user: {
+        id: string;
+        name: string;
+        picture: string;
+    };
 }
 
 interface PostViewProps {
@@ -377,7 +382,7 @@ export function PostView({
     return null;
   }
   
-  const postAuthor = isCurrentEmojiMood(currentEmojiState) ? currentEmojiState.mood_user : currentEmojiState.user;
+  const postAuthor = isCurrentEmojiMood(currentEmojiState) ? currentEmojiState.mood_user : (currentEmojiState as PostViewEmoji).user;
   let finalEmoji: EmojiState = { ...currentEmojiState };
   if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
     finalEmoji.shape = 'default';
@@ -607,5 +612,3 @@ export function PostView({
     </>
   );
 }
-
-    

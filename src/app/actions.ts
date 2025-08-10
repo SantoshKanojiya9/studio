@@ -618,7 +618,7 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     // Fetch posts for the specified user
     const { data: posts, error: postsError } = await supabase
         .from('emojis')
-        .select('*')
+        .select('*, user:users!inner(*)')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .range(from, to);

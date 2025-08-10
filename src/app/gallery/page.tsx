@@ -45,6 +45,11 @@ interface ProfileUser {
 interface GalleryEmoji extends EmojiState {
     like_count: number;
     is_liked: boolean;
+    user: {
+        id: string;
+        name: string;
+        picture: string;
+    };
 }
 
 const galleryCache: {
@@ -137,7 +142,7 @@ function GalleryPageContent() {
             setSavedEmojis(prev => {
                 const existingIds = new Set(prev.map(p => p.id));
                 const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-                const updatedPosts = [...prev, ...uniqueNewPosts];
+                const updatedPosts = [...prev, ...uniqueNewPosts] as GalleryEmoji[];
                 if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedPosts;
                 return updatedPosts;
             });
@@ -563,5 +568,3 @@ export default function GalleryPage() {
         </React.Suspense>
     );
 }
-
-    
