@@ -221,10 +221,6 @@ export async function supportUser(supportedId: string, isPrivate: boolean) {
         actor_id: user.id,
         type: isPrivate ? 'new_support_request' : 'new_supporter',
     });
-
-    revalidatePath(`/gallery?userId=${supportedId}`);
-    revalidatePath(`/gallery`);
-    revalidatePath(`/mood`); // Revalidate mood page to show new posts
 }
 
 export async function unsupportUser(supportedId: string) {
@@ -245,9 +241,6 @@ export async function unsupportUser(supportedId: string) {
         console.error('Error unsupporting user:', error);
         throw error;
     }
-    revalidatePath(`/gallery?userId=${supportedId}`);
-    revalidatePath(`/gallery`);
-    revalidatePath(`/mood`); // Revalidate mood page to hide posts
 }
 
 export async function respondToSupportRequest(supporterId: string, action: 'approve' | 'decline') {
