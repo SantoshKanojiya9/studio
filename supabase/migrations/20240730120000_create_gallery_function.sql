@@ -31,8 +31,7 @@ begin
     -- Posts (only if viewable)
     if can_view then
         posts := (
-            select json_agg(p_details)
-            from (
+            select json_agg(p) from (
                 select
                     e.id,
                     e.created_at,
@@ -52,18 +51,17 @@ begin
                     e.feature_offset_x,
                     e.feature_offset_y,
                     e.caption,
-                    coalesce(lc.like_count, 0) as like_count,
-                    case when lk.user_id is not null then true else false end as is_liked
-                from public.emojis e
-                left join (
-                    select emoji_id, count(*) as like_count
-                    from public.likes
-                    group by emoji_id
-                ) as lc on e.id = lc.emoji_id
-                left join public.likes lk on e.id = lk.emoji_id and lk.user_id = p_current_user_id
-                where e.user_id = p_user_id
-                order by e.created_at desc
-            ) as p_details
+                    (select count(*) from public.likes l where l.emoji_id = e.id) as like_count,
+                    case when l.user_id is not null then true else false end as is_liked
+                from 
+                    public.emojis e
+                left join 
+                    public.likes l on e.id = l.emoji_id and l.user_id = p_current_user_id
+                where 
+                    e.user_id = p_user_id
+                order by 
+                    e.created_at desc
+            ) p
         );
     else
         posts := '[]'::json;
