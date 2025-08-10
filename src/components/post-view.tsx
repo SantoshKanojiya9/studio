@@ -39,7 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
 
-const LikerListSheet = lazy(() => import('./liker-list-sheet').then(mod => ({ default: mod.LikerListSheet })));
+const LikerListSheet = lazy(() => import('./liker-list-sheet'));
 
 interface Mood extends EmojiState {
     mood_id: number;
@@ -253,6 +253,12 @@ export function PostView({
   
   const currentEmojiState = emojis[currentIndex];
 
+  useEffect(() => {
+    if (!currentEmojiState) {
+        onClose(emojis);
+    }
+  }, [currentEmojiState, emojis, onClose]);
+
   const isCurrentEmojiMood = (emoji: PostViewEmoji | Mood): emoji is Mood => {
     return 'mood_id' in emoji;
   }
@@ -395,7 +401,6 @@ export function PostView({
   const featureOffsetY = useMotionValue(0);
   
   if (!currentEmojiState) {
-    onClose(emojis);
     return null;
   }
   
