@@ -30,32 +30,41 @@ begin
 
     -- Posts (only if viewable)
     if can_view then
-        posts := (select json_agg(p) from (
-            select
-                e.id,
-                e.created_at,
-                e.user_id,
-                e.model,
-                e.expression,
-                e.background_color,
-                e.emoji_color,
-                e.show_sunglasses,
-                e.show_mustache,
-                e.selected_filter,
-                e.animation_type,
-                e.shape,
-                e.eye_style,
-                e.mouth_style,
-                e.eyebrow_style,
-                e.feature_offset_x,
-                e.feature_offset_y,
-                e.caption,
-                (select count(*) from public.likes l where l.emoji_id = e.id) as like_count,
-                exists(select 1 from public.likes l where l.emoji_id = e.id and l.user_id = p_current_user_id) as is_liked
-            from public.emojis e
-            where e.user_id = p_user_id
-            order by e.created_at desc
-        ) p);
+        posts := (
+            select json_agg(p_details)
+            from (
+                select
+                    e.id,
+                    e.created_at,
+                    e.user_id,
+                    e.model,
+                    e.expression,
+                    e.background_color,
+                    e.emoji_color,
+                    e.show_sunglasses,
+                    e.show_mustache,
+                    e.selected_filter,
+                    e.animation_type,
+                    e.shape,
+                    e.eye_style,
+                    e.mouth_style,
+                    e.eyebrow_style,
+                    e.feature_offset_x,
+                    e.feature_offset_y,
+                    e.caption,
+                    coalesce(lc.like_count, 0) as like_count,
+                    case when lk.user_id is not null then true else false end as is_liked
+                from public.emojis e
+                left join (
+                    select emoji_id, count(*) as like_count
+                    from public.likes
+                    group by emoji_id
+                ) as lc on e.id = lc.emoji_id
+                left join public.likes lk on e.id = lk.emoji_id and lk.user_id = p_current_user_id
+                where e.user_id = p_user_id
+                order by e.created_at desc
+            ) as p_details
+        );
     else
         posts := '[]'::json;
     end if;
