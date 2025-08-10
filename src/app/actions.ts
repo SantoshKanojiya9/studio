@@ -355,24 +355,17 @@ export async function recordMoodView(moodId: number) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return; // Don't record views for non-users
-
-    // Don't record viewing your own mood
-    const { data: mood, error: moodError } = await supabase
-        .from('moods')
-        .select('user_id')
-        .eq('id', moodId)
-        .single();
-    
-    if (moodError || !mood || mood.user_id === user.id) {
-        return;
+    if (!user) {
+        return; // Don't record views for non-logged-in users
     }
 
+    // Allow users to record a view for their own mood.
     const { error } = await supabase
         .from('mood_views')
         .insert({ mood_id: moodId, viewer_id: user.id });
 
-    if (error && error.code !== '23505') { // 23505 is unique violation, ignore it
+    // Ignore unique violation errors (code 23505), as it just means the user has already viewed this mood.
+    if (error && error.code !== '23505') {
         console.error('Error recording mood view:', error);
     }
 }
@@ -696,6 +689,8 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     
     return data as unknown as EmojiState[];
 }
+
+    
 
     
 
