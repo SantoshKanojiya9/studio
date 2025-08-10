@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useTransform, useSpring, animate, MotionValue } from 'framer-motion';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
-export const RslimeFace = ({ 
+export const RimuruFace = ({ 
     expression: initialExpression, 
     color,
     setColor,
