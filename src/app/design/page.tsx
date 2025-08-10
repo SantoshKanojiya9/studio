@@ -71,9 +71,7 @@ const DesignPageContent = () => {
   const { user, supabase } = useAuth();
   const { toast } = useToast();
   
-  const emojiId = searchParams.get('emojiId');
-  const [id, setId] = useState<string | null>(emojiId);
-  const [isLoading, setIsLoading] = useState(!!emojiId);
+  const [id, setId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   
@@ -105,57 +103,9 @@ const DesignPageContent = () => {
   const feature_offset_y = useMotionValue(0);
 
   useEffect(() => {
-    const loadEmojiData = async () => {
-        if (!emojiId || !supabase) return;
-
-        setIsLoading(true);
-        try {
-            const { data, error } = await supabase
-                .from('emojis')
-                .select('*')
-                .eq('id', emojiId)
-                .single();
-
-            if (error) throw error;
-            if (data) {
-                // Load data into state
-                setId(data.id);
-                setModel(data.model);
-                setExpression(data.expression);
-                setBackgroundColor(data.background_color);
-                setEmojiColor(data.emoji_color);
-                setShowSunglasses(data.show_sunglasses);
-                setShowMustache(data.show_mustache);
-                setSelectedFilter(data.selected_filter);
-                setAnimationType(data.animation_type);
-                setShape(data.shape);
-                setEyeStyle(data.eye_style);
-                setMouthStyle(data.mouth_style);
-                setEyebrowStyle(data.eyebrow_style);
-                feature_offset_x.set(data.feature_offset_x);
-                feature_offset_y.set(data.feature_offset_y);
-                setCaption(data.caption || '');
-            }
-        } catch (error: any) {
-            console.error('Failed to load emoji data:', error);
-            toast({
-                title: 'Error loading creation',
-                description: 'Could not load the specified emoji. Starting a new one.',
-                variant: 'destructive',
-            });
-            handleReset(); // Reset if loading fails
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    if (emojiId) {
-        loadEmojiData();
-    } else {
-        handleReset();
-    }
+    handleReset();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [emojiId, supabase]);
+  }, []);
 
   
   const handleReset = () => {
@@ -654,14 +604,6 @@ const DesignPageContent = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-        <div className="flex h-full w-full flex-col items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    )
-  }
-
   const renderModel = () => {
     switch(model) {
         case 'emoji':
@@ -826,7 +768,7 @@ const DesignPageContent = () => {
 
 export default function DesignPage() {
     return (
-      <React.Suspense fallback={<div>Loading...</div>}>
+      <React.Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
         <DesignPageContent />
       </React.Suspense>
     );
