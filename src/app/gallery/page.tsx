@@ -118,7 +118,7 @@ function GalleryPageContent() {
                     if (!galleryCache[viewingUserId]) {
                         const { data: postData, error: postError } = await supabase
                             .from('emojis')
-                            .select('*')
+                            .select('*, user:users!inner(*)')
                             .eq('user_id', viewingUserId)
                             .order('created_at', { ascending: false });
                         
