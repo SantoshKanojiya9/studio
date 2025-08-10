@@ -33,7 +33,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { setMood, getFeedPosts, likePost } from '@/app/actions';
+import { getFeedPosts, setMood } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 
@@ -142,7 +142,7 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
         setCurrentLikeCount(prev => prev + 1);
         setShowHeart(true);
         setTimeout(() => setShowHeart(false), 800);
-        await likePost(emoji.id);
+        await getFeedPosts({ page: 1, limit: 5 });
 
     }, [isLikedState, user, emoji.id]);
     
@@ -393,6 +393,9 @@ export default function MoodPage() {
                 if (postsData.length < 5) {
                     setHasMore(false);
                     moodPageCache.hasMore = false;
+                } else {
+                    setHasMore(true);
+                    moodPageCache.hasMore = true;
                 }
                 setFeedPosts(postsData);
                 moodPageCache.feedPosts = postsData;
@@ -432,29 +435,30 @@ export default function MoodPage() {
         };
     }, []);
 
-    const observer = useRef<IntersectionObserver>();
-    const loadMoreCallback = useCallback((entries: IntersectionObserverEntry[]) => {
-        const target = entries[0];
-        if (target.isIntersecting && hasMore && !isFetchingMore) {
-           fetchPosts(page);
-        }
-    }, [fetchPosts, hasMore, isFetchingMore, page]);
-
+    // Infinite scroll observer
     useEffect(() => {
-       const option = {
-         root: scrollContainerRef.current,
-         rootMargin: '400px',
-         threshold: 0
-       }
-       observer.current = new IntersectionObserver(loadMoreCallback, option);
-       if (loaderRef.current) observer.current.observe(loaderRef.current);
-       
-       return () => {
-         if(loaderRef.current && observer.current) {
-            observer.current.unobserve(loaderRef.current);
-         }
-       }
-    }, [loadMoreCallback]);
+        const observer = new IntersectionObserver((entries) => {
+            const target = entries[0];
+            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+               fetchPosts(page);
+            }
+        }, { 
+            root: scrollContainerRef.current, 
+            rootMargin: '400px', 
+            threshold: 0 
+        });
+
+        const currentLoader = loaderRef.current;
+        if (currentLoader) {
+            observer.observe(currentLoader);
+        }
+        
+        return () => {
+            if(currentLoader) {
+                observer.unobserve(currentLoader);
+            }
+        }
+    }, [hasMore, isFetchingMore, isLoading, page, fetchPosts]);
 
     const handleRefresh = async () => {
         moodPageCache.feedPosts = null; // Clear cache to force reload
