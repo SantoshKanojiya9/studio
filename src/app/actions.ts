@@ -162,14 +162,18 @@ export async function getSupportingCount(userId: string) {
 
 type UserWithSupportStatus = { id: string; name: string; picture: string; is_private: boolean; support_status: 'approved' | 'pending' | null; };
 
-export async function getSupporters(userId: string): Promise<UserWithSupportStatus[]> {
+export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    const offset = (page - 1) * limit;
 
     const { data, error } = await supabase
         .rpc('get_supporters_with_status', {
             p_user_id: userId,
             p_current_user_id: currentUser?.id,
+            p_limit: limit,
+            p_offset: offset
         });
 
     if (error) {
@@ -179,14 +183,18 @@ export async function getSupporters(userId: string): Promise<UserWithSupportStat
     return data as UserWithSupportStatus[];
 }
 
-export async function getSupporting(userId: string): Promise<UserWithSupportStatus[]> {
+export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    const offset = (page - 1) * limit;
 
     const { data, error } = await supabase
         .rpc('get_supporting_with_status', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id
+            p_current_user_id: currentUser?.id,
+            p_limit: limit,
+            p_offset: offset
         });
 
     if (error) {
