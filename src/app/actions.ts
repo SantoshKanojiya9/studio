@@ -527,7 +527,7 @@ export async function getNotifications() {
     return data;
 }
 
-// --- Feed Actions ---
+// --- Feed & Gallery Actions ---
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -602,4 +602,58 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     }));
 
     return feedPosts as (EmojiState & { like_count: number; is_liked: boolean })[];
+}
+
+export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId: string, page: number, limit: number }) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    // Fetch posts for the specified user
+    const { data: posts, error: postsError } = await supabase
+        .from('emojis')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (postsError) {
+        console.error('Error fetching gallery posts:', postsError);
+        throw postsError;
+    }
+     if (!posts || posts.length === 0) {
+        return [];
+    }
+
+    const postIds = posts.map(p => p.id);
+    
+    // Get like counts
+    const { data: likeCountsData, error: likeCountsError } = await supabase
+        .rpc('get_like_counts_for_posts', { post_ids: postIds });
+    
+    if (likeCountsError) throw likeCountsError;
+    const likeCountMap = new Map(likeCountsData?.map(l => [l.emoji_id, l.like_count]) || []);
+
+    // Check which posts the current user has liked
+    let userLikedSet = new Set();
+    if (currentUser) {
+        const { data: userLikes, error: userLikesError } = await supabase
+            .from('likes')
+            .select('emoji_id')
+            .eq('user_id', currentUser.id)
+            .in('emoji_id', postIds);
+        if (userLikesError) throw userLikesError;
+        userLikedSet = new Set(userLikes?.map(l => l.emoji_id) || []);
+    }
+
+    // Combine
+    const galleryPosts = posts.map(post => ({
+        ...post,
+        like_count: likeCountMap.get(post.id) || 0,
+        is_liked: userLikedSet.has(post.id),
+    }));
+
+    return galleryPosts as (EmojiState & { like_count: number; is_liked: boolean })[];
 }

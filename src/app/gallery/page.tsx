@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount, getGalleryPosts } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -56,9 +56,27 @@ interface GalleryEmoji extends EmojiState {
     is_liked: boolean;
 }
 
+const galleryCache: Record<string, {
+    posts: GalleryEmoji[],
+    page: number,
+    hasMore: boolean,
+    scrollPosition: number
+}> = {};
+
+
 function GalleryPageContent() {
-    const [savedEmojis, setSavedEmojis] = React.useState<EmojiState[]>([]);
+    const { user: authUser, supabase } = useAuth();
+    const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const userId = searchParams.get('userId');
+
+    const isOwnProfile = !userId || (authUser && userId === authUser.id);
+    const viewingUserId = isOwnProfile ? authUser?.id : userId;
+    const cacheKey = viewingUserId || 'no-user';
+
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
+    const [savedEmojis, setSavedEmojis] = React.useState<GalleryEmoji[]>(galleryCache[cacheKey]?.posts || []);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
@@ -67,40 +85,55 @@ function GalleryPageContent() {
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [isSupportLoading, setIsSupportLoading] = React.useState(false);
     const [hasMood, setHasMood] = React.useState(false);
-    
-    const { user: authUser, supabase } = useAuth();
-    const { toast } = useToast();
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const userId = searchParams.get('userId');
+    const [postCount, setPostCount] = React.useState(0);
+
+    const [page, setPage] = React.useState(galleryCache[cacheKey]?.page || 1);
+    const [hasMore, setHasMore] = React.useState(galleryCache[cacheKey]?.hasMore ?? true);
+    const [isFetchingMore, setIsFetchingMore] = React.useState(false);
 
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
     const [sheetContent, setSheetContent] = React.useState<'supporters' | 'supporting' | null>(null);
-
-    const isOwnProfile = !userId || (authUser && userId === authUser.id);
-    const viewingUserId = isOwnProfile ? authUser?.id : userId;
     
-    const fetchSupportData = React.useCallback(async () => {
+    const loaderRef = React.useRef(null);
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+    
+    // Fetch posts with pagination
+    const fetchPosts = React.useCallback(async (pageNum: number, limit = 9) => {
         if (!viewingUserId) return;
-        
+        setIsFetchingMore(true);
         try {
-            // No need to check authUser here, as some data can be public
-            if (!isOwnProfile && authUser) {
-                const status = await getSupportStatus(authUser.id, viewingUserId);
-                setSupportStatus(status);
+            const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit });
+            
+            if (newPosts.length < limit) {
+                setHasMore(false);
+                if (galleryCache[cacheKey]) galleryCache[cacheKey].hasMore = false;
             }
-            const supporters = await getSupporterCount(viewingUserId);
-            const following = await getSupportingCount(viewingUserId);
-            setSupporterCount(supporters);
-            setSupportingCount(following);
-        } catch (error: any) {
-            console.error("Failed to refresh support data", error);
-        }
-    }, [viewingUserId, authUser, isOwnProfile]);
 
+            setSavedEmojis(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+                const updatedPosts = [...prev, ...uniqueNewPosts];
+                if(galleryCache[cacheKey]) galleryCache[cacheKey].posts = updatedPosts;
+                return updatedPosts;
+            });
+
+            const nextPage = pageNum + 1;
+            setPage(nextPage);
+            if (galleryCache[cacheKey]) galleryCache[cacheKey].page = nextPage;
+
+        } catch (error: any) {
+            console.error("Failed to fetch gallery posts:", error);
+            toast({ title: "Failed to load posts", description: error.message, variant: "destructive" });
+        } finally {
+            setIsFetchingMore(false);
+        }
+    }, [viewingUserId, toast, cacheKey]);
+
+
+    // Initial data load effect
     React.useEffect(() => {
-        const fetchProfileData = async () => {
+        const fetchInitialData = async () => {
             if (!viewingUserId) {
                 setIsLoading(false);
                 return;
@@ -108,98 +141,106 @@ function GalleryPageContent() {
 
             setIsLoading(true);
             try {
-                // Fetch user profile info
+                // Initialize cache for this user if it doesn't exist
+                if (!galleryCache[cacheKey]) {
+                    galleryCache[cacheKey] = {
+                        posts: [],
+                        page: 1,
+                        hasMore: true,
+                        scrollPosition: 0
+                    };
+                }
+
+                // Fetch user profile info, counts, and mood status in parallel
                 const { data: userProfile, error: userError } = await supabase
                     .from('users')
                     .select('id, name, picture, is_private')
                     .eq('id', viewingUserId)
                     .single();
-                
-                if (userError || !userProfile) {
-                     throw new Error(userError?.message || "User profile not found.");
-                }
+
+                if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
                 
                 setProfileUser(userProfile as ProfileUser);
 
-                // Fetch support status and counts
-                await fetchSupportData();
-                
-                // Determine if we can view the content
-                const isApproved = supportStatus === 'approved';
-                const canViewContent = !userProfile.is_private || isOwnProfile || isApproved;
+                // Fetch counts and status
+                const [supporters, following, status, moodResult, postCountResult] = await Promise.all([
+                    getSupporterCount(viewingUserId),
+                    getSupportingCount(viewingUserId),
+                    !isOwnProfile && authUser ? getSupportStatus(authUser.id, viewingUserId) : Promise.resolve(null),
+                    supabase.from('moods').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+                    supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
+                ]);
+
+                setSupporterCount(supporters);
+                setSupportingCount(following);
+                setSupportStatus(status);
+                setHasMood((moodResult.count ?? 0) > 0);
+                setPostCount(postCountResult.count ?? 0);
+
+                const canViewContent = !userProfile.is_private || isOwnProfile || status === 'approved';
 
                 if (canViewContent) {
-                    // Fetch user's emoji posts
-                    const { data: emojiData, error: emojiError } = await supabase
-                        .from('emojis')
-                        .select('*')
-                        .eq('user_id', viewingUserId)
-                        .order('created_at', { ascending: false });
-
-                    if (emojiError) throw emojiError;
-                    
-                    setSavedEmojis(emojiData as unknown as EmojiState[]);
+                    if (savedEmojis.length === 0) {
+                        fetchPosts(1);
+                    }
                 } else {
-                    setSavedEmojis([]); // Clear posts if not viewable
+                    setSavedEmojis([]);
                 }
-                
-                // Check if user has a mood
-                const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                const { count: moodCount, error: moodError } = await supabase
-                    .from('moods')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', viewingUserId)
-                    .gte('created_at', twentyFourHoursAgo);
-                
-                if (!moodError) {
-                    setHasMood((moodCount ?? 0) > 0);
-                }
-
-
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
-                toast({
-                    title: "Could not load profile",
-                    description: error.message,
-                    variant: 'destructive',
-                })
-                if (!isOwnProfile) {
-                    router.push('/explore');
-                }
+                toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
+                if (!isOwnProfile) router.push('/explore');
             } finally {
                 setIsLoading(false);
             }
         };
-        
-        if (viewingUserId) {
-            fetchProfileData();
-        } else {
-            setIsLoading(false);
+
+        fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewingUserId, supabase]);
+
+    // Infinite scroll observer
+    const observer = React.useRef<IntersectionObserver>();
+    const loadMoreCallback = React.useCallback((entries: IntersectionObserverEntry[]) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+           fetchPosts(page);
         }
+    }, [fetchPosts, hasMore, isFetchingMore, isLoading, page]);
 
-    }, [viewingUserId, toast, isOwnProfile, router, fetchSupportData, supabase, supportStatus]);
-
-    // Real-time listener for support counts
     React.useEffect(() => {
-        if (!viewingUserId) return;
+       const option = { root: null, rootMargin: '200px', threshold: 0 };
+       observer.current = new IntersectionObserver(loadMoreCallback, option);
+       if (loaderRef.current) observer.current.observe(loaderRef.current);
+       
+       return () => {
+         if(loaderRef.current && observer.current) {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            observer.current.unobserve(loaderRef.current);
+         }
+       }
+    }, [loadMoreCallback]);
 
-        const channel = supabase
-            .channel(`realtime-supports:${viewingUserId}`)
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'supports',
-                filter: `or(supporter_id.eq.${viewingUserId},supported_id.eq.${viewingUserId})`
-            },
-            () => {
-                fetchSupportData();
-            })
-            .subscribe();
+    // Save and restore scroll position
+    React.useEffect(() => {
+        const scrollable = scrollContainerRef.current;
+        if (!scrollable) return;
 
-        return () => {
-            supabase.removeChannel(channel);
+        const handleScroll = () => {
+            if (galleryCache[cacheKey]) {
+                galleryCache[cacheKey].scrollPosition = scrollable.scrollTop;
+            }
+        };
+
+        if (galleryCache[cacheKey]?.scrollPosition > 0) {
+            scrollable.scrollTop = galleryCache[cacheKey].scrollPosition;
         }
-    }, [viewingUserId, supabase, fetchSupportData]);
+
+        scrollable.addEventListener('scroll', handleScroll);
+        return () => {
+            scrollable.removeEventListener('scroll', handleScroll);
+        };
+    }, [cacheKey]);
 
 
     const handleDelete = async (emojiId: string) => {
@@ -210,6 +251,8 @@ function GalleryPageContent() {
 
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
+            if (galleryCache[cacheKey]) galleryCache[cacheKey].posts = updatedEmojis;
+
             setSelectedEmojiId(null);
             toast({
                 title: 'Post deleted',
@@ -331,17 +374,6 @@ function GalleryPageContent() {
         }
     };
     
-    if (isLoading) {
-        return (
-             <div className="flex h-full w-full flex-col">
-                <div className="flex-1 overflow-y-auto">
-                    <div className="flex h-full items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                </div>
-            </div>
-        )
-    }
 
     const ProfileHeader = () => (
         <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
@@ -408,7 +440,7 @@ function GalleryPageContent() {
             <div className="flex h-full w-full flex-col overflow-x-hidden">
             {selectedEmojiId && selectedEmojiIndex > -1 ? (
                     <PostView 
-                        emojis={savedEmojis as GalleryEmoji[]}
+                        emojis={savedEmojis}
                         initialIndex={selectedEmojiIndex}
                         onClose={() => setSelectedEmojiId(null)}
                         onDelete={isOwnProfile ? handleDelete : undefined}
@@ -416,7 +448,13 @@ function GalleryPageContent() {
             ) : (
                 <>
                     <ProfileHeader />
-                    <div className="flex-1 overflow-y-auto no-scrollbar">
+                    <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
+                        {isLoading ? (
+                            <div className="flex h-full items-center justify-center">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                        ) : (
+                        <>
                         <div className="p-4">
                              <div className="flex items-center gap-4">
                                 <StoryRing hasStory={hasMood}>
@@ -427,7 +465,7 @@ function GalleryPageContent() {
                                 </StoryRing>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{savedEmojis.length}</p>
+                                        <p className="font-bold text-lg">{postCount}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <button className="text-center" onClick={() => canViewContent && setSheetContent('supporters')}>
@@ -493,7 +531,10 @@ function GalleryPageContent() {
                                     <p>Support this user to see their posts.</p>
                                 </div>
                             )}
+                             {hasMore && canViewContent && <div ref={loaderRef} className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin"/></div>}
                         </div>
+                        </>
+                        )}
                     </div>
                 </>
             )}

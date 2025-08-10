@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { motion, useMotionValue } from 'framer-motion';
 import React from 'react';
 
-const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
+const MiniFace = React.memo(({ emoji }: { emoji: EmojiState }) => {
     
     const containerStyle: React.CSSProperties = {
         backgroundColor: emoji.background_color,
@@ -97,9 +97,10 @@ const MiniFace = ({ emoji }: { emoji: EmojiState }) => {
             </motion.div>
         </div>
     );
-};
+});
+MiniFace.displayName = 'MiniFace';
 
-export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
+export const GalleryThumbnail = React.memo(({ emoji, onSelect }: { emoji: EmojiState; onSelect: () => void; }) => {
     return (
         <div 
             className="relative group aspect-square cursor-pointer overflow-hidden rounded-md" 
@@ -114,8 +115,5 @@ export const GalleryThumbnail = ({ emoji, onSelect }: { emoji: EmojiState; onSel
             <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
     );
-};
-
-
-
-    
+});
+GalleryThumbnail.displayName = 'GalleryThumbnail';
