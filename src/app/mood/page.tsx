@@ -364,16 +364,21 @@ export default function MoodPage() {
     
     // Initial load from cache or server
     useEffect(() => {
-        if (moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0) {
-            setFeedPosts(moodPageCache.feedPosts);
-            setMoods(moodPageCache.moods || []);
-            setPage(moodPageCache.page);
-            setHasMore(moodPageCache.hasMore);
-            setIsLoading(false);
+        if (user) {
+            if (moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0) {
+                setFeedPosts(moodPageCache.feedPosts);
+                setMoods(moodPageCache.moods || []);
+                setPage(moodPageCache.page);
+                setHasMore(moodPageCache.hasMore);
+                setIsLoading(false);
+            } else {
+                loadInitialData();
+            }
         } else {
-            loadInitialData();
+            setIsLoading(false);
         }
-    }, [loadInitialData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
     
     // Save scroll position
     useEffect(() => {
