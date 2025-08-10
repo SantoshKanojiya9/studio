@@ -148,13 +148,13 @@ export const RimuruFace = ({
   };
 
   const mouthVariants = {
-    love:    { d: "M 65,82 C 75,87 85,87 95,82" },
-    happy:   { d: "M 75,85 C 80,95 90,95 95,85" },
-    angry:   { d: "M 65,85 L 95,85" },
-    sad:     { d: "M 70,90 L 90,90" },
-    surprised: { d: "M 70, 82 A 10 10 0 0 1 90, 82 A 10 10 0 0 1 70 82 Z" },
-    neutral: { d: "M 75,85 L 85,85" },
-    scared: { d: "M 65, 90 C 75,80 85,80 95,90" },
+    love:    { d: "M 60,82 C 70,87 80,87 90,82" },
+    happy:   { d: "M 70,85 C 75,95 85,95 90,85" },
+    angry:   { d: "M 60,85 L 90,85" },
+    sad:     { d: "M 65,90 L 85,90" },
+    surprised: { d: "M 65, 82 A 10 10 0 0 1 85, 82 A 10 10 0 0 1 65 82 Z" },
+    neutral: { d: "M 70,85 L 80,85" },
+    scared: { d: "M 60, 90 C 70,80 80,80 90,90" },
   };
   
   const blushVariants = {
