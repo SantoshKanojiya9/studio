@@ -93,6 +93,7 @@ function GalleryPageContent() {
     const [page, setPage] = useState(viewingUserId ? galleryCache[viewingUserId]?.page || 1 : 1);
     const [hasMore, setHasMore] = useState(viewingUserId ? galleryCache[viewingUserId]?.hasMore ?? true : true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [isInitialPostsLoading, setIsInitialPostsLoading] = useState(true);
 
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
@@ -104,12 +105,9 @@ function GalleryPageContent() {
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
         
-        // This part can show a loader for the whole page initially
-        const profileWasLoading = !profileUser;
-        if (profileWasLoading) setIsLoading(true);
+        setIsLoading(true);
 
         try {
-            // Fetch primary user data and counts first
             const { data: userProfile, error: userError } = await supabase
                 .from('users')
                 .select('id, name, picture, is_private')
@@ -131,10 +129,6 @@ function GalleryPageContent() {
             setHasMood((moodResult.count ?? 0) > 0);
             setPostCount(postCountResult.count ?? 0);
             
-            // Now that primary data is loaded, content can be shown
-            if (profileWasLoading) setIsLoading(false); 
-
-            // Fetch support status separately and only show a loader on the button
             if (!isOwnProfile && authUser) {
                 setIsSupportLoading(true);
                 getSupportStatus(authUser.id, viewingUserId)
@@ -144,23 +138,31 @@ function GalleryPageContent() {
                 setIsSupportLoading(false);
             }
             
-            // After all profile info is available, fetch posts if needed
-            const canView = !userProfile.is_private || isOwnProfile || supportStatus === 'approved';
-             if (galleryCache[viewingUserId] && galleryCache[viewingUserId].posts.length === 0 && canView) {
-                await fetchPosts(1);
+            const canView = !userProfile.is_private || isOwnProfile || (await getSupportStatus(authUser?.id ?? '', viewingUserId)) === 'approved';
+             if (canView) {
+                await fetchPosts(1, true); // This will set isInitialPostsLoading to false
+            } else {
+                setIsInitialPostsLoading(false);
             }
 
         } catch (error: any) {
             console.error("Failed to load profile info:", error);
             toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
-            if (profileWasLoading) setIsLoading(false);
+             setIsInitialPostsLoading(false);
+        } finally {
+            setIsLoading(false);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
 
-    const fetchPosts = useCallback(async (pageNum: number) => {
+    const fetchPosts = useCallback(async (pageNum: number, isInitial = false) => {
         if (!viewingUserId || isFetchingMore) return;
+        
+        if (isInitial) {
+            setIsInitialPostsLoading(true);
+        }
         setIsFetchingMore(true);
+
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
 
@@ -186,6 +188,9 @@ function GalleryPageContent() {
             toast({ title: "Failed to load posts", description: error.message, variant: 'destructive' });
         } finally {
             setIsFetchingMore(false);
+            if (isInitial) {
+                setIsInitialPostsLoading(false);
+            }
         }
     }, [viewingUserId, toast, isFetchingMore]);
 
@@ -193,6 +198,7 @@ function GalleryPageContent() {
     useEffect(() => {
         if (!viewingUserId) {
             setIsLoading(false);
+            setIsInitialPostsLoading(false);
             return;
         }
 
@@ -442,6 +448,7 @@ function GalleryPageContent() {
     }
     
     const canViewContent = !profileUser?.is_private || supportStatus === 'approved' || isOwnProfile;
+    const showLoadingScreen = isLoading || isInitialPostsLoading;
 
     return (
         <>
@@ -457,7 +464,7 @@ function GalleryPageContent() {
                 <>
                     <ProfileHeader />
                     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
-                        {isLoading ? (
+                        {showLoadingScreen ? (
                             <LoadingScreen />
                         ) : (
                         <>
