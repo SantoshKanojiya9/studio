@@ -4,8 +4,6 @@
 import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import NProgress from 'nprogress';
-import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
-
 
 export function TopLoader() {
   const pathname = usePathname();
@@ -15,12 +13,9 @@ export function TopLoader() {
     NProgress.done();
   }, [pathname, searchParams]);
 
-  return (
-    <ProgressBar
-        height="3px"
-        color="#8A2BE2"
-        options={{ showSpinner: false }}
-        shallowRouting
-      />
-  );
+  // This component will be replaced with a more robust solution that uses router events
+  // if this simple approach is not sufficient. For now, it just ensures NProgress
+  // is stopped on navigation.
+
+  return null; // This component doesn't render anything itself
 }
