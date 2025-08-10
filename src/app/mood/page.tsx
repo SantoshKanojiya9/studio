@@ -341,7 +341,7 @@ export default function MoodPage() {
     }, [user, supabase]);
 
     const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
-        if (isFetchingMore) return [];
+        if (isFetchingMore) return;
         setIsFetchingMore(true);
         try {
             const newPosts = await getFeedPosts({ page: pageNum, limit });
@@ -362,11 +362,9 @@ export default function MoodPage() {
             const nextPage = pageNum + 1;
             setPage(nextPage);
             moodPageCache.page = nextPage;
-            return newPosts;
         } catch (error: any) {
             console.error("Failed to fetch posts:", error);
             toast({ title: "Failed to load more posts", description: error.message, variant: "destructive" });
-            return [];
         } finally {
             setIsFetchingMore(false);
         }
@@ -379,24 +377,33 @@ export default function MoodPage() {
         }
         setIsLoading(true);
         try {
+            const postsDataPromise = (moodPageCache.feedPosts === null)
+                ? getFeedPosts({ page: 1, limit: 5 })
+                : Promise.resolve(moodPageCache.feedPosts);
+
             const [moodsData, postsData] = await Promise.all([
                 fetchMoods(),
-                (moodPageCache.feedPosts === null) ? fetchPosts(1, 5) : Promise.resolve(moodPageCache.feedPosts)
+                postsDataPromise
             ]);
+            
             setMoods(moodsData);
             moodPageCache.moods = moodsData;
             
             if (postsData) {
+                if (postsData.length < 5) {
+                    setHasMore(false);
+                    moodPageCache.hasMore = false;
+                }
                 setFeedPosts(postsData);
                 moodPageCache.feedPosts = postsData;
             }
-
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
+            setHasMore(false); // Stop trying to load more on error
         } finally {
             setIsLoading(false);
         }
-    }, [fetchMoods, fetchPosts, toast, user]);
+    }, [fetchMoods, toast, user]);
     
     // Initial load from cache or server
     useEffect(() => {
