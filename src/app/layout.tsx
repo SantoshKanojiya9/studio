@@ -34,8 +34,8 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <AuthProvider>
+          <TopLoader />
           <React.Suspense>
-            <TopLoader />
             <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
               <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
               {showBottomBar && <BottomBar />}
