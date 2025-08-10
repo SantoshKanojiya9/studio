@@ -608,7 +608,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         console.error('Error fetching user likes:', userLikesError);
         throw userLikesError;
     }
-    const userLikedSet = new Set(userLikes?.map(l => l.id) || []);
+    const userLikedSet = new Set(userLikes?.map(l => l.emoji_id) || []);
 
     // 5. Combine everything
     const feedPosts = posts.map(post => ({
