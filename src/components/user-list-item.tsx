@@ -1,14 +1,14 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { supportUser, unsupportUser } from '@/app/actions';
+import { useSupport } from '@/hooks/use-support';
+
 
 interface User {
   id: string;
@@ -25,41 +25,12 @@ interface UserListItemProps {
 
 export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListItemProps) => {
     const { user: currentUser } = useAuth();
-    const [supportStatus, setSupportStatus] = useState(itemUser.support_status);
-    const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        setSupportStatus(itemUser.support_status);
-    }, [itemUser.support_status]);
-
-    const handleSupportToggle = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!currentUser || isLoading) return;
-
-        setIsLoading(true);
-        const previousStatus = supportStatus;
-        const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
-        const newOptimisticStatus = isCurrentlySupported ? null : (itemUser.is_private ? 'pending' : 'approved');
-
-        setSupportStatus(newOptimisticStatus);
-
-        try {
-            if (isCurrentlySupported) {
-                await unsupportUser(itemUser.id);
-                onSupportChange(itemUser.id, null);
-            } else {
-                await supportUser(itemUser.id, itemUser.is_private);
-                onSupportChange(itemUser.id, newOptimisticStatus);
-            }
-        } catch (error: any) {
-            toast({ title: 'Error', description: error.message, variant: 'destructive' });
-            setSupportStatus(previousStatus); // Revert on error
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { supportStatus, isLoading, handleSupportToggle } = useSupport(
+        itemUser.id, 
+        itemUser.support_status,
+        itemUser.is_private,
+        onSupportChange
+    );
     
     const isSelf = currentUser?.id === itemUser.id;
 
@@ -74,7 +45,11 @@ export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListI
                  <Button 
                     variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
                     size="sm"
-                    onClick={handleSupportToggle}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSupportToggle();
+                    }}
                     disabled={isLoading}
                  >
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2, UserPlus, Heart, Check } from 'lucide-react';
-import { getNotifications, respondToSupportRequest, supportUser, unsupportUser } from '../actions';
+import { getNotifications, respondToSupportRequest } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useSupport } from '@/hooks/use-support';
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -65,39 +66,12 @@ const timeSince = (date: Date) => {
 
 const SupportNotification = React.memo(({ notification }: { notification: Notification }) => {
     const { actor, created_at } = notification;
-    const { user: currentUser } = useAuth();
-    const { toast } = useToast();
-    const [supportStatus, setSupportStatus] = useState(notification.actor_support_status);
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleSupportToggle = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!currentUser || isLoading) return;
-
-        const previousStatus = supportStatus;
-        setIsLoading(true);
-
-        // Optimistic update
-        const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
-        const newOptimisticStatus = isCurrentlySupported ? null : (actor.is_private ? 'pending' : 'approved');
-        setSupportStatus(newOptimisticStatus);
-
-        try {
-            if (isCurrentlySupported) {
-                await unsupportUser(actor.id);
-            } else {
-                await supportUser(actor.id, actor.is_private);
-            }
-        } catch (error: any) {
-            toast({ title: 'Error', description: error.message, variant: 'destructive' });
-            // Revert on error
-            setSupportStatus(previousStatus);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
+    const { supportStatus, isLoading, handleSupportToggle } = useSupport(
+        actor.id, 
+        notification.actor_support_status,
+        actor.is_private
+    );
+    
     return (
         <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
              <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0">
@@ -117,7 +91,11 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
             <Button
                 variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
                 size="sm"
-                onClick={handleSupportToggle}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSupportToggle();
+                }}
                 disabled={isLoading}
             >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> :

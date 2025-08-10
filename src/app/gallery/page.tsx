@@ -29,11 +29,12 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getGalleryPosts, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getGalleryPosts, getSupportStatus, getSupporterCount, getSupportingCount, deleteUserAccount } from '@/app/actions';
 import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
+import { useSupport } from '@/hooks/use-support';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -82,10 +83,11 @@ function GalleryPageContent() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
-    const [supportStatus, setSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
+    const [initialSupportStatus, setInitialSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
+    const { supportStatus, isLoading: isSupportLoading, handleSupportToggle } = useSupport(viewingUserId, initialSupportStatus, profileUser?.is_private);
+
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
-    const [isSupportLoading, setIsSupportLoading] = React.useState(true);
     const [hasMood, setHasMood] = React.useState(false);
     const [postCount, setPostCount] = React.useState(0);
     
@@ -129,12 +131,8 @@ function GalleryPageContent() {
             setPostCount(postCountResult.count ?? 0);
             
             if (!isOwnProfile && authUser) {
-                setIsSupportLoading(true);
-                getSupportStatus(authUser.id, viewingUserId)
-                    .then(setSupportStatus)
-                    .finally(() => setIsSupportLoading(false));
-            } else {
-                setIsSupportLoading(false);
+                const status = await getSupportStatus(authUser.id, viewingUserId);
+                setInitialSupportStatus(status);
             }
             
             const canView = !userProfile.is_private || isOwnProfile || (await getSupportStatus(authUser?.id ?? '', viewingUserId)) === 'approved';
@@ -307,43 +305,6 @@ function GalleryPageContent() {
             description: "Could not schedule your account for deletion.",
             variant: "destructive",
           });
-        }
-    };
-
-    const handleSupportToggle = async () => {
-        if (!authUser || !viewingUserId || !profileUser || isOwnProfile || isSupportLoading) return;
-
-        setIsSupportLoading(true);
-
-        const wasSupported = supportStatus === 'approved' || supportStatus === 'pending';
-        const previousStatus = supportStatus;
-        const previousSupporterCount = supporterCount;
-
-        // Optimistic UI updates
-        setSupportStatus(wasSupported ? null : (profileUser.is_private ? 'pending' : 'approved'));
-        setSupporterCount(prev => Math.max(0, prev + (wasSupported ? -1 : 1)));
-
-        try {
-            if (wasSupported) {
-                await unsupportUser(viewingUserId);
-            } else {
-                await supportUser(viewingUserId, profileUser.is_private);
-            }
-            // After the action, refetch the true status to ensure consistency
-            const newStatus = await getSupportStatus(authUser.id, viewingUserId);
-            setSupportStatus(newStatus);
-        } catch (error: any) {
-            // Revert on error
-            setSupportStatus(previousStatus);
-            setSupporterCount(previousSupporterCount);
-            console.error("Support error:", error);
-            toast({
-                title: "Something went wrong",
-                description: error.message || "Could not update your support status. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSupportLoading(false);
         }
     };
 
