@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, MoreHorizontal, Edit, Trash2, Send, Smile, X, Eye, Loader2, Heart } from 'lucide-react';
-import { motion, useMotionValue, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, useMotionValue, AnimatePresence, useAnimation, animate } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -249,7 +249,8 @@ export function PostView({
   const { toast } = useToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const animationControls = useAnimation();
+  const progressWidth = useMotionValue('0%');
+  const animationControlsRef = useRef<ReturnType<typeof animate> | null>(null);
   
   const currentEmojiState = emojis[currentIndex];
 
@@ -268,10 +269,9 @@ export function PostView({
       setDirection(1);
       setCurrentIndex((prev) => prev + 1);
     } else if (!isMoodView) {
-      // Only close if not in mood view to allow manual closing
       onClose(emojis);
     }
-  }, [currentIndex, emojis, onClose, isMoodView]);
+  }, [currentIndex, emojis, isMoodView, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -281,18 +281,24 @@ export function PostView({
   };
 
   const startAnimation = useCallback(() => {
-    animationControls.set({ width: '0%' });
-    animationControls.start({
-        width: '100%',
-        transition: { duration: 10, ease: 'linear' }
+    progressWidth.set('0%');
+    animationControlsRef.current = animate(progressWidth, '100%', {
+        duration: 10,
+        ease: 'linear',
+        onComplete: () => {
+             if (currentIndex < emojis.length - 1) {
+                goToNext();
+             } else {
+                onClose(emojis);
+             }
+        }
     });
-  }, [animationControls]);
+  }, [progressWidth, currentIndex, emojis.length, goToNext, onClose]);
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
         if (!currentEmojiState.is_viewed) {
              recordMoodView(currentEmojiState.mood_id);
-             // We can optimistically update the state
              const updatedEmojis = [...emojis];
              const mood = updatedEmojis[currentIndex] as Mood;
              mood.is_viewed = true;
@@ -300,31 +306,19 @@ export function PostView({
         startAnimation();
     }
     return () => {
-      animationControls.stop();
+      animationControlsRef.current?.stop();
     }
-  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, animationControls, emojis]);
+  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, emojis]);
 
   useEffect(() => {
     if (isMoodView) {
         if (isViewersSheetOpen) {
-            animationControls.stop();
+            animationControlsRef.current?.pause();
         } else {
-            const controls = animationControls.get("width");
-            // This is a bit of a hack, but Framer Motion doesn't have a simple "resume" API.
-            // We get the current animation state and restart it from there.
-            if (typeof controls === 'string' && controls.endsWith('%')) {
-                const currentWidth = parseFloat(controls);
-                const remainingDuration = 10 * (1 - currentWidth / 100);
-                 animationControls.start({
-                    width: '100%',
-                    transition: { duration: remainingDuration, ease: 'linear' }
-                });
-            } else {
-                 startAnimation();
-            }
+            animationControlsRef.current?.play();
         }
     }
-  }, [isViewersSheetOpen, isMoodView, animationControls, startAnimation]);
+  }, [isViewersSheetOpen, isMoodView]);
 
 
   // Effect to scroll to the initial post
@@ -475,11 +469,7 @@ export function PostView({
                         <div key={index} className="w-full bg-gray-500/50 rounded-full h-1">
                             <motion.div 
                                 className="bg-white h-1 rounded-full"
-                                initial={{ width: '0%' }}
-                                animate={index === currentIndex ? animationControls : { width: index < currentIndex ? '100%' : '0%' }}
-                                onAnimationComplete={() => {
-                                  if(index === currentIndex) goToNext()
-                                }}
+                                style={{ width: index === currentIndex ? progressWidth : (index < currentIndex ? '100%' : '0%') }}
                             />
                         </div>
                     ))}
@@ -647,4 +637,5 @@ export function PostView({
     </>
   );
 }
+
 
