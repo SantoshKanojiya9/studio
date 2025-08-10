@@ -502,10 +502,13 @@ export async function createNotification(payload: NotificationPayload) {
     }
 }
 
-export async function getNotifications() {
+export async function getNotifications({ page = 1, limit = 15 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
 
     const { data, error } = await supabase
         .from('notifications')
@@ -518,7 +521,8 @@ export async function getNotifications() {
             emoji:emojis (id, background_color, emoji_color, expression, model, shape, eye_style, mouth_style, eyebrow_style, show_sunglasses, show_mustache, feature_offset_x, feature_offset_y, selected_filter)
         `)
         .eq('recipient_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
     if (error) {
         console.error('Error fetching notifications:', error);
@@ -656,4 +660,25 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     }));
 
     return galleryPosts as (EmojiState & { like_count: number; is_liked: boolean })[];
+}
+
+
+export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, limit: number }) {
+    const supabase = createSupabaseServerClient();
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error } = await supabase
+        .from('emojis')
+        .select('*, user:users!inner(id, name, picture, is_private)')
+        .eq('user.is_private', false)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+    if (error) {
+        console.error("Failed to load emojis for explore page", error);
+        throw error;
+    }
+    
+    return data as unknown as EmojiState[];
 }

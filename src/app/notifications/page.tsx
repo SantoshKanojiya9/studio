@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2, UserPlus, Heart, Check, X } from 'lucide-react';
 import { getNotifications, respondToSupportRequest, getSupportStatus, supportUser, unsupportUser } from '../actions';
@@ -34,6 +34,18 @@ interface Notification {
   actor: Actor;
   emoji: EmojiState | null;
 }
+
+const notificationsCache: {
+    items: Notification[],
+    page: number,
+    hasMore: boolean,
+    scrollPosition: number
+} = {
+    items: [],
+    page: 1,
+    hasMore: true,
+    scrollPosition: 0
+};
 
 const timeSince = (date: Date) => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -167,104 +179,165 @@ SupportRequestNotification.displayName = 'SupportRequestNotification';
 
 
 export default function NotificationsPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const { user } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+
+  const [notifications, setNotifications] = useState<Notification[]>(notificationsCache.items);
+  const [isLoading, setIsLoading] = useState(notificationsCache.items.length === 0);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  
+  const [page, setPage] = useState(notificationsCache.page);
+  const [hasMore, setHasMore] = useState(notificationsCache.hasMore);
+
+  const loaderRef = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(async (pageNum: number, limit = 15) => {
+    if (!user) return;
+    setIsFetchingMore(true);
+    try {
+        const newNotifications = await getNotifications({ page: pageNum, limit });
+        if (newNotifications.length < limit) {
+            setHasMore(false);
+            notificationsCache.hasMore = false;
+        }
+
+        setNotifications(prev => {
+            const existingIds = new Set(prev.map(n => n.id));
+            const uniqueNew = newNotifications.filter(n => !existingIds.has(n.id));
+            const updated = [...prev, ...uniqueNew] as Notification[];
+            notificationsCache.items = updated;
+            return updated;
+        });
+
+        const nextPage = pageNum + 1;
+        setPage(nextPage);
+        notificationsCache.page = nextPage;
+
+    } catch (error: any) {
+        console.error("Failed to fetch notifications", error);
+        toast({ title: "Error", description: "Could not load notifications.", variant: "destructive"});
+    } finally {
+        setIsFetchingMore(false);
+    }
+  }, [user, toast]);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (user) {
-        try {
-          const data = await getNotifications();
-          setNotifications(data as Notification[]);
-        } catch (error) {
-          console.error("Failed to fetch notifications", error);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    };
-    fetchNotifications();
+    if (user && notifications.length === 0) {
+        setIsLoading(true);
+        fetchNotifications(1).finally(() => setIsLoading(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+            fetchNotifications(page);
+        }
+    }, { root: null, rootMargin: '200px', threshold: 0 });
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader) observer.observe(currentLoader);
+
+    return () => {
+        if (currentLoader) observer.unobserve(currentLoader);
+    }
+  }, [fetchNotifications, hasMore, isFetchingMore, isLoading, page]);
+
+  // Save and restore scroll position
+  useEffect(() => {
+      const scrollable = scrollContainerRef.current;
+      if (!scrollable) return;
+
+      const handleScroll = () => {
+          notificationsCache.scrollPosition = scrollable.scrollTop;
+      };
+
+      if (notificationsCache.scrollPosition > 0) {
+          scrollable.scrollTop = notificationsCache.scrollPosition;
+      }
+
+      scrollable.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scrollable.removeEventListener('scroll', handleScroll);
+  }, []);
   
   const handleRequestResponded = (notificationId: number) => {
-    setNotifications(current => current.filter(n => n.id !== notificationId));
+    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
+    setNotifications(updatedNotifications);
+    notificationsCache.items = updatedNotifications;
   }
-
-  if (isLoading) {
-    return (
-        <div className="flex h-full w-full flex-col">
-            <NotificationHeader />
-            <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-        </div>
-    )
-  }
-
+  
   const renderNotification = (notification: Notification) => {
     const { actor, type, emoji, created_at } = notification;
 
-    if (type === 'new_support_request') {
-      return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} />;
-    }
-    
-    if (type === 'support_request_approved') {
-         return (
-             <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                <div className="relative">
+    switch(type) {
+        case 'new_support_request':
+            return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} />;
+        
+        case 'new_supporter':
+            return <SupportNotification key={notification.id} notification={notification} />;
+
+        case 'support_request_approved':
+            return (
+                <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
+                    <div className="relative">
+                        <Avatar className="h-10 w-10">
+                            <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                            <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                         <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                            <Check className="h-3 w-3 text-white"/>
+                        </div>
+                    </div>
+                    <p className="flex-1 text-sm">
+                        <span className="font-semibold">{actor.name}</span>
+                        {' approved your support request.'}
+                        <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                    </p>
+                </Link>
+            );
+
+        case 'new_like':
+            if (!emoji) return null;
+            return (
+                 <Link href={`/gallery`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
                         <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
-                     <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
-                        <Check className="h-3 w-3 text-white"/>
+                    <p className="flex-1 text-sm">
+                        <span className="font-semibold">{actor.name}</span>
+                        {' reacted to your post.'}
+                        <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                    </p>
+                    <div className="w-12 h-12 flex-shrink-0">
+                       <GalleryThumbnail emoji={emoji} onSelect={() => router.push('/gallery')} />
                     </div>
-                </div>
-                <p className="flex-1 text-sm">
-                    <span className="font-semibold">{actor.name}</span>
-                    {' approved your support request.'}
-                    <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
-                </p>
-            </Link>
-        )
+                </Link>
+            );
+        
+        default:
+            return null;
     }
-
-    if (type === 'new_supporter') {
-         return <SupportNotification key={notification.id} notification={notification} />
-    }
-
-    if (type === 'new_like' && emoji) {
-        return (
-             <Link href={`/gallery`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-                <p className="flex-1 text-sm">
-                    <span className="font-semibold">{actor.name}</span>
-                    {' reacted to your post.'}
-                    <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
-                </p>
-                <div className="w-12 h-12 flex-shrink-0">
-                   <GalleryThumbnail emoji={emoji} onSelect={() => router.push('/gallery')} />
-                </div>
-            </Link>
-        )
-    }
-    
-    return null;
   }
 
   return (
     <div className="flex h-full w-full flex-col">
       <NotificationHeader />
-      <div className="flex-1 overflow-y-auto">
-        {notifications.length > 0 ? (
-            notifications.map(renderNotification)
+      <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
+        {isLoading ? (
+            <div className="flex-1 flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        ) : notifications.length > 0 ? (
+            <>
+                {notifications.map(renderNotification)}
+                {hasMore && <div ref={loaderRef} className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin"/></div>}
+            </>
         ) : (
           <div className="text-center p-8 text-muted-foreground h-full flex flex-col items-center justify-center">
               <Heart className="w-16 h-16 mb-4"/>
@@ -276,5 +349,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-
-    

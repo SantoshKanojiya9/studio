@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import type { EmojiState } from '@/app/design/page';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/use-auth';
+import { getExplorePosts } from '../actions';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -26,6 +27,18 @@ interface SearchedUser {
   name: string;
   picture: string;
 }
+
+const exploreCache: {
+    posts: EmojiState[],
+    page: number,
+    hasMore: boolean,
+    scrollPosition: number
+} = {
+    posts: [],
+    page: 1,
+    hasMore: true,
+    scrollPosition: 0
+};
 
 // Debounce function
 function useDebounce(value: string, delay: number) {
@@ -46,42 +59,101 @@ function useDebounce(value: string, delay: number) {
 
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300); // 300ms delay
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  const [allEmojis, setAllEmojis] = useState<EmojiState[]>([]);
+  const [allEmojis, setAllEmojis] = useState<EmojiState[]>(exploreCache.posts);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(exploreCache.posts.length === 0);
   const { toast } = useToast();
   const { user: authUser } = useAuth();
+  
+  const [page, setPage] = useState(exploreCache.page);
+  const [hasMore, setHasMore] = useState(exploreCache.hasMore);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  
+  const loaderRef = useRef(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchAllEmojis = async () => {
-        setIsLoading(true);
-        try {
-            // Only fetch posts from public users
-            const { data, error } = await supabase
-                .from('emojis')
-                .select('*, user:users!inner(id, name, picture, is_private)')
-                .eq('user.is_private', false)
-                .order('created_at', { ascending: false });
+  const fetchPosts = useCallback(async (pageNum: number, limit = 12) => {
+      setIsFetchingMore(true);
+      try {
+          const newPosts = await getExplorePosts({ page: pageNum, limit });
+          
+          if (newPosts.length < limit) {
+              setHasMore(false);
+              exploreCache.hasMore = false;
+          }
 
-            if (error) throw error;
-            setAllEmojis(data as unknown as EmojiState[]);
-        } catch (error: any) {
-            console.error("Failed to load emojis for explore page", error);
-            toast({
-                title: "Failed to load content",
-                description: error.message,
-                variant: 'destructive',
-            })
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    fetchAllEmojis();
+          setAllEmojis(prev => {
+              const existingIds = new Set(prev.map(p => p.id));
+              const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+              const updatedPosts = [...prev, ...uniqueNewPosts];
+              exploreCache.posts = updatedPosts;
+              return updatedPosts;
+          });
+
+          const nextPage = pageNum + 1;
+          setPage(nextPage);
+          exploreCache.page = nextPage;
+
+      } catch (error: any) {
+          console.error("Failed to fetch explore posts:", error);
+          toast({ title: "Failed to load posts", description: error.message, variant: "destructive" });
+      } finally {
+          setIsFetchingMore(false);
+      }
   }, [toast]);
+  
+  // Initial data load effect
+  useEffect(() => {
+    if (allEmojis.length === 0) {
+        setIsLoading(true);
+        fetchPosts(1).finally(() => setIsLoading(false));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+           fetchPosts(page);
+        }
+    }, { root: null, rootMargin: '400px', threshold: 0 });
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader) {
+        observer.observe(currentLoader);
+    }
+    
+    return () => {
+        if(currentLoader) {
+            observer.unobserve(currentLoader);
+        }
+    }
+  }, [fetchPosts, hasMore, isFetchingMore, isLoading, page]);
+
+  // Save and restore scroll position
+  useEffect(() => {
+      const scrollable = scrollContainerRef.current;
+      if (!scrollable) return;
+
+      const handleScroll = () => {
+          exploreCache.scrollPosition = scrollable.scrollTop;
+      };
+
+      if (exploreCache.scrollPosition > 0) {
+          scrollable.scrollTop = exploreCache.scrollPosition;
+      }
+
+      scrollable.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+          scrollable.removeEventListener('scroll', handleScroll);
+      };
+  }, []);
 
   const searchUsers = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -130,7 +202,9 @@ export default function ExplorePage() {
         const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
         if (error) throw error;
         
-        setAllEmojis(prevEmojis => prevEmojis.filter(emoji => emoji.id !== emojiId));
+        const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
+        setAllEmojis(updatedEmojis);
+        exploreCache.posts = updatedEmojis;
         
         toast({ title: "Post deleted", variant: "success" });
     } catch (error: any) {
@@ -172,7 +246,7 @@ export default function ExplorePage() {
            )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
         {isLoading ? (
              <div className="flex h-full items-center justify-center">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -200,11 +274,14 @@ export default function ExplorePage() {
         ) : (
           <div className="p-1">
              {allEmojis.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1">
-                    {allEmojis.map((emoji) => (
-                        <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
-                    ))}
-                </div>
+                <>
+                    <div className="grid grid-cols-3 gap-1">
+                        {allEmojis.map((emoji) => (
+                            <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
+                        ))}
+                    </div>
+                    {hasMore && <div ref={loaderRef} className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin"/></div>}
+                </>
              ) : (
                 <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">
                     <User className="h-16 w-16" />
