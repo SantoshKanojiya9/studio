@@ -29,7 +29,7 @@ interface UserListItemProps {
   onSupportChange: (userId: string, isNowSupported: boolean) => void;
 }
 
-const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemProps) => {
+const UserListItem = React.memo(({ itemUser, currentUser, onSupportChange }: UserListItemProps) => {
     const [supportStatus, setSupportStatus] = useState<'approved' | 'pending' | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
@@ -96,7 +96,8 @@ const UserListItem = ({ itemUser, currentUser, onSupportChange }: UserListItemPr
             )}
         </Link>
     )
-}
+});
+UserListItem.displayName = 'UserListItem';
 
 interface UserListSheetProps {
     open: boolean;

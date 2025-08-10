@@ -50,7 +50,7 @@ const timeSince = (date: Date) => {
     return Math.floor(seconds) + "s";
 };
 
-const SupportNotification = ({ notification }: { notification: Notification }) => {
+const SupportNotification = React.memo(({ notification }: { notification: Notification }) => {
     const { actor, created_at, id } = notification;
     const { user: currentUser } = useAuth();
     const { toast } = useToast();
@@ -115,10 +115,10 @@ const SupportNotification = ({ notification }: { notification: Notification }) =
             </Button>
         </div>
     );
-};
+});
+SupportNotification.displayName = 'SupportNotification';
 
-
-const SupportRequestNotification = ({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
+const SupportRequestNotification = React.memo(({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
     const { actor, created_at, id } = notification;
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState<'approve' | 'decline' | null>(null);
@@ -162,7 +162,8 @@ const SupportRequestNotification = ({ notification, onRespond }: { notification:
             </div>
         </div>
     );
-};
+});
+SupportRequestNotification.displayName = 'SupportRequestNotification';
 
 
 export default function NotificationsPage() {

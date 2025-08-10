@@ -76,7 +76,7 @@ const moodPageCache = {
     scrollPosition: 0,
 };
 
-const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
+const FeedPost = React.memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -226,7 +226,8 @@ const FeedPost = ({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => vo
             </Suspense>
         </>
     );
-};
+});
+FeedPost.displayName = 'FeedPost';
 
 
 export default function MoodPage() {
@@ -424,9 +425,9 @@ export default function MoodPage() {
         setSelectedMoodIndex(index);
     };
     
-    const handleSelectPost = (postId: string) => {
+    const handleSelectPost = useCallback((postId: string) => {
         setSelectedPostId(postId);
-    };
+    }, []);
 
     const handleOnCloseMood = (updatedMoods: Mood[]) => {
         setMoods(updatedMoods); // Assume sorting happens within post view now
