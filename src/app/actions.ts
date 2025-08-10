@@ -474,20 +474,25 @@ export async function getIsLiked(emojiId: string) {
     return (count ?? 0) > 0;
 }
 
-export async function getLikers(emojiId: string): Promise<{ id: string; name: string; picture: string; }[]> {
+export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const offset = (page - 1) * limit;
+
     const { data, error } = await supabase
-        .from('likes')
-        .select('user:users!inner(id, name, picture)')
-        .eq('emoji_id', emojiId)
-        .order('created_at', { ascending: false });
+        .rpc('get_paginated_likers', {
+            p_emoji_id: emojiId,
+            p_current_user_id: currentUser?.id,
+            p_limit: limit,
+            p_offset: offset
+        });
 
     if (error) {
         console.error('Error getting likers:', error);
         return [];
     }
-    // The data is nested, so we need to flatten it.
-    return data.map(l => l.user) as { id: string; name: string; picture: string; }[];
+
+    return data as UserWithSupportStatus[];
 }
 
 

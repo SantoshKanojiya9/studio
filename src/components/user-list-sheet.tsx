@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
 import {
   Sheet,
   SheetContent,
@@ -10,11 +9,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
-import { getSupporters, getSupporting, supportUser, unsupportUser } from '@/app/actions';
+import { getSupporters, getSupporting } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { UserListItem } from './user-list-item';
+
 
 interface User {
   id: string;
@@ -33,75 +32,6 @@ const userListCache: {
     }
 } = {};
 
-interface UserListItemProps {
-  itemUser: User;
-  currentUser: { id: string } | null;
-  onSupportChange: (userId: string, newStatus: 'approved' | 'pending' | null) => void;
-}
-
-const UserListItem = React.memo(({ itemUser, currentUser, onSupportChange }: UserListItemProps) => {
-    const [supportStatus, setSupportStatus] = useState(itemUser.support_status);
-    const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        setSupportStatus(itemUser.support_status);
-    }, [itemUser.support_status]);
-
-    const handleSupportToggle = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!currentUser || isLoading) return;
-
-        setIsLoading(true);
-        const previousStatus = supportStatus;
-        const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
-        const newOptimisticStatus = isCurrentlySupported ? null : (itemUser.is_private ? 'pending' : 'approved');
-
-        setSupportStatus(newOptimisticStatus);
-
-        try {
-            if (isCurrentlySupported) {
-                await unsupportUser(itemUser.id);
-                onSupportChange(itemUser.id, null);
-            } else {
-                await supportUser(itemUser.id, itemUser.is_private);
-                onSupportChange(itemUser.id, newOptimisticStatus);
-            }
-        } catch (error: any) {
-            toast({ title: 'Error', description: error.message, variant: 'destructive' });
-            setSupportStatus(previousStatus); // Revert on error
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    const isSelf = currentUser?.id === itemUser.id;
-
-    return (
-        <Link href={`/gallery?userId=${itemUser.id}`} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
-            <Avatar className="h-12 w-12">
-                <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
-                <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-            </Avatar>
-            <span className="font-semibold flex-1">{itemUser.name}</span>
-            {!isSelf && currentUser && (
-                 <Button 
-                    variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
-                    size="sm"
-                    onClick={handleSupportToggle}
-                    disabled={isLoading}
-                 >
-                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 
-                        (supportStatus === 'approved' ? 'Unsupport' : 
-                         supportStatus === 'pending' ? 'Pending' : 'Support')}
-                </Button>
-            )}
-        </Link>
-    )
-});
-UserListItem.displayName = 'UserListItem';
-
 interface UserListSheetProps {
     open: boolean;
     onOpenChange: (isOpen: boolean) => void;
@@ -110,7 +40,6 @@ interface UserListSheetProps {
 }
 
 export function UserListSheet({ open, onOpenChange, type, userId }: UserListSheetProps) {
-    const { user: currentUser } = useAuth();
     const { toast } = useToast();
     
     const cacheKey = `${type}-${userId}`;
@@ -174,6 +103,12 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
                 setUserList(userListCache[cacheKey].items);
                 setPage(userListCache[cacheKey].page);
                 setHasMore(userListCache[cacheKey].hasMore);
+                 // Restore scroll position
+                setTimeout(() => {
+                    if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTop = userListCache[cacheKey].scrollPosition;
+                    }
+                }, 0);
             }
         }
     }, [open, userId, fetchUsers, cacheKey]);
@@ -187,10 +122,6 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
                 userListCache[cacheKey].scrollPosition = scrollable.scrollTop;
             }
         };
-    
-        if (userListCache[cacheKey] && userListCache[cacheKey].scrollPosition > 0) {
-            scrollable.scrollTop = userListCache[cacheKey].scrollPosition;
-        }
     
         scrollable.addEventListener('scroll', handleScroll, { passive: true });
         return () => scrollable.removeEventListener('scroll', handleScroll);
@@ -244,7 +175,6 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
                                 <UserListItem 
                                     key={user.id} 
                                     itemUser={user} 
-                                    currentUser={currentUser} 
                                     onSupportChange={handleSupportChange}
                                 />
                             ))}
