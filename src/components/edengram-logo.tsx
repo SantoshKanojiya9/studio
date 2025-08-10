@@ -25,7 +25,7 @@ export const EdengramLogo = ({ className }: { className?: string }) => {
                 fill="none"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
+                transition={{ duration: 1.5, ease: "easeInOut", repeat: Infinity, repeatType: 'loop', repeatDelay: 1 }}
             />
              <motion.path 
                 d="M 35 35 L 65 35 L 65 65 L 35 65 Z" 
@@ -34,7 +34,7 @@ export const EdengramLogo = ({ className }: { className?: string }) => {
                 fill="none"
                 initial={{ pathLength: 0, opacity: 0 }}
                 animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5, repeat: Infinity, repeatType: 'loop', repeatDelay: 1 }}
             />
         </svg>
     )
