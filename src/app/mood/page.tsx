@@ -37,9 +37,7 @@ import { setMood, getFeedPosts } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 
-const LikerListSheet = lazy(() =>
-  import('@/components/liker-list-sheet').then(mod => ({ default: mod.LikerListSheet }))
-);
+const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
 
 const PostView = dynamic(() => 
