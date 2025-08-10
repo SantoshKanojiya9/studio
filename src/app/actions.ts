@@ -241,6 +241,9 @@ export async function supportUser(supportedId: string, isPrivate: boolean) {
             type: 'new_support_request',
         });
     }
+
+    revalidatePath(`/gallery?userId=${supportedId}`);
+    revalidatePath(`/notifications`);
 }
 
 export async function unsupportUser(supportedId: string) {
@@ -261,6 +264,9 @@ export async function unsupportUser(supportedId: string) {
         console.error('Error unsupporting user:', error);
         throw error;
     }
+    
+    revalidatePath(`/gallery?userId=${supportedId}`);
+    revalidatePath(`/notifications`);
 }
 
 export async function respondToSupportRequest(supporterId: string, action: 'approve' | 'decline') {
@@ -694,3 +700,5 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     
     return data as unknown as EmojiState[];
 }
+
+    
