@@ -12,7 +12,8 @@ export function useSupport(
   targetUserId: string | undefined,
   initialSupportStatus: SupportStatus,
   isTargetUserPrivate: boolean | undefined,
-  onStatusChange?: (userId: string, newStatus: SupportStatus) => void
+  onUIDisplayChange?: (userId: string, newStatus: SupportStatus) => void,
+  onCountChange?: (newStatus: SupportStatus, oldStatus: SupportStatus) => void,
 ) {
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
@@ -26,33 +27,32 @@ export function useSupport(
   const handleSupportToggle = useCallback(async () => {
     if (!currentUser || !targetUserId || isLoading) return;
 
+    const oldStatus = supportStatus;
+    const isCurrentlySupported = oldStatus === 'approved' || oldStatus === 'pending';
+    const newStatus = isCurrentlySupported ? null : (isTargetUserPrivate ? 'pending' : 'approved');
+    
+    // Optimistic UI update
     setIsLoading(true);
-
-    const isCurrentlySupported = supportStatus === 'approved' || supportStatus === 'pending';
+    setSupportStatus(newStatus);
+    if (onUIDisplayChange) onUIDisplayChange(targetUserId, newStatus);
+    if (onCountChange) onCountChange(newStatus, oldStatus);
 
     try {
       if (isCurrentlySupported) {
         await unsupportUser(targetUserId);
-        const newStatus = null;
-        setSupportStatus(newStatus);
-        if (onStatusChange) {
-            onStatusChange(targetUserId, newStatus);
-        }
       } else {
         await supportUser(targetUserId, !!isTargetUserPrivate);
-        const newStatus = isTargetUserPrivate ? 'pending' : 'approved';
-        setSupportStatus(newStatus);
-         if (onStatusChange) {
-            onStatusChange(targetUserId, newStatus);
-        }
       }
     } catch (error: any) {
+      // Revert UI on error
       toast({
         title: 'Error',
         description: error.message || 'Could not update support status.',
         variant: 'destructive',
       });
-      // No need to revert here because we only set state after successful API call
+      setSupportStatus(oldStatus);
+      if (onUIDisplayChange) onUIDisplayChange(targetUserId, oldStatus);
+      if (onCountChange) onCountChange(oldStatus, newStatus); // Revert the count change
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +63,8 @@ export function useSupport(
     supportStatus,
     isTargetUserPrivate,
     toast,
-    onStatusChange
+    onUIDisplayChange,
+    onCountChange
   ]);
 
   return {

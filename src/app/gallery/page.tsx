@@ -83,13 +83,25 @@ function GalleryPageContent() {
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
-    const [initialSupportStatus, setInitialSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
-    const { supportStatus, isLoading: isSupportLoading, handleSupportToggle } = useSupport(viewingUserId, initialSupportStatus, profileUser?.is_private);
-
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [hasMood, setHasMood] = React.useState(false);
     const [postCount, setPostCount] = React.useState(0);
+
+    const onSupportStatusChange = useCallback((newStatus: 'approved' | 'pending' | null, oldStatus: 'approved' | 'pending' | null) => {
+        // Optimistically update supporter count
+        const isSupporting = newStatus === 'approved';
+        const wasSupporting = oldStatus === 'approved';
+
+        if (isSupporting && !wasSupporting) {
+            setSupporterCount(c => c + 1);
+        } else if (!isSupporting && wasSupporting) {
+            setSupporterCount(c => Math.max(0, c - 1));
+        }
+    }, []);
+
+    const [initialSupportStatus, setInitialSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
+    const { supportStatus, isLoading: isSupportLoading, handleSupportToggle } = useSupport(viewingUserId, initialSupportStatus, profileUser?.is_private, undefined, onSupportStatusChange);
     
     const [page, setPage] = useState(viewingUserId ? galleryCache[viewingUserId]?.page || 1 : 1);
     const [hasMore, setHasMore] = useState(viewingUserId ? galleryCache[viewingUserId]?.hasMore ?? true : true);
