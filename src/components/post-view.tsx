@@ -271,7 +271,7 @@ export function PostView({
     } else if (!isMoodView) {
       onClose(emojis);
     }
-  }, [currentIndex, emojis, isMoodView, onClose]);
+  }, [currentIndex, emojis.length, isMoodView, onClose]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -286,14 +286,20 @@ export function PostView({
         duration: 10,
         ease: 'linear',
         onComplete: () => {
-             if (currentIndex < emojis.length - 1) {
+            const currentMood = emojis[currentIndex];
+            const nextMood = emojis[currentIndex + 1];
+
+            // Only auto-advance if the next story is from the same user
+            if (isCurrentEmojiMood(currentMood) && nextMood && isCurrentEmojiMood(nextMood) && nextMood.mood_user_id === currentMood.mood_user_id) {
                 goToNext();
-             } else {
-                onClose(emojis);
-             }
+            } else {
+                // If it's the last story for this user, just stop.
+                // The user will have to tap to go to the next person.
+            }
         }
     });
-  }, [progressWidth, currentIndex, emojis.length, goToNext, onClose]);
+  }, [progressWidth, currentIndex, emojis, goToNext]);
+
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
@@ -637,5 +643,6 @@ export function PostView({
     </>
   );
 }
+
 
 
