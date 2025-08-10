@@ -538,7 +538,7 @@ export function PostView({
             </AnimatePresence>
 
             {finalEmoji.caption && (
-              <div className="absolute bottom-4 left-4 right-4 z-20 text-center">
+              <div className="absolute top-20 left-4 right-4 z-20 text-center">
                   <p className="inline-block bg-black/50 text-white text-sm p-2 rounded-lg">
                       {finalEmoji.caption}
                   </p>
