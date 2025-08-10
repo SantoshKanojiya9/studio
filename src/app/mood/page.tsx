@@ -317,9 +317,9 @@ export default function MoodPage() {
 
         const formattedMoods = moodData.map(m => {
             const isOwnMood = m.user_id === user.id;
-            const isViewed = isOwnMood 
-                ? m.views.length > 0
-                : viewedMoodIds.has(m.id);
+            // A mood is viewed if it's in the viewedMoodIds set.
+            // This now correctly applies to the user's own mood as well.
+            const isViewed = viewedMoodIds.has(m.id);
 
             return {
                 ...(m.emoji as unknown as EmojiState),
