@@ -178,7 +178,6 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
                       backgroundColor: emoji.background_color,
                       filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
                     }}
-                    onClick={onSelect}
                 >
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-full h-full flex items-center justify-center">
