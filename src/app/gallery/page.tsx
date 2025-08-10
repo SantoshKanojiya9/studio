@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PostView } from '@/components/post-view';
 import type { EmojiState } from '@/app/design/page';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
+import { getGalleryPosts, getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount } from '@/app/actions';
 import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
@@ -47,8 +47,16 @@ interface GalleryEmoji extends EmojiState {
     is_liked: boolean;
 }
 
-const galleryCache: Record<string, GalleryEmoji[]> = {};
+const galleryCache: {
+    [userId: string]: {
+        posts: GalleryEmoji[],
+        page: number,
+        hasMore: boolean,
+        scrollPosition: number
+    }
+} = {};
 
+const MemoizedThumbnail = React.memo(GalleryThumbnail);
 
 function GalleryPageContent() {
     const { user: authUser, supabase } = useAuth();
@@ -61,7 +69,7 @@ function GalleryPageContent() {
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
 
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
-    const [savedEmojis, setSavedEmojis] = React.useState<GalleryEmoji[]>(galleryCache[viewingUserId || ''] || []);
+    const [savedEmojis, setSavedEmojis] = useState<GalleryEmoji[]>(viewingUserId ? galleryCache[viewingUserId]?.posts || [] : []);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
@@ -71,126 +79,172 @@ function GalleryPageContent() {
     const [isSupportLoading, setIsSupportLoading] = React.useState(false);
     const [hasMood, setHasMood] = React.useState(false);
     const [postCount, setPostCount] = React.useState(0);
+    
+    const [page, setPage] = useState(viewingUserId ? galleryCache[viewingUserId]?.page || 1 : 1);
+    const [hasMore, setHasMore] = useState(viewingUserId ? galleryCache[viewingUserId]?.hasMore ?? true : true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
 
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
     const [sheetContent, setSheetContent] = React.useState<'supporters' | 'supporting' | null>(null);
+    
+    const loaderRef = useRef(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    React.useEffect(() => {
-        const fetchProfileData = async () => {
-            if (!viewingUserId) {
-                setIsLoading(false);
-                return;
+    const fetchProfileInfo = useCallback(async () => {
+        if (!viewingUserId) return;
+        try {
+            const { data: userProfile, error: userError } = await supabase
+                .from('users')
+                .select('id, name, picture, is_private')
+                .eq('id', viewingUserId)
+                .single();
+
+            if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
+            
+            setProfileUser(userProfile as ProfileUser);
+
+            const [supporters, following, status, moodResult, postCountResult] = await Promise.all([
+                getSupporterCount(viewingUserId),
+                getSupportingCount(viewingUserId),
+                !isOwnProfile && authUser ? getSupportStatus(authUser.id, viewingUserId) : Promise.resolve(null),
+                supabase.from('moods').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
+            ]);
+
+            setSupporterCount(supporters);
+            setSupportingCount(following);
+            setSupportStatus(status);
+            setHasMood((moodResult.count ?? 0) > 0);
+            setPostCount(postCountResult.count ?? 0);
+        } catch (error: any) {
+            console.error("Failed to load profile info:", error);
+            toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
+        }
+    }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
+
+    const fetchPosts = useCallback(async (pageNum: number) => {
+        if (!viewingUserId) return;
+        setIsFetchingMore(true);
+        try {
+            const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
+
+            if (newPosts.length < 9) {
+                setHasMore(false);
+                if (galleryCache[viewingUserId]) galleryCache[viewingUserId].hasMore = false;
+            }
+
+            setSavedEmojis(prev => {
+                const existingIds = new Set(prev.map(p => p.id));
+                const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+                const updatedPosts = [...prev, ...uniqueNewPosts];
+                if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedPosts;
+                return updatedPosts;
+            });
+            
+            const nextPage = pageNum + 1;
+            setPage(nextPage);
+            if (galleryCache[viewingUserId]) galleryCache[viewingUserId].page = nextPage;
+
+        } catch (error: any) {
+            console.error("Failed to load posts:", error);
+            toast({ title: "Failed to load posts", description: error.message, variant: 'destructive' });
+        } finally {
+            setIsFetchingMore(false);
+        }
+    }, [viewingUserId, toast]);
+
+
+    useEffect(() => {
+        if (!viewingUserId) {
+            setIsLoading(false);
+            return;
+        }
+
+        if (!galleryCache[viewingUserId]) {
+             galleryCache[viewingUserId] = {
+                posts: [],
+                page: 1,
+                hasMore: true,
+                scrollPosition: 0
             };
+        }
+        
+        const canViewContent = !profileUser?.is_private || isOwnProfile || supportStatus === 'approved';
 
-            setIsLoading(true);
-            try {
-                // Fetch user profile info, counts, and mood status in parallel
-                const { data: userProfile, error: userError } = await supabase
-                    .from('users')
-                    .select('id, name, picture, is_private')
-                    .eq('id', viewingUserId)
-                    .single();
+        setIsLoading(true);
+        Promise.all([
+            fetchProfileInfo(),
+            (galleryCache[viewingUserId].posts.length === 0 && canViewContent) ? fetchPosts(1) : Promise.resolve()
+        ]).finally(() => setIsLoading(false));
 
-                if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
-                
-                setProfileUser(userProfile as ProfileUser);
+    }, [viewingUserId, fetchProfileInfo, fetchPosts, isOwnProfile, supportStatus, profileUser?.is_private]);
+    
+     // Infinite scroll observer
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            const target = entries[0];
+            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+               fetchPosts(page);
+            }
+        }, { root: scrollContainerRef.current, rootMargin: '400px', threshold: 0 });
 
-                // Fetch counts and status
-                const [supporters, following, status, moodResult, postCountResult] = await Promise.all([
-                    getSupporterCount(viewingUserId),
-                    getSupportingCount(viewingUserId),
-                    !isOwnProfile && authUser ? getSupportStatus(authUser.id, viewingUserId) : Promise.resolve(null),
-                    supabase.from('moods').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
-                    supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
-                ]);
+        const currentLoader = loaderRef.current;
+        if (currentLoader) {
+            observer.observe(currentLoader);
+        }
+        
+        return () => {
+            if(currentLoader) {
+                observer.unobserve(currentLoader);
+            }
+        }
+    }, [fetchPosts, hasMore, isFetchingMore, isLoading, page]);
 
-                setSupporterCount(supporters);
-                setSupportingCount(following);
-                setSupportStatus(status);
-                setHasMood((moodResult.count ?? 0) > 0);
-                setPostCount(postCountResult.count ?? 0);
+    // Save and restore scroll position
+    useEffect(() => {
+        const scrollable = scrollContainerRef.current;
+        if (!scrollable || !viewingUserId) return;
 
-                const canViewContent = !userProfile.is_private || isOwnProfile || status === 'approved';
-
-                if (canViewContent) {
-                    // Fetch posts if they are not in the cache
-                    if (!galleryCache[viewingUserId]) {
-                        const { data: postData, error: postError } = await supabase
-                            .from('emojis')
-                            .select('*, user:users!inner(*)')
-                            .eq('user_id', viewingUserId)
-                            .order('created_at', { ascending: false });
-                        
-                        if (postError) throw postError;
-
-                        // Add like info to posts
-                        const postIds = postData.map(p => p.id);
-                        const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_posts', { post_ids: postIds });
-                        if (likeCountsError) throw likeCountsError;
-                        const likeCountMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
-
-                        let userLikedSet = new Set();
-                        if (authUser) {
-                            const { data: userLikes, error: userLikesError } = await supabase.from('likes').select('emoji_id').eq('user_id', authUser.id).in('emoji_id', postIds);
-                            if (userLikesError) throw userLikesError;
-                            userLikedSet = new Set(userLikes?.map((l: any) => l.emoji_id) || []);
-                        }
-
-                        const fullPosts = postData.map(post => ({
-                            ...post,
-                            like_count: likeCountMap.get(post.id) || 0,
-                            is_liked: userLikedSet.has(post.id),
-                        }));
-
-
-                        galleryCache[viewingUserId] = fullPosts as GalleryEmoji[];
-                        setSavedEmojis(fullPosts as GalleryEmoji[]);
-                    }
-                } else {
-                    setSavedEmojis([]);
-                }
-            } catch (error: any) {
-                console.error("Failed to load profile data from Supabase", error);
-                toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
-                if (!isOwnProfile) router.push('/explore');
-            } finally {
-                setIsLoading(false);
+        const handleScroll = () => {
+            if (galleryCache[viewingUserId]) {
+                galleryCache[viewingUserId].scrollPosition = scrollable.scrollTop;
             }
         };
 
-        fetchProfileData();
-    }, [viewingUserId, isOwnProfile, authUser, supabase, router, toast]);
+        if (galleryCache[viewingUserId] && galleryCache[viewingUserId].scrollPosition > 0) {
+            scrollable.scrollTop = galleryCache[viewingUserId].scrollPosition;
+        }
+
+        scrollable.addEventListener('scroll', handleScroll, { passive: true });
+        return () => {
+            scrollable.removeEventListener('scroll', handleScroll);
+        };
+    }, [viewingUserId]);
 
 
     const handleDelete = async (emojiId: string) => {
-        if (!supabase) return;
+        if (!supabase || !viewingUserId) return;
         try {
             const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
             if (error) throw error;
 
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
-            if (viewingUserId) galleryCache[viewingUserId] = updatedEmojis;
+            galleryCache[viewingUserId].posts = updatedEmojis;
 
             setSelectedEmojiId(null);
-            toast({
-                title: 'Post deleted',
-                variant: 'success'
-            })
+            toast({ title: 'Post deleted', variant: 'success' })
         } catch (error: any) {
             console.error("Failed to delete emoji from Supabase", error);
-            toast({
-                title: 'Error deleting post',
-                description: error.message,
-                variant: 'destructive'
-            })
+            toast({ title: 'Error deleting post', description: error.message, variant: 'destructive' })
         }
     };
     
     const handleSignOut = async () => {
         setShowSignOutConfirm(false);
         if (!supabase) return;
+        Object.keys(galleryCache).forEach(key => delete galleryCache[key]); // Clear all cache on sign out
         await supabase.auth.signOut();
         router.push('/');
     };
@@ -368,8 +422,8 @@ function GalleryPageContent() {
             ) : (
                 <>
                     <ProfileHeader />
-                    <div className="flex-1 overflow-y-auto no-scrollbar">
-                        {isLoading ? (
+                    <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollContainerRef}>
+                        {isLoading && savedEmojis.length === 0 ? (
                             <div className="flex h-full items-center justify-center">
                                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
@@ -427,14 +481,17 @@ function GalleryPageContent() {
                         <div className="p-1">
                             {canViewContent ? (
                                 savedEmojis.length > 0 ? (
-                                    <motion.div 
-                                        layout
-                                        className="grid grid-cols-3 gap-1"
-                                    >
-                                        {savedEmojis.map(emoji => (
-                                            <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
-                                        ))}
-                                    </motion.div>
+                                    <>
+                                        <motion.div 
+                                            layout
+                                            className="grid grid-cols-3 gap-1"
+                                        >
+                                            {savedEmojis.map(emoji => (
+                                                <MemoizedThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
+                                            ))}
+                                        </motion.div>
+                                        {hasMore && <div ref={loaderRef} className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin"/></div>}
+                                    </>
                                 ) : (
                                     <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">
                                         <div className="border-2 border-foreground rounded-full p-4">
@@ -506,3 +563,5 @@ export default function GalleryPage() {
         </React.Suspense>
     );
 }
+
+    

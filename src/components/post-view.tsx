@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
@@ -71,7 +71,7 @@ interface PostViewProps {
 }
 
 
-const PostContent = ({ 
+const PostContent = memo(({ 
     emoji, 
     onDelete,
     onSetMood
@@ -106,12 +106,8 @@ const PostContent = ({
     };
 
     return (
-        <motion.div
+        <div
             className="w-full h-full flex-shrink-0 flex flex-col"
-            layout
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
         >
             <div className="flex items-center px-4 py-2">
                 <Avatar className="h-8 w-8">
@@ -188,9 +184,10 @@ const PostContent = ({
                 )}
             </div>
              <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
-        </motion.div>
+        </div>
     );
-};
+});
+PostContent.displayName = 'PostContent';
 
 
 export function PostView({ 
@@ -278,29 +275,30 @@ export function PostView({
 
     const container = scrollContainerRef.current;
     if (container) {
+      // Set initial scroll position without smooth scrolling
+      container.style.scrollBehavior = 'auto';
+      container.scrollTop = container.offsetHeight * currentIndex;
+      // Re-enable smooth scrolling for user interactions
+      setTimeout(() => {
+        if (container) container.style.scrollBehavior = 'smooth';
+      }, 0);
+
       const handleScroll = () => {
         const newIndex = Math.round(container.scrollTop / container.offsetHeight);
         if (newIndex !== currentIndex) {
           setCurrentIndex(newIndex);
         }
       };
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      return () => container.removeEventListener('scroll', handleScroll);
+      
+      const onScroll = () => {
+        // A simple debounce or throttle could be added here if performance is an issue
+        handleScroll();
+      };
+
+      container.addEventListener('scroll', onScroll, { passive: true });
+      return () => container.removeEventListener('scroll', onScroll);
     }
   }, [currentIndex, isMoodView]);
-
-  useEffect(() => {
-    if (!isMoodView) {
-        const container = scrollContainerRef.current;
-        if (container) {
-            container.style.scrollBehavior = 'auto'; // Disable smooth scrolling for initial set
-            container.scrollTop = container.offsetHeight * initialIndex;
-            setTimeout(() => {
-                if(container) container.style.scrollBehavior = 'smooth';
-            }, 0);
-        }
-    }
-}, [initialIndex, isMoodView]);
 
 
   const handleDeleteClick = (id: string) => {
@@ -562,13 +560,6 @@ export function PostView({
           <div 
               ref={scrollContainerRef}
               className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
-              onClick={(e) => {
-                    const target = e.target as HTMLElement;
-                    if (target.dataset.isFeedPostContainer) {
-                        onClose(emojis);
-                    }
-              }}
-              data-is-feed-post-container={true}
           >
               {emojis.map((emoji) => {
                   if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
@@ -616,3 +607,5 @@ export function PostView({
     </>
   );
 }
+
+    
