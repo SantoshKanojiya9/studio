@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount, getLikeCount, getIsLiked } from '@/app/actions';
+import { getSupportStatus, getSupporterCount, getSupportingCount, supportUser, unsupportUser, deleteUserAccount, getGalleryDataForUser } from '@/app/actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
@@ -108,56 +108,20 @@ function GalleryPageContent() {
 
             setIsLoading(true);
             try {
-                // Fetch user profile directly using client
-                const { data: userProfile, error: userError } = await supabase
-                    .from('users')
-                    .select('id, name, picture, is_private')
-                    .eq('id', viewingUserId)
-                    .single();
+                const galleryData = await getGalleryDataForUser(viewingUserId);
 
-                if (userError || !userProfile) {
-                    throw new Error("User profile not found.");
-                }
-                setProfileUser(userProfile as ProfileUser);
-
-                // Fetch support data in parallel
-                fetchSupportData();
-                
-                const tempSupportStatus = isOwnProfile || !authUser ? 'approved' : await getSupportStatus(authUser?.id ?? '', viewingUserId);
-
-                if (userProfile.is_private && tempSupportStatus !== 'approved' && !isOwnProfile) {
-                    setSavedEmojis([]);
-                } else {
-                     const { data: emojis, error: emojisError } = await supabase
-                        .from('emojis')
-                        .select('*, user:users(id, name, picture)')
-                        .eq('user_id', viewingUserId)
-                        .order('created_at', { ascending: false });
-
-                    if (emojisError) throw emojisError;
-
-                    // Now fetch like counts and is_liked status for each emoji
-                    const emojisWithLikes = await Promise.all(
-                        emojis.map(async (emoji) => {
-                            const like_count = await getLikeCount(emoji.id);
-                            const is_liked = authUser ? await getIsLiked(emoji.id) : false;
-                            return { ...emoji, like_count, is_liked };
-                        })
-                    );
-                    setSavedEmojis(emojisWithLikes as GalleryEmoji[]);
+                if (!galleryData || !galleryData.user_profile) {
+                     throw new Error("User profile not found.");
                 }
 
+                const { user_profile, posts, supporter_count, supporting_count, support_status, has_mood } = galleryData;
 
-                // Fetch mood status
-                 const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-                 const { count: moodCount, error: moodError } = await supabase
-                    .from('moods')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', viewingUserId)
-                    .gte('created_at', twentyFourHoursAgo);
-
-                if (moodError) console.error('Supabase error fetching mood status:', moodError);
-                else setHasMood((moodCount ?? 0) > 0);
+                setProfileUser(user_profile as ProfileUser);
+                setSavedEmojis((posts || []) as GalleryEmoji[]);
+                setSupporterCount(supporter_count);
+                setSupportingCount(supporting_count);
+                setSupportStatus(support_status);
+                setHasMood(has_mood);
 
             } catch (error: any) {
                 console.error("Failed to load profile data from Supabase", error);
@@ -179,7 +143,7 @@ function GalleryPageContent() {
         } else {
             setIsLoading(false);
         }
-    }, [viewingUserId, toast, isOwnProfile, supabase, fetchSupportData, router, authUser]);
+    }, [viewingUserId, toast, isOwnProfile, router, authUser]);
 
     // Real-time listener for support counts
     React.useEffect(() => {

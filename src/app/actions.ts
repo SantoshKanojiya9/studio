@@ -532,48 +532,34 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    // Get IDs of users the current user is supporting
-    const { data: following, error: followingError } = await supabase
-        .from('supports')
-        .select('supported_id')
-        .eq('supporter_id', user.id)
-        .eq('status', 'approved');
+    const { data, error } = await supabase.rpc('get_feed_for_user', {
+        current_user_id: user.id,
+        page_number: page,
+        page_size: limit,
+    });
 
-    if (followingError) throw followingError;
+    if (error) {
+        console.error('Error fetching feed posts:', error);
+        throw error;
+    }
+    return data || [];
+}
 
-    // Include the current user's ID to show their own posts in the feed
-    const userIds = [...following.map(f => f.supported_id), user.id];
-    
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
 
-    // Fetch posts from the identified users
-    const { data: posts, error: postError } = await supabase
-        .from('emojis')
-        .select('*, user:users!inner(id, name, picture)')
-        .in('user_id', userIds)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+// --- Gallery Actions ---
+export async function getGalleryDataForUser(profileUserId: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (postError) {
-        console.error('Error fetching feed posts:', postError);
-        throw postError;
+    const { data, error } = await supabase.rpc('get_gallery_for_user', {
+        p_user_id: profileUserId,
+        p_current_user_id: user?.id,
+    });
+
+    if (error) {
+        console.error('Error fetching gallery data:', error);
+        throw error;
     }
 
-    // Now, for the fetched posts, get their like counts and is_liked status
-    const postsWithLikes = await Promise.all(
-        posts.map(async (post) => {
-            const [likeCount, isLiked] = await Promise.all([
-                getLikeCount(post.id),
-                getIsLiked(post.id)
-            ]);
-            return {
-                ...post,
-                like_count: likeCount,
-                is_liked: isLiked
-            };
-        })
-    );
-
-    return postsWithLikes;
+    return data[0];
 }
