@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useSupport } from '@/hooks/use-support';
+import { StoryRing } from './story-ring';
 
 
 interface User {
@@ -16,6 +17,7 @@ interface User {
   picture: string;
   is_private: boolean;
   support_status: 'approved' | 'pending' | null;
+  has_mood: boolean;
 }
 
 interface UserListItemProps {
@@ -36,10 +38,12 @@ export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListI
 
     return (
         <Link href={`/gallery?userId=${itemUser.id}`} className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
-            <Avatar className="h-12 w-12">
-                <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
-                <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-            </Avatar>
+            <StoryRing hasStory={itemUser.has_mood}>
+              <Avatar className="h-12 w-12 border-2 border-background">
+                  <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
+                  <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+              </Avatar>
+            </StoryRing>
             <span className="font-semibold flex-1">{itemUser.name}</span>
             {!isSelf && currentUser && (
                  <Button 

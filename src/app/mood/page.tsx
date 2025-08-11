@@ -63,6 +63,7 @@ interface Mood extends EmojiState {
 interface FeedPostType extends EmojiState {
     like_count: number;
     is_liked: boolean;
+    user: EmojiState['user'] & { has_mood?: boolean };
 }
 
 // Store cache in a simple object. This will persist for the session.
@@ -157,10 +158,12 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType;
         <>
             <div className="flex flex-col border-b border-border/40">
                 <div className="flex items-center px-4 py-2">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
-                        <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
+                    <StoryRing hasStory={!!emoji.user?.has_mood}>
+                      <Avatar className="h-8 w-8">
+                          <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
+                          <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                      </Avatar>
+                    </StoryRing>
                     <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
                     {user && (
                       <DropdownMenu>
@@ -615,4 +618,3 @@ export default function MoodPage() {
     </div>
   );
 }
-

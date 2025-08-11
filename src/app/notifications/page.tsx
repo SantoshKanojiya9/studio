@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupport } from '@/hooks/use-support';
+import { StoryRing } from '@/components/story-ring';
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -25,6 +26,7 @@ interface Actor {
     name: string;
     picture: string;
     is_private: boolean;
+    has_mood: boolean;
 }
 
 interface Notification {
@@ -75,10 +77,12 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
     return (
         <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
              <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
+                <StoryRing hasStory={actor.has_mood}>
+                  <Avatar className="h-10 w-10">
+                      <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                  </Avatar>
+                </StoryRing>
                 <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
                     <UserPlus className="h-3 w-3 text-primary-foreground"/>
                 </div>
@@ -131,10 +135,12 @@ const SupportRequestNotification = React.memo(({ notification, onRespond }: { no
     return (
         <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
             <Link href={`/gallery?userId=${actor.id}`} className="flex-shrink-0">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
+                <StoryRing hasStory={actor.has_mood}>
+                  <Avatar className="h-10 w-10">
+                      <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                  </Avatar>
+                </StoryRing>
             </Link>
             <p className="flex-1 text-sm">
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
@@ -279,10 +285,12 @@ export default function NotificationsPage() {
             return (
                 <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
                     <div className="relative">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
+                        <StoryRing hasStory={actor.has_mood}>
+                          <Avatar className="h-10 w-10">
+                              <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                              <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                          </Avatar>
+                        </StoryRing>
                          <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
                             <Check className="h-3 w-3 text-white"/>
                         </div>
@@ -300,10 +308,12 @@ export default function NotificationsPage() {
             return (
                  <div key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
                     <Link href={`/gallery?userId=${actor.id}`} className="flex-shrink-0">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
+                        <StoryRing hasStory={actor.has_mood}>
+                          <Avatar className="h-10 w-10">
+                              <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                              <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                          </Avatar>
+                        </StoryRing>
                     </Link>
                     <p className="flex-1 text-sm">
                         <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>

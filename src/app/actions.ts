@@ -160,7 +160,7 @@ export async function getSupportingCount(userId: string) {
     return count || 0;
 }
 
-type UserWithSupportStatus = { id: string; name: string; picture: string; is_private: boolean; support_status: 'approved' | 'pending' | null; };
+type UserWithSupportStatus = { id: string; name: string; picture: string; is_private: boolean; support_status: 'approved' | 'pending' | null; has_mood: boolean; };
 
 export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
@@ -579,7 +579,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     // 2. Fetch posts from those users
     const { data: posts, error: postsError } = await supabase
         .from('emojis')
-        .select('*, user:users!inner(*)')
+        .select('*, user:users!inner(*, moods(id))')
         .in('user_id', feedUserIds)
         .order('created_at', { ascending: false })
         .range(from, to);
@@ -624,9 +624,13 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         ...post,
         like_count: likeCountMap.get(post.id) || 0,
         is_liked: userLikedSet.has(post.id),
+        user: {
+          ...post.user,
+          has_mood: Array.isArray(post.user?.moods) && post.user.moods.length > 0
+        }
     }));
 
-    return feedPosts as (EmojiState & { like_count: number; is_liked: boolean })[];
+    return feedPosts as (EmojiState & { like_count: number; is_liked: boolean; user: { has_mood: boolean } })[];
 }
 
 export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId: string, page: number, limit: number }) {
@@ -709,4 +713,3 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     
 
     
-

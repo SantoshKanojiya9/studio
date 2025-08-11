@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/use-auth';
 import { getExplorePosts } from '../actions';
+import { StoryRing } from '@/components/story-ring';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -26,6 +27,7 @@ interface SearchedUser {
   id: string;
   name: string;
   picture: string;
+  has_mood: boolean;
 }
 
 const exploreCache: {
@@ -168,10 +170,7 @@ export default function ExplorePage() {
     setIsSearching(true);
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('id, name, picture')
-        .ilike('name', `%${query}%`) // Case-insensitive search
-        .limit(10);
+        .rpc('search_users_with_mood_status', { p_search_term: query });
 
       if (error) throw error;
       
@@ -187,7 +186,7 @@ export default function ExplorePage() {
     } finally {
       setIsSearching(false);
     }
-  }, [toast]);
+  }, [toast, supabase]);
   
   useEffect(() => {
     searchUsers(debouncedSearchQuery);
@@ -259,10 +258,12 @@ export default function ExplorePage() {
              {searchedUsers.length > 0 ? (
                  searchedUsers.map(user => (
                     <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
-                        <Avatar className="h-12 w-12">
-                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
-                            <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
+                        <StoryRing hasStory={user.has_mood}>
+                          <Avatar className="h-12 w-12 border-2 border-background">
+                              <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
+                              <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                          </Avatar>
+                        </StoryRing>
                         <span className="font-semibold">{user.name}</span>
                     </Link>
                  ))
