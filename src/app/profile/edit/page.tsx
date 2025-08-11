@@ -21,13 +21,9 @@ export default function EditProfilePage() {
 
     const [name, setName] = useState('');
     const [isPrivate, setIsPrivate] = useState(false);
-    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
-    const [initialIsPrivate, setInitialIsPrivate] = useState(false);
     
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     useEffect(() => {
         const fetchUserData = async () => {
             if (!authLoading && user) {
@@ -45,24 +41,12 @@ export default function EditProfilePage() {
                     setName(data.name);
                     setAvatarPreview(data.picture);
                     setIsPrivate(data.is_private);
-                    setInitialIsPrivate(data.is_private);
                 }
             }
         }
         fetchUserData();
     }, [user, authLoading, supabase, toast]);
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setAvatarFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,9 +54,9 @@ export default function EditProfilePage() {
 
         setIsSaving(true);
         try {
+            // Since we are removing avatar editing, we don't pass the file anymore.
             await updateUserProfile({ 
-                name, 
-                avatarFile: avatarFile || undefined,
+                name,
                 is_private: isPrivate,
             });
             
@@ -116,35 +100,10 @@ export default function EditProfilePage() {
             <div className="flex-1 overflow-y-auto p-6">
                 <form onSubmit={handleFormSubmit} className="space-y-8">
                     <div className="flex flex-col items-center gap-4">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
-                                <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
-                                size="icon" 
-                                className="absolute bottom-0 right-0 rounded-full bg-background"
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <Camera className="h-5 w-5"/>
-                            </Button>
-                            <Input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                accept="image/png, image/jpeg"
-                                onChange={handleAvatarChange}
-                            />
-                        </div>
-                        <Button 
-                            type="button" 
-                            variant="link"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            Change profile photo
-                        </Button>
+                        <Avatar className="h-24 w-24">
+                            <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
+                            <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
                     </div>
 
                     <div className="space-y-2">
