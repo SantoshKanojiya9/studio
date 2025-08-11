@@ -129,7 +129,7 @@ export default function ExplorePage() {
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
         const target = entries[0];
-        if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+        if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading && !searchQuery) {
            fetchPosts(page);
         }
     }, { root: null, rootMargin: '400px', threshold: 0 });
@@ -144,7 +144,7 @@ export default function ExplorePage() {
             observer.unobserve(currentLoader);
         }
     }
-  }, [fetchPosts, hasMore, isFetchingMore, isLoading, page]);
+  }, [fetchPosts, hasMore, isFetchingMore, isLoading, page, searchQuery]);
 
   // Save and restore scroll position
   useEffect(() => {
@@ -174,7 +174,6 @@ export default function ExplorePage() {
     
     setIsSearching(true);
     try {
-      // Pass the current user's ID (or null if not logged in) to the RPC
       const { data, error } = await supabase
         .rpc('search_users_with_mood_status', { 
             p_search_term: query, 
