@@ -576,7 +576,7 @@ export default function MoodPage() {
             <div className="flex w-max space-x-4 p-4">
                 {!isLoading && (
                     <Link href={userHasMood ? "#" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? (e) => { e.preventDefault(); handleSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) } : undefined}>
-                        <StoryRing hasStory={userHasMood} isViewed={moods.find(m => m.mood_user_id === user?.id)?.is_viewed}>
+                        <StoryRing hasStory={userHasMood}>
                              <Avatar className="h-16 w-16 border-2 border-background">
                                 <AvatarImage src={user?.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
                                 <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
@@ -618,3 +618,5 @@ export default function MoodPage() {
     </div>
   );
 }
+
+    
