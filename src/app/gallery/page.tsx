@@ -453,12 +453,10 @@ function GalleryPageContent() {
                         <>
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <StoryRing hasStory={profileUser?.has_mood ?? false}>
-                                    <Avatar className="w-20 h-20 flex-shrink-0">
-                                        <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
-                                        <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
-                                    </Avatar>
-                                </StoryRing>
+                                <Avatar className="w-20 h-20 flex-shrink-0">
+                                    <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                    <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                </Avatar>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{postCount}</p>
