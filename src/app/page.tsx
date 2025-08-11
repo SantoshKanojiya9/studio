@@ -1,11 +1,10 @@
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import type { CredentialResponse } from 'google-one-tap';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, supabase, loading: authLoading, setLoading: setAuthLoading } = useAuth();
   const { toast } = useToast();
-  const signInDiv = useRef<HTMLDivElement>(null);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,21 +26,6 @@ export default function LoginPage() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const handleGoogleSignIn = async (response: CredentialResponse) => {
-    setAuthLoading(true);
-    if (!response.credential) {
-      toast({ title: 'Google sign-in failed', description: 'No credential returned from Google.', variant: 'destructive' });
-      setAuthLoading(false);
-      return;
-    }
-    
-    await supabase.auth.signInWithIdToken({
-      provider: 'google',
-      token: response.credential,
-    });
-    // On success, the onAuthStateChange listener in useAuth will handle the redirect & loading state.
-  };
 
   const handleManualSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,22 +68,6 @@ export default function LoginPage() {
     if (user) {
         router.push('/mood');
         return;
-    }
-    
-    if (isClient && window.google && signInDiv.current && !authLoading) {
-        try {
-            window.google.accounts.id.initialize({
-                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-                callback: handleGoogleSignIn,
-            });
-            window.google.accounts.id.renderButton(
-                signInDiv.current,
-                { theme: "outline", size: "large", type: 'standard', text: 'signin_with' } 
-            );
-        } catch (error) {
-            console.error("Google One Tap initialization error:", error);
-            toast({ title: 'Sign-In Not Available', description: 'Could not initialize Google Sign-In.', variant: 'destructive' });
-        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, router, authLoading, isClient]);
@@ -185,25 +152,6 @@ export default function LoginPage() {
                     </form>
                 </TabsContent>
             </Tabs>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className="relative w-full flex items-center justify-center my-2">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
-        </motion.div>
-        
-        <motion.div variants={itemVariants} className="w-full flex flex-col items-center gap-2">
-            {!isClient || (isClient && authLoading) ? (
-                <Loader2 className="animate-spin h-8 w-8" />
-            ) : (
-              <>
-                <div ref={signInDiv} className="flex justify-center"></div>
-              </>
-            )}
         </motion.div>
       </motion.div>
     </div>
