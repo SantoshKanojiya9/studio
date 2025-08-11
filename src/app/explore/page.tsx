@@ -174,10 +174,17 @@ export default function ExplorePage() {
     
     setIsSearching(true);
     try {
+      // Pass the current user's ID (or null if not logged in) to the RPC
       const { data, error } = await supabase
-        .rpc('search_users_with_mood_status', { p_search_term: query, p_user_id: authUser?.id });
+        .rpc('search_users_with_mood_status', { 
+            p_search_term: query, 
+            p_user_id: authUser?.id || null 
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase RPC error:", error);
+        throw new Error(error.message || "An unknown error occurred during search.");
+      };
       
       setSearchedUsers(data as SearchedUser[]);
 
@@ -185,7 +192,7 @@ export default function ExplorePage() {
       console.error("Failed to search users:", error);
       toast({
         title: "Search failed",
-        description: "Could not fetch user search results.",
+        description: "Could not fetch user search results. Please try again later.",
         variant: "destructive",
       });
     } finally {
