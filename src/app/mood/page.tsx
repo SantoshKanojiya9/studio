@@ -273,7 +273,7 @@ export default function MoodPage() {
     const { toast } = useToast();
     const [moods, setMoods] = useState<Mood[]>(moodPageCache.moods || []);
     const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(moodPageCache.feedPosts || []);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(!moodPageCache.feedPosts);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     
     const [page, setPage] = useState(moodPageCache.page);
@@ -371,12 +371,16 @@ export default function MoodPage() {
             setIsLoading(false);
             return;
         }
-        setIsLoading(true);
-
-        const useCache = !forceRefresh;
+        
+        const useCache = !forceRefresh && !!moodPageCache.feedPosts;
+        if (useCache) {
+            setIsLoading(false);
+        } else {
+            setIsLoading(true);
+        }
 
         try {
-            const postsPromise = (useCache && moodPageCache.feedPosts)
+            const postsPromise = useCache
                 ? Promise.resolve(moodPageCache.feedPosts)
                 : getFeedPosts({ page: 1, limit: 5 });
             
@@ -389,11 +393,11 @@ export default function MoodPage() {
                 postsPromise
             ]);
             
-            setMoods(moodsData);
+            setMoods(moodsData || []);
             moodPageCache.moods = moodsData;
             
             if (postsData) {
-                if (forceRefresh) {
+                if (forceRefresh || !moodPageCache.feedPosts) {
                     setFeedPosts(postsData);
                     setPage(2);
                     moodPageCache.page = 2;
