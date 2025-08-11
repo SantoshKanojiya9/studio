@@ -527,14 +527,6 @@ export default function MoodPage() {
     }
   
   const renderContent = () => {
-      if (isLoading && feedPosts.length === 0) {
-          return (
-            <div className="flex h-full w-full flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          );
-      }
-
       if (feedPosts.length > 0) {
           return (
               <>
@@ -551,7 +543,8 @@ export default function MoodPage() {
               </>
           );
       }
-
+      
+      // This part only renders after loading is false and feedPosts is still empty
       return (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
               <Smile className="h-16 w-16" />
@@ -612,7 +605,11 @@ export default function MoodPage() {
         </div>
       
         <div className="flex-1">
-            {renderContent()}
+            {isLoading ? (
+                 <div className="flex h-full w-full flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            ) : renderContent()}
         </div>
       </div>
     </div>
