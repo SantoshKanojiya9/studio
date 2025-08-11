@@ -21,8 +21,14 @@ interface Mood extends EmojiState {
   }
 }
 
+interface UserProfile {
+    id: string;
+    name: string;
+    picture: string;
+}
+
 interface MoodStoriesProps {
-    user: User | null;
+    user: UserProfile | null;
     moods: Mood[];
     isLoading: boolean;
     onSelectMood: (index: number) => void;
@@ -37,12 +43,12 @@ const MoodStories = memo(({ user, moods, isLoading, onSelectMood }: MoodStoriesP
         <div className="border-b border-border/40">
             <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max space-x-4 p-4">
-                {!isLoading && (
+                {!isLoading && user && (
                     <Link href={userHasMood ? "#" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? (e) => { e.preventDefault(); onSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) } : undefined}>
                         <StoryRing hasStory={userHasMood} isViewed={ownMood?.is_viewed}>
                              <Avatar className="h-16 w-16 border-2 border-background">
-                                <AvatarImage src={user?.user_metadata.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
-                                <AvatarFallback>{user?.user_metadata.name ? user.user_metadata.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                                <AvatarImage src={user.picture} alt={"Your Mood"} data-ai-hint="profile picture" />
+                                <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                             </Avatar>
                         </StoryRing>
                         <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
