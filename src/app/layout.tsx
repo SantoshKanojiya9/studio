@@ -3,7 +3,6 @@
 
 import { usePathname } from 'next/navigation';
 import './globals.css';
-import '../styles/nprogress.css';
 import { BottomBar } from '@/components/bottom-bar';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
@@ -11,7 +10,6 @@ import { Inter, Kalam } from 'next/font/google'
 import { AuthProvider } from '@/hooks/use-auth';
 import Script from 'next/script';
 import React from 'react';
-import { TopLoader } from '@/components/top-loader';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-kalam' })
@@ -34,7 +32,6 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <AuthProvider>
-          <TopLoader />
           <React.Suspense>
             <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
               <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
