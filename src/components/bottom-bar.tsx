@@ -89,12 +89,12 @@ export function BottomBar() {
                         href={item.href}
                         className={cn(
                             'flex items-center justify-center rounded-md transition-colors w-12 h-12',
-                            !isActive && 'hover:bg-accent/50'
+                            !isActive && 'hover:bg-accent/50',
+                            isActive && 'bg-accent/50'
                         )}
                     >
                         <Avatar className={cn(
-                            "h-7 w-7",
-                             isActive && "outline outline-2 outline-offset-2 outline-primary"
+                            "h-7 w-7"
                         )}>
                             <AvatarImage src={user?.picture} alt={user?.name || 'profile'} data-ai-hint="profile picture" />
                             <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
