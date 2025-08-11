@@ -30,8 +30,12 @@ interface SearchedUser {
   has_mood: boolean;
 }
 
+interface ExploreEmoji extends EmojiState {
+    user: EmojiState['user'] & { has_mood: boolean };
+}
+
 const exploreCache: {
-    posts: EmojiState[],
+    posts: ExploreEmoji[],
     page: number,
     hasMore: boolean,
     scrollPosition: number
@@ -65,7 +69,7 @@ export default function ExplorePage() {
   const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  const [allEmojis, setAllEmojis] = useState<EmojiState[]>(exploreCache.posts);
+  const [allEmojis, setAllEmojis] = useState<ExploreEmoji[]>(exploreCache.posts);
   const [selectedEmojiId, setSelectedEmojiId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(exploreCache.posts.length === 0);
   const { toast } = useToast();
@@ -299,3 +303,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    

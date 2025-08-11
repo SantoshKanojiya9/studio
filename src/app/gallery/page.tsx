@@ -50,6 +50,7 @@ interface ProfileUser {
     name: string;
     picture: string;
     is_private: boolean;
+    has_mood: boolean;
 }
 
 interface GalleryEmoji extends EmojiState {
@@ -85,7 +86,6 @@ function GalleryPageContent() {
     
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
-    const [hasMood, setHasMood] = React.useState(false);
     const [postCount, setPostCount] = React.useState(0);
 
     const onSupportStatusChange = useCallback((newStatus: 'approved' | 'pending' | null, oldStatus: 'approved' | 'pending' | null) => {
@@ -122,24 +122,20 @@ function GalleryPageContent() {
 
         try {
             const { data: userProfile, error: userError } = await supabase
-                .from('users')
-                .select('id, name, picture, is_private')
-                .eq('id', viewingUserId)
+                .rpc('get_user_profile_with_mood', { p_user_id: viewingUserId })
                 .single();
 
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
             setProfileUser(userProfile as ProfileUser);
 
-            const [supporters, following, moodResult, postCountResult] = await Promise.all([
+            const [supporters, following, postCountResult] = await Promise.all([
                 getSupporterCount(viewingUserId),
                 getSupportingCount(viewingUserId),
-                supabase.from('moods').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
                 supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
             ]);
 
             setSupporterCount(supporters);
             setSupportingCount(following);
-            setHasMood((moodResult.count ?? 0) > 0);
             setPostCount(postCountResult.count ?? 0);
             
             if (!isOwnProfile && authUser) {
@@ -444,7 +440,7 @@ function GalleryPageContent() {
                         <>
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <StoryRing hasStory={hasMood}>
+                                <StoryRing hasStory={profileUser?.has_mood ?? false}>
                                     <Avatar className="w-20 h-20 flex-shrink-0 border-2 border-background">
                                         <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
                                         <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
@@ -576,3 +572,5 @@ export default function GalleryPage() {
         </Suspense>
     );
 }
+
+    

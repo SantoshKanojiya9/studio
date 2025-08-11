@@ -694,16 +694,14 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     const to = from + limit - 1;
 
     const { data, error } = await supabase
-        .from('emojis')
-        .select('*, user:users!inner(id, name, picture, is_private)')
-        .eq('user.is_private', false)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
+        .rpc('get_public_posts_with_mood_status', { p_limit: limit, p_offset: from });
+    
     if (error) {
         console.error("Failed to load emojis for explore page", error);
         throw error;
     }
-    
-    return data as unknown as EmojiState[];
+
+    return (data || []) as unknown as (EmojiState & { user: { has_mood: boolean } })[];
 }
+
+    

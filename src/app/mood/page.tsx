@@ -531,6 +531,13 @@ export default function MoodPage() {
     }
   
   const renderContent = () => {
+      if (isLoading && feedPosts.length === 0) {
+          return (
+              <div className="flex h-full w-full flex-col items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+          );
+      }
       if (feedPosts.length > 0) {
           return (
               <>
@@ -609,13 +616,11 @@ export default function MoodPage() {
         </div>
       
         <div className="flex-1">
-            {isLoading ? (
-                 <div className="flex h-full w-full flex-col items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-            ) : renderContent()}
+            {renderContent()}
         </div>
       </div>
     </div>
   );
 }
+
+    
