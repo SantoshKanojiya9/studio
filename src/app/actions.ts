@@ -315,42 +315,30 @@ export async function setMood(emojiId: string) {
         throw new Error("User not authenticated.");
     }
 
-    // Step 1: Find the user's existing mood, if any.
-    const { data: existingMood, error: findError } = await supabase
+    // Step 1: Delete any existing mood for the user.
+    // This ensures a new mood_id is created, resetting views.
+    const { error: deleteError } = await supabase
         .from('moods')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-    if (findError && findError.code !== 'PGRST116') { // Ignore "no rows found" error
-        console.error('Error finding existing mood:', findError);
-        throw findError;
-    }
-
-    // Step 2: If a mood exists, delete all its views.
-    if (existingMood) {
-        const { error: deleteViewsError } = await supabase
-            .from('mood_views')
-            .delete()
-            .eq('mood_id', existingMood.id);
+        .delete()
+        .eq('user_id', user.id);
         
-        if (deleteViewsError) {
-            console.error('Error deleting old mood views:', deleteViewsError);
-            throw deleteViewsError;
-        }
+    if (deleteError) {
+        console.error('Error deleting old mood:', deleteError);
+        throw deleteError;
     }
 
-    // Step 3: Upsert the new mood.
-    const { error: upsertError } = await supabase
+    // Step 2: Insert the new mood.
+    const { error: insertError } = await supabase
         .from('moods')
-        .upsert(
-            { user_id: user.id, emoji_id: emojiId, created_at: new Date().toISOString() },
-            { onConflict: 'user_id' }
-        );
+        .insert({ 
+            user_id: user.id, 
+            emoji_id: emojiId, 
+            created_at: new Date().toISOString() 
+        });
 
-    if (upsertError) {
-        console.error('Error setting mood:', upsertError);
-        throw new Error(upsertError.message);
+    if (insertError) {
+        console.error('Error setting new mood:', insertError);
+        throw new Error(insertError.message);
     }
 
     revalidatePath('/mood');
