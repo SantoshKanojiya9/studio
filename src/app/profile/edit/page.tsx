@@ -21,9 +21,12 @@ export default function EditProfilePage() {
 
     const [name, setName] = useState('');
     const [isPrivate, setIsPrivate] = useState(false);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         const fetchUserData = async () => {
             if (!authLoading && user) {
@@ -47,6 +50,13 @@ export default function EditProfilePage() {
         fetchUserData();
     }, [user, authLoading, supabase, toast]);
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
+        }
+    };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,11 +64,14 @@ export default function EditProfilePage() {
 
         setIsSaving(true);
         try {
-            // Since we are removing avatar editing, we don't pass the file anymore.
-            await updateUserProfile({ 
-                name,
-                is_private: isPrivate,
-            });
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('is_private', String(isPrivate));
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+
+            await updateUserProfile(formData);
             
             toast({
                 title: "Profile updated!",
@@ -100,10 +113,28 @@ export default function EditProfilePage() {
             <div className="flex-1 overflow-y-auto p-6">
                 <form onSubmit={handleFormSubmit} className="space-y-8">
                     <div className="flex flex-col items-center gap-4">
-                        <Avatar className="h-24 w-24">
-                            <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
-                            <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
+                                <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <Button 
+                                type="button"
+                                variant="outline" 
+                                size="icon"
+                                className="absolute bottom-0 right-0 rounded-full"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Camera className="h-4 w-4"/>
+                            </Button>
+                            <Input 
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/png, image/jpeg, image/gif"
+                                onChange={handleAvatarChange}
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-2">

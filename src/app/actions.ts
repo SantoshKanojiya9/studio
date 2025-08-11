@@ -7,6 +7,66 @@ import type { EmojiState } from '@/app/design/page';
 
 // --- User Profile Actions ---
 
+export async function updateUserProfile(formData: FormData) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated.");
+
+    const name = formData.get('name') as string;
+    const is_private = formData.get('is_private') === 'true';
+    const avatarFile = formData.get('avatar') as File;
+
+    const profileData: { name: string; is_private: boolean; picture?: string } = {
+        name,
+        is_private,
+    };
+
+    // Handle avatar upload if a new file is provided
+    if (avatarFile && avatarFile.size > 0) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, avatarFile);
+
+        if (uploadError) {
+            console.error('Avatar upload error:', uploadError);
+            throw new Error('Failed to upload new avatar.');
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+        
+        profileData.picture = publicUrl;
+    }
+
+    // Update user's profile in the users table
+    const { error: updateError } = await supabase
+        .from('users')
+        .update(profileData)
+        .eq('id', user.id);
+
+    if (updateError) {
+        console.error('Error updating user profile:', updateError);
+        throw new Error('Failed to update profile.');
+    }
+    
+    // Also update the user's metadata in auth.users for consistency
+    await supabase.auth.updateUser({
+        data: {
+            name: profileData.name,
+            ...(profileData.picture && { picture: profileData.picture }),
+        }
+    });
+
+    revalidatePath('/gallery');
+    revalidatePath('/profile/edit');
+}
+
+
 export async function deleteUserAccount() {
     const supabase = createSupabaseServerClient(); // Does not bypass RLS
     const { error } = await supabase.rpc('handle_delete_user');
