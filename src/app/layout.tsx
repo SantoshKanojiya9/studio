@@ -32,13 +32,11 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body antialiased bg-background")}>
         <AuthProvider>
-          <React.Suspense>
-            <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
-              <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
-              {showBottomBar && <BottomBar />}
-            </div>
-            <Toaster />
-          </React.Suspense>
+          <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
+            <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
+            {showBottomBar && <BottomBar />}
+          </div>
+          <Toaster />
         </AuthProvider>
         <Script src="https://accounts.google.com/gsi/client" async defer />
       </body>
