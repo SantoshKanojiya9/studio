@@ -121,12 +121,25 @@ function GalleryPageContent() {
         setIsLoading(true);
 
         try {
+            // Fetch user profile data
             const { data: userProfile, error: userError } = await supabase
-                .rpc('get_user_profile_with_mood', { p_user_id: viewingUserId })
+                .from('users')
+                .select('id, name, picture, is_private')
+                .eq('id', viewingUserId)
                 .single();
 
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
-            setProfileUser(userProfile as ProfileUser);
+
+            // Check if user has an active mood
+            const { count: moodCount, error: moodError } = await supabase
+                .from('moods')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', viewingUserId);
+
+            if (moodError) throw new Error(moodError.message);
+
+            const fullProfile: ProfileUser = { ...userProfile, has_mood: (moodCount ?? 0) > 0 };
+            setProfileUser(fullProfile);
 
             const [supporters, following, postCountResult] = await Promise.all([
                 getSupporterCount(viewingUserId),
@@ -567,5 +580,3 @@ export default function GalleryPage() {
         </Suspense>
     );
 }
-
-    
