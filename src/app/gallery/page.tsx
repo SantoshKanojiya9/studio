@@ -454,7 +454,7 @@ function GalleryPageContent() {
                         <div className="p-4">
                              <div className="flex items-center gap-4">
                                 <StoryRing hasStory={profileUser?.has_mood ?? false}>
-                                    <Avatar className="w-20 h-20 flex-shrink-0 border-2 border-background">
+                                    <Avatar className="w-20 h-20 flex-shrink-0">
                                         <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
                                         <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
