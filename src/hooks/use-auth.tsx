@@ -7,7 +7,6 @@ import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import type { SupabaseClient, Session } from '@supabase/supabase-js';
 import { useToast } from './use-toast';
-import { recoverUserAccount } from '@/app/actions';
 
 interface UserProfile {
     id: string;
