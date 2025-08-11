@@ -80,7 +80,7 @@ const moodPageCache: {
     scrollPosition: 0,
 };
 
-const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () => void; }) => {
+const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -124,6 +124,7 @@ const FeedPost = memo(({ emoji, onSelect }: { emoji: FeedPostType; onSelect: () 
                 description: "Your new mood has been set.",
                 variant: "success",
             });
+            onMoodUpdate();
         } catch (error: any) {
             toast({
                 title: "Error setting mood",
@@ -362,26 +363,40 @@ export default function MoodPage() {
         }
     }, [toast, isFetchingMore]);
 
-    const loadInitialData = useCallback(async () => {
+    const loadInitialData = useCallback(async (forceRefresh = false) => {
         if (!user) {
             setIsLoading(false);
             return;
         }
         setIsLoading(true);
+
+        const useCache = !forceRefresh;
+
         try {
-            const postsDataPromise = (moodPageCache.feedPosts === null)
-                ? getFeedPosts({ page: 1, limit: 5 })
-                : Promise.resolve(moodPageCache.feedPosts);
+            const postsPromise = (useCache && moodPageCache.feedPosts)
+                ? Promise.resolve(moodPageCache.feedPosts)
+                : getFeedPosts({ page: 1, limit: 5 });
+            
+            const moodsPromise = (useCache && moodPageCache.moods)
+                ? Promise.resolve(moodPageCache.moods)
+                : fetchMoods();
 
             const [moodsData, postsData] = await Promise.all([
-                fetchMoods(),
-                postsDataPromise
+                moodsPromise,
+                postsPromise
             ]);
             
             setMoods(moodsData);
             moodPageCache.moods = moodsData;
             
             if (postsData) {
+                if (forceRefresh) {
+                    setFeedPosts(postsData);
+                    setPage(2);
+                    moodPageCache.page = 2;
+                }
+                moodPageCache.feedPosts = postsData;
+
                 if (postsData.length < 5) {
                     setHasMore(false);
                     moodPageCache.hasMore = false;
@@ -389,8 +404,6 @@ export default function MoodPage() {
                     setHasMore(true);
                     moodPageCache.hasMore = true;
                 }
-                setFeedPosts(postsData);
-                moodPageCache.feedPosts = postsData;
             }
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
@@ -452,8 +465,8 @@ export default function MoodPage() {
         }
     }, [hasMore, isFetchingMore, isLoading, page, fetchPosts]);
 
-    const handleRefresh = async () => {
-        moodPageCache.feedPosts = null; // Clear cache to force reload
+    const handleRefresh = useCallback(async () => {
+        moodPageCache.feedPosts = null; 
         moodPageCache.moods = null;
         moodPageCache.page = 1;
         moodPageCache.hasMore = true;
@@ -461,8 +474,8 @@ export default function MoodPage() {
         setMoods([]);
         setPage(1);
         setHasMore(true);
-        await loadInitialData();
-    }
+        await loadInitialData(true);
+    }, [loadInitialData]);
     
     const userHasMood = moods.some(m => m.mood_user_id === user?.id);
 
@@ -524,7 +537,7 @@ export default function MoodPage() {
               <>
                   <div className="flex flex-col">
                       {feedPosts.map((post) => (
-                          <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} />
+                          <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} onMoodUpdate={handleRefresh} />
                       ))}
                   </div>
                   {hasMore && (
@@ -602,3 +615,4 @@ export default function MoodPage() {
     </div>
   );
 }
+
