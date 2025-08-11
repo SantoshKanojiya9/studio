@@ -20,6 +20,7 @@ interface Liker {
   picture: string;
   is_private: boolean;
   support_status: 'approved' | 'pending' | null;
+  has_mood: boolean;
 }
 
 const likerListCache: {

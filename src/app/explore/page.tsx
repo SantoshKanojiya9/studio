@@ -27,6 +27,7 @@ interface SearchedUser {
   id: string;
   name: string;
   picture: string;
+  is_private: boolean;
   has_mood: boolean;
 }
 
@@ -174,7 +175,7 @@ export default function ExplorePage() {
     setIsSearching(true);
     try {
       const { data, error } = await supabase
-        .rpc('search_users_with_mood_status', { p_search_term: query });
+        .rpc('search_users_with_mood_status', { p_search_term: query, p_user_id: authUser?.id });
 
       if (error) throw error;
       
@@ -190,7 +191,7 @@ export default function ExplorePage() {
     } finally {
       setIsSearching(false);
     }
-  }, [toast, supabase]);
+  }, [toast, supabase, authUser]);
   
   useEffect(() => {
     searchUsers(debouncedSearchQuery);
@@ -303,5 +304,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    
