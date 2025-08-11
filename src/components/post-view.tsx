@@ -243,6 +243,7 @@ export function PostView({
 }: PostViewProps) {
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [localEmojis, setLocalEmojis] = useState(emojis);
   const [direction, setDirection] = useState(0);
   const [emojiToDelete, setEmojiToDelete] = React.useState<string | null>(null);
   const [emojiToSetMood, setEmojiToSetMood] = useState<string | null>(null);
@@ -257,24 +258,24 @@ export function PostView({
   const progressWidth = useMotionValue('0%');
   const animationControlsRef = useRef<ReturnType<typeof animate> | null>(null);
   
-  const currentEmojiState = emojis[currentIndex];
+  const currentEmojiState = localEmojis[currentIndex];
 
   useEffect(() => {
     if (!currentEmojiState) {
-        onClose(emojis);
+        onClose(localEmojis);
     }
-  }, [currentEmojiState, emojis, onClose]);
+  }, [currentEmojiState, localEmojis, onClose]);
 
   const isCurrentEmojiMood = (emoji: PostViewEmoji | Mood): emoji is Mood => {
     return 'mood_id' in emoji;
   }
   
   const goToNext = useCallback(() => {
-    if (currentIndex < emojis.length - 1) {
+    if (currentIndex < localEmojis.length - 1) {
       setDirection(1);
       setCurrentIndex((prev) => prev + 1);
     }
-  }, [currentIndex, emojis.length]);
+  }, [currentIndex, localEmojis.length]);
 
   const goToPrev = () => {
     if (currentIndex > 0) {
@@ -289,8 +290,8 @@ export function PostView({
         duration: 10,
         ease: 'linear',
         onComplete: () => {
-            const currentMood = emojis[currentIndex];
-            const nextMood = emojis[currentIndex + 1];
+            const currentMood = localEmojis[currentIndex];
+            const nextMood = localEmojis[currentIndex + 1];
 
             // Only auto-advance if the next story is from the same user
             if (isCurrentEmojiMood(currentMood) && nextMood && isCurrentEmojiMood(nextMood) && nextMood.mood_user_id === currentMood.mood_user_id) {
@@ -301,23 +302,29 @@ export function PostView({
             }
         }
     });
-  }, [progressWidth, currentIndex, emojis, goToNext]);
+  }, [progressWidth, currentIndex, localEmojis, goToNext]);
 
 
   useEffect(() => {
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
         if (!currentEmojiState.is_viewed) {
              recordMoodView(currentEmojiState.mood_id);
-             const updatedEmojis = [...emojis];
-             const mood = updatedEmojis[currentIndex] as Mood;
-             mood.is_viewed = true;
+             // Also update the local state immediately
+             setLocalEmojis(prevEmojis => {
+                 const updatedEmojis = [...prevEmojis];
+                 const moodToUpdate = updatedEmojis[currentIndex] as Mood;
+                 if (moodToUpdate) {
+                     moodToUpdate.is_viewed = true;
+                 }
+                 return updatedEmojis;
+             });
         }
         startAnimation();
     }
     return () => {
       animationControlsRef.current?.stop();
     }
-  }, [currentIndex, isMoodView, currentEmojiState, startAnimation, emojis]);
+  }, [currentIndex, isMoodView, currentEmojiState, startAnimation]);
 
   useEffect(() => {
     if (isMoodView) {
@@ -381,7 +388,7 @@ export function PostView({
         if (onDelete) {
             onDelete(currentEmojiState.mood_id.toString());
         }
-        onClose(emojis);
+        onClose(localEmojis);
     } catch (error: any) {
         toast({ title: "Error removing mood", description: error.message, variant: 'destructive' });
     }
@@ -469,12 +476,12 @@ export function PostView({
         <motion.div 
             className="h-full w-full flex flex-col bg-black relative"
             onPanEnd={(_, info) => {
-                if (info.offset.y > 100) onClose(emojis);
+                if (info.offset.y > 100) onClose(localEmojis);
             }}
         >
             <div className="absolute top-0 left-0 right-0 p-3 z-20">
                 <div className="flex items-center gap-2">
-                    {emojis.map((_, index) => (
+                    {localEmojis.map((_, index) => (
                         <div key={index} className="w-full bg-gray-500/50 rounded-full h-1">
                             <motion.div 
                                 className="bg-white h-1 rounded-full"
@@ -510,7 +517,7 @@ export function PostView({
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         )}
-                        <button onClick={() => onClose(emojis)} className="text-white">
+                        <button onClick={() => onClose(localEmojis)} className="text-white">
                             <X size={24} />
                         </button>
                     </div>
@@ -591,7 +598,7 @@ export function PostView({
     <>
       <div className="h-full w-full flex flex-col bg-background">
           <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
-              <Button variant="ghost" size="icon" onClick={() => onClose(emojis)}>
+              <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
               <ArrowLeft />
               </Button>
               <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
@@ -602,7 +609,7 @@ export function PostView({
               ref={scrollContainerRef}
               className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
           >
-              {emojis.map((emoji) => {
+              {localEmojis.map((emoji) => {
                   if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
                   return (
                       <PostContent 
