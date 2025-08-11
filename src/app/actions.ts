@@ -707,9 +707,3 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     
     return data as unknown as EmojiState[];
 }
-
-    
-
-    
-
-    

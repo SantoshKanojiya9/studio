@@ -146,7 +146,7 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType;
         setTimeout(() => setShowHeart(false), 800);
         await getFeedPosts({ page: 1, limit: 5 });
 
-    }, [isLikedState, user, emoji.id]);
+    }, [isLikedState, user]);
     
     const onSendClick = () => {
         if (user) {

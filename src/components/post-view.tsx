@@ -38,6 +38,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
+import { StoryRing } from './story-ring';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -49,6 +50,7 @@ interface Mood extends EmojiState {
       id: string;
       name: string;
       picture: string;
+      has_mood: boolean;
   }
 }
 
@@ -65,6 +67,7 @@ interface PostViewEmoji extends EmojiState {
         id: string;
         name: string;
         picture: string;
+        has_mood?: boolean;
     };
 }
 
@@ -132,10 +135,12 @@ const PostContent = memo(({
             className="w-full h-full flex-shrink-0 flex flex-col"
         >
             <div className="flex items-center px-4 py-2">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
+                <StoryRing hasStory={!!emoji.user?.has_mood}>
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                </StoryRing>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
                 {user && (
                     <DropdownMenu>
@@ -479,10 +484,12 @@ export function PostView({
                     ))}
                 </div>
                 <div className="flex items-center mt-3 gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
+                    <StoryRing hasStory={!!postAuthor?.has_mood}>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
+                          <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
+                    </StoryRing>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
                     <div className="ml-auto flex items-center gap-2">
                         {user && currentEmojiState && isCurrentEmojiMood(currentEmojiState) && currentEmojiState.mood_user_id === user.id && (
@@ -641,9 +648,3 @@ export function PostView({
     </>
   );
 }
-
-
-
-
-
-    
