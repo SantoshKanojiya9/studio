@@ -58,6 +58,18 @@ interface GalleryEmoji extends EmojiState {
     is_liked: boolean;
 }
 
+interface Mood extends EmojiState {
+  mood_id: number;
+  mood_created_at: string;
+  mood_user_id: string;
+  is_viewed?: boolean;
+  mood_user?: {
+      id: string;
+      name: string;
+      picture: string;
+  }
+}
+
 const galleryCache: {
     [userId: string]: {
         posts: GalleryEmoji[],
@@ -87,6 +99,9 @@ function GalleryPageContent() {
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [postCount, setPostCount] = React.useState(0);
+    
+    const [mood, setMood] = useState<Mood | null>(null);
+    const [showMood, setShowMood] = useState(false);
 
     const onSupportStatusChange = useCallback((newStatus: 'approved' | 'pending' | null, oldStatus: 'approved' | 'pending' | null) => {
         // Optimistically update supporter count
@@ -131,14 +146,34 @@ function GalleryPageContent() {
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
 
             // Check if user has an active mood
-            const { count: moodCount, error: moodError } = await supabase
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const { data: moodData, error: moodError } = await supabase
                 .from('moods')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', viewingUserId);
+                .select('id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
+                .eq('user_id', viewingUserId)
+                .gte('created_at', twentyFourHoursAgo)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
 
-            if (moodError) throw new Error(moodError.message);
+            if (moodError && moodError.code !== 'PGRST116') { // Ignore no rows found error
+                console.error("Error fetching mood:", moodError);
+            }
 
-            const fullProfile: ProfileUser = { ...userProfile, has_mood: (moodCount ?? 0) > 0 };
+            if (moodData && authUser) {
+                const views = (moodData.views as unknown as { viewer_id: string }[]) || [];
+                const isViewed = views.some(view => view.viewer_id === authUser.id);
+                setMood({
+                    ...(moodData.emoji as unknown as EmojiState),
+                    mood_id: moodData.id,
+                    mood_created_at: moodData.created_at,
+                    mood_user_id: viewingUserId,
+                    mood_user: moodData.emoji.user,
+                    is_viewed: isViewed,
+                });
+            }
+
+            const fullProfile: ProfileUser = { ...userProfile, has_mood: !!moodData };
             setProfileUser(fullProfile);
 
             const [supporters, following, postCountResult] = await Promise.all([
@@ -369,6 +404,19 @@ function GalleryPageContent() {
         }
     };
     
+    const handleAvatarClick = () => {
+        if (profileUser?.has_mood && mood) {
+            setShowMood(true);
+        }
+    };
+    
+    const handleOnCloseMood = (updatedMoods: Mood[]) => {
+        const updatedMood = updatedMoods[0];
+        if (updatedMood && mood && updatedMood.mood_id === mood.mood_id) {
+            setMood(updatedMood);
+        }
+        setShowMood(false);
+    }
 
     const ProfileHeader = () => (
         <header className="flex h-16 items-center justify-between bg-background px-4 md:px-6">
@@ -428,6 +476,24 @@ function GalleryPageContent() {
         );
     }
     
+    if (showMood && mood) {
+        return (
+            <PostView
+                emojis={[mood]}
+                initialIndex={0}
+                onClose={handleOnCloseMood}
+                isMoodView={true}
+                onDelete={(deletedId) => {
+                    if (mood && mood.mood_id.toString() === deletedId) {
+                        setMood(null);
+                        setProfileUser(prev => prev ? {...prev, has_mood: false} : null);
+                    }
+                    setShowMood(false);
+                }}
+            />
+        )
+    }
+    
     const canViewContent = !profileUser?.is_private || supportStatus === 'approved' || isOwnProfile;
     const showLoadingScreen = isLoading || (canViewContent && isInitialPostsLoading);
 
@@ -453,10 +519,14 @@ function GalleryPageContent() {
                         <>
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <Avatar className="w-20 h-20 flex-shrink-0">
-                                    <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
-                                    <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
-                                </Avatar>
+                                <button onClick={handleAvatarClick} disabled={!profileUser?.has_mood}>
+                                    <StoryRing hasStory={profileUser?.has_mood || false} isViewed={mood?.is_viewed}>
+                                        <Avatar className="w-20 h-20">
+                                            <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                            <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                        </Avatar>
+                                    </StoryRing>
+                                </button>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
                                         <p className="font-bold text-lg">{postCount}</p>
