@@ -23,14 +23,15 @@ export async function updateUserProfile(formData: FormData) {
 
     // Handle avatar upload if a new file is provided
     if (avatarFile && avatarFile.size > 0) {
+        // Create a separate admin client to bypass RLS for storage upload
+        const supabaseAdmin = createSupabaseServerClient(true);
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
         const filePath = `avatars/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseAdmin.storage
             .from('avatars')
             .upload(filePath, avatarFile, {
-                // Add owner metadata for RLS policy
                 upsert: true,
                 cacheControl: '3600',
                 contentType: avatarFile.type,
@@ -41,7 +42,7 @@ export async function updateUserProfile(formData: FormData) {
             throw new Error('Failed to upload new avatar.');
         }
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl } } = supabaseAdmin.storage
             .from('avatars')
             .getPublicUrl(filePath);
         
@@ -784,3 +785,4 @@ export async function searchUsers(query: string) {
     
     return data || [];
 }
+
