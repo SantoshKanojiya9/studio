@@ -52,7 +52,7 @@ export default function ChatPage() {
             name: p.name,
             picture: p.picture,
             has_mood: p.has_mood
-        })).sort((a, b) => {
+        })).sort((a: MoodUser, b: MoodUser) => {
             const aHasMood = a.has_mood;
             const bHasMood = b.has_mood;
             
