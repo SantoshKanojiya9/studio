@@ -527,7 +527,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     return data || [];
 }
 
-// --- Feed & Gallery Actions ---
+// --- Feed & Gallery & Explore Actions ---
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -668,15 +668,97 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error } = await supabase
-        .rpc('get_public_posts_with_mood_status', { p_limit: limit, p_offset: from });
-    
+    // 1. Fetch public posts with user info
+    const { data: posts, error } = await supabase
+        .from('emojis')
+        .select('*, user:users!inner(*)')
+        .eq('user.is_private', false)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
     if (error) {
         console.error("Failed to load emojis for explore page", error);
         throw error;
     }
+    
+    if (!posts || posts.length === 0) {
+        return [];
+    }
 
-    return (data || []) as unknown as (EmojiState & { user: { has_mood: boolean } })[];
+    // 2. Get mood status for the authors of the fetched posts
+    const userIds = [...new Set(posts.map(p => p.user_id))];
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: moods, error: moodError } = await supabase
+        .from('moods')
+        .select('user_id')
+        .in('user_id', userIds)
+        .gte('created_at', twentyFourHoursAgo);
+
+    if (moodError) {
+        console.error("Failed to fetch mood status for explore posts", moodError);
+        // We can continue without mood status if this fails
+    }
+
+    const usersWithMood = new Set(moods?.map(m => m.user_id) || []);
+
+    // 3. Combine post data with mood status
+    const result = posts.map(post => ({
+        ...post,
+        user: {
+            ...post.user,
+            has_mood: usersWithMood.has(post.user_id)
+        }
+    }));
+    
+    return result as (EmojiState & { user: { has_mood: boolean } })[];
 }
 
+export async function searchUsers(query: string) {
+    const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    // 1. Search for users by name
+    const { data: users, error } = await supabase
+        .from('users')
+        .select('id, name, picture, is_private')
+        .ilike('name', `%${query}%`)
+        .neq('id', currentUser?.id || '00000000-0000-0000-0000-000000000000') // Exclude current user
+        .limit(15);
+
+    if (error) {
+        console.error("Failed to search users", error);
+        throw error;
+    }
+
+    if (!users || users.length === 0) {
+        return [];
+    }
     
+    // 2. Get mood status for the found users
+    const userIds = users.map(u => u.id);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: moods, error: moodError } = await supabase
+        .from('moods')
+        .select('user_id')
+        .in('user_id', userIds)
+        .gte('created_at', twentyFourHoursAgo);
+
+    if (moodError) {
+        console.error("Failed to fetch mood status for searched users", moodError);
+    }
+
+    const usersWithMood = new Set(moods?.map(m => m.user_id) || []);
+
+    // 3. Combine user data with mood status
+    const result = users.map(user => ({
+        ...user,
+        has_mood: usersWithMood.has(user.id)
+    }));
+
+    return result;
+}
+    
+
+```

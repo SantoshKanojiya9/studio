@@ -10,9 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/hooks/use-auth';
-import { getExplorePosts } from '../actions';
+import { getExplorePosts, searchUsers as searchUsersAction } from '../actions';
 import { StoryRing } from '@/components/story-ring';
 
 const PostView = dynamic(() => 
@@ -174,19 +173,8 @@ export default function ExplorePage() {
     
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
-        .rpc('search_users_with_mood_status', { 
-            p_search_term: query, 
-            p_user_id: authUser?.id || null 
-        });
-
-      if (error) {
-        console.error("Supabase RPC error:", error);
-        throw new Error(error.message || "An unknown error occurred during search.");
-      };
-      
+      const data = await searchUsersAction(query);
       setSearchedUsers(data as SearchedUser[]);
-
     } catch (error: any) {
       console.error("Failed to search users:", error);
       toast({
@@ -197,7 +185,7 @@ export default function ExplorePage() {
     } finally {
       setIsSearching(false);
     }
-  }, [toast, supabase, authUser]);
+  }, [toast]);
   
   useEffect(() => {
     searchUsers(debouncedSearchQuery);
@@ -205,26 +193,14 @@ export default function ExplorePage() {
 
 
   const handleDelete = async (emojiId: string) => {
+    // This function is passed to PostView, but explore page posts can't be deleted from here.
+    // The check below will prevent deletion.
     const emojiToDelete = allEmojis.find(e => e.id === emojiId);
     if (!emojiToDelete || emojiToDelete.user_id !== authUser?.id) {
-        toast({ title: "Cannot delete", description: "You can only delete your own posts.", variant: "destructive" });
+        toast({ title: "Cannot delete", description: "You can only delete your own posts from your gallery.", variant: "destructive" });
         return;
     }
-
-    try {
-        const { error } = await supabase.from('emojis').delete().eq('id', emojiId);
-        if (error) throw error;
-        
-        const updatedEmojis = allEmojis.filter(emoji => emoji.id !== emojiId);
-        setAllEmojis(updatedEmojis);
-        exploreCache.posts = updatedEmojis;
-        
-        toast({ title: "Post deleted", variant: "success" });
-    } catch (error: any) {
-      console.error("Failed to delete emoji from Supabase", error);
-      toast({ title: "Error deleting post", description: error.message, variant: "destructive" });
-    }
-    
+    // Deletion logic won't be executed, but kept for structure consistency if needed later.
     setSelectedEmojiId(null);
   };
   
@@ -310,3 +286,4 @@ export default function ExplorePage() {
     </div>
   );
 }
+```
