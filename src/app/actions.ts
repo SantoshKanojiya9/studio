@@ -620,7 +620,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         console.error('Error fetching like counts:', likeCountsError);
         throw likeCountsError;
     }
-    const likeCountMap = new Map(likeCountsData?.map(l => [l.emoji_id, l.like_count]) || []);
+    const likeCountMap = new Map(likeCountsData?.map((l: { emoji_id: string; like_count: number }) => [l.emoji_id, l.like_count]) || []);
 
 
     // 4. Check which posts the current user has liked
