@@ -759,6 +759,3 @@ export async function searchUsers(query: string) {
 
     return result;
 }
-    
-
-```
