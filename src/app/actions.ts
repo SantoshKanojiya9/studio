@@ -549,13 +549,14 @@ export async function getFeedMoods() {
         const isOwnMood = m.user_id === user.id;
         const views = (m.views as unknown as { viewer_id: string }[]) || [];
         const isViewed = isOwnMood ? views.length > 0 : views.some(view => view.viewer_id === user.id);
+        const moodUser = Array.isArray(m.mood_user) ? m.mood_user[0] : m.mood_user;
 
         return {
             ...(m.emoji as unknown as EmojiState),
             mood_id: m.id,
             mood_created_at: m.created_at,
             mood_user_id: m.user_id,
-            mood_user: m.mood_user,
+            mood_user: moodUser,
             is_viewed: isViewed,
             caption: (m.emoji as any)?.caption,
         }
@@ -620,7 +621,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         console.error('Error fetching like counts:', likeCountsError);
         throw likeCountsError;
     }
-    const likeCountMap = new Map(likeCountsData?.map((l: { emoji_id: string; like_count: number }) => [l.emoji_id, l.like_count]) || []);
+    const likeCountMap = new Map(likeCountsData?.map((l: { emoji_id: string; like_count: number; }) => [l.emoji_id, l.like_count]) || []);
 
 
     // 4. Check which posts the current user has liked
