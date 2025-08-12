@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense, useRef, memo } from 'react';
 import { MoodHeader } from '@/components/mood-header';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw, Heart } from 'lucide-react';
+import { Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -56,7 +56,9 @@ interface Mood extends EmojiState {
       id: string;
       name: string;
       picture: string;
-  }
+  };
+  like_count: number; // Added to fix build error
+  is_liked: boolean; // Added to fix build error
 }
 
 interface FeedPostType extends EmojiState {
@@ -216,7 +218,17 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
                                 exit={{ scale: 1.2, opacity: 0 }}
                                 transition={{ duration: 0.4, ease: 'easeIn' }}
                             >
-                                <Heart className="w-24 h-24 text-white/90" fill="currentColor" />
+                                <motion.svg
+                                    width="96"
+                                    height="96"
+                                    viewBox="0 0 24 24"
+                                    className="text-white/90"
+                                >
+                                    <path
+                                        fill="currentColor"
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                    />
+                                </motion.svg>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -293,7 +305,13 @@ export default function MoodPage() {
         if (!user) return [];
         try {
             const moodsData = await getFeedMoods();
-            return moodsData as Mood[];
+            // Ensure moods have the properties required by PostView
+            const formattedMoods = moodsData.map(m => ({
+                ...m,
+                like_count: 0,
+                is_liked: false,
+            }));
+            return formattedMoods as Mood[];
         } catch (error) {
             console.error("Failed to fetch moods", error);
             return [];
