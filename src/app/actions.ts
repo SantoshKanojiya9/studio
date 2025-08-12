@@ -47,7 +47,7 @@ export async function updateUserProfile(formData: FormData) {
             .from('avatars')
             .getPublicUrl(filePath);
         
-        profileData.picture = `${publicUrl}?t=${new Date().getTime()}`;
+        profileData.picture = publicUrl;
     }
 
     // Update user's profile in the users table
@@ -665,7 +665,6 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
     const from = (page - 1) * limit;
-    const to = from + limit - 1;
 
     const { data: posts, error: postsError } = await supabase
         .rpc('get_gallery_posts', {
@@ -761,3 +760,6 @@ export async function searchUsers(query: string) {
 
 
 
+
+
+    
