@@ -35,6 +35,7 @@ import {
 import { getFeedPosts, setMood, getFeedMoods, likePost } from '@/app/actions';
 import { LikeButton } from '@/components/like-button';
 import MoodStories from '@/components/mood-stories';
+import type { Mood, PostViewEmoji } from '@/components/post-view';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -46,20 +47,6 @@ const PostView = dynamic(() =>
     ssr: false 
   }
 );
-
-interface Mood extends EmojiState {
-  mood_id: number;
-  mood_created_at: string;
-  mood_user_id: string;
-  is_viewed?: boolean;
-  mood_user?: {
-      id: string;
-      name: string;
-      picture: string;
-  };
-  like_count: number; // Added to fix build error
-  is_liked: boolean; // Added to fix build error
-}
 
 interface FeedPostType extends EmojiState {
     like_count: number;
@@ -305,11 +292,15 @@ export default function MoodPage() {
         if (!user) return [];
         try {
             const moodsData = await getFeedMoods();
-            // Ensure moods have the properties required by PostView
+            // Ensure moods have the properties required by the Mood type
             const formattedMoods = moodsData.map(m => ({
                 ...m,
                 like_count: 0,
                 is_liked: false,
+                mood_user: {
+                    ...m.mood_user,
+                    has_mood: true // Since these are moods, has_mood is true
+                }
             }));
             return formattedMoods as Mood[];
         } catch (error) {

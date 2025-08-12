@@ -42,7 +42,7 @@ import { StoryRing } from './story-ring';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
-interface Mood extends EmojiState {
+export interface Mood extends EmojiState {
     mood_id: number;
     mood_user_id: string;
     is_viewed?: boolean;
@@ -51,7 +51,16 @@ interface Mood extends EmojiState {
       name: string;
       picture: string;
       has_mood: boolean;
-  }
+    };
+    // Add PostViewEmoji properties for compatibility
+    like_count: number;
+    is_liked: boolean;
+    user: {
+        id: string;
+        name: string;
+        picture: string;
+        has_mood?: boolean;
+    };
 }
 
 interface Viewer {
@@ -60,7 +69,7 @@ interface Viewer {
   picture: string;
 }
 
-interface PostViewEmoji extends EmojiState {
+export interface PostViewEmoji extends EmojiState {
     like_count: number;
     is_liked: boolean;
     user: {
@@ -135,10 +144,12 @@ const PostContent = memo(({
             className="w-full h-full flex-shrink-0 flex flex-col"
         >
             <div className="flex items-center px-4 py-2">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
+                <StoryRing hasStory={!!emoji.user?.has_mood} isViewed={true}>
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
+                </StoryRing>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
                 {user && (
                     <DropdownMenu>
