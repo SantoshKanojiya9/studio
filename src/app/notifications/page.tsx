@@ -296,7 +296,7 @@ export default function NotificationsPage() {
   }, [isLoading]);
   
   const handleRequestResponded = (notificationId: number) => {
-    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
+    const updatedNotifications = notifications.filter((n: Notification) => n.id !== notificationId);
     setNotifications(updatedNotifications);
     notificationsCache.items = updatedNotifications;
   }
