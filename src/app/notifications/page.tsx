@@ -13,11 +13,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupport } from '@/hooks/use-support';
-import dynamic from 'next/dynamic';
-import { supabase } from '@/lib/supabaseClient';
-
-const PostView = dynamic(() => import('@/components/post-view').then(mod => mod.PostView), { ssr: false });
-
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -30,19 +25,6 @@ interface Actor {
     name: string;
     picture: string;
     is_private: boolean;
-    has_mood: boolean;
-}
-
-interface Mood extends EmojiState {
-  mood_id: number;
-  mood_created_at: string;
-  mood_user_id: string;
-  is_viewed?: boolean;
-  mood_user?: {
-      id: string;
-      name: string;
-      picture: string;
-  }
 }
 
 interface Notification {
@@ -82,15 +64,15 @@ const timeSince = (date: Date) => {
     return Math.floor(seconds) + "s";
 };
 
-const NotificationItemWrapper = ({ children, onAvatarClick, actor, onPostClick, emoji }: { children: React.ReactNode, onAvatarClick: (actor: Actor) => void, actor: Actor, onPostClick?: () => void, emoji?: EmojiState | null }) => (
+const NotificationItemWrapper = ({ children, actor, onPostClick, emoji }: { children: React.ReactNode, actor: Actor, onPostClick?: () => void, emoji?: EmojiState | null }) => (
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
-        <button onClick={() => onAvatarClick(actor)} className="relative flex-shrink-0 cursor-pointer">
+        <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0 cursor-pointer">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
                 <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
             </Avatar>
             {children[0]}
-        </button>
+        </Link>
         <div className="flex-1 text-sm">
             {children[1]}
         </div>
@@ -103,7 +85,7 @@ const NotificationItemWrapper = ({ children, onAvatarClick, actor, onPostClick, 
 );
 
 
-const SupportNotification = React.memo(({ notification, onAvatarClick }: { notification: Notification, onAvatarClick: (actor: Actor) => void }) => {
+const SupportNotification = React.memo(({ notification }: { notification: Notification }) => {
     const { actor, created_at } = notification;
     const { supportStatus, isLoading, handleSupportToggle } = useSupport(
         actor.id, 
@@ -112,7 +94,7 @@ const SupportNotification = React.memo(({ notification, onAvatarClick }: { notif
     );
     
     return (
-        <NotificationItemWrapper actor={actor} onAvatarClick={onAvatarClick}>
+        <NotificationItemWrapper actor={actor}>
             <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
                 <UserPlus className="h-3 w-3 text-primary-foreground"/>
             </div>
@@ -140,7 +122,7 @@ const SupportNotification = React.memo(({ notification, onAvatarClick }: { notif
 });
 SupportNotification.displayName = 'SupportNotification';
 
-const SupportRequestNotification = React.memo(({ notification, onRespond, onAvatarClick }: { notification: Notification; onRespond: (id: number) => void; onAvatarClick: (actor: Actor) => void; }) => {
+const SupportRequestNotification = React.memo(({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
     const { actor, created_at, id } = notification;
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState<'approve' | 'decline' | null>(null);
@@ -162,7 +144,7 @@ const SupportRequestNotification = React.memo(({ notification, onRespond, onAvat
     }
 
     return (
-         <NotificationItemWrapper actor={actor} onAvatarClick={onAvatarClick}>
+         <NotificationItemWrapper actor={actor}>
             <></>
              <p>
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
@@ -184,14 +166,13 @@ SupportRequestNotification.displayName = 'SupportRequestNotification';
 
 
 export default function NotificationsPage() {
-  const { user, supabase } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const [notifications, setNotifications] = useState<Notification[]>(notificationsCache.items);
   const [isLoading, setIsLoading] = useState(notificationsCache.items.length === 0);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [viewingStory, setViewingStory] = useState<Mood[] | null>(null);
   
   const [page, setPage] = useState(notificationsCache.page);
   const [hasMore, setHasMore] = useState(notificationsCache.hasMore);
@@ -294,76 +275,19 @@ export default function NotificationsPage() {
     notificationsCache.items = updatedNotifications;
   }
   
-  const handleAvatarClick = async (actor: Actor) => {
-    if (!actor.has_mood || !user) return;
-
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { data, error } = await supabase
-        .from('moods')
-        .select('id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
-        .eq('user_id', actor.id)
-        .gte('created_at', twentyFourHoursAgo)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-    
-    if (error || !data) {
-        toast({ title: 'Could not load story', variant: 'destructive' });
-        return;
-    }
-
-    const views = (data.views as unknown as { viewer_id: string }[]) || [];
-    const isViewed = views.some(view => view.viewer_id === user.id);
-    const mood: Mood = {
-        ...(data.emoji as unknown as EmojiState),
-        mood_id: data.id,
-        mood_created_at: data.created_at,
-        mood_user_id: actor.id,
-        mood_user: data.emoji.user,
-        is_viewed: isViewed,
-    };
-    setViewingStory([mood]);
-  };
-  
-  const handleCloseStory = () => {
-    // Optimistically mark story as viewed in UI
-    if (viewingStory) {
-        const viewedActorId = viewingStory[0].mood_user_id;
-        const newNotifications = notifications.map(n => {
-            if (n.actor.id === viewedActorId) {
-                return { ...n, actor: { ...n.actor, has_mood: true }};
-            }
-            return n;
-        });
-        setNotifications(newNotifications);
-    }
-    setViewingStory(null);
-  }
-
-  if (viewingStory) {
-      return (
-          <PostView
-            emojis={viewingStory}
-            initialIndex={0}
-            onClose={handleCloseStory}
-            isMoodView={true}
-          />
-      )
-  }
-  
   const renderNotification = (notification: Notification) => {
     const { actor, type, emoji, created_at } = notification;
 
     switch(type) {
         case 'new_support_request':
-            return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} onAvatarClick={handleAvatarClick} />;
+            return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} />;
         
         case 'new_supporter':
-            return <SupportNotification key={notification.id} notification={notification} onAvatarClick={handleAvatarClick} />;
+            return <SupportNotification key={notification.id} notification={notification} />;
 
         case 'support_request_approved':
             return (
-                <NotificationItemWrapper key={notification.id} actor={actor} onAvatarClick={handleAvatarClick}>
+                <NotificationItemWrapper key={notification.id} actor={actor}>
                     <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
                         <Check className="h-3 w-3 text-white"/>
                     </div>
@@ -379,8 +303,12 @@ export default function NotificationsPage() {
         case 'new_like':
             if (!emoji || !emoji.id) return null;
             return (
-                <NotificationItemWrapper key={notification.id} actor={actor} emoji={emoji} onAvatarClick={handleAvatarClick} onPostClick={() => router.push('/gallery')}>
-                     <></>
+                <NotificationItemWrapper key={notification.id} actor={actor} emoji={emoji} onPostClick={() => router.push('/gallery')}>
+                     <>
+                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5">
+                           <Heart className="h-3 w-3 text-white" fill="white" />
+                        </div>
+                     </>
                      <p>
                         <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
                         {' reacted to your post.'}

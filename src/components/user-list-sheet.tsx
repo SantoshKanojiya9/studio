@@ -20,7 +20,6 @@ interface User {
   picture: string;
   is_private: boolean;
   support_status: 'approved' | 'pending' | null;
-  has_mood: boolean;
 }
 
 const userListCache: {
@@ -72,8 +71,8 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
                 const existingIds = new Set(prev.map(u => u.id));
                 const uniqueNew = newUsers.filter(u => !existingIds.has(u.id));
                 const updatedList = pageNum === 1 ? newUsers : [...prev, ...uniqueNew];
-                if (userListCache[cacheKey]) userListCache[cacheKey].items = updatedList;
-                return updatedList;
+                if (userListCache[cacheKey]) userListCache[cacheKey].items = updatedList as User[];
+                return updatedList as User[];
             });
             
             const nextPage = pageNum + 1;

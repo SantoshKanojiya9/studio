@@ -8,41 +8,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import type { EmojiState } from '@/app/design/page';
-import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
+import { StoryRing } from '@/components/story-ring';
+import Link from 'next/link';
 
-const PostView = dynamic(() => import('@/components/post-view').then(mod => mod.PostView), {
-  loading: () => <div className="flex h-full w-full items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin" /></div>,
-  ssr: false
-});
-
-interface StoryUser {
+interface MoodUser {
     id: string;
     name: string;
     picture: string;
-    mood: Mood | null;
-}
-
-interface Mood extends EmojiState {
-  mood_id: number;
-  mood_created_at: string;
-  mood_user_id: string;
-  is_viewed?: boolean;
-  mood_user?: {
-      id: string;
-      name: string;
-      picture: string;
-  }
+    has_mood: boolean;
 }
 
 export default function ChatPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [stories, setStories] = useState<StoryUser[]>([]);
+  const [stories, setStories] = useState<MoodUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewingStory, setViewingStory] = useState<Mood[] | null>(null);
-
 
   const fetchStories = useCallback(async () => {
     if (!user) return;
@@ -61,56 +43,24 @@ export default function ChatPage() {
         const userIds = [user.id, ...followedUserIds];
 
         const { data: profiles, error: profilesError } = await supabase
-            .from('users')
-            .select('id, name, picture')
-            .in('id', userIds);
-
+            .rpc('get_users_with_mood_status', { p_user_ids: userIds });
+        
         if (profilesError) throw profilesError;
-        
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { data: moodsData, error: moodError } = await supabase
-            .from('moods')
-            .select('id, user_id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
-            .in('user_id', userIds)
-            .gte('created_at', twentyFourHoursAgo);
-        
-        if (moodError) console.error('Error fetching moods:', moodError);
-
-        const moodsByUserId = new Map<string, Mood>();
-        if (moodsData) {
-            moodsData.forEach(m => {
-            const isViewed = (m.views as unknown as { viewer_id: string }[]).some(v => v.viewer_id === user.id);
-            moodsByUserId.set(m.user_id, {
-                ...(m.emoji as EmojiState),
-                mood_id: m.id,
-                mood_created_at: m.created_at,
-                mood_user_id: m.user_id,
-                mood_user: m.emoji.user,
-                is_viewed: isViewed,
-            });
-            });
-        }
 
         const storyUsers = profiles.map(p => ({
             id: p.id,
             name: p.name,
             picture: p.picture,
-            mood: moodsByUserId.get(p.id) || null
+            has_mood: p.has_mood
         })).sort((a, b) => {
-            const aHasMood = !!a.mood;
-            const bHasMood = !!b.mood;
+            const aHasMood = a.has_mood;
+            const bHasMood = b.has_mood;
             
             if (a.id === user.id) return -1;
             if (b.id === user.id) return 1;
             if (aHasMood && !bHasMood) return -1;
             if (!aHasMood && bHasMood) return 1;
-            if (a.mood && b.mood) {
-            const aIsViewed = a.mood.is_viewed;
-            const bIsViewed = b.mood.is_viewed;
-            if (!aIsViewed && bIsViewed) return -1;
-            if (aIsViewed && !bIsViewed) return 1;
-            }
-            return 0; // Or sort by name if needed
+            return 0;
         });
         
         setStories(storyUsers);
@@ -125,38 +75,8 @@ export default function ChatPage() {
     fetchStories();
   }, [fetchStories]);
   
-  const handleStoryClick = (storyUser: StoryUser) => {
-      if (storyUser.mood) {
-          setViewingStory([storyUser.mood]);
-      }
-  };
-
-  const handleOnCloseMood = (updatedMoods?: any[]) => {
-      if (updatedMoods && viewingStory) {
-          const viewedMoodId = viewingStory[0].mood_id;
-          setStories(prevStories => prevStories.map(story => {
-              if (story.mood && story.mood.mood_id === viewedMoodId) {
-                  return { ...story, mood: { ...story.mood, is_viewed: true } };
-              }
-              return story;
-          }));
-      }
-      setViewingStory(null);
-  };
-  
   const me = stories.find(s => s.id === user?.id);
   const otherStories = stories.filter(s => s.id !== user?.id);
-
-  if (viewingStory) {
-      return (
-          <PostView
-              emojis={viewingStory}
-              initialIndex={0}
-              onClose={handleOnCloseMood}
-              isMoodView={true}
-          />
-      );
-  }
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -175,7 +95,7 @@ export default function ChatPage() {
             ) : (
               <>
                 {me && (
-                   <div key={me.id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleStoryClick(me)}>
+                   <Link href="/design" className="flex flex-col items-center gap-2 cursor-pointer">
                       <Avatar className="h-16 w-16 border-2 border-background">
                         <AvatarImage src={me.picture} alt={me.name} data-ai-hint="profile picture" />
                         <AvatarFallback>{me.name.charAt(0)}</AvatarFallback>
@@ -184,16 +104,16 @@ export default function ChatPage() {
                         </div>
                       </Avatar>
                       <span className="text-xs font-medium text-muted-foreground">Your Story</span>
-                    </div>
+                    </Link>
                 )}
                 {otherStories.map((story) => (
-                  <div key={story.id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleStoryClick(story)}>
+                  <Link key={story.id} href={`/gallery?userId=${story.id}`} className="flex flex-col items-center gap-2 cursor-pointer">
                     <Avatar className="h-16 w-16 border-2 border-background">
                       <AvatarImage src={story.picture} alt={story.name} data-ai-hint="profile picture" />
                       <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-medium text-muted-foreground">{story.name}</span>
-                  </div>
+                  </Link>
                 ))}
               </>
             )}
