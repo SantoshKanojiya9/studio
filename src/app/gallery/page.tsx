@@ -85,6 +85,8 @@ function GalleryPageContent() {
     const [supporterCount, setSupporterCount] = React.useState(0);
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [postCount, setPostCount] = React.useState(0);
+    
+    const [canViewContent, setCanViewContent] = useState(true); // Default to true, server will validate
 
     const onSupportStatusChange = useCallback((newStatus: 'approved' | 'pending' | null, oldStatus: 'approved' | 'pending' | null) => {
         // Optimistically update supporter count
@@ -96,7 +98,18 @@ function GalleryPageContent() {
         } else if (!isSupporting && wasSupporting) {
             setSupporterCount(c => Math.max(0, c - 1));
         }
-    }, []);
+
+        // If user is approved, reload content to show posts.
+        if (newStatus === 'approved') {
+            fetchPosts(1, true); 
+        } else if (oldStatus === 'approved' && newStatus !== 'approved') {
+            // If user unsupports, clear posts for private profiles.
+            if(profileUser?.is_private) {
+                setSavedEmojis([]);
+                setCanViewContent(false);
+            }
+        }
+    }, [profileUser]);
 
     const [initialSupportStatus, setInitialSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
     const { supportStatus, isLoading: isSupportLoading, handleSupportToggle } = useSupport(viewingUserId, initialSupportStatus, profileUser?.is_private, undefined, onSupportStatusChange);
@@ -112,51 +125,6 @@ function GalleryPageContent() {
     
     const loaderRef = useRef(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [canViewContent, setCanViewContent] = useState(true);
-
-    const fetchProfileInfo = useCallback(async () => {
-        if (!viewingUserId) return;
-        
-        setIsLoading(true);
-
-        try {
-            // Fetch user profile data
-            const { data: userProfile, error: userError } = await supabase
-                .from('users')
-                .select('id, name, picture, is_private')
-                .eq('id', viewingUserId)
-                .single();
-
-            if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
-            
-            setProfileUser(userProfile);
-
-            const [supporters, following, postCountResult] = await Promise.all([
-                getSupporterCount(viewingUserId),
-                getSupportingCount(viewingUserId),
-                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId),
-            ]);
-
-            setSupporterCount(supporters);
-            setSupportingCount(following);
-            setPostCount(postCountResult.count ?? 0);
-            
-            if (!isOwnProfile && authUser) {
-                const status = await getSupportStatus(authUser.id, viewingUserId);
-                setInitialSupportStatus(status);
-            }
-            
-            await fetchPosts(1, true);
-
-        } catch (error: any) {
-            console.error("Failed to load profile info:", error);
-            toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
-             setIsInitialPostsLoading(false);
-        } finally {
-            setIsLoading(false);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
 
     const fetchPosts = useCallback(async (pageNum: number, isInitial = false) => {
         if (!viewingUserId || isFetchingMore) return;
@@ -169,9 +137,9 @@ function GalleryPageContent() {
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
 
-            // The server-side function now handles privacy. 
-            // If it returns no posts on the first page for a private profile, it means we can't view them.
-            if (isInitial && newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
+            // If it's the first page load for a private profile and no posts are returned,
+            // it means the user doesn't have access.
+            if (pageNum === 1 && newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
                 setCanViewContent(false);
             } else {
                 setCanViewContent(true);
@@ -204,8 +172,58 @@ function GalleryPageContent() {
             }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewingUserId, toast, isFetchingMore, isOwnProfile, supportStatus, profileUser?.is_private]);
+    }, [viewingUserId, toast, isFetchingMore, isOwnProfile, profileUser, supportStatus]);
 
+    const fetchProfileInfo = useCallback(async () => {
+        if (!viewingUserId) return;
+        
+        setIsLoading(true);
+
+        try {
+            const { data: userProfile, error: userError } = await supabase
+                .from('users')
+                .select('id, name, picture, is_private')
+                .eq('id', viewingUserId)
+                .single();
+
+            if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
+            
+            setProfileUser(userProfile);
+
+            const [supporters, following, postCountResult] = await Promise.all([
+                getSupporterCount(viewingUserId),
+                getSupportingCount(viewingUserId),
+                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId),
+            ]);
+
+            setSupporterCount(supporters);
+            setSupportingCount(following);
+            setPostCount(postCountResult.count ?? 0);
+            
+            let status: 'approved' | 'pending' | null = null;
+            if (!isOwnProfile && authUser) {
+                status = await getSupportStatus(authUser.id, viewingUserId);
+                setInitialSupportStatus(status);
+            }
+            
+            // Now that we have profile info, we can determine access for the first post fetch
+            const canViewInitial = !userProfile.is_private || isOwnProfile || status === 'approved';
+            setCanViewContent(canViewInitial);
+            
+            if (canViewInitial) {
+                await fetchPosts(1, true);
+            } else {
+                setIsInitialPostsLoading(false);
+            }
+        } catch (error: any) {
+            console.error("Failed to load profile info:", error);
+            toast({ title: "Could not load profile", description: error.message, variant: 'destructive' });
+            setIsInitialPostsLoading(false);
+        } finally {
+            setIsLoading(false);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewingUserId, supabase, isOwnProfile, authUser, toast]);
 
     useEffect(() => {
         if (!viewingUserId) {
@@ -232,7 +250,7 @@ function GalleryPageContent() {
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             const target = entries[0];
-            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
+            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading && canViewContent) {
                fetchPosts(page);
             }
         }, { root: scrollContainerRef.current, rootMargin: '400px', threshold: 0 });
@@ -247,7 +265,7 @@ function GalleryPageContent() {
                 observer.unobserve(currentLoader);
             }
         }
-    }, [fetchPosts, hasMore, isFetchingMore, isLoading, page]);
+    }, [fetchPosts, hasMore, isFetchingMore, isLoading, page, canViewContent]);
 
     // Save and restore scroll position
     useEffect(() => {
