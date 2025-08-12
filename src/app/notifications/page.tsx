@@ -103,7 +103,7 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
     const { actor, created_at } = notification;
     const { supportStatus, isLoading, handleSupportToggle } = useSupport(
         actor.id, 
-        notification.actor_support_status,
+        notification.actor_support_status || null,
         actor.is_private
     );
     
