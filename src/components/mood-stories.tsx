@@ -6,20 +6,8 @@ import Link from 'next/link';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
-import type { EmojiState } from '@/app/design/page';
 import type { User } from '@supabase/supabase-js';
-
-interface Mood extends EmojiState {
-  mood_id: number;
-  mood_created_at: string;
-  mood_user_id: string;
-  is_viewed?: boolean;
-  mood_user?: {
-      id: string;
-      name: string;
-      picture: string;
-  }
-}
+import type { Mood } from '@/components/post-view';
 
 interface UserProfile {
     id: string;
