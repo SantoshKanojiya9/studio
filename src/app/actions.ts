@@ -761,8 +761,11 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
     
+    if (!query.trim()) {
+        return [];
+    }
+
     // 1. Search for users by name
     const { data: users, error } = await supabase
         .from('users')
@@ -803,3 +806,5 @@ export async function searchUsers(query: string) {
 
     return result;
 }
+
+    
