@@ -32,7 +32,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { getFeedPosts, setMood } from '@/app/actions';
+import { getFeedPosts, setMood, getFeedMoods } from '@/app/actions';
 import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 import MoodStories from '@/components/mood-stories';
@@ -81,7 +81,7 @@ const moodPageCache: {
     scrollPosition: 0,
 };
 
-const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; }) => {
+const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, allMoods, onSelectMoodFromPost }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; allMoods: Mood[], onSelectMoodFromPost: (mood: Mood) => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -138,19 +138,26 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType;
     const handleLike = useCallback(async () => {
         if (!user || isLikedState) return;
         
-        // This function is just for the double-tap, so we only handle the "like" case.
-        // The LikeButton component handles both liking and unliking.
         setIsLikedState(true);
         setCurrentLikeCount(prev => prev + 1);
         setShowHeart(true);
         setTimeout(() => setShowHeart(false), 800);
-        await getFeedPosts({ page: 1, limit: 5 });
+        await likePost(emoji.id);
 
-    }, [isLikedState, user]);
+    }, [isLikedState, user, emoji.id]);
     
     const onSendClick = () => {
         if (user) {
             setShowSetMoodConfirm(true);
+        }
+    }
+    
+    const onAvatarClick = () => {
+        if (emoji.user?.has_mood) {
+            const userMood = allMoods.find(m => m.mood_user_id === emoji.user_id);
+            if (userMood) {
+                onSelectMoodFromPost(userMood);
+            }
         }
     }
 
@@ -158,12 +165,14 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate }: { emoji: FeedPostType;
         <>
             <div className="flex flex-col border-b border-border/40">
                 <div className="flex items-center px-4 py-2">
-                    <StoryRing hasStory={!!emoji.user?.has_mood}>
-                      <Avatar className="h-8 w-8">
-                          <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
-                          <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                      </Avatar>
-                    </StoryRing>
+                    <button onClick={onAvatarClick} disabled={!emoji.user?.has_mood} className="cursor-pointer disabled:cursor-default">
+                        <StoryRing hasStory={!!emoji.user?.has_mood}>
+                          <Avatar className="h-8 w-8">
+                              <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
+                              <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                          </Avatar>
+                        </StoryRing>
+                    </button>
                     <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
                     {user && (
                       <DropdownMenu>
@@ -279,7 +288,7 @@ export default function MoodPage() {
     const [page, setPage] = useState(moodPageCache.page);
     const [hasMore, setHasMore] = useState(moodPageCache.hasMore);
 
-    const [selectedMoodIndex, setSelectedMoodIndex] = useState<number | null>(null);
+    const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
     const loaderRef = useRef(null);
@@ -287,54 +296,14 @@ export default function MoodPage() {
     
     const fetchMoods = useCallback(async () => {
         if (!user) return [];
-
-        const { data: following, error: followingError } = await supabase
-            .from('supports')
-            .select('supported_id')
-            .eq('supporter_id', user.id)
-            .eq('status', 'approved');
-        
-        if (followingError) throw followingError;
-
-        const userIds = [...following.map(f => f.supported_id), user.id];
-        
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-        const { data: moodData, error: moodError } = await supabase
-            .from('moods')
-            .select(
-                'id,user_id,created_at,mood_user:users!moods_user_id_fkey(id, name, picture),emoji:emojis!inner(*, user:users!inner(id, name, picture)),views:mood_views(viewer_id)'
-            )
-            .in('user_id', userIds)
-            .gte('created_at', twentyFourHoursAgo)
-            .order('created_at', { ascending: false });
-
-        if (moodError) throw moodError;
-
-        const formattedMoods = moodData.map(m => {
-            const isOwnMood = m.user_id === user.id;
-            const views = (m.views as unknown as { viewer_id: string }[]) || [];
-            const isViewed = isOwnMood ? views.length > 0 : views.some(view => view.viewer_id === user.id);
-
-            return {
-                ...(m.emoji as unknown as EmojiState),
-                mood_id: m.id,
-                mood_created_at: m.created_at,
-                mood_user_id: m.user_id,
-                mood_user: m.mood_user,
-                is_viewed: isViewed,
-                caption: (m.emoji as any)?.caption,
-            }
-        }).sort((a, b) => {
-             if (a.mood_user_id === user.id) return -1;
-             if (b.mood_user_id === user.id) return 1;
-             if (!a.is_viewed && b.is_viewed) return -1;
-             if (a.is_viewed && !b.is_viewed) return 1;
-             return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
-        });
-
-        return formattedMoods as Mood[];
-    }, [user, supabase]);
+        try {
+            const moodsData = await getFeedMoods();
+            return moodsData as Mood[];
+        } catch (error) {
+            console.error("Failed to fetch moods", error);
+            return [];
+        }
+    }, [user]);
 
     const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
         if (isFetchingMore) return;
@@ -484,25 +453,30 @@ export default function MoodPage() {
         await loadInitialData(true);
     }, [loadInitialData]);
 
-    const handleSelectMood = (index: number) => {
-        setSelectedMoodIndex(index);
+    const handleSelectMood = (mood: Mood) => {
+        setSelectedMood(mood);
     };
     
     const handleSelectPost = useCallback((postId: string) => {
         setSelectedPostId(postId);
     }, []);
 
-    const handleOnCloseMood = (updatedMoods: Mood[]) => {
-        setMoods(updatedMoods);
-        setSelectedMoodIndex(null);
+    const handleOnCloseMood = (updatedMoods?: Mood[]) => {
+        if (updatedMoods) {
+            setMoods(updatedMoods);
+        }
+        setSelectedMood(null);
     }
     
-    if (selectedMoodIndex !== null) {
+    if (selectedMood) {
+        // Find all moods from the same user to show in sequence
+        const userMoods = moods.filter(m => m.mood_user_id === selectedMood.mood_user_id);
+        const initialMoodIndex = userMoods.findIndex(m => m.mood_id === selectedMood.mood_id);
         return (
             <PostView 
-                emojis={moods}
-                initialIndex={selectedMoodIndex}
-                onClose={handleOnCloseMood}
+                emojis={userMoods}
+                initialIndex={initialMoodIndex}
+                onClose={() => handleOnCloseMood(moods)} // pass original full list
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
@@ -541,7 +515,14 @@ export default function MoodPage() {
               <>
                   <div className="flex flex-col">
                       {feedPosts.map((post) => (
-                          <FeedPost key={post.id} emoji={post} onSelect={() => handleSelectPost(post.id)} onMoodUpdate={handleRefresh} />
+                          <FeedPost 
+                            key={post.id} 
+                            emoji={post} 
+                            onSelect={() => handleSelectPost(post.id)} 
+                            onMoodUpdate={handleRefresh} 
+                            allMoods={moods}
+                            onSelectMoodFromPost={handleSelectMood}
+                          />
                       ))}
                   </div>
                   {hasMore && (
@@ -577,7 +558,7 @@ export default function MoodPage() {
             user={user}
             moods={moods}
             isLoading={isLoading}
-            onSelectMood={handleSelectMood}
+            onSelectMood={(index) => handleSelectMood(moods[index])}
         />
       
         <div className="flex-1">
@@ -587,3 +568,4 @@ export default function MoodPage() {
     </div>
   );
 }
+

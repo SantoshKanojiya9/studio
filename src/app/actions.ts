@@ -76,15 +76,6 @@ export async function deleteUserAccount() {
     }
 }
 
-export async function recoverUserAccount() {
-    const supabase = createSupabaseServerClient(); // Does not bypass RLS
-    const { error } = await supabase.rpc('handle_recover_user');
-     if (error) {
-        console.error('Error recovering user account:', error);
-        throw error;
-    }
-}
-
 // --- Support Actions ---
 
 export async function getSupportStatus(supporterId: string, supportedId: string) {
@@ -528,6 +519,60 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
 }
 
 // --- Feed & Gallery & Explore Actions ---
+
+export async function getFeedMoods() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data: following, error: followingError } = await supabase
+        .from('supports')
+        .select('supported_id')
+        .eq('supporter_id', user.id)
+        .eq('status', 'approved');
+    
+    if (followingError) throw followingError;
+
+    const userIds = [...following.map(f => f.supported_id), user.id];
+    
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: moodData, error: moodError } = await supabase
+        .from('moods')
+        .select(
+            'id,user_id,created_at,mood_user:users!moods_user_id_fkey(id, name, picture),emoji:emojis!inner(*, user:users!inner(id, name, picture)),views:mood_views(viewer_id)'
+        )
+        .in('user_id', userIds)
+        .gte('created_at', twentyFourHoursAgo)
+        .order('created_at', { ascending: false });
+
+    if (moodError) throw moodError;
+
+    const formattedMoods = moodData.map(m => {
+        const isOwnMood = m.user_id === user.id;
+        const views = (m.views as unknown as { viewer_id: string }[]) || [];
+        const isViewed = isOwnMood ? views.length > 0 : views.some(view => view.viewer_id === user.id);
+
+        return {
+            ...(m.emoji as unknown as EmojiState),
+            mood_id: m.id,
+            mood_created_at: m.created_at,
+            mood_user_id: m.user_id,
+            mood_user: m.mood_user,
+            is_viewed: isViewed,
+            caption: (m.emoji as any)?.caption,
+        }
+    }).sort((a, b) => {
+         if (a.mood_user_id === user.id) return -1;
+         if (b.mood_user_id === user.id) return 1;
+         if (!a.is_viewed && b.is_viewed) return -1;
+         if (a.is_viewed && !b.is_viewed) return 1;
+         return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
+    });
+
+    return formattedMoods;
+}
+
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -716,6 +761,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
     
     // 1. Search for users by name
     const { data: users, error } = await supabase
