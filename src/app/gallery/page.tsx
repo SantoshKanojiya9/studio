@@ -112,6 +112,7 @@ function GalleryPageContent() {
     
     const loaderRef = useRef(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [canViewContent, setCanViewContent] = useState(true);
 
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
@@ -145,12 +146,7 @@ function GalleryPageContent() {
                 setInitialSupportStatus(status);
             }
             
-            const canView = !userProfile.is_private || isOwnProfile || (await getSupportStatus(authUser?.id ?? '', viewingUserId)) === 'approved';
-             if (canView) {
-                await fetchPosts(1, true); // This will set isInitialPostsLoading to false
-            } else {
-                setIsInitialPostsLoading(false);
-            }
+            await fetchPosts(1, true);
 
         } catch (error: any) {
             console.error("Failed to load profile info:", error);
@@ -172,6 +168,12 @@ function GalleryPageContent() {
 
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
+
+            if (isInitial && newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
+                setCanViewContent(false);
+            } else {
+                setCanViewContent(true);
+            }
 
             if (newPosts.length < 9) {
                 setHasMore(false);
@@ -199,7 +201,8 @@ function GalleryPageContent() {
                 setIsInitialPostsLoading(false);
             }
         }
-    }, [viewingUserId, toast, isFetchingMore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [viewingUserId, toast, isFetchingMore, isOwnProfile, supportStatus, profileUser?.is_private]);
 
 
     useEffect(() => {
@@ -416,8 +419,7 @@ function GalleryPageContent() {
         );
     }
     
-    const canViewContent = !profileUser?.is_private || supportStatus === 'approved' || isOwnProfile;
-    const showLoadingScreen = isLoading || (canViewContent && isInitialPostsLoading);
+    const showLoadingScreen = isLoading || isInitialPostsLoading;
 
     return (
         <>
