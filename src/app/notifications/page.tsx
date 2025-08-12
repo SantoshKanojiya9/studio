@@ -64,23 +64,37 @@ const timeSince = (date: Date) => {
     return Math.floor(seconds) + "s";
 };
 
-const NotificationItemWrapper = ({ children, actor, onPostClick, emoji }: { children: React.ReactNode, actor: Actor, onPostClick?: () => void, emoji?: EmojiState | null }) => (
+const NotificationItemWrapper = ({ 
+    actor, 
+    onPostClick, 
+    emoji,
+    icon,
+    text,
+    action
+}: { 
+    actor: Actor, 
+    onPostClick?: () => void, 
+    emoji?: EmojiState | null,
+    icon: React.ReactNode,
+    text: React.ReactNode,
+    action?: React.ReactNode
+}) => (
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
         <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0 cursor-pointer">
             <Avatar className="h-10 w-10">
                 <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
                 <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
             </Avatar>
-            {children[0]}
+            {icon}
         </Link>
         <div className="flex-1 text-sm">
-            {children[1]}
+            {text}
         </div>
         {emoji ? (
              <button className="w-12 h-12 flex-shrink-0" onClick={onPostClick}>
                 <GalleryThumbnail emoji={emoji} onSelect={() => {}} />
             </button>
-        ) : children[2]}
+        ) : action}
     </div>
 );
 
@@ -94,30 +108,37 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
     );
     
     return (
-        <NotificationItemWrapper actor={actor}>
-            <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
-                <UserPlus className="h-3 w-3 text-primary-foreground"/>
-            </div>
-            <p>
-                <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
-                {' started supporting you. '}
-                <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
-            </p>
-            <Button
-                variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
-                size="sm"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSupportToggle();
-                }}
-                disabled={isLoading}
-            >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> :
-                 supportStatus === 'approved' ? 'Unsupport' :
-                 supportStatus === 'pending' ? 'Pending' : 'Support'}
-            </Button>
-        </NotificationItemWrapper>
+        <NotificationItemWrapper 
+            actor={actor}
+            icon={
+                <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
+                    <UserPlus className="h-3 w-3 text-primary-foreground"/>
+                </div>
+            }
+            text={
+                <p>
+                    <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
+                    {' started supporting you. '}
+                    <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
+                </p>
+            }
+            action={
+                <Button
+                    variant={supportStatus === 'approved' || supportStatus === 'pending' ? 'secondary' : 'default'}
+                    size="sm"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSupportToggle();
+                    }}
+                    disabled={isLoading}
+                >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> :
+                    supportStatus === 'approved' ? 'Unsupport' :
+                    supportStatus === 'pending' ? 'Pending' : 'Support'}
+                </Button>
+            }
+        />
     );
 });
 SupportNotification.displayName = 'SupportNotification';
@@ -144,22 +165,27 @@ const SupportRequestNotification = React.memo(({ notification, onRespond }: { no
     }
 
     return (
-         <NotificationItemWrapper actor={actor}>
-            <></>
-             <p>
-                <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
-                {' wants to support you. '}
-                <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
-            </p>
-            <div className="flex gap-2">
-                <Button size="sm" onClick={() => handleResponse('approve')} disabled={!!isLoading}>
-                    {isLoading === 'approve' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Approve'}
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => handleResponse('decline')} disabled={!!isLoading}>
-                    {isLoading === 'decline' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Decline'}
-                </Button>
-            </div>
-        </NotificationItemWrapper>
+         <NotificationItemWrapper 
+            actor={actor}
+            icon={<></>}
+            text={
+                <p>
+                    <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
+                    {' wants to support you. '}
+                    <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
+                </p>
+            }
+            action={
+                <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleResponse('approve')} disabled={!!isLoading}>
+                        {isLoading === 'approve' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Approve'}
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => handleResponse('decline')} disabled={!!isLoading}>
+                        {isLoading === 'decline' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Decline'}
+                    </Button>
+                </div>
+            }
+        />
     );
 });
 SupportRequestNotification.displayName = 'SupportRequestNotification';
@@ -287,34 +313,46 @@ export default function NotificationsPage() {
 
         case 'support_request_approved':
             return (
-                <NotificationItemWrapper key={notification.id} actor={actor}>
-                    <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
-                        <Check className="h-3 w-3 text-white"/>
-                    </div>
-                    <p>
-                        <span className="font-semibold">{actor.name}</span>
-                        {' approved your support request.'}
-                        <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
-                    </p>
-                    <div className="w-12 h-12" />
-                </NotificationItemWrapper>
+                <NotificationItemWrapper 
+                    key={notification.id} 
+                    actor={actor}
+                    icon={
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                            <Check className="h-3 w-3 text-white"/>
+                        </div>
+                    }
+                    text={
+                        <p>
+                            <span className="font-semibold">{actor.name}</span>
+                            {' approved your support request.'}
+                            <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                        </p>
+                    }
+                    action={<div className="w-12 h-12" />}
+                />
             );
 
         case 'new_like':
             if (!emoji || !emoji.id) return null;
             return (
-                <NotificationItemWrapper key={notification.id} actor={actor} emoji={emoji} onPostClick={() => router.push('/gallery')}>
-                     <>
-                        <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5">
+                <NotificationItemWrapper 
+                    key={notification.id} 
+                    actor={actor} 
+                    emoji={emoji} 
+                    onPostClick={() => router.push('/gallery')}
+                    icon={
+                         <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5">
                            <Heart className="h-3 w-3 text-white" fill="white" />
                         </div>
-                     </>
-                     <p>
-                        <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
-                        {' reacted to your post.'}
-                        <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
-                    </p>
-                </NotificationItemWrapper>
+                    }
+                    text={
+                        <p>
+                            <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
+                            {' reacted to your post.'}
+                            <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
+                        </p>
+                    }
+                />
             );
         
         default:
