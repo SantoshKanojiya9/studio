@@ -9,7 +9,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
 import { getSupporters, getSupporting } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { UserListItem } from './user-list-item';

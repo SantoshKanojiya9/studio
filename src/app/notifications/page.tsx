@@ -14,6 +14,11 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupport } from '@/hooks/use-support';
 import { StoryRing } from '@/components/story-ring';
+import dynamic from 'next/dynamic';
+import { supabase } from '@/lib/supabaseClient';
+
+const PostView = dynamic(() => import('@/components/post-view').then(mod => mod.PostView), { ssr: false });
+
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -27,6 +32,18 @@ interface Actor {
     picture: string;
     is_private: boolean;
     has_mood: boolean;
+}
+
+interface Mood extends EmojiState {
+  mood_id: number;
+  mood_created_at: string;
+  mood_user_id: string;
+  is_viewed?: boolean;
+  mood_user?: {
+      id: string;
+      name: string;
+      picture: string;
+  }
 }
 
 interface Notification {
@@ -66,7 +83,30 @@ const timeSince = (date: Date) => {
     return Math.floor(seconds) + "s";
 };
 
-const SupportNotification = React.memo(({ notification }: { notification: Notification }) => {
+const NotificationItemWrapper = ({ children, onAvatarClick, actor, onPostClick, emoji }: { children: React.ReactNode, onAvatarClick: (actor: Actor) => void, actor: Actor, onPostClick?: () => void, emoji?: EmojiState | null }) => (
+    <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
+        <button onClick={() => onAvatarClick(actor)} className="relative flex-shrink-0 cursor-pointer">
+            <StoryRing hasStory={actor.has_mood}>
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
+            </StoryRing>
+            {children[0]}
+        </button>
+        <div className="flex-1 text-sm">
+            {children[1]}
+        </div>
+        {emoji ? (
+             <button className="w-12 h-12 flex-shrink-0" onClick={onPostClick}>
+                <GalleryThumbnail emoji={emoji} onSelect={() => {}} />
+            </button>
+        ) : children[2]}
+    </div>
+);
+
+
+const SupportNotification = React.memo(({ notification, onAvatarClick }: { notification: Notification, onAvatarClick: (actor: Actor) => void }) => {
     const { actor, created_at } = notification;
     const { supportStatus, isLoading, handleSupportToggle } = useSupport(
         actor.id, 
@@ -75,19 +115,11 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
     );
     
     return (
-        <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
-             <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0">
-                <StoryRing hasStory={actor.has_mood}>
-                  <Avatar className="h-10 w-10">
-                      <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                  </Avatar>
-                </StoryRing>
-                <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
-                    <UserPlus className="h-3 w-3 text-primary-foreground"/>
-                </div>
-            </Link>
-            <p className="flex-1 text-sm">
+        <NotificationItemWrapper actor={actor} onAvatarClick={onAvatarClick}>
+            <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-0.5">
+                <UserPlus className="h-3 w-3 text-primary-foreground"/>
+            </div>
+            <p>
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
                 {' started supporting you. '}
                 <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
@@ -106,12 +138,12 @@ const SupportNotification = React.memo(({ notification }: { notification: Notifi
                  supportStatus === 'approved' ? 'Unsupport' :
                  supportStatus === 'pending' ? 'Pending' : 'Support'}
             </Button>
-        </div>
+        </NotificationItemWrapper>
     );
 });
 SupportNotification.displayName = 'SupportNotification';
 
-const SupportRequestNotification = React.memo(({ notification, onRespond }: { notification: Notification; onRespond: (id: number) => void; }) => {
+const SupportRequestNotification = React.memo(({ notification, onRespond, onAvatarClick }: { notification: Notification; onRespond: (id: number) => void; onAvatarClick: (actor: Actor) => void; }) => {
     const { actor, created_at, id } = notification;
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState<'approve' | 'decline' | null>(null);
@@ -133,16 +165,9 @@ const SupportRequestNotification = React.memo(({ notification, onRespond }: { no
     }
 
     return (
-        <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
-            <Link href={`/gallery?userId=${actor.id}`} className="flex-shrink-0">
-                <StoryRing hasStory={actor.has_mood}>
-                  <Avatar className="h-10 w-10">
-                      <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                      <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                  </Avatar>
-                </StoryRing>
-            </Link>
-            <p className="flex-1 text-sm">
+         <NotificationItemWrapper actor={actor} onAvatarClick={onAvatarClick}>
+            <></>
+             <p>
                 <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
                 {' wants to support you. '}
                 <span className="text-muted-foreground">{timeSince(new Date(created_at))}</span>
@@ -155,20 +180,21 @@ const SupportRequestNotification = React.memo(({ notification, onRespond }: { no
                     {isLoading === 'decline' ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Decline'}
                 </Button>
             </div>
-        </div>
+        </NotificationItemWrapper>
     );
 });
 SupportRequestNotification.displayName = 'SupportRequestNotification';
 
 
 export default function NotificationsPage() {
-  const { user } = useAuth();
+  const { user, supabase } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   const [notifications, setNotifications] = useState<Notification[]>(notificationsCache.items);
   const [isLoading, setIsLoading] = useState(notificationsCache.items.length === 0);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [viewingStory, setViewingStory] = useState<Mood[] | null>(null);
   
   const [page, setPage] = useState(notificationsCache.page);
   const [hasMore, setHasMore] = useState(notificationsCache.hasMore);
@@ -258,7 +284,7 @@ export default function NotificationsPage() {
 
       // Restore scroll position only if not loading initial data
       if (!isLoading && notificationsCache.scrollPosition > 0) {
-          scrollable.scrollTop = notificationsCache.scrollPosition;
+          scrollable.scrollTop = scrollable.scrollTop;
       }
 
       scrollable.addEventListener('scroll', handleScroll, { passive: true });
@@ -271,59 +297,99 @@ export default function NotificationsPage() {
     notificationsCache.items = updatedNotifications;
   }
   
+  const handleAvatarClick = async (actor: Actor) => {
+    if (!actor.has_mood || !user) return;
+
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+        .from('moods')
+        .select('id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
+        .eq('user_id', actor.id)
+        .gte('created_at', twentyFourHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+    
+    if (error || !data) {
+        toast({ title: 'Could not load story', variant: 'destructive' });
+        return;
+    }
+
+    const views = (data.views as unknown as { viewer_id: string }[]) || [];
+    const isViewed = views.some(view => view.viewer_id === user.id);
+    const mood: Mood = {
+        ...(data.emoji as unknown as EmojiState),
+        mood_id: data.id,
+        mood_created_at: data.created_at,
+        mood_user_id: actor.id,
+        mood_user: data.emoji.user,
+        is_viewed: isViewed,
+    };
+    setViewingStory([mood]);
+  };
+  
+  const handleCloseStory = () => {
+    // Optimistically mark story as viewed in UI
+    if (viewingStory) {
+        const viewedActorId = viewingStory[0].mood_user_id;
+        const newNotifications = notifications.map(n => {
+            if (n.actor.id === viewedActorId) {
+                return { ...n, actor: { ...n.actor, has_mood: true }};
+            }
+            return n;
+        });
+        setNotifications(newNotifications);
+    }
+    setViewingStory(null);
+  }
+
+  if (viewingStory) {
+      return (
+          <PostView
+            emojis={viewingStory}
+            initialIndex={0}
+            onClose={handleCloseStory}
+            isMoodView={true}
+          />
+      )
+  }
+  
   const renderNotification = (notification: Notification) => {
     const { actor, type, emoji, created_at } = notification;
 
     switch(type) {
         case 'new_support_request':
-            return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} />;
+            return <SupportRequestNotification key={notification.id} notification={notification} onRespond={handleRequestResponded} onAvatarClick={handleAvatarClick} />;
         
         case 'new_supporter':
-            return <SupportNotification key={notification.id} notification={notification} />;
+            return <SupportNotification key={notification.id} notification={notification} onAvatarClick={handleAvatarClick} />;
 
         case 'support_request_approved':
             return (
-                <Link href={`/gallery?userId=${actor.id}`} key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                    <div className="relative">
-                        <StoryRing hasStory={actor.has_mood}>
-                          <Avatar className="h-10 w-10">
-                              <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                              <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                          </Avatar>
-                        </StoryRing>
-                         <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
-                            <Check className="h-3 w-3 text-white"/>
-                        </div>
+                <NotificationItemWrapper key={notification.id} actor={actor} onAvatarClick={handleAvatarClick}>
+                    <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                        <Check className="h-3 w-3 text-white"/>
                     </div>
-                    <p className="flex-1 text-sm">
+                    <p>
                         <span className="font-semibold">{actor.name}</span>
                         {' approved your support request.'}
                         <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
                     </p>
-                </Link>
+                    <div className="w-12 h-12" />
+                </NotificationItemWrapper>
             );
 
         case 'new_like':
             if (!emoji || !emoji.id) return null;
             return (
-                 <div key={notification.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 cursor-pointer">
-                    <Link href={`/gallery?userId=${actor.id}`} className="flex-shrink-0">
-                        <StoryRing hasStory={actor.has_mood}>
-                          <Avatar className="h-10 w-10">
-                              <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                              <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                          </Avatar>
-                        </StoryRing>
-                    </Link>
-                    <p className="flex-1 text-sm">
+                <NotificationItemWrapper key={notification.id} actor={actor} emoji={emoji} onAvatarClick={handleAvatarClick} onPostClick={() => router.push('/gallery')}>
+                     <></>
+                     <p>
                         <Link href={`/gallery?userId=${actor.id}`} className="font-semibold">{actor.name}</Link>
                         {' reacted to your post.'}
                         <span className="text-muted-foreground ml-2">{timeSince(new Date(created_at))}</span>
                     </p>
-                    <div className="w-12 h-12 flex-shrink-0">
-                       <GalleryThumbnail emoji={emoji} onSelect={() => router.push('/gallery')} />
-                    </div>
-                </div>
+                </NotificationItemWrapper>
             );
         
         default:

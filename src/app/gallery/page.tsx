@@ -50,7 +50,6 @@ interface ProfileUser {
     name: string;
     picture: string;
     is_private: boolean;
-    has_mood: boolean;
 }
 
 interface GalleryEmoji extends EmojiState {
@@ -144,10 +143,12 @@ function GalleryPageContent() {
                 .single();
 
             if (userError || !userProfile) throw new Error(userError?.message || "User profile not found.");
+            
+            setProfileUser(userProfile);
 
-            // Check if user has an active mood
+            // Fetch mood in parallel
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: moodData, error: moodError } = await supabase
+            const moodPromise = supabase
                 .from('moods')
                 .select('id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
                 .eq('user_id', viewingUserId)
@@ -155,6 +156,13 @@ function GalleryPageContent() {
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
+
+            const [supporters, following, postCountResult, { data: moodData, error: moodError }] = await Promise.all([
+                getSupporterCount(viewingUserId),
+                getSupportingCount(viewingUserId),
+                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId),
+                moodPromise
+            ]);
 
             if (moodError && moodError.code !== 'PGRST116') { // Ignore no rows found error
                 console.error("Error fetching mood:", moodError);
@@ -171,16 +179,9 @@ function GalleryPageContent() {
                     mood_user: moodData.emoji.user,
                     is_viewed: isViewed,
                 });
+            } else {
+                setMood(null);
             }
-
-            const fullProfile: ProfileUser = { ...userProfile, has_mood: !!moodData };
-            setProfileUser(fullProfile);
-
-            const [supporters, following, postCountResult] = await Promise.all([
-                getSupporterCount(viewingUserId),
-                getSupportingCount(viewingUserId),
-                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId)
-            ]);
 
             setSupporterCount(supporters);
             setSupportingCount(following);
@@ -405,15 +406,15 @@ function GalleryPageContent() {
     };
     
     const handleAvatarClick = () => {
-        if (profileUser?.has_mood && mood) {
+        if (mood) {
             setShowMood(true);
         }
     };
     
-    const handleOnCloseMood = (updatedMoods: Mood[]) => {
-        const updatedMood = updatedMoods[0];
+    const handleOnCloseMood = (updatedMoods?: any[]) => {
+        const updatedMood = updatedMoods?.[0];
         if (updatedMood && mood && updatedMood.mood_id === mood.mood_id) {
-            setMood(updatedMood);
+            setMood({ ...mood, is_viewed: true });
         }
         setShowMood(false);
     }
@@ -486,7 +487,6 @@ function GalleryPageContent() {
                 onDelete={(deletedId) => {
                     if (mood && mood.mood_id.toString() === deletedId) {
                         setMood(null);
-                        setProfileUser(prev => prev ? {...prev, has_mood: false} : null);
                     }
                     setShowMood(false);
                 }}
@@ -519,8 +519,8 @@ function GalleryPageContent() {
                         <>
                         <div className="p-4">
                              <div className="flex items-center gap-4">
-                                <button onClick={handleAvatarClick} disabled={!profileUser?.has_mood}>
-                                    <StoryRing hasStory={profileUser?.has_mood || false} isViewed={mood?.is_viewed}>
+                                <button onClick={handleAvatarClick} disabled={!mood}>
+                                    <StoryRing hasStory={!!mood} isViewed={mood?.is_viewed}>
                                         <Avatar className="w-20 h-20">
                                             <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
                                             <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>

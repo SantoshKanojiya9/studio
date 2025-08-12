@@ -1,19 +1,19 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChatHeader } from '@/components/chat-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Loader2 } from 'lucide-react';
 import { StoryRing } from '@/components/story-ring';
 import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/lib/supabaseClient';
 import type { EmojiState } from '@/app/design/page';
 import dynamic from 'next/dynamic';
-import { PostView } from '@/components/post-view';
+import { supabase } from '@/lib/supabaseClient';
+import { useToast } from '@/hooks/use-toast';
 
-const MemoizedPostView = dynamic(() => import('@/components/post-view').then(mod => mod.PostView), {
+const PostView = dynamic(() => import('@/components/post-view').then(mod => mod.PostView), {
   loading: () => <div className="flex h-full w-full items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin" /></div>,
   ssr: false
 });
@@ -39,127 +39,119 @@ interface Mood extends EmojiState {
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [stories, setStories] = useState<StoryUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStoryUser, setSelectedStoryUser] = useState<StoryUser | null>(null);
+  const [viewingStory, setViewingStory] = useState<Mood[] | null>(null);
+
+
+  const fetchStories = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+
+    try {
+        const { data: following, error: followingError } = await supabase
+            .from('supports')
+            .select('supported_id')
+            .eq('supporter_id', user.id)
+            .eq('status', 'approved');
+
+        if (followingError) throw followingError;
+        
+        const followedUserIds = following.map(f => f.supported_id);
+        const userIds = [user.id, ...followedUserIds];
+
+        const { data: profiles, error: profilesError } = await supabase
+            .from('users')
+            .select('id, name, picture')
+            .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+        
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: moodsData, error: moodError } = await supabase
+            .from('moods')
+            .select('id, user_id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
+            .in('user_id', userIds)
+            .gte('created_at', twentyFourHoursAgo);
+        
+        if (moodError) console.error('Error fetching moods:', moodError);
+
+        const moodsByUserId = new Map<string, Mood>();
+        if (moodsData) {
+            moodsData.forEach(m => {
+            const isViewed = (m.views as unknown as { viewer_id: string }[]).some(v => v.viewer_id === user.id);
+            moodsByUserId.set(m.user_id, {
+                ...(m.emoji as EmojiState),
+                mood_id: m.id,
+                mood_created_at: m.created_at,
+                mood_user_id: m.user_id,
+                mood_user: m.emoji.user,
+                is_viewed: isViewed,
+            });
+            });
+        }
+
+        const storyUsers = profiles.map(p => ({
+            id: p.id,
+            name: p.name,
+            picture: p.picture,
+            mood: moodsByUserId.get(p.id) || null
+        })).sort((a, b) => {
+            const aHasMood = !!a.mood;
+            const bHasMood = !!b.mood;
+            
+            if (a.id === user.id) return -1;
+            if (b.id === user.id) return 1;
+            if (aHasMood && !bHasMood) return -1;
+            if (!aHasMood && bHasMood) return 1;
+            if (a.mood && b.mood) {
+            const aIsViewed = a.mood.is_viewed;
+            const bIsViewed = b.mood.is_viewed;
+            if (!aIsViewed && bIsViewed) return -1;
+            if (aIsViewed && !bIsViewed) return 1;
+            }
+            return 0; // Or sort by name if needed
+        });
+        
+        setStories(storyUsers);
+    } catch (error: any) {
+        toast({ title: 'Error loading stories', description: error.message, variant: 'destructive'});
+    } finally {
+        setIsLoading(false);
+    }
+  }, [user, toast]);
 
   useEffect(() => {
-    const fetchStories = async () => {
-      if (!user) return;
-      setIsLoading(true);
-
-      // 1. Get users the current user is following
-      const { data: following, error: followingError } = await supabase
-          .from('supports')
-          .select('supported_id')
-          .eq('supporter_id', user.id)
-          .eq('status', 'approved');
-
-      if (followingError) {
-          console.error('Error fetching following users:', followingError);
-          setIsLoading(false);
-          return;
-      }
-      
-      const followedUserIds = following.map(f => f.supported_id);
-      const userIds = [user.id, ...followedUserIds];
-
-      // 2. Get profiles for all these users
-      const { data: profiles, error: profilesError } = await supabase
-        .from('users')
-        .select('id, name, picture')
-        .in('id', userIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        setIsLoading(false);
-        return;
-      }
-      
-      // 3. Get all active moods for these users
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: moodsData, error: moodError } = await supabase
-        .from('moods')
-        .select('id, user_id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
-        .in('user_id', userIds)
-        .gte('created_at', twentyFourHoursAgo);
-      
-      if (moodError) {
-        console.error('Error fetching moods:', moodError);
-      }
-
-      // 4. Map moods to users
-      const moodsByUserId = new Map<string, Mood>();
-      if (moodsData) {
-        moodsData.forEach(m => {
-          const isViewed = (m.views as unknown as { viewer_id: string }[]).some(v => v.viewer_id === user.id);
-          moodsByUserId.set(m.user_id, {
-            ...(m.emoji as EmojiState),
-            mood_id: m.id,
-            mood_created_at: m.created_at,
-            mood_user_id: m.user_id,
-            mood_user: m.emoji.user,
-            is_viewed: isViewed,
-          });
-        });
-      }
-
-      // 5. Combine data and sort
-      const storyUsers = profiles.map(p => ({
-        id: p.id,
-        name: p.name,
-        picture: p.picture,
-        mood: moodsByUserId.get(p.id) || null
-      })).sort((a, b) => {
-        const aHasMood = !!a.mood;
-        const bHasMood = !!b.mood;
-        
-        if (a.id === user.id) return -1;
-        if (b.id === user.id) return 1;
-        if (aHasMood && !bHasMood) return -1;
-        if (!aHasMood && bHasMood) return 1;
-        if (a.mood && b.mood) {
-          const aIsViewed = a.mood.is_viewed;
-          const bIsViewed = b.mood.is_viewed;
-          if (!aIsViewed && bIsViewed) return -1;
-          if (aIsViewed && !bIsViewed) return 1;
-        }
-        return 0; // Or sort by name if needed
-      });
-      
-      setStories(storyUsers);
-      setIsLoading(false);
-    };
-
     fetchStories();
-  }, [user]);
+  }, [fetchStories]);
   
   const handleStoryClick = (storyUser: StoryUser) => {
       if (storyUser.mood) {
-          setSelectedStoryUser(storyUser);
+          setViewingStory([storyUser.mood]);
       }
   };
 
   const handleOnCloseMood = (updatedMoods?: any[]) => {
-      if (updatedMoods && selectedStoryUser) {
-          const viewedMood = updatedMoods[0];
+      if (updatedMoods && viewingStory) {
+          const viewedMoodId = viewingStory[0].mood_id;
           setStories(prevStories => prevStories.map(story => {
-              if (story.id === selectedStoryUser.id && story.mood) {
+              if (story.mood && story.mood.mood_id === viewedMoodId) {
                   return { ...story, mood: { ...story.mood, is_viewed: true } };
               }
               return story;
           }));
       }
-      setSelectedStoryUser(null);
+      setViewingStory(null);
   };
   
   const me = stories.find(s => s.id === user?.id);
   const otherStories = stories.filter(s => s.id !== user?.id);
 
-  if (selectedStoryUser && selectedStoryUser.mood) {
+  if (viewingStory) {
       return (
-          <MemoizedPostView
-              emojis={[selectedStoryUser.mood]}
+          <PostView
+              emojis={viewingStory}
               initialIndex={0}
               onClose={handleOnCloseMood}
               isMoodView={true}
