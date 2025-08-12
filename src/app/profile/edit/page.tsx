@@ -80,7 +80,6 @@ export default function EditProfilePage() {
             });
 
             // The server action revalidates paths, so we can just navigate back.
-            // No need for session refresh or complex redirects which cause race conditions.
             router.push(`/gallery?userId=${user.id}`);
             
         } catch (error: any) {
