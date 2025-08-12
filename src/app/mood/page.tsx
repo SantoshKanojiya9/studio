@@ -81,7 +81,7 @@ const moodPageCache: {
     scrollPosition: 0,
 };
 
-const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, allMoods, onSelectMoodFromPost }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; allMoods: Mood[], onSelectMoodFromPost: (mood: Mood) => void; }) => {
+const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; onSelectUserStory: (userId: string) => void; }) => {
     const { user } = useAuth();
     const { toast } = useToast();
     const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
@@ -153,11 +153,8 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, allMoods, onSelectMoodFr
     }
     
     const onAvatarClick = () => {
-        if (emoji.user?.has_mood) {
-            const userMood = allMoods.find(m => m.mood_user_id === emoji.user_id);
-            if (userMood) {
-                onSelectMoodFromPost(userMood);
-            }
+        if (emoji.user?.has_mood && emoji.user.id) {
+            onSelectUserStory(emoji.user.id);
         }
     }
 
@@ -289,6 +286,7 @@ export default function MoodPage() {
     const [hasMore, setHasMore] = useState(moodPageCache.hasMore);
 
     const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
+    const [viewingStoryFromFeed, setViewingStoryFromFeed] = useState<Mood[] | null>(null);
     const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
     const loaderRef = useRef(null);
@@ -461,11 +459,19 @@ export default function MoodPage() {
         setSelectedPostId(postId);
     }, []);
 
+    const handleSelectUserStoryFromFeed = (userId: string) => {
+        const userMoods = moods.filter(m => m.mood_user_id === userId);
+        if (userMoods.length > 0) {
+            setViewingStoryFromFeed(userMoods);
+        }
+    };
+
     const handleOnCloseMood = (updatedMoods?: Mood[]) => {
         if (updatedMoods) {
             setMoods(updatedMoods);
         }
         setSelectedMood(null);
+        setViewingStoryFromFeed(null);
     }
     
     if (selectedMood) {
@@ -477,6 +483,21 @@ export default function MoodPage() {
                 emojis={userMoods}
                 initialIndex={initialMoodIndex}
                 onClose={() => handleOnCloseMood(moods)} // pass original full list
+                isMoodView={true}
+                onDelete={(moodId) => {
+                    setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
+                    loadInitialData();
+                }}
+            />
+        )
+    }
+
+    if (viewingStoryFromFeed) {
+         return (
+            <PostView 
+                emojis={viewingStoryFromFeed}
+                initialIndex={0}
+                onClose={() => handleOnCloseMood(moods)}
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
@@ -519,9 +540,8 @@ export default function MoodPage() {
                             key={post.id} 
                             emoji={post} 
                             onSelect={() => handleSelectPost(post.id)} 
-                            onMoodUpdate={handleRefresh} 
-                            allMoods={moods}
-                            onSelectMoodFromPost={handleSelectMood}
+                            onMoodUpdate={handleRefresh}
+                            onSelectUserStory={handleSelectUserStoryFromFeed}
                           />
                       ))}
                   </div>

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { getExplorePosts, searchUsers as searchUsersAction } from '../actions';
 import { StoryRing } from '@/components/story-ring';
+import { supabase } from '@/lib/supabaseClient';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -33,6 +34,19 @@ interface SearchedUser {
 interface ExploreEmoji extends EmojiState {
     user: EmojiState['user'] & { has_mood: boolean };
 }
+
+interface Mood extends EmojiState {
+  mood_id: number;
+  mood_created_at: string;
+  mood_user_id: string;
+  is_viewed?: boolean;
+  mood_user?: {
+      id: string;
+      name: string;
+      picture: string;
+  }
+}
+
 
 const exploreCache: {
     posts: ExploreEmoji[],
@@ -79,6 +93,8 @@ export default function ExplorePage() {
   const [hasMore, setHasMore] = useState(exploreCache.hasMore);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   
+  const [viewingStory, setViewingStory] = useState<Mood[] | null>(null);
+
   const loaderRef = useRef(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -208,6 +224,49 @@ export default function ExplorePage() {
 
   const selectedEmojiIndex = selectedEmojiId ? allEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
   
+   const handleAvatarClick = async (user: SearchedUser) => {
+        if (!user.has_mood || !authUser) return;
+
+        // Fetch the user's mood
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data: moodData, error: moodError } = await supabase
+            .from('moods')
+            .select('id, user_id, created_at, emoji:emojis!inner(*, user:users!inner(id, name, picture)), views:mood_views(viewer_id)')
+            .eq('user_id', user.id)
+            .gte('created_at', twentyFourHoursAgo)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (moodError || !moodData) {
+            toast({ title: "Could not load story", variant: "destructive" });
+            return;
+        }
+
+        const views = (moodData.views as unknown as { viewer_id: string }[]) || [];
+        const isViewed = views.some(view => view.viewer_id === authUser.id);
+        const mood: Mood = {
+            ...(moodData.emoji as unknown as EmojiState),
+            mood_id: moodData.id,
+            mood_created_at: moodData.created_at,
+            mood_user_id: user.id,
+            mood_user: moodData.emoji.user,
+            is_viewed: isViewed,
+        };
+        setViewingStory([mood]);
+    };
+
+    if (viewingStory) {
+        return (
+            <PostView 
+                emojis={viewingStory}
+                initialIndex={0}
+                onClose={() => setViewingStory(null)}
+                isMoodView={true}
+            />
+        )
+    }
+
   if (selectedEmojiId && selectedEmojiIndex !== -1) {
     return (
         <PostView 
@@ -244,15 +303,17 @@ export default function ExplorePage() {
           <div className="flex flex-col">
              {searchedUsers.length > 0 ? (
                  searchedUsers.map(user => (
-                    <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50 cursor-pointer">
-                        <StoryRing hasStory={user.has_mood}>
-                          <Avatar className="h-12 w-12 border-2 border-background">
-                              <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
-                              <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                          </Avatar>
-                        </StoryRing>
-                        <span className="font-semibold">{user.name}</span>
-                    </Link>
+                    <div key={user.id} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50">
+                        <button onClick={() => handleAvatarClick(user)} disabled={!user.has_mood} className="cursor-pointer disabled:cursor-default">
+                            <StoryRing hasStory={user.has_mood}>
+                            <Avatar className="h-12 w-12 border-2 border-background">
+                                <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
+                                <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                            </Avatar>
+                            </StoryRing>
+                        </button>
+                        <Link href={`/gallery?userId=${user.id}`} className="font-semibold flex-1">{user.name}</Link>
+                    </div>
                  ))
              ) : (
                 !isSearching && (
