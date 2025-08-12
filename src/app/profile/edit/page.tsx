@@ -79,9 +79,9 @@ export default function EditProfilePage() {
                 variant: 'success'
             });
 
-            // This forces a reload of the session, which includes the updated user metadata (name, picture)
-            await supabase.auth.refreshSession();
-            router.push(`/gallery?userId=${user.id}&t=${new Date().getTime()}`);
+            // The server action revalidates paths, so we can just navigate back.
+            // No need for session refresh or complex redirects which cause race conditions.
+            router.push(`/gallery?userId=${user.id}`);
             
         } catch (error: any) {
             console.error("Failed to update profile", error);
