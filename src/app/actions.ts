@@ -716,14 +716,12 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-
+    
     // 1. Search for users by name
     const { data: users, error } = await supabase
         .from('users')
         .select('id, name, picture, is_private')
         .ilike('name', `%${query}%`)
-        .neq('id', currentUser?.id || '00000000-0000-0000-0000-000000000000') // Exclude current user
         .limit(15);
 
     if (error) {
