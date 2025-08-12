@@ -30,6 +30,8 @@ interface SearchedUser {
 
 interface ExploreEmoji extends EmojiState {
     user: EmojiState['user'] & { has_mood: boolean };
+    like_count: number;
+    is_liked: boolean;
 }
 
 const exploreCache: {
@@ -84,8 +86,14 @@ export default function ExplorePage() {
       if (isFetchingMore) return;
       setIsFetchingMore(true);
       try {
-          const newPosts = await getExplorePosts({ page: pageNum, limit });
+          const newPostsData = await getExplorePosts({ page: pageNum, limit });
           
+          const newPosts: ExploreEmoji[] = newPostsData.map(post => ({
+              ...post,
+              like_count: 0, // Add default value
+              is_liked: false, // Add default value
+          }));
+
           if (newPosts.length < limit) {
               setHasMore(false);
               exploreCache.hasMore = false;
