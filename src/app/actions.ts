@@ -29,7 +29,12 @@ export async function updateUserProfile(formData: FormData) {
 
         const { error: uploadError } = await supabase.storage
             .from('avatars')
-            .upload(filePath, avatarFile);
+            .upload(filePath, avatarFile, {
+                // Add owner metadata for RLS policy
+                upsert: true,
+                cacheControl: '3600',
+                contentType: avatarFile.type,
+            });
 
         if (uploadError) {
             console.error('Avatar upload error:', uploadError);
@@ -40,7 +45,7 @@ export async function updateUserProfile(formData: FormData) {
             .from('avatars')
             .getPublicUrl(filePath);
         
-        profileData.picture = publicUrl;
+        profileData.picture = `${publicUrl}?t=${new Date().getTime()}`;
     }
 
     // Update user's profile in the users table
@@ -767,18 +772,15 @@ export async function searchUsers(query: string) {
         return [];
     }
 
-    // 1. Search for users by name
-    const { data: users, error } = await supabase
-        .from('users')
-        .select('id, name, picture, is_private')
-        .ilike('name', `%${query}%`)
-        .neq('id', currentUser?.id) // Exclude the current user from search results
-        .limit(15);
+    const { data, error } = await supabase.rpc('search_users_with_mood', {
+        p_query: query,
+        p_current_user_id: currentUser?.id
+    });
 
     if (error) {
         console.error("Failed to search users", error);
         throw error;
     }
     
-    return users || [];
+    return data || [];
 }

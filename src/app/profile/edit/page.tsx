@@ -79,8 +79,9 @@ export default function EditProfilePage() {
                 variant: 'success'
             });
 
+            // This forces a reload of the session, which includes the updated user metadata (name, picture)
             await supabase.auth.refreshSession();
-            router.push('/gallery');
+            router.push(`/gallery?userId=${user.id}&t=${new Date().getTime()}`);
             
         } catch (error: any) {
             console.error("Failed to update profile", error);
