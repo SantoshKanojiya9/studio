@@ -135,12 +135,10 @@ const PostContent = memo(({
             className="w-full h-full flex-shrink-0 flex flex-col"
         >
             <div className="flex items-center px-4 py-2">
-                <StoryRing hasStory={!!emoji.user?.has_mood}>
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                </StoryRing>
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
                 {user && (
                     <DropdownMenu>
