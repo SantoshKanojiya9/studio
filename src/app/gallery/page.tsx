@@ -102,7 +102,7 @@ function GalleryPageContent() {
         // If user is approved, reload content to show posts.
         if (newStatus === 'approved') {
             fetchPosts(1, true); 
-        } else if (oldStatus === 'approved' && newStatus !== 'approved') {
+        } else if (oldStatus === 'approved') {
             // If user unsupports, clear posts for private profiles.
             if(profileUser?.is_private) {
                 setSavedEmojis([]);
