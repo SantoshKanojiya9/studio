@@ -47,7 +47,7 @@ export default function ChatPage() {
         
         if (profilesError) throw profilesError;
 
-        const storyUsers = profiles.map(p => ({
+        const storyUsers = profiles.map((p: { id: string, name: string, picture: string, has_mood: boolean }) => ({
             id: p.id,
             name: p.name,
             picture: p.picture,
