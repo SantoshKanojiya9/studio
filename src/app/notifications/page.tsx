@@ -13,7 +13,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupport } from '@/hooks/use-support';
-import { StoryRing } from '@/components/story-ring';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -86,12 +85,10 @@ const timeSince = (date: Date) => {
 const NotificationItemWrapper = ({ children, onAvatarClick, actor, onPostClick, emoji }: { children: React.ReactNode, onAvatarClick: (actor: Actor) => void, actor: Actor, onPostClick?: () => void, emoji?: EmojiState | null }) => (
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
         <button onClick={() => onAvatarClick(actor)} className="relative flex-shrink-0 cursor-pointer">
-            <StoryRing hasStory={actor.has_mood}>
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
-                    <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                </Avatar>
-            </StoryRing>
+            <Avatar className="h-10 w-10">
+                <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+            </Avatar>
             {children[0]}
         </button>
         <div className="flex-1 text-sm">

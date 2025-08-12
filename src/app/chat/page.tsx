@@ -6,7 +6,6 @@ import { ChatHeader } from '@/components/chat-header';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Loader2 } from 'lucide-react';
-import { StoryRing } from '@/components/story-ring';
 import { useAuth } from '@/hooks/use-auth';
 import type { EmojiState } from '@/app/design/page';
 import dynamic from 'next/dynamic';
@@ -177,26 +176,22 @@ export default function ChatPage() {
               <>
                 {me && (
                    <div key={me.id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleStoryClick(me)}>
-                      <StoryRing hasStory={!!me.mood} isViewed={me.mood?.is_viewed}>
-                        <Avatar className="h-16 w-16 border-2 border-background">
-                          <AvatarImage src={me.picture} alt={me.name} data-ai-hint="profile picture" />
-                          <AvatarFallback>{me.name.charAt(0)}</AvatarFallback>
-                           <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                              <Plus className="h-3 w-3 text-primary-foreground" />
-                          </div>
-                        </Avatar>
-                      </StoryRing>
+                      <Avatar className="h-16 w-16 border-2 border-background">
+                        <AvatarImage src={me.picture} alt={me.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{me.name.charAt(0)}</AvatarFallback>
+                         <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                            <Plus className="h-3 w-3 text-primary-foreground" />
+                        </div>
+                      </Avatar>
                       <span className="text-xs font-medium text-muted-foreground">Your Story</span>
                     </div>
                 )}
                 {otherStories.map((story) => (
                   <div key={story.id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleStoryClick(story)}>
-                    <StoryRing hasStory={!!story.mood} isViewed={story.mood?.is_viewed}>
-                      <Avatar className="h-16 w-16 border-2 border-background">
-                        <AvatarImage src={story.picture} alt={story.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </StoryRing>
+                    <Avatar className="h-16 w-16 border-2 border-background">
+                      <AvatarImage src={story.picture} alt={story.name} data-ai-hint="profile picture" />
+                      <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
                     <span className="text-xs font-medium text-muted-foreground">{story.name}</span>
                   </div>
                 ))}

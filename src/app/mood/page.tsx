@@ -33,7 +33,6 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { getFeedPosts, setMood, getFeedMoods } from '@/app/actions';
-import { StoryRing } from '@/components/story-ring';
 import { LikeButton } from '@/components/like-button';
 import MoodStories from '@/components/mood-stories';
 
@@ -163,12 +162,10 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
             <div className="flex flex-col border-b border-border/40">
                 <div className="flex items-center px-4 py-2">
                     <button onClick={onAvatarClick} disabled={!emoji.user?.has_mood} className="cursor-pointer disabled:cursor-default">
-                        <StoryRing hasStory={!!emoji.user?.has_mood}>
-                          <Avatar className="h-8 w-8">
-                              <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
-                              <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                          </Avatar>
-                        </StoryRing>
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
+                            <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                        </Avatar>
                     </button>
                     <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
                     {user && (
@@ -588,4 +585,3 @@ export default function MoodPage() {
     </div>
   );
 }
-

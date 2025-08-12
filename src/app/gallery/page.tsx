@@ -32,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getGalleryPosts, getSupportStatus, getSupporterCount, getSupportingCount, deleteUserAccount } from '@/app/actions';
 import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { StoryRing } from '@/components/story-ring';
 import { UserListSheet } from '@/components/user-list-sheet';
 import { useSupport } from '@/hooks/use-support';
 
@@ -520,12 +519,10 @@ function GalleryPageContent() {
                         <div className="p-4">
                              <div className="flex items-center gap-4">
                                 <button onClick={handleAvatarClick} disabled={!mood}>
-                                    <StoryRing hasStory={!!mood} isViewed={mood?.is_viewed}>
-                                        <Avatar className="w-20 h-20">
-                                            <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
-                                            <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
-                                        </Avatar>
-                                    </StoryRing>
+                                    <Avatar className="w-20 h-20">
+                                        <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                        <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
+                                    </Avatar>
                                 </button>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">

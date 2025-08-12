@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useSupport } from '@/hooks/use-support';
-import { StoryRing } from './story-ring';
 import type { EmojiState } from '@/app/design/page';
 import dynamic from 'next/dynamic';
 import { useToast } from '@/hooks/use-toast';
@@ -103,12 +102,10 @@ export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListI
     return (
         <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
             <button onClick={handleAvatarClick} disabled={!itemUser.has_mood}>
-                <StoryRing hasStory={itemUser.has_mood}>
                 <Avatar className="h-12 w-12">
                     <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
                     <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
-                </StoryRing>
             </button>
             <Link href={`/gallery?userId=${itemUser.id}`} className="font-semibold flex-1">{itemUser.name}</Link>
             {!isSelf && currentUser && (
