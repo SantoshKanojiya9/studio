@@ -305,11 +305,11 @@ export default function ExplorePage() {
                  searchedUsers.map(user => (
                     <div key={user.id} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50">
                         <button onClick={() => handleAvatarClick(user)} disabled={!user.has_mood} className="cursor-pointer disabled:cursor-default">
-                            <StoryRing hasStory={user.has_mood}>
-                            <Avatar className="h-12 w-12 border-2 border-background">
-                                <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
-                                <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                            </Avatar>
+                           <StoryRing hasStory={user.has_mood}>
+                                <Avatar className="h-12 w-12 border-2 border-background">
+                                    <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
+                                    <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                                </Avatar>
                             </StoryRing>
                         </button>
                         <Link href={`/gallery?userId=${user.id}`} className="font-semibold flex-1">{user.name}</Link>
