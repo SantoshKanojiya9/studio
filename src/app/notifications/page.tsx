@@ -34,7 +34,7 @@ interface Notification {
   emoji_id: string | null;
   actor: Actor;
   emoji: EmojiState | null;
-  actor_support_status?: 'approved' | 'pending' | null;
+  actor_support_status: 'approved' | 'pending' | null;
 }
 
 const notificationsCache: {
@@ -227,8 +227,8 @@ export default function NotificationsPage() {
                  notificationsCache.items = newNotifications;
                  return newNotifications;
             }
-            const existingIds = new Set(prev.map(n => n.id));
-            const uniqueNew = newNotifications.filter(n => !existingIds.has(n.id));
+            const existingIds = new Set(prev.map((n: Notification) => n.id));
+            const uniqueNew = newNotifications.filter((n: Notification) => !existingIds.has(n.id));
             const updated = [...prev, ...uniqueNew];
             notificationsCache.items = updated;
             return updated;
