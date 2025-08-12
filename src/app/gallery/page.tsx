@@ -169,6 +169,8 @@ function GalleryPageContent() {
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
 
+            // The server-side function now handles privacy. 
+            // If it returns no posts on the first page for a private profile, it means we can't view them.
             if (isInitial && newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
                 setCanViewContent(false);
             } else {
@@ -183,7 +185,7 @@ function GalleryPageContent() {
             setSavedEmojis(prev => {
                 const existingIds = new Set(prev.map(p => p.id));
                 const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-                const updatedPosts = [...prev, ...uniqueNewPosts] as GalleryEmoji[];
+                const updatedPosts = pageNum === 1 ? newPosts : [...prev, ...uniqueNewPosts] as GalleryEmoji[];
                 if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedPosts;
                 return updatedPosts;
             });
