@@ -441,12 +441,23 @@ function GalleryPageContent() {
     
     const showLoadingScreen = isLoading || isInitialPostsLoading;
 
+    // Prepare data for PostView, ensuring the user object is correctly structured
+    const postsForView = savedEmojis.map(emoji => ({
+        ...emoji,
+        user: {
+            id: profileUser?.id || '',
+            name: profileUser?.name || '',
+            picture: profileUser?.picture || '',
+        }
+    }));
+
+
     return (
         <>
             <div className="flex h-full w-full flex-col overflow-x-hidden">
             {selectedEmojiId && selectedEmojiIndex > -1 ? (
                     <PostView 
-                        emojis={savedEmojis}
+                        emojis={postsForView}
                         initialIndex={selectedEmojiIndex}
                         onClose={() => setSelectedEmojiId(null)}
                         onDelete={isOwnProfile ? handleDelete : undefined}
