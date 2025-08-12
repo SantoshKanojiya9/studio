@@ -24,11 +24,12 @@ export async function updateUserProfile(formData: FormData) {
     // Handle avatar upload if a new file is provided
     if (avatarFile && avatarFile.size > 0) {
         // Use the user's client to respect RLS policies for storage.
+        const supabaseAsUser = createSupabaseServerClient(false);
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseAsUser.storage
             .from('avatars')
             .upload(filePath, avatarFile, {
                 upsert: true,
@@ -58,14 +59,6 @@ export async function updateUserProfile(formData: FormData) {
         throw new Error('Failed to update profile.');
     }
     
-    // Also update the user's metadata in auth.users for consistency
-    await supabase.auth.updateUser({
-        data: {
-            name: profileData.name,
-            ...(profileData.picture && { picture: profileData.picture }),
-        }
-    });
-
     revalidatePath('/gallery');
     revalidatePath('/profile/edit');
 }
