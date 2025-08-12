@@ -1,47 +1,47 @@
 
--- Enable RLS on the storage.objects table
+-- Enable RLS for storage.objects
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies for the 'avatars' bucket if they exist, to ensure a clean slate
-DROP POLICY IF EXISTS "allow_select_avatars" ON storage.objects;
-DROP POLICY IF EXISTS "allow_insert_avatars" ON storage.objects;
-DROP POLICY IF EXISTS "allow_update_avatars" ON storage.objects;
-DROP POLICY IF EXISTS "allow_delete_avatars" ON storage.objects;
+-- Drop existing policies if they exist, to ensure a clean slate.
+DROP POLICY IF EXISTS "Allow authenticated users to upload avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Allow users to view their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Allow users to update their own avatar" ON storage.objects;
+DROP POLICY IF EXISTS "Allow users to delete their own avatar" ON storage.objects;
 
--- Policy: Allow logged-in users to view all avatars
-CREATE POLICY "allow_select_avatars" ON storage.objects
-FOR SELECT
-TO authenticated
-USING (bucket_id = 'avatars');
 
--- Policy: Allow a user to upload their own avatar
--- The user's ID must match the first part of the file path (e.g., "user-id-12345.png")
-CREATE POLICY "allow_insert_avatars" ON storage.objects
-FOR INSERT
+-- Policy: Allow authenticated users to UPLOAD to the 'avatars' bucket.
+-- The user's ID must be part of the file path.
+CREATE POLICY "Allow authenticated users to upload avatars"
+ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
   bucket_id = 'avatars' AND
-  auth.uid() = (storage.foldername(name))[1]::uuid
+  (storage.foldername(name))[1] = auth.uid()::text
 );
 
--- Policy: Allow a user to update their own avatar
-CREATE POLICY "allow_update_avatars" ON storage.objects
-FOR UPDATE
-TO authenticated
+-- Policy: Allow users to VIEW their own avatar.
+-- The file's `owner` must match the user's ID.
+CREATE POLICY "Allow users to view their own avatar"
+ON storage.objects FOR SELECT
 USING (
   bucket_id = 'avatars' AND
-  auth.uid() = (storage.foldername(name))[1]::uuid
-)
-WITH CHECK (
-  bucket_id = 'avatars' AND
-  auth.uid() = (storage.foldername(name))[1]::uuid
+  auth.uid() = owner
 );
 
--- Policy: Allow a user to delete their own avatar
-CREATE POLICY "allow_delete_avatars" ON storage.objects
-FOR DELETE
-TO authenticated
+-- Policy: Allow users to UPDATE their own avatar.
+-- The file's `owner` must match the user's ID.
+CREATE POLICY "Allow users to update their own avatar"
+ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'avatars' AND
-  auth.uid() = (storage.foldername(name))[1]::uuid
+  auth.uid() = owner
+);
+
+-- Policy: Allow users to DELETE their own avatar.
+-- The file's `owner` must match the user's ID.
+CREATE POLICY "Allow users to delete their own avatar"
+ON storage.objects FOR DELETE
+USING (
+  bucket_id = 'avatars' AND
+  auth.uid() = owner
 );
