@@ -38,7 +38,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
-import { StoryRing } from './story-ring';
 import { TimeRemaining } from './time-remaining';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
@@ -146,13 +145,14 @@ const PostContent = memo(({
             className="w-full h-full flex-shrink-0 flex flex-col"
         >
             <div className="flex items-center px-4 py-2">
-                <StoryRing hasStory={!!emoji.user?.has_mood} isViewed={true}>
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
-                        <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                    </Avatar>
-                </StoryRing>
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                    <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                </Avatar>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
+                {emoji.created_at && (
+                    <TimeRemaining createdAt={emoji.created_at} className="text-xs text-muted-foreground ml-2" />
+                )}
                 {user && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

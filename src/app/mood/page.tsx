@@ -36,6 +36,7 @@ import { getFeedPosts, setMood, getFeedMoods, likePost } from '@/app/actions';
 import { LikeButton } from '@/components/like-button';
 import MoodStories from '@/components/mood-stories';
 import type { Mood, PostViewEmoji } from '@/components/post-view';
+import { TimeRemaining } from '@/components/time-remaining';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -157,6 +158,9 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
                         </Avatar>
                     </button>
                     <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
+                    {emoji.created_at && (
+                        <TimeRemaining createdAt={emoji.created_at} className="text-xs text-muted-foreground ml-2" />
+                    )}
                     {user && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
