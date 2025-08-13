@@ -1,0 +1,114 @@
+
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, Search, PlusSquare, Bell, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { EdengramLogo } from './edengram-logo';
+import React, { useState, useEffect } from 'react';
+
+export function MainSidebar() {
+  const pathname = usePathname();
+  const { user, supabase } = useAuth();
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const checkInitialNotifications = async () => {
+        const lastChecked = localStorage.getItem('last_notification_check');
+        const { count, error } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('recipient_id', user.id)
+            .gt('created_at', lastChecked || new Date(0).toISOString());
+        
+        if (!error && (count ?? 0) > 0) {
+            setHasNewNotifications(true);
+        }
+    }
+    checkInitialNotifications();
+
+    const channel = supabase
+      .channel('realtime-notifications-sidebar')
+      .on(
+        'postgres_changes', 
+        { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'notifications', 
+            filter: `recipient_id=eq.${user.id}` 
+        }, 
+        () => setHasNewNotifications(true)
+      )
+      .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    }
+  }, [user, supabase]);
+
+  useEffect(() => {
+    if (pathname === '/notifications') {
+        setHasNewNotifications(false);
+        localStorage.setItem('last_notification_check', new Date().toISOString());
+    }
+  }, [pathname]);
+
+  const navItems = [
+    { href: '/mood', label: 'Home', icon: Home },
+    { href: '/explore', label: 'Search', icon: Search },
+    { href: '/design', label: 'Create', icon: PlusSquare },
+    { href: '/notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
+    { href: '/gallery', label: 'Profile', icon: User, isProfile: true },
+  ];
+
+  return (
+    <aside className="hidden md:flex md:flex-col md:w-20 md:border-r md:border-border/40 md:py-4">
+      <TooltipProvider>
+        <nav className="flex flex-col items-center gap-4">
+          <Link href="/mood" className="mb-4">
+            <EdengramLogo className="h-8 w-8" />
+          </Link>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            
+            return (
+              <Tooltip key={item.label}>
+                <TooltipTrigger asChild>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'relative flex items-center justify-center rounded-lg transition-colors w-12 h-12',
+                      isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50'
+                    )}
+                  >
+                    {item.isProfile ? (
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.picture} alt={user?.name || 'profile'} data-ai-hint="profile picture" />
+                        <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Icon className="h-6 w-6" />
+                    )}
+                    {item.hasIndicator && (
+                      <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary" />
+                    )}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>{item.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </nav>
+      </TooltipProvider>
+    </aside>
+  );
+}

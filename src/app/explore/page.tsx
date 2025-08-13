@@ -227,7 +227,7 @@ export default function ExplorePage() {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="p-4">
+      <div className="p-4 border-b md:border-none">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
@@ -267,10 +267,10 @@ export default function ExplorePage() {
              )}
           </div>
         ) : (
-          <div className="p-1">
+          <div className="p-1 md:p-4">
              {allEmojis.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 md:gap-4">
                         {allEmojis.map((emoji) => (
                             <GalleryThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
                         ))}

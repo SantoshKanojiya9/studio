@@ -338,17 +338,19 @@ const DesignPageContent = () => {
     const title = type.charAt(0).toUpperCase() + type.slice(1);
 
     return (
-        <div className="flex items-center w-full">
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('face')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
-            <span className="font-semibold text-sm mr-4">{title}</span>
-             <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
+        <div className="flex items-center w-full md:flex-col md:h-full">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('face')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0 md:hidden" />
+            <Separator orientation="horizontal" className="w-full my-2 flex-shrink-0 hidden md:block" />
+            <span className="font-semibold text-sm mr-4 md:mr-0 md:mb-4">{title}</span>
+             <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4 md:flex-col md:overflow-y-auto md:overflow-x-hidden md:h-full md:pr-0 md:w-full">
                 {featureStyles.map(style => (
                     <Tooltip key={style.name}>
                         <TooltipTrigger asChild>
                             <Button 
                                 variant={currentStyle === style.name ? 'default' : 'outline'}
                                 onClick={() => handleFeatureSelect(type, style.name)}
+                                className="md:w-full"
                             >
                                 {style.label}
                             </Button>
@@ -365,17 +367,18 @@ const DesignPageContent = () => {
     switch (activeMenu) {
       case 'caption':
         return (
-          <div className="flex items-center w-full p-2">
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
-            <div className="relative w-full">
+          <div className="flex items-center w-full p-2 md:flex-col md:h-full">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0 md:hidden" />
+            <Separator orientation="horizontal" className="w-full my-2 flex-shrink-0 hidden md:block" />
+            <div className="relative w-full h-full">
                  <Textarea 
                     id="caption"
                     placeholder="Add a caption..."
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     maxLength={30}
-                    className="pr-12 h-10 resize-none text-sm"
+                    className="pr-12 h-10 md:h-full resize-none text-sm"
                     rows={1}
                  />
                  <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
@@ -386,14 +389,15 @@ const DesignPageContent = () => {
         )
       case 'expressions':
         return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
+          <div className="flex items-center md:flex-col md:gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+            <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'happy' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('happy')}><Smile className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Happy</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'sad' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('sad')}><Frown className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Sad</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'scared' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('scared')}><Ghost className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Scared</p></TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant={expression === 'love' ? 'secondary' : 'ghost'} size="icon" onClick={() => handleExpressionToggle('love')}><Heart className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent><p>Love</p></TooltipContent></Tooltip>
-          </>
+          </div>
         );
       case 'shapes':
         const shapes: { name: ShapeType; label: string }[] = [
@@ -404,9 +408,10 @@ const DesignPageContent = () => {
           { name: 'blob', label: 'Blob' },
         ];
         return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
+          <div className="flex items-center md:flex-col md:gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+             <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
             {shapes.map(({ name, label }) => (
                 <Tooltip key={name}>
                     <TooltipTrigger asChild>
@@ -414,6 +419,7 @@ const DesignPageContent = () => {
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
                             disabled={(model === 'loki' || model === 'rimuru') && name === 'blob'}
+                            className="md:w-full"
                         >
                             {label}
                         </Button>
@@ -421,13 +427,14 @@ const DesignPageContent = () => {
                     <TooltipContent><p>{label}</p></TooltipContent>
                 </Tooltip>
             ))}
-          </>
+          </div>
         );
       case 'colors':
         return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
+          <div className="flex items-center md:flex-col md:gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+            <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="bg-color-input" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}))}>
@@ -446,13 +453,14 @@ const DesignPageContent = () => {
                 </TooltipTrigger>
                 <TooltipContent><p>{model === 'loki' ? 'Clock Color' : 'Face Color'}</p></TooltipContent>
             </Tooltip>
-          </>
+          </div>
         );
       case 'accessories':
         return (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-            <Separator orientation="vertical" className="h-6 mx-2" />
+          <div className="flex items-center md:flex-col md:gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+            <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+            <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Label htmlFor="sunglasses-switch" className={cn(buttonVariants({variant: 'ghost', size: 'icon'}), "flex items-center gap-2 cursor-pointer", show_sunglasses && "bg-accent text-accent-foreground")}>
@@ -471,21 +479,22 @@ const DesignPageContent = () => {
                 </TooltipTrigger>
                 <TooltipContent><p>Toggle Mustache</p></TooltipContent>
             </Tooltip>
-          </>
+          </div>
         );
       case 'filters':
         return (
-            <div className="flex items-center w-full">
-                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4" /></Button>
-                <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0" />
-                <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4">
+            <div className="flex items-center w-full md:flex-col md:h-full">
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')} className="flex-shrink-0"><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+                <Separator orientation="vertical" className="h-6 mx-2 flex-shrink-0 md:hidden" />
+                <Separator orientation="horizontal" className="w-full my-2 flex-shrink-0 hidden md:block" />
+                <div className="flex-1 flex items-center gap-3 overflow-x-auto pr-4 md:flex-col md:overflow-y-auto md:overflow-x-hidden md:h-full md:pr-0 md:w-full">
                     {filters.map(filter => (
                         <Tooltip key={filter.name}>
                             <TooltipTrigger asChild>
                                 <button
                                     onClick={() => handleFilterSelect(filter.name)}
                                     className={cn(
-                                        "w-12 h-12 rounded-lg flex-shrink-0 border-2 transition-all duration-200",
+                                        "w-12 h-12 rounded-lg flex-shrink-0 border-2 transition-all duration-200 md:w-20 md:h-20",
                                         selected_filter === filter.name ? 'border-primary scale-110' : 'border-border'
                                     )}
                                 >
@@ -510,10 +519,11 @@ const DesignPageContent = () => {
                 { name: 'none', icon: Ban, label: 'None' },
             ];
             return (
-                <div className="flex items-center w-full">
-                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-                    <Separator orientation="vertical" className="h-6 mx-2" />
-                    <div className="flex-1 flex items-center gap-2 overflow-x-auto pr-4">
+                <div className="flex items-center w-full md:flex-col md:h-full">
+                    <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+                    <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+                    <Separator orientation="horizontal" className="w-full my-2 hidden md:block" />
+                    <div className="flex-1 grid grid-cols-4 grid-rows-2 md:grid-cols-2 md:grid-rows-4 gap-2 w-full">
                         {animations.map(({name, icon: Icon, label}) => (
                             <Tooltip key={name}>
                                 <TooltipTrigger asChild>
@@ -521,8 +531,9 @@ const DesignPageContent = () => {
                                         variant={animation_type === name ? 'default' : 'outline'}
                                         size="icon"
                                         onClick={() => setAnimationType(name)}
+                                        className="aspect-square h-auto w-full"
                                     >
-                                        <Icon className="h-4 w-4" />
+                                        <Icon className="h-5 w-5" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent><p>{label}</p></TooltipContent>
@@ -533,13 +544,14 @@ const DesignPageContent = () => {
             );
       case 'face':
         return (
-            <>
-                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4" /></Button>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <Button variant="ghost" onClick={() => setActiveMenu('eyes')}><Eye className="mr-2 h-4 w-4" /> Eyes</Button>
-                <Button variant="ghost" onClick={() => setActiveMenu('mouth')}><Meh className="mr-2 h-4 w-4" /> Mouth</Button>
-                <Button variant="ghost" onClick={() => setActiveMenu('eyebrows')}><ChevronsRight className="mr-2 h-4 w-4" style={{transform: 'rotate(-45deg)'}} /> Eyebrows</Button>
-            </>
+            <div className="flex items-center md:flex-col md:gap-1">
+                <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
+                <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
+                 <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
+                <Button variant="ghost" className="md:w-full md:justify-start" onClick={() => setActiveMenu('eyes')}><Eye className="mr-2 h-4 w-4" /> Eyes</Button>
+                <Button variant="ghost" className="md:w-full md:justify-start" onClick={() => setActiveMenu('mouth')}><Meh className="mr-2 h-4 w-4" /> Mouth</Button>
+                <Button variant="ghost" className="md:w-full md:justify-start" onClick={() => setActiveMenu('eyebrows')}><ChevronsRight className="mr-2 h-4 w-4" style={{transform: 'rotate(-45deg)'}} /> Eyebrows</Button>
+            </div>
         )
       case 'eyes':
         return renderFeatureMenu('eye', eye_style);
@@ -549,7 +561,7 @@ const DesignPageContent = () => {
         return renderFeatureMenu('eyebrow', eyebrow_style);
       default: // 'main'
         return (
-            <>
+            <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
                 <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
                     <RotateCcw className="h-4 w-4" />
                     <span className="text-xs mt-1">New</span>
@@ -558,7 +570,7 @@ const DesignPageContent = () => {
                     <Save className="h-4 w-4" />
                     <span className="text-xs mt-1">Save</span>
                 </Button>
-                <Separator orientation="vertical" className="h-full mx-1" />
+                <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />
                 <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('caption')}>
                     <Captions className="h-4 w-4" />
                     <span className="text-xs mt-1">Caption</span>
@@ -595,12 +607,12 @@ const DesignPageContent = () => {
                     <Camera className="h-4 w-4" />
                     <span className="text-xs mt-1">Filters</span>
                 </Button>
-                <Separator orientation="vertical" className="h-full mx-1" />
+                <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />
                 <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
                     <Wand2 className="h-4 w-4" />
                     <span className="text-xs mt-1">Random</span>
                 </Button>
-            </>
+            </div>
         );
     }
   };
@@ -679,11 +691,22 @@ const DesignPageContent = () => {
   return (
     <TooltipProvider>
       <div 
-          className="flex h-full w-full flex-col touch-none transition-colors duration-300"
+          className="relative flex h-full w-full flex-col md:flex-row-reverse touch-none transition-colors duration-300"
           style={{ backgroundColor: background_color }}
       >
+        <div className="fixed bottom-[56px] left-0 right-0 z-20 w-full max-w-md mx-auto md:relative md:bottom-auto md:max-w-none md:w-auto md:h-full md:mx-0">
+          <div className="flex flex-col bg-background/80 backdrop-blur-sm border-t border-border md:border-t-0 md:border-l md:h-full">
+            <ScrollArea className="w-full whitespace-nowrap no-scrollbar md:h-full md:whitespace-normal">
+                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16 md:w-auto md:h-full md:flex-col md:space-x-0 md:space-y-1">
+                    {renderMenu()}
+                </div>
+                <ScrollBar orientation="horizontal" className="hidden md:hidden" />
+                <ScrollBar orientation="vertical" className="hidden md:flex" />
+            </ScrollArea>
+          </div>
+        </div>
+
         <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
-          {/* Model Switcher */}
           <div className="absolute top-4 right-4 z-20 bg-background/50 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1">
               <Tooltip>
                   <TooltipTrigger asChild>
@@ -734,16 +757,6 @@ const DesignPageContent = () => {
           </motion.div>
         </div>
 
-        <div className="fixed bottom-[56px] left-0 right-0 z-20 w-full max-w-md mx-auto">
-          <div className="flex flex-col bg-background/80 backdrop-blur-sm border-t border-border">
-            <ScrollArea className="w-full whitespace-nowrap no-scrollbar">
-                <div className="flex items-center justify-center w-max space-x-1 p-2 mx-auto h-16">
-                    {renderMenu()}
-                </div>
-                <ScrollBar orientation="horizontal" className="hidden" />
-            </ScrollArea>
-          </div>
-        </div>
 
         <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
             <AlertDialogContent>

@@ -12,6 +12,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 import React from 'react';
 import { TopLoader } from '@/components/top-loader';
 import { Loader2 } from 'lucide-react';
+import { MainSidebar } from '@/components/main-sidebar';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-kalam' })
@@ -24,7 +25,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/';
-  const showBottomBar = !isLoginPage;
+  const showNav = !isLoginPage;
 
   return (
     <html lang="en" className={cn("dark", inter.variable, kalam.variable)}>
@@ -36,9 +37,15 @@ export default function RootLayout({
         <AuthProvider>
           <React.Suspense fallback={<TopLoader />}>
             <TopLoader />
-            <div className="relative h-screen w-screen max-w-md mx-auto overflow-hidden border-x border-border/20">
-              <main className={cn("h-full", showBottomBar && "pb-14")}>{children}</main>
-              {showBottomBar && <BottomBar />}
+            <div className="md:flex">
+              {showNav && <MainSidebar />}
+              <main className={cn(
+                "relative h-screen w-full",
+                showNav && "pb-14 md:pb-0"
+              )}>
+                {children}
+              </main>
+              {showNav && <BottomBar />}
             </div>
             <Toaster />
           </React.Suspense>

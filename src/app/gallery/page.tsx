@@ -472,25 +472,25 @@ function GalleryPageContent() {
                             </div>
                         ) : (
                         <>
-                        <div className="p-4">
-                             <div className="flex items-center gap-4">
+                        <div className="p-4 md:p-6">
+                             <div className="flex items-center gap-4 md:gap-8">
                                 <div>
-                                    <Avatar className="w-20 h-20">
+                                    <Avatar className="w-20 h-20 md:w-28 md:h-28">
                                         <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
                                         <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                 </div>
                                 <div className="flex-1 flex justify-around">
                                     <div className="text-center">
-                                        <p className="font-bold text-lg">{postCount}</p>
+                                        <p className="font-bold text-lg md:text-xl">{postCount}</p>
                                         <p className="text-sm text-muted-foreground">posts</p>
                                     </div>
                                     <button className="text-center" onClick={() => canViewContent && setSheetContent('supporters')}>
-                                        <p className="font-bold text-lg">{supporterCount}</p>
+                                        <p className="font-bold text-lg md:text-xl">{supporterCount}</p>
                                         <p className="text-sm text-muted-foreground">supporters</p>
                                     </button>
                                      <button className="text-center" onClick={() => canViewContent && setSheetContent('supporting')}>
-                                        <p className="font-bold text-lg">{supportingCount}</p>
+                                        <p className="font-bold text-lg md:text-xl">{supportingCount}</p>
                                         <p className="text-sm text-muted-foreground">supporting</p>
                                     </button>
                                 </div>
@@ -521,13 +521,13 @@ function GalleryPageContent() {
                             </div>
                         </div>
 
-                        <div className="p-1">
+                        <div className="p-1 md:p-4">
                             {canViewContent ? (
                                 savedEmojis.length > 0 ? (
                                     <>
                                         <motion.div 
                                             layout
-                                            className="grid grid-cols-3 gap-1"
+                                            className="grid grid-cols-3 md:grid-cols-4 gap-1 md:gap-4"
                                         >
                                             {savedEmojis.map(emoji => (
                                                 <MemoizedThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
