@@ -22,7 +22,6 @@ export function BottomBar() {
     const checkInitialNotifications = async () => {
         // We'll consider notifications "new" if they are created after the last time the user visited the page.
         // For simplicity here, we'll just check if there are any unseen ones based on a local flag.
-        // A more robust solution might use a `last_checked` timestamp.
         const lastChecked = localStorage.getItem('last_notification_check');
         const { count, error } = await supabase
             .from('notifications')
@@ -89,8 +88,7 @@ export function BottomBar() {
                         href={item.href}
                         className={cn(
                             'flex items-center justify-center rounded-md transition-colors w-12 h-12',
-                            !isActive && 'hover:bg-accent/50',
-                            isActive && 'bg-accent/50'
+                            isActive && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                         )}
                     >
                         <Avatar className={cn(
@@ -109,7 +107,7 @@ export function BottomBar() {
                 href={item.href}
                 className={cn(
                   'relative flex items-center justify-center rounded-md transition-colors w-12 h-12',
-                  !isActive && 'hover:bg-accent/50 text-muted-foreground'
+                  'text-muted-foreground'
                 )}
               >
                 <Icon className={cn("h-7 w-7", isActive && "text-primary")} />
