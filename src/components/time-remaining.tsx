@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,11 +14,16 @@ function formatTime(createdAt: string): string {
     }
 
     const hours = Math.floor(remaining / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours === 24) {
+        return '24h';
+    }
+
     if (hours > 0) {
         return `${hours}h`;
     }
-
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    
     if (minutes > 0) {
         return `${minutes}m`;
     }
@@ -29,7 +35,7 @@ export const TimeRemaining = ({ createdAt, className }: { createdAt: string; cla
     const [timeLeft, setTimeLeft] = useState(() => formatTime(createdAt));
 
     useEffect(() => {
-        // Run on mount
+        // Run on mount to get initial value
         setTimeLeft(formatTime(createdAt));
 
         // Then update every minute
