@@ -737,7 +737,7 @@ export async function searchUsers(query: string) {
     }
 
     const { data, error } = await supabase.rpc('search_users_with_mood', {
-        p_query: query,
+        p_query: `%${query}%`,
         p_current_user_id: currentUser?.id
     });
 
