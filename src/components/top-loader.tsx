@@ -1,34 +1,22 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import NProgress from 'nprogress';
 
 export function TopLoader() {
-  const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Start progress bar on navigation
     NProgress.start();
-    setIsNavigating(true);
-
+    
+    // The `done()` call is placed in the cleanup function of the effect.
+    // This ensures it runs when the component unmounts (i.e., navigation to a new page is complete).
     return () => {
-      // Done on component unmount or new navigation
       NProgress.done();
-      setIsNavigating(false);
     };
-  }, [pathname, searchParams]);
-  
-  // This effect ensures NProgress.done() is called when navigation is complete
-  useEffect(() => {
-    if (isNavigating) {
-        NProgress.done();
-        setIsNavigating(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams]);
 
   return null; // This component doesn't render anything itself
