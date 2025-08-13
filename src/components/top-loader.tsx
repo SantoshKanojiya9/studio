@@ -11,17 +11,14 @@ export function TopLoader() {
 
   useEffect(() => {
     NProgress.configure({ showSpinner: false });
+    NProgress.done(); // Ensure the progress bar is finished on initial load or route change
 
-    const handleStart = () => NProgress.start();
-    const handleStop = () => NProgress.done();
-
-    // The `useEffect` cleanup function will run when the component unmounts,
-    // which happens when navigation to a new page is complete.
-    handleStart();
+    // The return function (cleanup) is called when the component unmounts,
+    // which is the ideal time to start the progress bar for the next page.
     return () => {
-      handleStop();
+      NProgress.start();
     };
   }, [pathname, searchParams]);
 
-  return null; // This component doesn't render anything itself
+  return null;
 }
