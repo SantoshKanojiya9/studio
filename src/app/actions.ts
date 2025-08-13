@@ -730,16 +730,17 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
     
     if (!query.trim()) {
         return [];
     }
 
-    const { data, error } = await supabase.rpc('search_users_with_mood', {
-        p_query: `%${query}%`,
-        p_current_user_id: currentUser?.id
-    });
+    const { data, error } = await supabase
+        .from('users')
+        .select('id, name, picture, is_private')
+        .like('name', `%${query}%`)
+        .limit(10);
+
 
     if (error) {
         console.error("Failed to search users", error);
