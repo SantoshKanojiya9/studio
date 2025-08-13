@@ -13,14 +13,11 @@ function formatTime(createdAt: string): string {
         return '0m';
     }
 
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
+    // Use Math.ceil to round up to the nearest hour.
+    const hours = Math.ceil(remaining / (1000 * 60 * 60));
     const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
 
-    if (hours === 24) {
-        return '24h';
-    }
-
-    if (hours > 0) {
+    if (hours > 1) {
         return `${hours}h`;
     }
     
@@ -40,11 +37,14 @@ export const TimeRemaining = ({ createdAt, className }: { createdAt: string; cla
 
         // Then update every minute
         const timer = setInterval(() => {
-            setTimeLeft(formatTime(createdAt));
+            const newTimeLeft = formatTime(createdAt);
+            if (newTimeLeft !== timeLeft) {
+              setTimeLeft(newTimeLeft);
+            }
         }, 60000);
 
         return () => clearInterval(timer);
-    }, [createdAt]);
+    }, [createdAt, timeLeft]);
 
     return <span className={className}>{timeLeft}</span>;
 };
