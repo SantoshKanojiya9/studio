@@ -502,12 +502,10 @@ export function PostView({
                     ))}
                 </div>
                 <div className="flex items-center mt-3 gap-2">
-                    <StoryRing hasStory={!!postAuthor?.has_mood}>
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
-                          <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
-                    </StoryRing>
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
+                        <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+                    </Avatar>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
                     {isCurrentEmojiMood(currentEmojiState) && currentEmojiState.mood_created_at && (
                         <TimeRemaining createdAt={currentEmojiState.mood_created_at} className="text-sm text-white/70" />
