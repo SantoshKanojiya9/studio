@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
 import { StoryRing } from './story-ring';
+import { TimeRemaining } from './time-remaining';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -46,6 +47,7 @@ export interface Mood extends EmojiState {
     mood_id: number;
     mood_user_id: string;
     is_viewed?: boolean;
+    mood_created_at: string;
     mood_user?: {
       id: string;
       name: string;
@@ -507,6 +509,9 @@ export function PostView({
                         </Avatar>
                     </StoryRing>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
+                    {isCurrentEmojiMood(currentEmojiState) && currentEmojiState.mood_created_at && (
+                        <TimeRemaining createdAt={currentEmojiState.mood_created_at} className="text-sm text-white/70" />
+                    )}
                     <div className="ml-auto flex items-center gap-2">
                         {user && currentEmojiState && isCurrentEmojiMood(currentEmojiState) && currentEmojiState.mood_user_id === user.id && (
                              <DropdownMenu>

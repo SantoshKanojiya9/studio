@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StoryRing } from '@/components/story-ring';
 import type { User } from '@supabase/supabase-js';
 import type { Mood } from '@/components/post-view';
+import { TimeRemaining } from './time-remaining';
 
 interface UserProfile {
     id: string;
@@ -39,7 +40,12 @@ const MoodStories = memo(({ user, moods, isLoading, onSelectMood }: MoodStoriesP
                                 <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                             </Avatar>
                         </StoryRing>
-                        <span className="text-xs font-medium text-muted-foreground">Your Mood</span>
+                        <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <span>Your Mood</span>
+                             {ownMood?.mood_created_at && (
+                                <TimeRemaining createdAt={ownMood.mood_created_at} className="text-muted-foreground/80" />
+                            )}
+                        </div>
                     </Link>
                 )}
 
