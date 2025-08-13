@@ -18,7 +18,17 @@ function formatElapsedTime(createdAt: string): string {
     }
 
     const elapsedHours = Math.floor(elapsedMinutes / 60);
-    return `${elapsedHours}h`;
+    if (elapsedHours < 24) {
+        return `${elapsedHours}h`;
+    }
+    
+    const elapsedDays = Math.floor(elapsedHours / 24);
+    if (elapsedDays < 365) {
+        return `${elapsedDays}d`;
+    }
+
+    const elapsedYears = Math.floor(elapsedDays / 365);
+    return `${elapsedYears}y`;
 }
 
 export const TimeRemaining = ({ createdAt, className }: { createdAt: string; className?: string }) => {
@@ -27,7 +37,7 @@ export const TimeRemaining = ({ createdAt, className }: { createdAt: string; cla
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft(formatElapsedTime(createdAt));
-        }, 1000); // Update every second
+        }, 1000 * 60); // Update every minute is sufficient for longer timeframes
 
         return () => clearInterval(timer);
     }, [createdAt]);
