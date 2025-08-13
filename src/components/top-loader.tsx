@@ -10,12 +10,16 @@ export function TopLoader() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    NProgress.start();
-    
-    // The `done()` call is placed in the cleanup function of the effect.
-    // This ensures it runs when the component unmounts (i.e., navigation to a new page is complete).
+    NProgress.configure({ showSpinner: false });
+
+    const handleStart = () => NProgress.start();
+    const handleStop = () => NProgress.done();
+
+    // The `useEffect` cleanup function will run when the component unmounts,
+    // which happens when navigation to a new page is complete.
+    handleStart();
     return () => {
-      NProgress.done();
+      handleStop();
     };
   }, [pathname, searchParams]);
 
