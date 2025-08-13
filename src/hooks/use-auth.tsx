@@ -110,11 +110,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (loading) return; 
-
-    const isAuthPage = pathname === '/';
+  
+    const publicPaths = ['/', '/terms', '/about'];
+    const isAuthPage = publicPaths.includes(pathname);
     const isAuthCallback = pathname.startsWith('/auth/callback');
 
-    if (user && isAuthPage) {
+    if (user && pathname === '/') {
         router.push('/mood');
     } else if (!user && !isAuthPage && !isAuthCallback) {
         router.push('/');
