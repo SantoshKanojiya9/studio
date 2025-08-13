@@ -60,9 +60,10 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const url = request.nextUrl
+  const publicPaths = ['/', '/auth/callback', '/terms', '/about'];
 
   // Redirect to login if user is not signed in and trying to access a protected route
-  if (!user && url.pathname !== '/') {
+  if (!user && !publicPaths.includes(url.pathname)) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
@@ -81,8 +82,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - auth/callback
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

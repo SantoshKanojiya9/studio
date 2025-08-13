@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EdengramLogo } from '@/components/edengram-logo';
+import Link from 'next/link';
 
 
 export default function LoginPage() {
@@ -150,6 +151,13 @@ export default function LoginPage() {
                 </TabsContent>
             </Tabs>
         </motion.div>
+        
+        <motion.footer variants={itemVariants} className="text-xs text-muted-foreground space-x-4">
+            <Link href="/terms" className="hover:text-primary">Terms & Conditions</Link>
+            <span>&bull;</span>
+            <Link href="/about" className="hover:text-primary">About Us</Link>
+        </motion.footer>
+
       </motion.div>
     </div>
   );
