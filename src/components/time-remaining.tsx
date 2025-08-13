@@ -3,48 +3,34 @@
 
 import { useState, useEffect } from 'react';
 
-function formatTime(createdAt: string): string {
-    const twentyFourHours = 24 * 60 * 60 * 1000;
-    const expiryTime = new Date(createdAt).getTime() + twentyFourHours;
+function formatElapsedTime(createdAt: string): string {
     const now = new Date().getTime();
-    const remaining = expiryTime - now;
+    const startTime = new Date(createdAt).getTime();
+    const elapsedSeconds = Math.floor((now - startTime) / 1000);
 
-    if (remaining <= 0) {
-        return '0m';
+    if (elapsedSeconds < 60) {
+        return `${elapsedSeconds}s`;
     }
 
-    // Use Math.ceil to round up to the nearest hour.
-    const hours = Math.ceil(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    if (elapsedMinutes < 60) {
+        return `${elapsedMinutes}m`;
+    }
 
-    if (hours > 1) {
-        return `${hours}h`;
-    }
-    
-    if (minutes > 0) {
-        return `${minutes}m`;
-    }
-    
-    return '<1m';
+    const elapsedHours = Math.floor(elapsedMinutes / 60);
+    return `${elapsedHours}h`;
 }
 
 export const TimeRemaining = ({ createdAt, className }: { createdAt: string; className?: string }) => {
-    const [timeLeft, setTimeLeft] = useState(() => formatTime(createdAt));
+    const [timeLeft, setTimeLeft] = useState(() => formatElapsedTime(createdAt));
 
     useEffect(() => {
-        // Run on mount to get initial value
-        setTimeLeft(formatTime(createdAt));
-
-        // Then update every minute
         const timer = setInterval(() => {
-            const newTimeLeft = formatTime(createdAt);
-            if (newTimeLeft !== timeLeft) {
-              setTimeLeft(newTimeLeft);
-            }
-        }, 60000);
+            setTimeLeft(formatElapsedTime(createdAt));
+        }, 1000); // Update every second
 
         return () => clearInterval(timer);
-    }, [createdAt, timeLeft]);
+    }, [createdAt]);
 
     return <span className={className}>{timeLeft}</span>;
 };
