@@ -107,13 +107,10 @@ export default function LoginPage() {
       >
         <motion.div variants={itemVariants} className="flex items-center justify-center gap-2">
           <EdengramLogo className="h-12 w-12" />
-        </motion.div>
-        <motion.h1 
-            className="text-4xl font-logo font-normal"
-            variants={itemVariants}
-          >
+          <h1 className="text-4xl font-logo font-normal">
             Edengram
-        </motion.h1>
+          </h1>
+        </motion.div>
 
         <motion.div variants={itemVariants} className="w-full">
             <Tabs defaultValue="signin" className="w-full">
