@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet, Ban } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -507,6 +507,7 @@ const DesignPageContent = () => {
                 { name: 'diag-left-right', icon: ArrowUpRight, label: 'Diag L-R' },
                 { name: 'diag-right-left', icon: ArrowUpLeft, label: 'Diag R-L' },
                 { name: 'random', icon: Wand2, label: 'Random' },
+                { name: 'none', icon: Ban, label: 'None' },
             ];
             return (
                 <div className="flex items-center w-full">
@@ -519,7 +520,7 @@ const DesignPageContent = () => {
                                     <Button 
                                         variant={animation_type === name ? 'default' : 'outline'}
                                         size="icon"
-                                        onClick={() => setAnimationType(prev => prev === name ? 'none' : name)}
+                                        onClick={() => setAnimationType(name)}
                                     >
                                         <Icon className="h-4 w-4" />
                                     </Button>
