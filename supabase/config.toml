@@ -29,10 +29,6 @@ shadow_port = 54320
 major_version = 15
 
 # Schedule a function to run on a cron schedule.
-[db.cron.purge_users_job]
-schedule = "*/5 * * * *"
-sql = "select public.purge_deleted_users();"
-
 [db.cron.purge_notifications_job]
 schedule = "0 * * * *" # Every hour at the start of the hour
 sql = "select public.purge_old_notifications();"
