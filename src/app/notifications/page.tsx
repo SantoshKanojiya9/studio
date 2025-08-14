@@ -364,6 +364,7 @@ export default function NotificationsPage() {
   return (
     <div className="flex h-full w-full flex-col">
       <NotificationHeader />
+      <p className="text-sm text-muted-foreground px-4 md:px-6 pt-2">Notifications disappear after 24 hours.</p>
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         {isLoading ? (
             <div className="flex h-full w-full flex-col items-center justify-center">

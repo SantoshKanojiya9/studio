@@ -492,6 +492,8 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data, error } = await supabase
         .from('notifications')
         .select(`
@@ -508,6 +510,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
             )
         `)
         .eq('recipient_id', user.id)
+        .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
 
