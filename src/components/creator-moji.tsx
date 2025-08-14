@@ -226,7 +226,7 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
 
     const getShapeClipPath = (s: ShapeType) => {
         const paths: Record<ShapeType, string> = {
-            default: '50%',
+            default: '50% 50% 40% 40% / 60% 60% 40% 40%',
             sphere: '50%',
             square: '10%',
             squircle: '30%',
