@@ -7,7 +7,7 @@ import { Heart } from 'lucide-react';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
 // Re-implementing necessary parts from Face component to be self-contained.
-const renderEye = (style: FeatureStyle, pupilX: MotionValue, pupilY: MotionValue, pupilScale: MotionValue, expression: Expression) => {
+const renderEye = (style: FeatureStyle, pupilX: MotionValue<number>, pupilY: MotionValue<number>, pupilScale: MotionValue<number>, expression: Expression) => {
     const eyeBase = (
       <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden">
         <motion.div
@@ -74,6 +74,8 @@ type CreatorMojiProps = {
     feature_offset_y: MotionValue<number>;
     color: string;
     setColor: (color: string) => void;
+    clayWidth: number;
+    clayHeight: number;
 };
 
 export const CreatorMoji = (props: CreatorMojiProps) => {
@@ -81,8 +83,26 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
     const color = '#333333';
 
     // Simplified variants for CreatorMoji.
-    const eyeVariants = { neutral: { y: 0, scaleY: 1 } };
-    const eyebrowVariants = { neutral: { y: 0, rotate: 0 } };
+    const eyeVariants = {
+        neutral: { y: 0, scaleY: 1 },
+        happy: { y: 4, scaleY: 0.8 },
+        angry: { y: 2, scaleY: 0.8, rotate: -2 },
+        sad: { y: 6, scaleY: 0.9 },
+        surprised: { y: -3, scaleY: 1.1 },
+        scared: { y: -4, scaleY: 1.2, scaleX: 1.1 },
+        love: { y: 2, scaleY: 1 },
+    };
+
+    const eyebrowVariants = {
+        neutral: { y: 0, rotate: 0 },
+        happy: { y: -4, rotate: -5 },
+        angry: { y: 4, rotate: 20 },
+        sad: { y: 2, rotate: -10 },
+        surprised: { y: -6, rotate: 5 },
+        scared: { y: -8, rotate: 3 },
+        love: { y: -5, rotate: -5 },
+    };
+
     const mouthVariants: Record<FeatureStyle, any> = {
         default: { d: "M 30 50 Q 50 60 70 50" },
         'male-1': { d: "M 30 55 H 70" },
@@ -141,11 +161,11 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
                                         className="flex gap-20 absolute top-28" 
                                         style={{ transform: 'translateZ(20px)' }}
                                     >
-                                        <motion.div className="relative" variants={eyeVariants} animate={'neutral'} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                                        <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                                             {renderEye(props.eye_style, new motion.Value(), new motion.Value(), new motion.Value(), props.expression)}
                                             {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants)}
                                         </motion.div>
-                                        <motion.div className="relative" variants={eyeVariants} animate={'neutral'} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                                        <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
                                             {renderEye(props.eye_style, new motion.Value(), new motion.Value(), new motion.Value(), props.expression)}
                                             {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants, true)}
                                         </motion.div>

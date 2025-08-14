@@ -601,9 +601,6 @@ const DesignPageContent = () => {
         return (
             <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
                 {mainTools.map((tool) => {
-                    if (tool.name === 'Face' && model === 'creator') {
-                        return null;
-                    }
                     return (
                         <React.Fragment key={tool.name}>
                              {(tool.name === 'Caption' || tool.name === 'Random') && <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />}
