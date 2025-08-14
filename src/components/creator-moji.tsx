@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, MotionValue, useMotionValue, animate } from 'framer-motion';
+import { motion, MotionValue, useMotionValue, useSpring, useTransform, animate } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
@@ -95,6 +95,9 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
     const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
     const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
     const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+
+    const pointerX = useMotionValue(0.5);
+    const pointerY = useMotionValue(0.5);
 
     useEffect(() => {
         setExpression(initialExpression);
@@ -210,10 +213,16 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
         love: { d: "M 30 50 Q 50 75 70 50", fill: "transparent" },
     };
     
-    // Fix: Use the useMotionValue hook to create motion values
-    const pupilX = useMotionValue(0);
-    const pupilY = useMotionValue(0);
-    const pupilScale = useMotionValue(1);
+    const smoothPointerX = useSpring(pointerX, { stiffness: 300, damping: 20, mass: 0.5 });
+    const smoothPointerY = useSpring(pointerY, { stiffness: 300, damping: 20, mass: 0.5 });
+    
+    const pupilXFromPointer = useTransform(smoothPointerX, [0, 1], [-12, 12]);
+    const pupilYFromPointer = useTransform(smoothPointerY, [0, 1], [-8, 8]);
+    
+    const pupilX = useTransform(() => pupilXFromPointer.get() + feature_offset_x.get() * 0.2);
+    const pupilY = useTransform(() => pupilYFromPointer.get() + feature_offset_y.get() * 0.2);
+  
+    const pupilScale = useSpring(expression === 'scared' ? 0.6 : 1, { stiffness: 400, damping: 20 });
 
     const getShapeClipPath = (s: ShapeType) => {
         const paths: Record<ShapeType, string> = {
@@ -227,13 +236,36 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
         return paths[s] || paths.default;
     };
 
+    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!props.isInteractive) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        pointerX.set(x);
+        pointerY.set(y);
+    };
+    
+    const handlePointerLeave = () => {
+        if (!props.isInteractive) return;
+        pointerX.set(0.5);
+        pointerY.set(0.5);
+    };
+
+    // Determine if manual interaction should be enabled
+    const isManualInteraction = props.isInteractive && animation_type === 'none';
+
     return (
         <motion.div 
-            className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
-            onPan={props.isInteractive ? props.onPan : undefined}
-            onPanStart={props.isInteractive ? props.onPanStart : undefined}
-            onPanEnd={props.isInteractive ? props.onPanEnd : undefined}
-            style={{ transformStyle: 'preserve-3d' }}
+            className="relative w-80 h-96 flex flex-col items-center justify-center"
+            style={{ 
+                cursor: isManualInteraction ? 'grab' : 'default',
+                transformStyle: 'preserve-3d' 
+            }}
+            onPointerMove={handlePointerMove}
+            onPointerLeave={handlePointerLeave}
+            onPan={isManualInteraction ? props.onPan : undefined}
+            onPanStart={isManualInteraction ? props.onPanStart : undefined}
+            onPanEnd={isManualInteraction ? props.onPanEnd : undefined}
         >
             <motion.div 
                 className="absolute w-64 h-64 z-10 flex items-center justify-center"
