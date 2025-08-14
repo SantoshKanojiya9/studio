@@ -453,7 +453,7 @@ export async function getIsLiked(emojiId: string) {
 export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
-
+    
     const { data, error } = await supabase
         .rpc('get_paginated_likers', {
             p_emoji_id: emojiId,
@@ -549,74 +549,17 @@ export async function getFeedMoods() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    // 1. Get IDs of users the current user is supporting (including self)
-    const { data: supportedUsers, error: supportedError } = await supabase
-        .from('supports')
-        .select('supported_id')
-        .eq('supporter_id', user.id)
-        .eq('status', 'approved');
+    const { data, error } = await supabase.rpc('get_feed_moods', { p_user_id: user.id });
 
-    if (supportedError) {
-        console.error('Error fetching supported users:', supportedError);
-        throw supportedError;
+    if (error) {
+        console.error("Failed to fetch moods via RPC", error);
+        throw error;
     }
-    const supportedIds = supportedUsers.map(s => s.supported_id);
-    const feedUserIds = [user.id, ...supportedIds];
-
-    // 2. Fetch all moods from those users
-    const { data: moods, error: moodsError } = await supabase
-        .from('moods')
-        .select(`
-            mood_id:id,
-            mood_created_at:created_at,
-            mood_user_id:user_id,
-            mood_user:users(id, name, picture),
-            ...emojis(*)
-        `)
-        .in('user_id', feedUserIds)
-        .order('created_at', { ascending: false });
-
-    if (moodsError) {
-        console.error("Failed to fetch moods", moodsError);
-        throw moodsError;
-    }
-
-    if (!moods) return [];
-
-    // 3. Check which moods the current user has viewed
-    const moodIds = moods.map(m => m.mood_id);
-    const { data: viewedMoods, error: viewedError } = await supabase
-        .from('mood_views')
-        .select('mood_id')
-        .eq('viewer_id', user.id)
-        .in('mood_id', moodIds);
-
-    if (viewedError) {
-        console.error("Failed to fetch viewed moods", viewedError);
-        // Continue without view status if it fails
-    }
-
-    const viewedSet = new Set(viewedMoods?.map(v => v.mood_id) || []);
-
-    // 4. Combine data and sort
-    const finalMoods = moods.map(mood => ({
-        ...mood,
-        is_viewed: viewedSet.has(mood.mood_id)
-    }));
-
-    finalMoods.sort((a, b) => {
-        const aIsSelf = a.mood_user_id === user.id;
-        const bIsSelf = b.mood_user_id === user.id;
-
-        if (aIsSelf && !bIsSelf) return -1;
-        if (!aIsSelf && bIsSelf) return 1;
-
-        const aDate = new Date(a.mood_created_at).getTime();
-        const bDate = new Date(b.mood_created_at).getTime();
-        return bDate - aDate;
-    });
-
-    return finalMoods;
+    
+    if (!data) return [];
+    
+    // The RPC function now handles the sorting and structure.
+    return data;
 }
 
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
@@ -777,16 +720,25 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!query.trim()) {
         return [];
     }
 
-    const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query, p_user_id: user?.id ?? null });
+    let queryBuilder = supabase
+        .from('users')
+        .select('id, name, picture, is_private')
+        .ilike('name', `${query}%`)
+        .limit(10);
+
+    if (user) {
+        queryBuilder = queryBuilder.not('id', 'eq', user.id);
+    }
+        
+    const { data, error } = await queryBuilder;
 
     if (error) {
-        console.error("Failed to search users via RPC", error);
+        console.error("Failed to search users", error);
         throw error;
     }
     
