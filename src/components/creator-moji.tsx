@@ -8,8 +8,8 @@ import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/d
 
 // Re-implementing necessary parts from Face component to be self-contained.
 const renderEye = (style: FeatureStyle, pupilX: MotionValue<number>, pupilY: MotionValue<number>, pupilScale: MotionValue<number>, expression: Expression) => {
-    const eyeBase = (
-      <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden">
+    const eyeBaseChildren = (
+      <>
         <motion.div
           className="absolute top-1/2 left-1/2 w-6 h-6 bg-black rounded-full"
           style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
@@ -19,22 +19,28 @@ const renderEye = (style: FeatureStyle, pupilX: MotionValue<number>, pupilY: Mot
             <Heart className="w-5 h-5 text-red-500 fill-current" />
           </motion.div>
         </motion.div>
+      </>
+    );
+
+    const eyeBase = (
+      <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden">
+        {eyeBaseChildren}
       </div>
     );
+
     switch (style) {
-      case 'male-1': return <div className="w-12 h-8 bg-white rounded-lg relative overflow-hidden">{eyeBase.props.children}</div>;
-      case 'male-2': return <div className="w-12 h-10 bg-white rounded-t-full relative overflow-hidden">{eyeBase.props.children}</div>;
-      case 'male-3': return <div className="w-10 h-10 bg-white rounded-md relative overflow-hidden">{eyeBase.props.children}</div>;
-      case 'female-1': return <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-white" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBase.props.children}</div>;
-      case 'female-2': return <div className="w-12 h-12 bg-white rounded-full relative overflow-hidden flex items-center justify-center">{eyeBase.props.children}</div>;
-      case 'female-3': return <div className="w-14 h-8 bg-white rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBase.props.children}</div>;
+      case 'male-1': return <div className="w-12 h-8 bg-white rounded-lg relative overflow-hidden">{eyeBaseChildren}</div>;
+      case 'male-2': return <div className="w-12 h-10 bg-white rounded-t-full relative overflow-hidden">{eyeBaseChildren}</div>;
+      case 'male-3': return <div className="w-10 h-10 bg-white rounded-md relative overflow-hidden">{eyeBaseChildren}</div>;
+      case 'female-1': return <div className="w-12 h-10 bg-white rounded-full relative overflow-hidden border-2 border-black"><div className="absolute -top-1 right-0 w-4 h-4 bg-white" style={{clipPath:'polygon(0 0, 100% 0, 100% 100%)'}}/>{eyeBaseChildren}</div>;
+      case 'female-2': return <div className="w-12 h-12 bg-white rounded-full relative overflow-hidden flex items-center justify-center">{eyeBaseChildren}</div>;
+      case 'female-3': return <div className="w-14 h-8 bg-white rounded-tl-2xl rounded-br-2xl relative overflow-hidden">{eyeBaseChildren}</div>;
       default: return eyeBase;
     }
   };
 
   const renderEyebrow = (style: FeatureStyle, expression: Expression, eyebrowVariants: any, isRight?: boolean) => {
     const baseStyle: React.CSSProperties = {
-      clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)',
       transformOrigin: 'center',
       transform: isRight ? 'scaleX(-1)' : 'none',
     };
@@ -44,6 +50,8 @@ const renderEye = (style: FeatureStyle, pupilX: MotionValue<number>, pupilY: Mot
         transition: { duration: 0.3, type: "spring", stiffness: 300, damping: 15 }
     };
 
+    const defaultEyebrow = <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 0, 85% 100%, 15% 100%)' }} {...eyebrowMotion} />;
+
     switch (style) {
       case 'male-1': return <motion.div className="absolute -top-3 left-0 w-14 h-4 bg-black" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} {...eyebrowMotion} />;
       case 'male-2': return <motion.div className="absolute -top-4 left-0 w-12 h-5 bg-black" style={{ ...baseStyle, borderRadius: '4px' }} {...eyebrowMotion} />;
@@ -51,7 +59,7 @@ const renderEye = (style: FeatureStyle, pupilX: MotionValue<number>, pupilY: Mot
       case 'female-1': return <motion.div className="absolute -top-4 left-0 w-12 h-3 bg-black" style={{ ...baseStyle, clipPath: 'path("M0,10 C10,0 40,0 50,10")' }} {...eyebrowMotion} />;
       case 'female-2': return <motion.div className="absolute -top-3 left-0 w-12 h-2.5 bg-black" style={{ ...baseStyle }} {...eyebrowMotion} />;
       case 'female-3': return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} {...eyebrowMotion} />;
-      default: return <motion.div className="absolute -top-3 left-0 w-12 h-4 bg-black" style={baseStyle} {...eyebrowMotion} />;
+      default: return defaultEyebrow;
     }
   };
 
@@ -80,7 +88,7 @@ type CreatorMojiProps = {
 
 export const CreatorMoji = (props: CreatorMojiProps) => {
 
-    const color = '#333333';
+    const color = props.color;
 
     // Simplified variants for CreatorMoji.
     const eyeVariants = {
