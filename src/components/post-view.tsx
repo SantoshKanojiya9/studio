@@ -6,6 +6,7 @@ import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 import { RimuruFace } from '@/components/rimuru-face';
+import { CreatorMoji } from '@/components/creator-moji';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,6 +123,7 @@ const PostContent = memo(({
           setColor: () => {},
         };
         switch(emoji.model) {
+            case 'creator': return <CreatorMoji {...props} />;
             case 'loki': return <ClockFace {...props} />;
             case 'rimuru': return <RimuruFace {...props} />;
             case 'emoji':
@@ -195,7 +197,7 @@ const PostContent = memo(({
                 className="flex-1 flex items-center justify-center min-h-0 relative"
                 style={{ 
                     backgroundColor: emoji.background_color,
-                    filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                    filter: emoji.selected_filter,
                 }}
                 onDoubleClick={handleLike}
             >
@@ -478,6 +480,7 @@ export function PostView({
       setColor: () => {},
     };
     switch(emoji.model) {
+        case 'creator': return <CreatorMoji {...props} />;
         case 'loki': return <ClockFace {...props} />;
         case 'rimuru': return <RimuruFace {...props} />;
         case 'emoji':
@@ -560,7 +563,7 @@ export function PostView({
                      className="w-full h-full flex items-center justify-center absolute"
                      style={{ 
                       backgroundColor: finalEmoji.background_color,
-                      filter: finalEmoji.selected_filter && finalEmoji.selected_filter !== 'None' ? `${finalEmoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                      filter: finalEmoji.selected_filter,
                     }}
                 >
                   {renderEmojiFace(finalEmoji)}

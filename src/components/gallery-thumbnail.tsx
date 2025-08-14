@@ -5,6 +5,7 @@ import type { EmojiState } from '@/app/design/page';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 import { RimuruFace } from '@/components/rimuru-face';
+import { CreatorMoji } from '@/components/creator-moji';
 import { cn } from '@/lib/utils';
 import { motion, useMotionValue } from 'framer-motion';
 import React from 'react';
@@ -14,7 +15,7 @@ const MiniFace = React.memo(({ emoji }: { emoji: EmojiState }) => {
     const containerStyle: React.CSSProperties = {
         backgroundColor: emoji.background_color,
         filter: emoji.selected_filter && emoji.selected_filter !== 'None' 
-            ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` 
+            ? emoji.selected_filter
             : 'none',
         width: '100%',
         height: '100%',
@@ -35,47 +36,27 @@ const MiniFace = React.memo(({ emoji }: { emoji: EmojiState }) => {
     }
 
     const renderModel = () => {
+        const props = {
+            ...emojiToRender,
+            animation_type: emojiToRender.animation_type,
+            color: emojiToRender.emoji_color,
+            isDragging: false,
+            isInteractive: false,
+            feature_offset_x: featureOffsetX,
+            feature_offset_y: featureOffsetY,
+            setColor: () => {},
+        };
+
         switch(emojiToRender.model) {
+            case 'creator':
+                return <CreatorMoji {...props} />;
             case 'loki':
-                return (
-                    <ClockFace 
-                        {...emojiToRender}
-                        animation_type={emojiToRender.animation_type}
-                        color={emojiToRender.emoji_color}
-                        isDragging={false}
-                        isInteractive={false}
-                        feature_offset_x={featureOffsetX}
-                        feature_offset_y={featureOffsetY}
-                        setColor={() => {}}
-                    />
-                );
+                return <ClockFace {...props} />;
             case 'rimuru':
-                return (
-                    <RimuruFace
-                         {...emojiToRender}
-                        animation_type={emojiToRender.animation_type}
-                        color={emojiToRender.emoji_color}
-                        isDragging={false}
-                        isInteractive={false}
-                        feature_offset_x={featureOffsetX}
-                        feature_offset_y={featureOffsetY}
-                        setColor={() => {}}
-                    />
-                );
+                return <RimuruFace {...props} />;
             case 'emoji':
             default:
-                return (
-                    <Face 
-                        {...emojiToRender}
-                        animation_type={emojiToRender.animation_type}
-                        color={emojiToRender.emoji_color}
-                        isDragging={false}
-                        isInteractive={false}
-                        feature_offset_x={featureOffsetX}
-                        feature_offset_y={featureOffsetY}
-                        setColor={() => {}}
-                    />
-                );
+                return <Face {...props} />;
         }
     }
 

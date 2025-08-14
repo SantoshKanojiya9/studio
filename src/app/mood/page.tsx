@@ -14,6 +14,7 @@ import dynamic from 'next/dynamic';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 import { RimuruFace } from '@/components/rimuru-face';
+import { CreatorMoji } from '@/components/creator-moji';
 import { motion, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import {
@@ -99,6 +100,7 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
           setColor: () => {},
         };
         switch(emoji.model) {
+            case 'creator': return <CreatorMoji {...props} />;
             case 'loki': return <ClockFace {...props} />;
             case 'rimuru': return <RimuruFace {...props} />;
             case 'emoji':
@@ -190,7 +192,7 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
                     className="relative aspect-square w-full"
                     style={{ 
                       backgroundColor: emoji.background_color,
-                      filter: emoji.selected_filter && emoji.selected_filter !== 'None' ? `${emoji.selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+                      filter: emoji.selected_filter,
                     }}
                     onDoubleClick={handleLike}
                 >

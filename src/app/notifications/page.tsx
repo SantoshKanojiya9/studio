@@ -340,7 +340,7 @@ export default function NotificationsPage() {
                     key={notification.id} 
                     actor={actor} 
                     emoji={emoji} 
-                    onPostClick={() => router.push('/gallery')}
+                    onPostClick={() => router.push(`/gallery?userId=${emoji.user_id}`)}
                     icon={
                          <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-0.5">
                            <Heart className="h-3 w-3 text-white" fill="white" />
