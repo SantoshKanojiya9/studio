@@ -25,6 +25,8 @@ export const ClockFace = ({
     onPanEnd,
     feature_offset_x,
     feature_offset_y,
+    clay_width,
+    clay_height,
 }: { 
     expression: Expression, 
     color: string, 
@@ -43,6 +45,8 @@ export const ClockFace = ({
     onPanEnd?: (event: any, info: any) => void;
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
+    clay_width?: number;
+    clay_height?: number;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -115,7 +119,7 @@ export const ClockFace = ({
             animationControlsY.current = animate(feature_offset_y, [-25, 25], animationOptions);
             break;
         case 'down-up':
-            animationControlsY.current = animate(feature_offset_y, [25, -25], animationOptions);
+            animationControlsY.current = animate(feature_offset_y, [25, 25], animationOptions);
             break;
         case 'diag-left-right':
             animationControlsX.current = animate(feature_offset_x, [-30, 30], animationOptions);
@@ -219,13 +223,14 @@ export const ClockFace = ({
       square: '10%',
       squircle: '30%',
       tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-      blob: '50%' // blob not supported for loki, will default
+      clay: '50%', // clay not supported for loki, will default
+      sphere: '50%',
     };
     return paths[s] || paths.default;
   };
   
   // Ensure blob shape is not used for loki
-  const currentShape = shape === 'blob' ? 'default' : shape;
+  const currentShape = shape === 'clay' ? 'default' : shape;
 
   const tickMarks = Array.from({ length: 12 }, (_, i) => {
     const angle = i * 30;
@@ -269,8 +274,7 @@ export const ClockFace = ({
   const armColor = expression === 'angry' ? 'red' : 'orangered';
 
   const renderEye = (style: FeatureStyle) => {
-    const eyeBase = (
-      <div className="w-8 h-full bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
+    const eyeBaseChildren = (
         <motion.div 
             className="absolute top-1/2 left-1/2 w-5 h-5 bg-black rounded-full"
             style={{ x: pupilX, y: pupilY, translateX: '-50%', translateY: '-50%', scale: pupilScale }}
@@ -280,14 +284,19 @@ export const ClockFace = ({
                 <Heart className="w-4 h-4 text-red-500 fill-current" />
             </motion.div>
         </motion.div>
+    );
+
+    const eyeBase = (
+      <div className="w-8 h-full bg-white rounded-t-full rounded-b-md relative overflow-hidden border-2 border-black/70">
+        {eyeBaseChildren}
       </div>
     );
 
     // Clock model has a more fixed eye structure but we can still adapt
     switch (style) {
-      case 'male-1': return <div className="w-8 h-full bg-white rounded-lg relative overflow-hidden border-2 border-black/70">{eyeBase.props.children}</div>;
-      case 'male-2': return <div className="w-8 h-full bg-white rounded-t-lg relative overflow-hidden border-2 border-black/70">{eyeBase.props.children}</div>;
-      case 'female-1': return <div className="w-8 h-full bg-white rounded-full relative overflow-hidden border-2 border-black/70">{eyeBase.props.children}</div>;
+      case 'male-1': return <div className="w-8 h-full bg-white rounded-lg relative overflow-hidden border-2 border-black/70">{eyeBaseChildren}</div>;
+      case 'male-2': return <div className="w-8 h-full bg-white rounded-t-lg relative overflow-hidden border-2 border-black/70">{eyeBaseChildren}</div>;
+      case 'female-1': return <div className="w-8 h-full bg-white rounded-full relative overflow-hidden border-2 border-black/70">{eyeBaseChildren}</div>;
       default: return eyeBase;
     }
   };
@@ -303,6 +312,8 @@ export const ClockFace = ({
         transition: { duration: 0.3, type: "spring", stiffness: 300, damping: 15 }
     };
 
+    const defaultEyebrow = <motion.div className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80" style={{ ...baseStyle, clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }} {...eyebrowMotion} />;
+
     switch (style) {
       case 'male-1': return <motion.div className="absolute -top-1.5 left-0 w-7 h-2 bg-black/80" style={{ ...baseStyle, clipPath: 'polygon(0 0, 100% 20%, 90% 100%, 10% 100%)' }} {...eyebrowMotion} />;
       case 'male-2': return <motion.div className="absolute -top-2 left-0 w-7 h-2.5 bg-black/80" style={{ ...baseStyle, borderRadius: '2px' }} {...eyebrowMotion} />;
@@ -310,7 +321,7 @@ export const ClockFace = ({
       case 'female-1': return <motion.div className="absolute -top-2 left-0 w-7 h-2 bg-black/80" style={{ ...baseStyle, clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }} {...eyebrowMotion} />;
       case 'female-2': return <motion.div className="absolute -top-1.5 left-0 w-7 h-1.5 bg-black/80" style={{ ...baseStyle }} {...eyebrowMotion} />;
       case 'female-3': return <motion.div className="absolute -top-2 left-0 w-7 h-2 bg-black/70" style={{ ...baseStyle, clipPath: 'polygon(0 50%, 100% 0, 100% 100%, 0 100%)' }} {...eyebrowMotion} />;
-      default: return <motion.div className="absolute -top-1.5 left-0.5 w-7 h-2.5 bg-black/80" style={{ ...baseStyle, clipPath: 'path("M0,6 C6,0, 22,0, 28,6")' }} {...eyebrowMotion} />;
+      default: return defaultEyebrow;
     }
   };
 

@@ -24,6 +24,8 @@ export const RimuruFace = ({
     onPanEnd,
     feature_offset_x,
     feature_offset_y,
+    clay_width,
+    clay_height,
 }: { 
     expression: Expression, 
     color: string, 
@@ -42,6 +44,8 @@ export const RimuruFace = ({
     onPanEnd?: (event: any, info: any) => void;
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
+    clay_width?: number;
+    clay_height?: number;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
 
@@ -173,7 +177,8 @@ export const RimuruFace = ({
         square: '10%',
         squircle: '30%',
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-        blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
+        clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
+        sphere: '50%',
     };
     return paths[s] || paths.default;
   };
@@ -194,6 +199,10 @@ export const RimuruFace = ({
       >
         <motion.div 
           className="w-full h-full relative"
+          style={{
+            width: shape === 'clay' ? `${320 + (clay_width || 0)}px` : '320px',
+            height: shape === 'clay' ? `${256 + (clay_height || 0)}px` : '256px',
+          }}
           animate={{ borderRadius: getShapeClipPath(shape) }}
           transition={{ duration: 0.3 }}
         >
@@ -202,6 +211,7 @@ export const RimuruFace = ({
                 animate={{ backgroundColor: color, borderRadius: getShapeClipPath(shape) }}
                 transition={{ duration: 0.2 }}
             >
+                {/* Glossy highlight */}
                 <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-radial from-white/40 via-white/20 to-transparent rounded-full" />
                 <div className="absolute top-4 left-6 w-16 h-8 bg-white/70 rounded-full" style={{ filter: 'blur(10px)', transform: 'rotate(-30deg)' }}></div>
                 <div className="absolute top-8 right-8 w-10 h-5 bg-white/50 rounded-full" style={{ filter: 'blur(8px)', transform: 'rotate(20deg)' }}></div>

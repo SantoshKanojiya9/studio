@@ -58,6 +58,8 @@ export type EmojiState = {
     eyebrow_style: FeatureStyle;
     feature_offset_x: number;
     feature_offset_y: number;
+    clay_width?: number;
+    clay_height?: number;
     caption?: string;
     user?: {
       id: string;
@@ -130,6 +132,8 @@ const DesignPageContent = () => {
     setEyebrowStyle('default');
     feature_offset_x.set(0);
     feature_offset_y.set(0);
+    setClayWidth(0);
+    setClayHeight(0);
     setCaption('');
     setActiveMenu('main');
   };
@@ -170,6 +174,8 @@ const DesignPageContent = () => {
         eyebrow_style,
         feature_offset_x: feature_offset_x.get(),
         feature_offset_y: feature_offset_y.get(),
+        clay_width: clayWidth,
+        clay_height: clayHeight,
         caption,
     };
 
@@ -322,6 +328,8 @@ const DesignPageContent = () => {
     setShowMustache(false);
     feature_offset_x.set(0);
     feature_offset_y.set(0);
+    setClayWidth(0);
+    setClayHeight(0);
     setSelectedFilter(null);
     setAnimationType(newModel === 'creator' ? 'none' : 'random'); // Set animation to none for creator
     setCaption('');
@@ -633,8 +641,8 @@ const DesignPageContent = () => {
         onPanEnd: handlePanEnd,
         feature_offset_x: feature_offset_x,
         feature_offset_y: feature_offset_y,
-        clayWidth,
-        clayHeight
+        clay_width: clayWidth,
+        clay_height: clayHeight,
     };
 
     switch(model) {
