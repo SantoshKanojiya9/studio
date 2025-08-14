@@ -609,9 +609,9 @@ export async function searchUsers(query: string) {
         return [];
     }
 
-    // Using the search_users RPC function
+    // Using the search_users RPC function. Pass the user ID as text.
     const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query, p_user_id: user?.id });
+        .rpc('search_users', { p_search_term: query, p_user_id: user?.id || null });
 
     if (error) {
         console.error("Failed to search users via RPC", error);
