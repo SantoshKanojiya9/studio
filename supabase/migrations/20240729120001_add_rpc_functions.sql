@@ -1,5 +1,5 @@
 -- Function to get paginated list of likers for a post, including support status
-DROP FUNCTION IF EXISTS get_paginated_likers(uuid, uuid, int, int);
+drop function if exists get_paginated_likers(uuid, uuid, int, int);
 create or replace function get_paginated_likers(p_emoji_id uuid, p_current_user_id uuid, p_limit int, p_offset int)
 returns table(id uuid, name text, picture text, is_private boolean, support_status text, has_mood boolean) as $$
 begin
@@ -9,10 +9,12 @@ begin
     u.name,
     u.picture,
     u.is_private,
-    (
-        select s.status from public.supports s
-        where s.supporter_id = p_current_user_id and s.supported_id = u.id
-    )::text as support_status,
+    case when p_current_user_id is null then null
+        else (
+            select s.status from public.supports s
+            where s.supporter_id = p_current_user_id and s.supported_id = u.id
+        )
+    end::text as support_status,
     exists(select 1 from public.moods m where m.user_id = u.id) as has_mood
   from public.likes l
   join public.users u on l.user_id = u.id
@@ -24,7 +26,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get a paginated list of supporters for a user
-DROP FUNCTION IF EXISTS get_supporters_with_status(uuid, uuid, int, int);
+drop function if exists get_supporters_with_status(uuid, uuid, int, int);
 create or replace function get_supporters_with_status(p_user_id uuid, p_current_user_id uuid, p_limit int, p_offset int)
 returns table(id uuid, name text, picture text, is_private boolean, support_status text, has_mood boolean) as $$
 begin
@@ -34,10 +36,12 @@ begin
     u.name,
     u.picture,
     u.is_private,
-    (
-        select s.status from public.supports s
-        where s.supporter_id = p_current_user_id and s.supported_id = u.id
-    )::text as support_status,
+    case when p_current_user_id is null then null
+        else (
+            select s.status from public.supports s
+            where s.supporter_id = p_current_user_id and s.supported_id = u.id
+        )
+    end::text as support_status,
     exists(select 1 from public.moods m where m.user_id = u.id) as has_mood
   from public.supports sup
   join public.users u on sup.supporter_id = u.id
@@ -49,7 +53,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get a paginated list of users someone is supporting
-DROP FUNCTION IF EXISTS get_supporting_with_status(uuid, uuid, int, int);
+drop function if exists get_supporting_with_status(uuid, uuid, int, int);
 create or replace function get_supporting_with_status(p_user_id uuid, p_current_user_id uuid, p_limit int, p_offset int)
 returns table(id uuid, name text, picture text, is_private boolean, support_status text, has_mood boolean) as $$
 begin
@@ -59,10 +63,12 @@ begin
     u.name,
     u.picture,
     u.is_private,
-    (
-        select s.status from public.supports s
-        where s.supporter_id = p_current_user_id and s.supported_id = u.id
-    )::text as support_status,
+    case when p_current_user_id is null then null
+        else (
+            select s.status from public.supports s
+            where s.supporter_id = p_current_user_id and s.supported_id = u.id
+        )
+    end::text as support_status,
     exists(select 1 from public.moods m where m.user_id = u.id) as has_mood
   from public.supports sup
   join public.users u on sup.supported_id = u.id
@@ -74,7 +80,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get mood viewers
-DROP FUNCTION IF EXISTS get_mood_viewers(int);
+drop function if exists get_mood_viewers(int);
 create or replace function get_mood_viewers(p_mood_id int)
 returns table(id uuid, name text, picture text) as $$
 begin
@@ -92,7 +98,7 @@ $$ language plpgsql stable;
 
 
 -- Function to get moods for the feed, including user info and viewed status
-DROP FUNCTION IF EXISTS get_feed_moods(uuid);
+drop function if exists get_feed_moods(uuid);
 create or replace function get_feed_moods(p_user_id uuid)
 returns table(
   mood_id int,
@@ -140,7 +146,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get posts for the feed
-DROP FUNCTION IF EXISTS get_feed_posts(uuid, int, int);
+drop function if exists get_feed_posts(uuid, int, int);
 create or replace function get_feed_posts(p_user_id uuid, p_limit int, p_offset int)
 returns table(
     id uuid,
@@ -189,7 +195,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get posts for a user's gallery
-DROP FUNCTION IF EXISTS get_gallery_posts(uuid, uuid, int, int);
+drop function if exists get_gallery_posts(uuid, uuid, int, int);
 create or replace function get_gallery_posts(p_user_id uuid, p_current_user_id uuid, p_limit int, p_offset int)
 returns table (
     id uuid,
@@ -220,7 +226,7 @@ begin
         e.*,
         json_build_object('id', u.id, 'name', u.name, 'picture', u.picture) as "user",
         count(l.emoji_id) as like_count,
-        exists(select 1 from public.likes li where li.emoji_id = e.id and li.user_id = p_current_user_id) as is_liked
+        coalesce(exists(select 1 from public.likes li where li.emoji_id = e.id and li.user_id = p_current_user_id), false) as is_liked
     from
         public.emojis e
     join
@@ -239,7 +245,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to get posts for the explore page (public, non-private users)
-DROP FUNCTION IF EXISTS get_explore_posts(uuid, int, int);
+drop function if exists get_explore_posts(uuid, int, int);
 create or replace function get_explore_posts(p_current_user_id uuid, p_limit int, p_offset int)
 returns table(
     id uuid,
@@ -275,7 +281,7 @@ begin
       'has_mood', exists(select 1 from public.moods m where m.user_id = u.id)
     ) as "user",
     count(l.emoji_id) as like_count,
-    exists(select 1 from public.likes li where li.emoji_id = e.id and li.user_id = p_current_user_id) as is_liked
+    coalesce(exists(select 1 from public.likes li where li.emoji_id = e.id and li.user_id = p_current_user_id), false) as is_liked
   from public.emojis e
   join public.users u on e.user_id = u.id
   left join public.likes l on e.id = l.emoji_id
@@ -289,8 +295,8 @@ $$ language plpgsql stable;
 
 
 -- Function to search users
-DROP FUNCTION IF EXISTS search_users(text);
-create or replace function search_users(p_search_term text)
+drop function if exists search_users(text, uuid);
+create or replace function search_users(p_search_term text, p_user_id uuid)
 returns table(id uuid, name text, picture text, is_private boolean) as $$
 begin
   return query
@@ -300,14 +306,16 @@ begin
     u.picture,
     u.is_private
   from public.users u
-  where u.name ilike p_search_term || '%'
+  where
+    u.name ilike p_search_term || '%'
+    and (p_user_id is null or u.id <> p_user_id)
   order by u.name
   limit 10;
 end;
 $$ language plpgsql stable;
 
 -- Function to get notifications
-DROP FUNCTION IF EXISTS get_user_notifications(uuid, int, int);
+drop function if exists get_user_notifications(uuid, int, int);
 create or replace function get_user_notifications(p_user_id uuid, p_limit int, p_offset int)
 returns table (
     id int,
@@ -367,7 +375,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function for user deletion
-DROP FUNCTION IF EXISTS handle_delete_user();
+drop function if exists handle_delete_user();
 create or replace function handle_delete_user()
 returns void as $$
 declare
@@ -385,7 +393,7 @@ $$ language plpgsql security definer;
 
 
 -- Function to get users and their mood status
-DROP FUNCTION IF EXISTS get_users_with_mood_status(uuid[]);
+drop function if exists get_users_with_mood_status(uuid[]);
 create or replace function get_users_with_mood_status(p_user_ids uuid[])
 returns table(id uuid, name text, picture text, has_mood boolean) as $$
 begin
@@ -401,7 +409,7 @@ end;
 $$ language plpgsql stable;
 
 -- Function to purge old users marked for deletion
-DROP FUNCTION IF EXISTS purge_deleted_users();
+drop function if exists purge_deleted_users();
 create or replace function purge_deleted_users()
 returns void as $$
 begin
@@ -412,7 +420,7 @@ end;
 $$ language plpgsql security definer;
 
 -- Function to purge old notifications
-DROP FUNCTION IF EXISTS purge_old_notifications();
+drop function if exists purge_old_notifications();
 create or replace function purge_old_notifications()
 returns void as $$
 begin
@@ -420,5 +428,3 @@ begin
     where created_at < now() - interval '30 days';
 end;
 $$ language plpgsql;
-
-    
