@@ -549,17 +549,70 @@ export async function getFeedMoods() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data, error } = await supabase.rpc('get_feed_moods', { p_user_id: user.id });
+    // 1. Get IDs of users the current user is following
+    const { data: supportedUsers, error: supportedError } = await supabase
+        .from('supports')
+        .select('supported_id')
+        .eq('supporter_id', user.id)
+        .eq('status', 'approved');
 
-    if (error) {
-        console.error("Failed to fetch moods via RPC", error);
-        throw error;
+    if (supportedError) {
+        console.error('Error fetching supported users for moods:', supportedError);
+        throw supportedError;
     }
     
+    const supportedIds = supportedUsers.map(s => s.supported_id);
+    const moodFeedUserIds = [user.id, ...supportedIds];
+
+    // 2. Fetch moods from those users
+    const { data, error } = await supabase
+        .from('moods')
+        .select(`
+            mood_id:id,
+            mood_created_at:created_at,
+            mood_user_id:user_id,
+            mood_user:users (id, name, picture),
+            ...emojis (
+                id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
+                selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
+                feature_offset_y, caption
+            )
+        `)
+        .in('user_id', moodFeedUserIds)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Failed to fetch moods", error);
+        throw error;
+    }
     if (!data) return [];
-    
-    // The RPC function now handles the sorting and structure.
-    return data;
+
+    // 3. Check which moods have been viewed by the current user
+    const moodIds = data.map(m => m.mood_id);
+    const { data: viewedMoods, error: viewedError } = await supabase
+        .from('mood_views')
+        .select('mood_id')
+        .eq('viewer_id', user.id)
+        .in('mood_id', moodIds);
+
+    if (viewedError) {
+        console.error("Failed to fetch viewed moods:", viewedError);
+        // Continue without view status if this fails
+    }
+
+    const viewedMoodsSet = new Set(viewedMoods?.map(vm => vm.mood_id) || []);
+
+    const result = data.map(mood => ({
+        ...mood,
+        is_viewed: viewedMoodsSet.has(mood.mood_id)
+    })).sort((a, b) => {
+        // Sort own mood to the front, then by creation date
+        if (a.mood_user_id === user.id) return -1;
+        if (b.mood_user_id === user.id) return 1;
+        return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
+    });
+
+    return result;
 }
 
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
@@ -719,16 +772,25 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
 
     if (!query.trim()) {
         return [];
     }
-
-    const { data, error } = await supabase
+    
+    let queryBuilder = supabase
         .from('users')
         .select('id, name, picture, is_private')
-        .ilike('name', `${query}%`)
-        .limit(10);
+        .ilike('name', `${query}%`);
+    
+    if (currentUser) {
+        // This logic was removed in a previous step, but re-adding it
+        // to show how one might exclude the current user.
+        // For now, we will NOT exclude the current user as requested.
+        // queryBuilder = queryBuilder.neq('id', currentUser.id);
+    }
+        
+    const { data, error } = await queryBuilder.limit(10);
 
     if (error) {
         console.error("Failed to search users", error);
