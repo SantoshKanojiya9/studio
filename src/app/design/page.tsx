@@ -65,8 +65,9 @@ export type EmojiState = {
     }
 };
 
-const CreatorBall = (props: Omit<React.ComponentProps<typeof Face>, 'color' | 'setColor'>) => (
+const CreatorBall = (props: React.ComponentProps<typeof Face>) => (
     <div className="relative w-80 h-96">
+        {/* Base dark grey sphere */}
         <motion.div
             className="w-full h-64 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             style={{
@@ -82,8 +83,10 @@ const CreatorBall = (props: Omit<React.ComponentProps<typeof Face>, 'color' | 's
                 style={{ filter: 'blur(15px)', transform: 'rotate(-30deg)'}}
             />
         </motion.div>
+        
+        {/* The editable face features on top */}
         <div className="absolute inset-0">
-             <Face color="transparent" setColor={() => {}} {...props} />
+             <Face {...props} color="transparent" setColor={() => {}} />
         </div>
     </div>
 );
@@ -319,7 +322,7 @@ const DesignPageContent = () => {
   };
 
   const handleModelChange = (newModel: ModelType) => {
-    if (model === newModel && newModel !== 'creator') return;
+    if (model === newModel) return;
 
     // Reset all common properties to their defaults for a clean slate
     setExpression('neutral');
@@ -644,7 +647,7 @@ const DesignPageContent = () => {
 
     switch(model) {
         case 'creator':
-            return <CreatorBall {...faceProps} />;
+            return <CreatorBall {...faceProps} color={emoji_color} setColor={setEmojiColor} />;
         case 'emoji':
             return <Face color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'loki':
@@ -756,3 +759,5 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
+
+    
