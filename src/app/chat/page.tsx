@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { StoryRing } from '@/components/story-ring';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface MoodUser {
     id: string;
@@ -97,7 +98,7 @@ export default function ChatPage() {
                 {me && (
                    <Link href="/design" className="flex flex-col items-center gap-2 cursor-pointer">
                       <Avatar className="h-16 w-16 border-2 border-background">
-                        <AvatarImage src={me.picture} alt={me.name} data-ai-hint="profile picture" />
+                        <Image src={me.picture} alt={me.name} data-ai-hint="profile picture" width={64} height={64} className="rounded-full" />
                         <AvatarFallback>{me.name.charAt(0)}</AvatarFallback>
                          <div className="absolute bottom-0 right-0 h-5 w-5 bg-primary rounded-full flex items-center justify-center border-2 border-background">
                             <Plus className="h-3 w-3 text-primary-foreground" />
@@ -109,7 +110,7 @@ export default function ChatPage() {
                 {otherStories.map((story) => (
                   <Link key={story.id} href={`/gallery?userId=${story.id}`} className="flex flex-col items-center gap-2 cursor-pointer">
                     <Avatar className="h-16 w-16 border-2 border-background">
-                      <AvatarImage src={story.picture} alt={story.name} data-ai-hint="profile picture" />
+                      <Image src={story.picture} alt={story.name} data-ai-hint="profile picture" width={64} height={64} className="rounded-full" />
                       <AvatarFallback>{story.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-medium text-muted-foreground">{story.name}</span>

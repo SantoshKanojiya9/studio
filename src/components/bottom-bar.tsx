@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 
 export function BottomBar() {
@@ -94,7 +95,7 @@ export function BottomBar() {
                         <Avatar className={cn(
                             "h-7 w-7"
                         )}>
-                            <AvatarImage src={user?.picture} alt={user?.name || 'profile'} data-ai-hint="profile picture" />
+                            {user?.picture && <Image src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" width={28} height={28} className="rounded-full" />}
                             <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                     </Link>

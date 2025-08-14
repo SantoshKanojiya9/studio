@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@/app/actions';
 import { LikeButton } from './like-button';
 import { TimeRemaining } from './time-remaining';
+import Image from 'next/image';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -146,7 +147,7 @@ const PostContent = memo(({
         >
             <div className="flex items-center px-4 py-2">
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={emoji.user?.picture || "https://placehold.co/64x64.png"} alt={emoji.user?.name} data-ai-hint="profile picture" />
+                    {emoji.user?.picture && <Image src={emoji.user.picture} alt={emoji.user.name || 'User'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
                     <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
@@ -503,7 +504,7 @@ export function PostView({
                 </div>
                 <div className="flex items-center mt-3 gap-2">
                     <Avatar className="h-8 w-8">
-                        <AvatarImage src={postAuthor?.picture} alt={postAuthor?.name} data-ai-hint="profile picture" />
+                        {postAuthor?.picture && <Image src={postAuthor.picture} alt={postAuthor.name || 'User'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
                         <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>
@@ -586,7 +587,7 @@ export function PostView({
                       {viewers.map((viewer) => (
                         <Link href={`/gallery?userId=${viewer.id}`} key={viewer.id} className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={viewer.picture} alt={viewer.name} data-ai-hint="profile picture" />
+                            <Image src={viewer.picture} alt={viewer.name} data-ai-hint="profile picture" width={40} height={40} className="rounded-full" />
                             <AvatarFallback>{viewer.name ? viewer.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                           </Avatar>
                           <span className="font-semibold">{viewer.name}</span>

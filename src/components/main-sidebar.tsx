@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { EdengramLogo } from './edengram-logo';
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export function MainSidebar() {
   const pathname = usePathname();
@@ -90,7 +91,7 @@ export function MainSidebar() {
                   >
                     {item.isProfile ? (
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.picture} alt={user?.name || 'profile'} data-ai-hint="profile picture" />
+                        {user?.picture && <Image src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
                         <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                       </Avatar>
                     ) : (

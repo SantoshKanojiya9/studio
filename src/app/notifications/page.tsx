@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupport } from '@/hooks/use-support';
+import Image from 'next/image';
 
 const NotificationHeader = () => (
     <header className="flex h-16 items-center border-b border-border/40 bg-background px-4 md:px-6">
@@ -82,7 +83,7 @@ const NotificationItemWrapper = ({
     <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
         <Link href={`/gallery?userId=${actor.id}`} className="relative flex-shrink-0 cursor-pointer">
             <Avatar className="h-10 w-10">
-                <AvatarImage src={actor.picture} alt={actor.name} data-ai-hint="profile picture" />
+                <Image src={actor.picture} alt={actor.name} data-ai-hint="profile picture" width={40} height={40} className="rounded-full" />
                 <AvatarFallback>{actor.name ? actor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
             </Avatar>
             {icon}

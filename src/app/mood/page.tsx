@@ -37,6 +37,7 @@ import { LikeButton } from '@/components/like-button';
 import MoodStories from '@/components/mood-stories';
 import type { Mood, PostViewEmoji } from '@/components/post-view';
 import { TimeRemaining } from '@/components/time-remaining';
+import Image from 'next/image';
 
 const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
 
@@ -153,7 +154,7 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
                 <div className="flex items-center px-4 py-2">
                     <button onClick={onAvatarClick} disabled={!emoji.user?.has_mood} className="cursor-pointer disabled:cursor-default">
                         <Avatar className="h-8 w-8">
-                            <AvatarImage src={emoji.user?.picture} alt={emoji.user?.name} data-ai-hint="profile picture"/>
+                            {emoji.user?.picture && <Image src={emoji.user.picture} alt={emoji.user.name} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
                             <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                     </button>

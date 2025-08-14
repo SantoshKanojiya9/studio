@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useSupport } from '@/hooks/use-support';
+import Image from 'next/image';
 
 interface User {
   id: string;
@@ -38,7 +39,7 @@ export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListI
         <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
             <Link href={`/gallery?userId=${itemUser.id}`}>
                 <Avatar className="h-12 w-12">
-                    <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" />
+                    <Image src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" width={48} height={48} className="rounded-full" />
                     <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
             </Link>

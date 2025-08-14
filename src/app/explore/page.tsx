@@ -12,6 +12,7 @@ import type { EmojiState } from '@/app/design/page';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { getExplorePosts, searchUsers as searchUsersAction } from '../actions';
+import Image from 'next/image';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -252,7 +253,7 @@ export default function ExplorePage() {
                  searchedUsers.map(user => (
                     <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50">
                        <Avatar className="h-12 w-12 border-2 border-background">
-                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" />
+                            <Image src={user.picture} alt={user.name} data-ai-hint="profile picture" width={48} height={48} className="rounded-full" />
                             <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                        </Avatar>
                         <span className="font-semibold flex-1">{user.name}</span>

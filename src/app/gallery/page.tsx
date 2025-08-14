@@ -34,6 +34,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserListSheet } from '@/components/user-list-sheet';
 import { useSupport } from '@/hooks/use-support';
+import Image from 'next/image';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -476,7 +477,7 @@ function GalleryPageContent() {
                              <div className="flex items-center gap-4 md:gap-8">
                                 <div>
                                     <Avatar className="w-20 h-20 md:w-28 md:h-28">
-                                        <AvatarImage src={profileUser?.picture} alt={profileUser?.name} data-ai-hint="profile picture"/>
+                                        {profileUser?.picture && <Image src={profileUser.picture} alt={profileUser.name} data-ai-hint="profile picture" width={112} height={112} className="rounded-full" />}
                                         <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                 </div>

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 
 export default function AboutPage() {
     return (
@@ -23,7 +24,7 @@ export default function AboutPage() {
                     <CardHeader className="text-center">
                         <div className="flex justify-center mb-4">
                             <Avatar className="h-24 w-24 border-4 border-primary">
-                                <AvatarImage src="https://placehold.co/128x128.png" alt="Santosh Kanojiya" data-ai-hint="profile picture"/>
+                                <Image src={"https://placehold.co/128x128.png"} alt="Santosh Kanojiya" data-ai-hint="profile picture" width={128} height={128} className="rounded-full" />
                                 <AvatarFallback>SK</AvatarFallback>
                             </Avatar>
                         </div>

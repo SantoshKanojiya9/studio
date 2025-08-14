@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { updateUserProfile } from '@/app/actions';
 import { Separator } from '@/components/ui/separator';
 import imageCompression from 'browser-image-compression';
+import Image from 'next/image';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -134,7 +135,7 @@ export default function EditProfilePage() {
                     <div className="flex flex-col items-center gap-4">
                         <div className="relative">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={avatarPreview || undefined} alt="Profile preview" data-ai-hint="profile picture" />
+                                {avatarPreview && <Image src={avatarPreview} alt="Profile preview" data-ai-hint="profile picture" width={96} height={96} className="rounded-full" />}
                                 <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <Button 
