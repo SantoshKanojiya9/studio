@@ -36,7 +36,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki' | 'rimuru';
+type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
 
 export type EmojiState = {
@@ -64,6 +64,25 @@ export type EmojiState = {
       picture: string;
     }
 };
+
+const CreatorBall = () => (
+    <motion.div
+        className="w-64 h-64 rounded-full"
+        style={{
+            background: 'radial-gradient(circle at 50% 40%, #555, #222)',
+            boxShadow: 'inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 15px rgba(0,0,0,0.3)'
+        }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+    >
+        <div 
+            className="absolute top-8 left-8 w-24 h-12 bg-white/10 rounded-full"
+            style={{ filter: 'blur(15px)', transform: 'rotate(-30deg)'}}
+        />
+    </motion.div>
+);
+
 
 const DesignPageContent = () => {
   const router = useRouter();
@@ -96,6 +115,7 @@ const DesignPageContent = () => {
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
   const defaultRimuruColor = '#3498db';
+  const defaultCreatorColor = '#333333';
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -314,6 +334,8 @@ const DesignPageContent = () => {
         setEmojiColor(defaultLokiColor);
     } else if (newModel === 'rimuru') {
         setEmojiColor(defaultRimuruColor);
+    } else if (newModel === 'creator') {
+        setEmojiColor(defaultCreatorColor);
     } else {
         setEmojiColor(defaultEmojiColor);
     }
@@ -418,7 +440,7 @@ const DesignPageContent = () => {
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={(model === 'loki' || model === 'rimuru') && name === 'blob'}
+                            disabled={(model === 'loki' || model === 'rimuru' || model === 'creator') && name === 'blob'}
                             className="md:w-full"
                         >
                             {label}
@@ -560,58 +582,39 @@ const DesignPageContent = () => {
       case 'eyebrows':
         return renderFeatureMenu('eyebrow', eyebrow_style);
       default: // 'main'
+        const mainTools = [
+            { name: 'New', icon: RotateCcw, action: handleReset, menu: null },
+            { name: 'Save', icon: Save, action: handleSave, menu: null },
+            { name: 'Caption', icon: Captions, action: () => setActiveMenu('caption'), menu: 'caption' },
+            { name: 'Expressions', icon: Smile, action: () => setActiveMenu('expressions'), menu: 'expressions' },
+            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji'] },
+            { name: 'Animations', icon: Sparkles, action: () => setActiveMenu('animations'), menu: 'animations' },
+            { name: 'Shapes', icon: Square, action: () => setActiveMenu('shapes'), menu: 'shapes' },
+            { name: 'Colors', icon: Palette, action: () => setActiveMenu('colors'), menu: 'colors' },
+            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru'] },
+            { name: 'Filters', icon: Camera, action: () => setActiveMenu('filters'), menu: 'filters' },
+            { name: 'Random', icon: Wand2, action: handleRandomize, menu: null }
+        ];
+
         return (
             <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleReset}>
-                    <RotateCcw className="h-4 w-4" />
-                    <span className="text-xs mt-1">New</span>
-                </Button>
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleSave}>
-                    <Save className="h-4 w-4" />
-                    <span className="text-xs mt-1">Save</span>
-                </Button>
-                <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('caption')}>
-                    <Captions className="h-4 w-4" />
-                    <span className="text-xs mt-1">Caption</span>
-                </Button>
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('expressions')}>
-                    <Smile className="h-4 w-4" />
-                    <span className="text-xs mt-1">Expressions</span>
-                </Button>
-                {model === 'emoji' && (
-                  <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('face')}>
-                      <UserIcon className="h-4 w-4" />
-                      <span className="text-xs mt-1">Face</span>
-                  </Button>
-                )}
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('animations')}>
-                    <Sparkles className="h-4 w-4" />
-                    <span className="text-xs mt-1">Animations</span>
-                </Button>
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('shapes')}>
-                    <Square className="h-4 w-4" />
-                    <span className="text-xs mt-1">Shapes</span>
-                </Button>
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('colors')}>
-                    <Palette className="h-4 w-4" />
-                    <span className="text-xs mt-1">Colors</span>
-                </Button>
-                {(model === 'emoji' || model === 'rimuru') && (
-                    <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('accessories')}>
-                        <Glasses className="h-4 w-4" />
-                        <span className="text-xs mt-1">Accessories</span>
-                    </Button>
-                )}
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={() => setActiveMenu('filters')}>
-                    <Camera className="h-4 w-4" />
-                    <span className="text-xs mt-1">Filters</span>
-                </Button>
-                <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />
-                <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={handleRandomize}>
-                    <Wand2 className="h-4 w-4" />
-                    <span className="text-xs mt-1">Random</span>
-                </Button>
+                {mainTools.map((tool, index) => {
+                    if (tool.models && !tool.models.includes(model)) {
+                        return null;
+                    }
+                    if (model === 'creator' && tool.name !== 'New' && tool.name !== 'Save' && tool.name !== 'Colors') {
+                        return null;
+                    }
+                    return (
+                        <React.Fragment key={tool.name}>
+                             {(tool.name === 'Caption' || tool.name === 'Random') && <Separator orientation="vertical" className="h-full mx-1 md:h-px md:w-full md:my-1" />}
+                             <Button variant="ghost" className="h-auto p-2 flex flex-col" onClick={tool.action}>
+                                <tool.icon className="h-4 w-4" />
+                                <span className="text-xs mt-1">{tool.name}</span>
+                            </Button>
+                        </React.Fragment>
+                    )
+                })}
             </div>
         );
     }
@@ -619,6 +622,8 @@ const DesignPageContent = () => {
 
   const renderModel = () => {
     switch(model) {
+        case 'creator':
+            return <CreatorBall />;
         case 'emoji':
             return (
                  <Face 
@@ -743,6 +748,18 @@ const DesignPageContent = () => {
                       </Button>
                   </TooltipTrigger>
                   <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
+              </Tooltip>
+               <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button
+                          size="icon"
+                          variant={model === 'creator' ? 'secondary' : 'ghost'}
+                          onClick={() => handleModelChange('creator')}
+                      >
+                          <Wand2 className="h-5 w-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Creator Model</p></TooltipContent>
               </Tooltip>
           </div>
           <div className="absolute top-4 right-4 z-20">
