@@ -129,14 +129,12 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const offset = (page - 1) * limit;
-
     const { data, error } = await supabase
         .rpc('get_supporters_with_status', {
             p_user_id: userId,
             p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
 
     if (error) {
@@ -150,14 +148,12 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const offset = (page - 1) * limit;
-
     const { data, error } = await supabase
         .rpc('get_supporting_with_status', {
             p_user_id: userId,
             p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
 
     if (error) {
@@ -457,14 +453,13 @@ export async function getIsLiked(emojiId: string) {
 export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
-    const offset = (page - 1) * limit;
 
     const { data, error } = await supabase
         .rpc('get_paginated_likers', {
             p_emoji_id: emojiId,
             p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
 
     if (error) {
@@ -497,13 +492,11 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const offset = (page - 1) * limit;
-
     const { data, error } = await supabase
         .rpc('get_user_notifications', {
             p_user_id: user.id,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
 
     if (error) {
@@ -511,7 +504,6 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         throw error;
     }
 
-    // The RPC returns data as JSON, so no re-formatting is needed here.
     return data || [];
 }
 
@@ -538,13 +530,11 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const offset = (page - 1) * limit;
-
     const { data, error } = await supabase
         .rpc('get_feed_posts', {
             p_user_id: user.id,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
 
     if (error) {
@@ -559,14 +549,12 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const from = (page - 1) * limit;
-
     const { data: posts, error: postsError } = await supabase
         .rpc('get_gallery_posts', {
             p_user_id: userId,
             p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
-            p_offset: from
+            p_offset: (page - 1) * limit
         });
 
     if (postsError) {
@@ -584,13 +572,12 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
 export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
-    const offset = (page - 1) * limit;
 
     const { data, error } = await supabase
         .rpc('get_explore_posts', {
             p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
-            p_offset: offset
+            p_offset: (page - 1) * limit
         });
     
     if (error) {
@@ -610,7 +597,7 @@ export async function searchUsers(query: string) {
     }
 
     const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query, p_user_id: user?.id || null });
+        .rpc('search_users', { p_search_term: query, p_user_id: user?.id ?? null });
 
     if (error) {
         console.error("Failed to search users via RPC", error);
