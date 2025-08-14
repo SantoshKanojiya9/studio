@@ -78,8 +78,6 @@ type CreatorMojiProps = {
 
 export const CreatorMoji = (props: CreatorMojiProps) => {
 
-    // Creator Moji is always a sphere
-    const shape = 'default';
     const color = '#333333';
 
     // Simplified variants for CreatorMoji.
@@ -114,7 +112,7 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
             style={{ transformStyle: 'preserve-3d' }}
         >
             <motion.div 
-                className="absolute w-full h-64 z-10 flex items-center justify-center"
+                className="absolute w-64 h-64 z-10 flex items-center justify-center"
                 initial={{ y: 20, scale: 0.95, opacity: 0 }}
                 animate={{ y: 0, scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}

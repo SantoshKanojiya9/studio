@@ -35,7 +35,7 @@ import {
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'caption';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay' | 'sphere';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
 type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
@@ -104,6 +104,8 @@ const DesignPageContent = () => {
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const feature_offset_x = useMotionValue(0);
   const feature_offset_y = useMotionValue(0);
+  const [clayWidth, setClayWidth] = useState(0);
+  const [clayHeight, setClayHeight] = useState(0);
 
   useEffect(() => {
     handleReset();
@@ -216,27 +218,38 @@ const DesignPageContent = () => {
       clearTimeout(dragTimeoutRef.current);
     }
     setIsDragging(true);
-    dragOrigin.current = { x: feature_offset_x.get(), y: feature_offset_y.get() };
+    if (shape === 'clay') {
+        dragOrigin.current = { x: clayWidth, y: clayHeight };
+    } else {
+        dragOrigin.current = { x: feature_offset_x.get(), y: feature_offset_y.get() };
+    }
   };
 
   const handlePan = (_: any, info: any) => {
     if (dragOrigin.current) {
-        const boundaryX = model === 'emoji' ? 80 : 40; 
-        const boundaryY = model === 'emoji' ? 60 : 30;
-        
-        let newX = dragOrigin.current.x + info.offset.x;
-        let newY = dragOrigin.current.y + info.offset.y;
+        if (shape === 'clay') {
+            const newWidth = dragOrigin.current.x + info.offset.x;
+            const newHeight = dragOrigin.current.y + info.offset.y;
+            setClayWidth(Math.max(-100, Math.min(100, newWidth)));
+            setClayHeight(Math.max(-100, Math.min(100, newHeight)));
+        } else {
+            const boundaryX = model === 'emoji' ? 80 : 40; 
+            const boundaryY = model === 'emoji' ? 60 : 30;
+            
+            let newX = dragOrigin.current.x + info.offset.x;
+            let newY = dragOrigin.current.y + info.offset.y;
 
-        if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
-            const angle = Math.atan2(newY, newX);
-            const a = boundaryX;
-            const b = boundaryY;
-            newX = a * b / Math.sqrt(b**2 + a**2 * Math.tan(angle)**2) * (newX > 0 ? 1 : -1);
-            newY = newX * Math.tan(angle);
+            if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
+                const angle = Math.atan2(newY, newX);
+                const a = boundaryX;
+                const b = boundaryY;
+                newX = a * b / Math.sqrt(b**2 + a**2 * Math.tan(angle)**2) * (newX > 0 ? 1 : -1);
+                newY = newX * Math.tan(angle);
+            }
+
+            feature_offset_x.set(newX);
+            feature_offset_y.set(newY);
         }
-
-        feature_offset_x.set(newX);
-        feature_offset_y.set(newY);
     }
   };
 
@@ -411,6 +424,7 @@ const DesignPageContent = () => {
       case 'shapes':
         const shapes: { name: ShapeType; icon: React.ElementType, label: string }[] = [
           { name: 'default', icon: Square, label: 'Default' },
+          { name: 'sphere', icon: Square, label: 'Sphere' },
           { name: 'square', icon: Square, label: 'Square' },
           { name: 'squircle', icon: Square, label: 'Squircle' },
           { name: 'tear', icon: Droplet, label: 'Tear' },
@@ -587,7 +601,7 @@ const DesignPageContent = () => {
         return (
             <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
                 {mainTools.map((tool) => {
-                    if (tool.models && !tool.models.includes(model)) {
+                    if (tool.name === 'Face' && model === 'creator') {
                         return null;
                     }
                     return (
@@ -622,6 +636,8 @@ const DesignPageContent = () => {
         onPanEnd: handlePanEnd,
         feature_offset_x: feature_offset_x,
         feature_offset_y: feature_offset_y,
+        clayWidth,
+        clayHeight
     };
 
     switch(model) {
@@ -695,7 +711,7 @@ const DesignPageContent = () => {
             </div>
             
             <div className="absolute top-4 right-4 z-20">
-                <Button onClick={() => handleModelChange('creator')}>
+                 <Button onClick={() => handleModelChange('creator')}>
                     <Plus className="mr-2 h-4 w-4" /> Create
                 </Button>
             </div>
