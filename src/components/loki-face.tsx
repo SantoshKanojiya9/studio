@@ -453,7 +453,7 @@ export const ClockFace = ({
                         className="absolute flex justify-center w-full"
                         style={{ top: '48px', transform: 'translateZ(30px)' }}
                         initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: show_sunglasses ? 1 : 0, y: show_sunglasses ? 0 : -20 }}
+                        animate={{ opacity: 0, y: -20 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
                         <div className="relative">
@@ -468,7 +468,7 @@ export const ClockFace = ({
                         className="absolute flex justify-center w-full"
                         style={{ top: '92px', transform: 'translateZ(25px)', opacity: 0.6 }}
                         initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: show_mustache ? 0.6 : 0, scale: show_mustache ? 1 : 0.5 }}
+                        animate={{ opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                     >
                         <svg width="60" height="20" viewBox="0 0 100 30">
