@@ -13,6 +13,7 @@ import { Loader2, ArrowLeft, Camera, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateUserProfile } from '@/app/actions';
 import { Separator } from '@/components/ui/separator';
+import imageCompression from 'browser-image-compression';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -50,11 +51,29 @@ export default function EditProfilePage() {
         fetchUserData();
     }, [user, authLoading, supabase, toast]);
 
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setAvatarFile(file);
-            setAvatarPreview(URL.createObjectURL(file));
+            try {
+                const options = {
+                    maxSizeMB: 0.05, // 50KB
+                    maxWidthOrHeight: 800,
+                    useWebWorker: true,
+                };
+                const compressedFile = await imageCompression(file, options);
+                setAvatarFile(compressedFile);
+                setAvatarPreview(URL.createObjectURL(compressedFile));
+            } catch (error) {
+                console.error('Error compressing image:', error);
+                toast({
+                    title: "Compression Failed",
+                    description: "Could not compress the image. Please try another one.",
+                    variant: "destructive",
+                });
+                // Fallback to original file if compression fails
+                setAvatarFile(file);
+                setAvatarPreview(URL.createObjectURL(file));
+            }
         }
     };
 
