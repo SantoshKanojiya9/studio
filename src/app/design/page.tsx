@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet, Ban, Plus } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet, Ban, Plus, Hand } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -34,7 +34,7 @@ import {
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'caption';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
 type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
@@ -425,28 +425,29 @@ const DesignPageContent = () => {
           </div>
         );
       case 'shapes':
-        const shapes: { name: ShapeType; label: string }[] = [
-          { name: 'default', label: 'Default' },
-          { name: 'square', label: 'Square' },
-          { name: 'squircle', label: 'Squircle' },
-          { name: 'tear', label: 'Tear' },
-          { name: 'blob', label: 'Blob' },
+        const shapes: { name: ShapeType; icon: React.ElementType, label: string }[] = [
+          { name: 'default', icon: Square, label: 'Default' },
+          { name: 'square', icon: Square, label: 'Square' },
+          { name: 'squircle', icon: Square, label: 'Squircle' },
+          { name: 'tear', icon: Droplet, label: 'Tear' },
+          { name: 'clay', icon: Hand, label: 'Clay' },
         ];
         return (
           <div className="flex items-center md:flex-col md:gap-1">
             <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
             <Separator orientation="vertical" className="h-6 mx-2 md:hidden" />
              <Separator orientation="horizontal" className="w-full my-1 hidden md:block" />
-            {shapes.map(({ name, label }) => (
+            {shapes.map(({ name, icon: Icon, label }) => (
                 <Tooltip key={name}>
                     <TooltipTrigger asChild>
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={(model === 'loki' || model === 'rimuru') && name === 'blob'}
+                            disabled={(model === 'loki')}
                             className="md:w-full"
                         >
-                            {label}
+                            <Icon className="mr-2 h-4 w-4 md:mr-0"/>
+                            <span className="md:hidden">{label}</span>
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent><p>{label}</p></TooltipContent>

@@ -83,7 +83,7 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
     const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
     let finalEmoji: EmojiState = { ...emoji };
-    if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
+    if (finalEmoji.model === 'loki' && finalEmoji.shape === 'clay') {
         finalEmoji.shape = 'default';
     }
 

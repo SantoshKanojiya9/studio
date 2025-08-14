@@ -246,7 +246,7 @@ export const Face = ({
         square: '10%',
         squircle: '30%',
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-        blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
+        clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };
@@ -299,6 +299,10 @@ export const Face = ({
     }
   };
 
+  const isClayMode = shape === 'clay';
+  const claySkewX = useTransform(smoothPointerX, [0, 1], isClayMode ? [-10, 10] : [0, 0]);
+  const claySkewY = useTransform(smoothPointerY, [0, 1], isClayMode ? [-10, 10] : [0, 0]);
+
   return (
     <motion.div 
       className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
@@ -308,7 +312,12 @@ export const Face = ({
       onPanStart={isInteractive ? onPanStart : undefined}
       onPanEnd={isInteractive ? onPanEnd : undefined}
       onTap={isInteractive ? handleTap : undefined}
-      style={{ transformStyle: 'preserve-3d' }}
+      style={{ 
+        transformStyle: 'preserve-3d',
+        skewX: claySkewX,
+        skewY: claySkewY,
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
       <motion.div 
         className="absolute w-full h-64 z-10 flex items-center justify-center"

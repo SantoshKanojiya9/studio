@@ -444,7 +444,7 @@ export function PostView({
   
   const postAuthor = isCurrentEmojiMood(currentEmojiState) ? currentEmojiState.mood_user : (currentEmojiState as PostViewEmoji).user;
   let finalEmoji: EmojiState = { ...currentEmojiState };
-  if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
+  if (finalEmoji.model === 'loki' && finalEmoji.shape === 'clay') {
     finalEmoji.shape = 'default';
   }
 

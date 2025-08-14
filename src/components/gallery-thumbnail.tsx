@@ -30,7 +30,7 @@ const MiniFace = React.memo(({ emoji }: { emoji: EmojiState }) => {
     const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
     
     const emojiToRender = { ...emoji };
-    if (emojiToRender.model === 'loki' && emojiToRender.shape === 'blob') {
+    if (emojiToRender.model === 'loki' && emojiToRender.shape === 'clay') {
         emojiToRender.shape = 'default';
     }
 
