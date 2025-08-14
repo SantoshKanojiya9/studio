@@ -17,6 +17,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Face } from '@/components/emoji-face';
 import { ClockFace } from '@/components/loki-face';
 import { RimuruFace } from '@/components/rimuru-face';
+import { CreatorMoji } from '@/components/creator-moji';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -63,23 +64,6 @@ export type EmojiState = {
       name: string;
       picture: string;
     }
-};
-
-const CreatorBall = (props: Parameters<typeof Face>[0]) => {
-    // This component now renders the base sphere, and the Face component
-    // is conditionally rendered on top of it, but without its own base/platform.
-    return (
-        <motion.div 
-            className="relative w-80 h-96 flex flex-col items-center justify-center"
-        >
-             <motion.div 
-                className="absolute w-full h-64 z-10 flex items-center justify-center"
-             >
-                 {/* Re-use the main Face component, but with a different base color and no platform */}
-                 <Face {...props} color="#333333" showPlatform={false} />
-             </motion.div>
-        </motion.div>
-    );
 };
 
 
@@ -648,7 +632,7 @@ const DesignPageContent = () => {
         case 'rimuru':
             return <RimuruFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'creator':
-            return <CreatorBall color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+            return <CreatorMoji color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
     }
   }
 
