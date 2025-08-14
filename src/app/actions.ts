@@ -134,7 +134,7 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
     const { data, error } = await supabase
         .rpc('get_supporters_with_status', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id,
+            p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
             p_offset: offset
         });
@@ -155,7 +155,7 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
     const { data, error } = await supabase
         .rpc('get_supporting_with_status', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id,
+            p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
             p_offset: offset
         });
@@ -462,7 +462,7 @@ export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: st
     const { data, error } = await supabase
         .rpc('get_paginated_likers', {
             p_emoji_id: emojiId,
-            p_current_user_id: currentUser?.id,
+            p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
             p_offset: offset
         });
@@ -564,7 +564,7 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     const { data: posts, error: postsError } = await supabase
         .rpc('get_gallery_posts', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id,
+            p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
             p_offset: from
         });
@@ -588,7 +588,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
     const { data, error } = await supabase
         .rpc('get_explore_posts', {
-            p_current_user_id: currentUser?.id,
+            p_current_user_id: currentUser?.id ?? null,
             p_limit: limit,
             p_offset: offset
         });
@@ -609,7 +609,6 @@ export async function searchUsers(query: string) {
         return [];
     }
 
-    // Using the search_users RPC function. Pass the user ID as text.
     const { data, error } = await supabase
         .rpc('search_users', { p_search_term: query, p_user_id: user?.id || null });
 
