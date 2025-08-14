@@ -34,12 +34,14 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
              <motion.div 
                 className="absolute w-full h-64 z-10 flex items-center justify-center"
              >
-                 {/* Force the 'default' (sphere) shape and disable the platform */}
                  <Face 
-                    {...props} 
+                    {...props}
+                    // Override inherited properties to create a blank canvas
+                    expression="neutral"
                     shape="default" 
                     color="#333333" 
                     showPlatform={false} 
+                    animation_type="none"
                  />
              </motion.div>
         </motion.div>
