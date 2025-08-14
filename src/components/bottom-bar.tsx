@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useSelectedLayoutSegment } from 'next/navigation';
 import { Home, Search, PlusSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -12,7 +12,7 @@ import Image from 'next/image';
 
 
 export function BottomBar() {
-  const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
   const { user, supabase } = useAuth();
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
@@ -21,8 +21,6 @@ export function BottomBar() {
 
     // Check for existing notifications initially
     const checkInitialNotifications = async () => {
-        // We'll consider notifications "new" if they are created after the last time the user visited the page.
-        // For simplicity here, we'll just check if there are any unseen ones based on a local flag.
         const lastChecked = localStorage.getItem('last_notification_check');
         const { count, error } = await supabase
             .from('notifications')
@@ -61,18 +59,18 @@ export function BottomBar() {
 
   useEffect(() => {
     // When the user visits the notifications page, clear the indicator
-    if (pathname === '/notifications') {
+    if (segment === 'notifications') {
         setHasNewNotifications(false);
         localStorage.setItem('last_notification_check', new Date().toISOString());
     }
-  }, [pathname]);
-
+  }, [segment]);
+  
   const navItems = [
-    { href: '/mood', label: 'Home', icon: Home },
-    { href: '/explore', label: 'Search', icon: Search },
-    { href: '/design', label: 'Create', icon: PlusSquare },
-    { href: '/notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
-    { href: '/gallery', label: 'Profile', icon: User, isProfile: true },
+    { href: '/mood', segment: 'mood', label: 'Home', icon: Home },
+    { href: '/explore', segment: 'explore', label: 'Search', icon: Search },
+    { href: '/design', segment: 'design', label: 'Create', icon: PlusSquare },
+    { href: '/notifications', segment: 'notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
+    { href: '/gallery', segment: 'gallery', label: 'Profile', icon: User, isProfile: true },
   ];
 
   return (
@@ -80,7 +78,7 @@ export function BottomBar() {
       <nav className="flex h-14 items-center justify-around">
         {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = item.segment === segment;
             
             if (item.isProfile) {
                 return (

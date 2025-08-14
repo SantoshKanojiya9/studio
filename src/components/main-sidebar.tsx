@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useSelectedLayoutSegment } from 'next/navigation';
 import { Home, Search, PlusSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -13,7 +13,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 export function MainSidebar() {
-  const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
   const { user, supabase } = useAuth();
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
 
@@ -54,18 +54,18 @@ export function MainSidebar() {
   }, [user, supabase]);
 
   useEffect(() => {
-    if (pathname === '/notifications') {
+    if (segment === 'notifications') {
         setHasNewNotifications(false);
         localStorage.setItem('last_notification_check', new Date().toISOString());
     }
-  }, [pathname]);
+  }, [segment]);
 
   const navItems = [
-    { href: '/mood', label: 'Home', icon: Home },
-    { href: '/explore', label: 'Search', icon: Search },
-    { href: '/design', label: 'Create', icon: PlusSquare },
-    { href: '/notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
-    { href: '/gallery', label: 'Profile', icon: User, isProfile: true },
+    { href: '/mood', segment: 'mood', label: 'Home', icon: Home },
+    { href: '/explore', segment: 'explore', label: 'Search', icon: Search },
+    { href: '/design', segment: 'design', label: 'Create', icon: PlusSquare },
+    { href: '/notifications', segment: 'notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
+    { href: '/gallery', segment: 'gallery', label: 'Profile', icon: User, isProfile: true },
   ];
 
   return (
@@ -77,7 +77,7 @@ export function MainSidebar() {
           </Link>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = item.segment === segment;
             
             return (
               <Tooltip key={item.label}>
