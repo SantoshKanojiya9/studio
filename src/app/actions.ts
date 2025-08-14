@@ -530,6 +530,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) throw new Error("Not authenticated");
 
+    // 1. Get IDs of users the current user is supporting
     const { data: supportedUsers, error: supportedError } = await supabase
         .from('supports')
         .select('supported_id')
@@ -541,7 +542,11 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         throw supportedError;
     }
     const supportedIds = supportedUsers.map(s => s.supported_id);
+    if (supportedIds.length === 0) {
+        return []; // No one to get posts from
+    }
 
+    // 2. Fetch posts from those supported users
     const { data: posts, error: postsError } = await supabase
         .from('emojis')
         .select('*, user:users(id, name, picture, moods(user_id))')
@@ -556,30 +561,30 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     if (!posts) return [];
 
     const emojiIds = posts.map(p => p.id);
-    const likedSet = new Set<string>();
-    const likeCounts = new Map<string, number>();
-
-    if (emojiIds.length > 0) {
-        const { data: counts, error: countsError } = await supabase
-            .rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
-        
-        if (countsError) console.error("Error getting like counts:", countsError);
-        else counts?.forEach((c: any) => likeCounts.set(c.emoji_id, c.like_count));
-
-        const { data: likedPosts, error: likedError } = await supabase
-            .from('likes')
-            .select('emoji_id')
-            .eq('user_id', currentUser.id)
-            .in('emoji_id', emojiIds);
-
-        if (likedError) console.error("Error checking likes:", likedError);
-        else likedPosts.forEach(l => likedSet.add(l.emoji_id));
+    if (emojiIds.length === 0) {
+        return posts.map(post => ({
+            ...(post as unknown as EmojiState),
+            user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
+            like_count: 0,
+            is_liked: false,
+        }));
     }
+    
+    // 3. Get like counts and liked status
+    const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
+    const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
 
+    if (likeCountsError) console.error("Error getting like counts:", likeCountsError);
+    if (likedError) console.error("Error getting liked status:", likedError);
+
+    const likeCountsMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
+    const likedSet = new Set(likedStatuses?.map(l => l.emoji_id) || []);
+
+    // 4. Combine data
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
         user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
-        like_count: likeCounts.get(post.id) || 0,
+        like_count: likeCountsMap.get(post.id) || 0,
         is_liked: likedSet.has(post.id),
     }));
 }
@@ -589,14 +594,12 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
     // 1. Fetch posts for the given user ID
-    let query = supabase
+    let { data: posts, error: postsError } = await supabase
         .from('emojis')
-        .select('*, user:users!inner(id, name, picture)', { count: 'exact' })
+        .select('*, user:users!inner(id, name, picture)')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
-
-    const { data: posts, error: postsError, count } = await query;
     
     if (postsError) {
         console.error('Error fetching gallery posts:', postsError);
@@ -605,37 +608,34 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     if (!posts) return [];
 
     const emojiIds = posts.map(p => p.id);
-    const likeCounts = new Map<string, number>();
-    const likedSet = new Set<string>();
-
-    if (emojiIds.length > 0) {
-        // Get like counts for all posts
-        const { data: countsData, error: countsError } = await supabase
-            .rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
-        
-        if (countsError) {
-            console.error("Error fetching like counts:", countsError);
-        } else if (countsData) {
-            countsData.forEach(c => likeCounts.set(c.emoji_id, c.like_count));
-        }
-
-        // Get what the current user has liked
-        if (currentUser) {
-            const { data: likedPosts, error: likedError } = await supabase
-                .from('likes')
-                .select('emoji_id')
-                .eq('user_id', currentUser.id)
-                .in('emoji_id', emojiIds);
-            
-            if (likedError) console.error("Error checking likes:", likedError);
-            else likedPosts.forEach(l => likedSet.add(l.emoji_id));
-        }
+    if (emojiIds.length === 0) {
+        return posts.map(post => ({
+            ...(post as unknown as EmojiState),
+            user: post.user as any,
+            like_count: 0,
+            is_liked: false,
+        }));
     }
+
+    // 2. Get like counts and liked status
+    const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
     
+    let likedSet = new Set<string>();
+    if (currentUser) {
+        const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
+        if (likedError) console.error("Error getting liked status:", likedError);
+        else likedSet = new Set(likedStatuses?.map(l => l.emoji_id) || []);
+    }
+
+    if (likeCountsError) console.error("Error getting like counts:", likeCountsError);
+
+    const likeCountsMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
+
+    // 3. Combine data
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
         user: post.user as any,
-        like_count: likeCounts.get(post.id) || 0,
+        like_count: likeCountsMap.get(post.id) || 0,
         is_liked: likedSet.has(post.id)
     }));
 }
@@ -659,37 +659,35 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     }
     if (!posts) return [];
 
-    // 2. Augment with like counts and is_liked status
     const emojiIds = posts.map(p => p.id);
-    const likedSet = new Set<string>();
-    const likeCounts = new Map<string, number>();
-
-    if (emojiIds.length > 0) {
-        // Get like counts
-        const { data: counts, error: countsError } = await supabase
-            .rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
-
-        if (countsError) console.error("Error getting like counts:", countsError);
-        else counts?.forEach((c: any) => likeCounts.set(c.emoji_id, c.like_count));
-
-        // Get liked status for current user if they exist
-        if (currentUser) {
-            const { data: likedPosts, error: likedError } = await supabase
-                .from('likes')
-                .select('emoji_id')
-                .eq('user_id', currentUser.id)
-                .in('emoji_id', emojiIds);
-
-            if (likedError) console.error("Error checking likes:", likedError);
-            else likedPosts.forEach(l => likedSet.add(l.emoji_id));
-        }
+    if (emojiIds.length === 0) {
+        return posts.map(post => ({
+            ...(post as unknown as EmojiState),
+            user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
+            like_count: 0,
+            is_liked: false,
+        }));
     }
+
+    // 2. Get like counts and liked status
+    const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
+    
+    let likedSet = new Set<string>();
+    if (currentUser) {
+        const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
+        if (likedError) console.error("Error getting liked status:", likedError);
+        else likedSet = new Set(likedStatuses?.map(l => l.emoji_id) || []);
+    }
+
+    if (likeCountsError) console.error("Error getting like counts:", likeCountsError);
+
+    const likeCountsMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
 
     // 3. Format the final data
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
         user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
-        like_count: likeCounts.get(post.id) || 0,
+        like_count: likeCountsMap.get(post.id) || 0,
         is_liked: likedSet.has(post.id)
     }));
 }
