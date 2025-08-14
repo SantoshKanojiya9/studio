@@ -522,53 +522,15 @@ export async function getFeedMoods() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data: following, error: followingError } = await supabase
-        .from('supports')
-        .select('supported_id')
-        .eq('supporter_id', user.id)
-        .eq('status', 'approved');
-    
-    if (followingError) throw followingError;
+    const { data, error } = await supabase
+        .rpc('get_feed_moods', { p_user_id: user.id });
 
-    const userIds = [...following.map(f => f.supported_id), user.id];
-    
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    if (error) {
+        console.error("Error fetching feed moods via RPC", error);
+        throw error;
+    }
 
-    const { data: moodData, error: moodError } = await supabase
-        .from('moods')
-        .select(
-            'id,user_id,created_at,mood_user:users!moods_user_id_fkey(id, name, picture),emoji:emojis!inner(*, user:users!inner(id, name, picture)),views:mood_views(viewer_id)'
-        )
-        .in('user_id', userIds)
-        .gte('created_at', twentyFourHoursAgo)
-        .order('created_at', { ascending: false });
-
-    if (moodError) throw moodError;
-
-    const formattedMoods = moodData.map(m => {
-        const isOwnMood = m.user_id === user.id;
-        const views = (m.views as unknown as { viewer_id: string }[]) || [];
-        const isViewed = isOwnMood ? views.length > 0 : views.some(view => view.viewer_id === user.id);
-        const moodUser = Array.isArray(m.mood_user) ? m.mood_user[0] : m.mood_user;
-
-        return {
-            ...(m.emoji as unknown as EmojiState),
-            mood_id: m.id,
-            mood_created_at: m.created_at,
-            mood_user_id: m.user_id,
-            mood_user: moodUser,
-            is_viewed: isViewed,
-            caption: (m.emoji as any)?.caption,
-        }
-    }).sort((a, b) => {
-         if (a.mood_user_id === user.id) return -1;
-         if (b.mood_user_id === user.id) return 1;
-         if (!a.is_viewed && b.is_viewed) return -1;
-         if (a.is_viewed && !b.is_viewed) return 1;
-         return new Date(b.mood_created_at).getTime() - new Date(a.mood_created_at).getTime();
-    });
-
-    return formattedMoods;
+    return data as any[] || [];
 }
 
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
@@ -576,79 +538,21 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
 
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const offset = (page - 1) * limit;
 
-    // 1. Get list of users the current user is following
-    const { data: supportedUsers, error: supportedError } = await supabase
-        .from('supports')
-        .select('supported_id')
-        .eq('supporter_id', user.id)
-        .eq('status', 'approved');
+    const { data, error } = await supabase
+        .rpc('get_feed_posts', {
+            p_user_id: user.id,
+            p_limit: limit,
+            p_offset: offset
+        });
 
-    if (supportedError) {
-        console.error('Error fetching supported users:', supportedError);
-        throw supportedError;
+    if (error) {
+        console.error('Error fetching feed posts:', error);
+        throw error;
     }
 
-    const supportedIds = supportedUsers.map(s => s.supported_id);
-    const feedUserIds = [...supportedIds, user.id];
-
-    // 2. Fetch posts from those users
-    const { data: posts, error: postsError } = await supabase
-        .from('emojis')
-        .select('*, user:users!inner(*, moods(id))')
-        .in('user_id', feedUserIds)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-    if (postsError) {
-        console.error('Error fetching feed posts:', postsError);
-        throw postsError;
-    }
-
-    if (!posts || posts.length === 0) {
-        return [];
-    }
-    
-    const postIds = posts.map(p => p.id);
-
-    // 3. Get like counts for those posts using the new RPC function
-    const { data: likeCountsData, error: likeCountsError } = await supabase
-        .rpc('get_like_counts_for_posts', { post_ids: postIds });
-
-    if (likeCountsError) {
-        console.error('Error fetching like counts:', likeCountsError);
-        throw likeCountsError;
-    }
-    const likeCountMap = new Map(likeCountsData?.map((l: { emoji_id: string; like_count: number; }) => [l.emoji_id, l.like_count]) || []);
-
-
-    // 4. Check which posts the current user has liked
-    const { data: userLikes, error: userLikesError } = await supabase
-        .from('likes')
-        .select('emoji_id')
-        .eq('user_id', user.id)
-        .in('emoji_id', postIds);
-        
-    if (userLikesError) {
-        console.error('Error fetching user likes:', userLikesError);
-        throw userLikesError;
-    }
-    const userLikedSet = new Set(userLikes?.map(l => l.emoji_id) || []);
-
-    // 5. Combine everything
-    const feedPosts = posts.map(post => ({
-        ...post,
-        like_count: likeCountMap.get(post.id) || 0,
-        is_liked: userLikedSet.has(post.id),
-        user: {
-          ...post.user,
-          has_mood: Array.isArray(post.user?.moods) && post.user.moods.length > 0
-        }
-    }));
-
-    return feedPosts as (EmojiState & { like_count: number; is_liked: boolean; user: { has_mood: boolean } })[];
+    return data as (EmojiState & { like_count: number; is_liked: boolean; user: { has_mood: boolean } })[] || [];
 }
 
 export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId: string, page: number, limit: number }) {
@@ -679,53 +583,22 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
 
 export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const offset = (page - 1) * limit;
 
-    // 1. Fetch public posts with user info
-    const { data: posts, error } = await supabase
-        .from('emojis')
-        .select('*, user:users!inner(*)')
-        .eq('user.is_private', false)
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
+    const { data, error } = await supabase
+        .rpc('get_explore_posts', {
+            p_current_user_id: currentUser?.id,
+            p_limit: limit,
+            p_offset: offset
+        });
+    
     if (error) {
         console.error("Failed to load emojis for explore page", error);
         throw error;
     }
-    
-    if (!posts || posts.length === 0) {
-        return [];
-    }
 
-    // 2. Get mood status for the authors of the fetched posts
-    const userIds = [...new Set(posts.map(p => p.user_id))];
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: moods, error: moodError } = await supabase
-        .from('moods')
-        .select('user_id')
-        .in('user_id', userIds)
-        .gte('created_at', twentyFourHoursAgo);
-
-    if (moodError) {
-        console.error("Failed to fetch mood status for explore posts", moodError);
-        // We can continue without mood status if this fails
-    }
-
-    const usersWithMood = new Set(moods?.map(m => m.user_id) || []);
-
-    // 3. Combine post data with mood status
-    const result = posts.map(post => ({
-        ...post,
-        user: {
-            ...post.user,
-            has_mood: usersWithMood.has(post.user_id)
-        }
-    }));
-    
-    return result as (EmojiState & { user: { has_mood: boolean } })[];
+    return data as (EmojiState & { user: { has_mood: boolean } })[] || [];
 }
 
 export async function searchUsers(query: string) {
@@ -735,23 +608,14 @@ export async function searchUsers(query: string) {
         return [];
     }
 
+    // Using the search_users RPC function
     const { data, error } = await supabase
-        .from('users')
-        .select('id, name, picture, is_private')
-        .like('name', `%${query}%`)
-        .limit(10);
-
+        .rpc('search_users', { p_search_term: query });
 
     if (error) {
-        console.error("Failed to search users", error);
+        console.error("Failed to search users via RPC", error);
         throw error;
     }
     
     return data || [];
 }
-
-
-
-
-
-    
