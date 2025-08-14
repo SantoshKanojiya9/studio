@@ -589,6 +589,10 @@ export async function getFeedMoods() {
 
     // 3. Check which moods have been viewed by the current user
     const moodIds = data.map(m => m.mood_id);
+    if (moodIds.length === 0) {
+        return data.map(mood => ({ ...mood, is_viewed: false }));
+    }
+
     const { data: viewedMoods, error: viewedError } = await supabase
         .from('mood_views')
         .select('mood_id')
@@ -726,10 +730,11 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
+    // The 'emojis_with_like_counts' view correctly joins emojis with their like counts.
     const { data: posts, error: postsError } = await supabase
-        .from('emojis')
-        .select('*, user:users!inner(id, name, picture, is_private, moods(user_id))')
-        .eq('user.is_private', false)
+        .from('emojis_with_like_counts')
+        .select('*')
+        .eq('is_private', false)
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
 
@@ -738,35 +743,41 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
         throw postsError;
     }
     if (!posts) return [];
-
+    
+    // Now that we have posts and their like counts, we just need to check which ones the current user has liked.
     const emojiIds = posts.map(p => p.id);
     if (emojiIds.length === 0) {
+        // This case handles when there are no posts, ensuring a consistent return type.
         return posts.map(post => ({
             ...(post as unknown as EmojiState),
-            user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
-            like_count: 0,
-            is_liked: false,
+            is_liked: false, // Default to not liked
+            user: { id: post.user_id, name: post.user_name, picture: post.user_picture, has_mood: post.user_has_mood }
         }));
     }
 
-    const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
-    
     let likedSet = new Set<string>();
     if (currentUser) {
-        const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
+        const { data: likedStatuses, error: likedError } = await supabase
+            .from('likes')
+            .select('emoji_id')
+            .eq('user_id', currentUser.id)
+            .in('emoji_id', emojiIds);
+        
         if (likedError) console.error("Error getting liked status:", likedError);
         else likedSet = new Set(likedStatuses?.map(l => l.emoji_id) || []);
     }
 
-    if (likeCountsError) console.error("Error getting like counts:", likeCountsError);
-
-    const likeCountsMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
-
+    // Map the results to the final structure, combining post data, like count, and liked status.
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
-        user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
-        like_count: likeCountsMap.get(post.id) || 0,
-        is_liked: likedSet.has(post.id)
+        like_count: post.like_count, // Use the correct count from the view
+        is_liked: likedSet.has(post.id),
+        user: { 
+            id: post.user_id, 
+            name: post.user_name, 
+            picture: post.user_picture,
+            has_mood: post.user_has_mood
+        },
     }));
 }
 
@@ -782,13 +793,6 @@ export async function searchUsers(query: string) {
         .from('users')
         .select('id, name, picture, is_private')
         .ilike('name', `${query}%`);
-    
-    if (currentUser) {
-        // This logic was removed in a previous step, but re-adding it
-        // to show how one might exclude the current user.
-        // For now, we will NOT exclude the current user as requested.
-        // queryBuilder = queryBuilder.neq('id', currentUser.id);
-    }
         
     const { data, error } = await queryBuilder.limit(10);
 

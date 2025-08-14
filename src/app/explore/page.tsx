@@ -90,9 +90,7 @@ export default function ExplorePage() {
           const newPostsData = await getExplorePosts({ page: pageNum, limit });
           
           const newPosts: ExploreEmoji[] = newPostsData.map(post => ({
-              ...post,
-              like_count: 0, // Add default value
-              is_liked: false, // Add default value
+              ...(post as ExploreEmoji)
           }));
 
           if (newPosts.length < limit) {
