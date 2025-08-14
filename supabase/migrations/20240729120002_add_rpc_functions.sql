@@ -289,7 +289,9 @@ $$ language plpgsql stable;
 
 
 -- Function to search users
+drop function if exists search_users(text, text);
 drop function if exists search_users(text);
+
 create or replace function search_users(p_search_term text, p_user_id text)
 returns table(id uuid, name text, picture text, is_private boolean) as $$
 begin
@@ -300,7 +302,9 @@ begin
     u.picture,
     u.is_private
   from public.users u
-  where u.name ilike p_search_term || '%' and u.id::text != p_user_id
+  where 
+    u.name ilike p_search_term || '%'
+    and (p_user_id is null or u.id <> (p_user_id::uuid))
   order by u.name
   limit 10;
 end;
