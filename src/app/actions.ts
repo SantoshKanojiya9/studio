@@ -576,7 +576,7 @@ export async function getFeedMoods() {
             mood_created_at:created_at,
             mood_user_id:user_id,
             mood_user:users (id, name, picture),
-            ...emojis (
+            emojis (
                 id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
                 selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
                 feature_offset_y, caption, clay_width, clay_height
@@ -591,11 +591,17 @@ export async function getFeedMoods() {
         throw error;
     }
     if (!data) return [];
+    
+    // Un-nest the emoji data
+    const flattenedData = data.map(m => {
+        const { emojis, ...mood } = m;
+        return { ...mood, ...(emojis as any) };
+    });
 
     // 3. Check which moods have been viewed by the current user
-    const moodIds = data.map(m => m.mood_id);
+    const moodIds = flattenedData.map(m => m.mood_id);
     if (moodIds.length === 0) {
-        return data.map(mood => ({ ...mood, is_viewed: false }));
+        return flattenedData.map(mood => ({ ...mood, is_viewed: false }));
     }
 
     const { data: viewedMoods, error: viewedError } = await supabase
@@ -611,7 +617,7 @@ export async function getFeedMoods() {
 
     const viewedMoodsSet = new Set(viewedMoods?.map(vm => vm.mood_id) || []);
 
-    const result = data.map(mood => ({
+    const result = flattenedData.map(mood => ({
         ...mood,
         is_viewed: viewedMoodsSet.has(mood.mood_id)
     })).sort((a, b) => {

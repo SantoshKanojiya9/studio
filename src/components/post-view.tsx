@@ -445,7 +445,27 @@ export function PostView({
   }
   
   const postAuthor = isCurrentEmojiMood(currentEmojiState) ? currentEmojiState.mood_user : (currentEmojiState as PostViewEmoji).user;
-  let finalEmoji: EmojiState = { ...currentEmojiState };
+  
+  const defaultEmoji: EmojiState = {
+    id: 'default',
+    model: 'emoji',
+    expression: 'neutral',
+    background_color: '#000000',
+    emoji_color: '#ffb300',
+    show_sunglasses: false,
+    show_mustache: false,
+    selected_filter: null,
+    animation_type: 'none',
+    shape: 'default',
+    eye_style: 'default',
+    mouth_style: 'default',
+    eyebrow_style: 'default',
+    feature_offset_x: 0,
+    feature_offset_y: 0,
+  };
+
+  let finalEmoji: EmojiState = { ...defaultEmoji, ...currentEmojiState };
+
   if (finalEmoji.model === 'loki' && finalEmoji.shape === 'clay') {
     finalEmoji.shape = 'default';
   }
