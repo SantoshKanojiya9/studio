@@ -66,16 +66,18 @@ export type EmojiState = {
 };
 
 const CreatorBall = (props: Parameters<typeof Face>[0]) => {
+    // This component now renders the base sphere, and the Face component
+    // is conditionally rendered on top of it, but without its own base/platform.
     return (
         <motion.div 
             className="relative w-80 h-96 flex flex-col items-center justify-center"
         >
-            <motion.div 
+             <motion.div 
                 className="absolute w-full h-64 z-10 flex items-center justify-center"
-            >
-                {/* Re-use the main Face component, but with a different base color */}
-                <Face {...props} color="#333333" /> 
-            </motion.div>
+             >
+                 {/* Re-use the main Face component, but with a different base color and no platform */}
+                 <Face {...props} color="#333333" showPlatform={false} />
+             </motion.div>
         </motion.div>
     );
 };
@@ -324,7 +326,7 @@ const DesignPageContent = () => {
     feature_offset_x.set(0);
     feature_offset_y.set(0);
     setSelectedFilter(null);
-    setAnimationType('random');
+    setAnimationType(newModel === 'creator' ? 'none' : 'random'); // Set animation to none for creator
     setCaption('');
     
     // Set model-specific defaults
@@ -334,6 +336,8 @@ const DesignPageContent = () => {
         setEmojiColor(defaultRimuruColor);
     } else if (newModel === 'creator') {
         setEmojiColor(defaultCreatorColor);
+        // Ensure no expression is shown initially for the creator model
+        setExpression('neutral');
     }
     else {
         setEmojiColor(defaultEmojiColor);

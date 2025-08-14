@@ -24,6 +24,7 @@ export const Face = ({
     onPanEnd,
     feature_offset_x,
     feature_offset_y,
+    showPlatform = true, // New prop to control the platform visibility
 }: { 
     expression: Expression, 
     color: string, 
@@ -42,6 +43,7 @@ export const Face = ({
     onPanEnd?: (event: any, info: any) => void;
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
+    showPlatform?: boolean;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
@@ -418,16 +420,18 @@ export const Face = ({
             </motion.div>
         </motion.div>
       </motion.div>
-       <motion.div 
-         className="absolute bottom-10 w-full pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
-         initial={{ y: 50, opacity: 0 }}
-         animate={{ y: 0, opacity: 1 }}
-         transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
+      {showPlatform && (
+        <motion.div 
+            className="absolute bottom-10 w-full pb-2" style={{ height: '60px', transformStyle: 'preserve-3d', transform: 'perspective(1000px)' }}
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
         >
-          <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
-           <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
-           <div className="absolute bottom-[-10px] left-1/2 w-full h-10 bg-gradient-to-t from-black/50 to-transparent" style={{ transform: 'translateX(-50%)' }}></div>
-      </motion.div>
+            <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-700 rounded-full shadow-inner" style={{ transform: 'rotateX(70deg) translateZ(-20px)' }}></div>
+            <div className="absolute bottom-[-10px] left-1/2 w-[98%] h-16 bg-gray-800 rounded-full" style={{ transform: 'translateX(-50%) rotateX(80deg) translateZ(-15px)', boxShadow: '0 10px 20px rgba(0,0,0,0.5)' }}></div>
+            <div className="absolute bottom-[-10px] left-1/2 w-full h-10 bg-gradient-to-t from-black/50 to-transparent" style={{ transform: 'translateX(-50%)' }}></div>
+        </motion.div>
+       )}
     </motion.div>
   );
 };
