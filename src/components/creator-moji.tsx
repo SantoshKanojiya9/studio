@@ -34,8 +34,13 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
              <motion.div 
                 className="absolute w-full h-64 z-10 flex items-center justify-center"
              >
-                 {/* Re-use the main Face component, but with a different base color and no platform */}
-                 <Face {...props} color="#333333" showPlatform={false} />
+                 {/* Force the 'default' (sphere) shape and disable the platform */}
+                 <Face 
+                    {...props} 
+                    shape="default" 
+                    color="#333333" 
+                    showPlatform={false} 
+                 />
              </motion.div>
         </motion.div>
     );
