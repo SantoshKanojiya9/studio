@@ -65,22 +65,27 @@ export type EmojiState = {
     }
 };
 
-const CreatorBall = () => (
-    <motion.div
-        className="w-64 h-64 rounded-full"
-        style={{
-            background: 'radial-gradient(circle at 50% 40%, #555, #222)',
-            boxShadow: 'inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 15px rgba(0,0,0,0.3)'
-        }}
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-    >
-        <div 
-            className="absolute top-8 left-8 w-24 h-12 bg-white/10 rounded-full"
-            style={{ filter: 'blur(15px)', transform: 'rotate(-30deg)'}}
-        />
-    </motion.div>
+const CreatorBall = (props: Omit<React.ComponentProps<typeof Face>, 'color' | 'setColor'>) => (
+    <div className="relative w-80 h-96">
+        <motion.div
+            className="w-full h-64 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style={{
+                background: 'radial-gradient(circle at 50% 40%, #555, #222)',
+                boxShadow: 'inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 15px rgba(0,0,0,0.3)'
+            }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            <div 
+                className="absolute top-8 left-8 w-24 h-12 bg-white/10 rounded-full"
+                style={{ filter: 'blur(15px)', transform: 'rotate(-30deg)'}}
+            />
+        </motion.div>
+        <div className="absolute inset-0">
+             <Face color="transparent" setColor={() => {}} {...props} />
+        </div>
+    </div>
 );
 
 
@@ -618,75 +623,33 @@ const DesignPageContent = () => {
   };
 
   const renderModel = () => {
+    const faceProps = {
+        expression: expression,
+        show_sunglasses: show_sunglasses,
+        show_mustache: show_mustache,
+        shape: shape,
+        eye_style: eye_style,
+        mouth_style: mouth_style,
+        eyebrow_style: eyebrow_style,
+        animation_type: animation_type,
+        isDragging: isDragging,
+        isInteractive: true,
+        onPan: handlePan,
+        onPanStart: handlePanStart,
+        onPanEnd: handlePanEnd,
+        feature_offset_x: feature_offset_x,
+        feature_offset_y: feature_offset_y,
+    };
+
     switch(model) {
         case 'creator':
-            return <CreatorBall />;
+            return <CreatorBall {...faceProps} />;
         case 'emoji':
-            return (
-                 <Face 
-                    expression={expression} 
-                    color={emoji_color} 
-                    setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses} 
-                    show_mustache={show_mustache} 
-                    shape={shape}
-                    eye_style={eye_style}
-                    mouth_style={mouth_style}
-                    eyebrow_style={eyebrow_style}
-                    animation_type={animation_type}
-                    isDragging={isDragging}
-                    isInteractive={true}
-                    onPan={handlePan}
-                    onPanStart={handlePanStart}
-                    onPanEnd={handlePanEnd}
-                    feature_offset_x={feature_offset_x}
-                    feature_offset_y={feature_offset_y}
-                />
-            );
+            return <Face color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'loki':
-            return (
-                 <ClockFace 
-                    expression={expression} 
-                    color={emoji_color} 
-                    setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses}
-                    show_mustache={show_mustache}
-                    shape={shape}
-                    eye_style={eye_style}
-                    mouth_style={mouth_style}
-                    eyebrow_style={eyebrow_style}
-                    animation_type={animation_type}
-                    isDragging={isDragging}
-                    isInteractive={true}
-                    onPan={handlePan}
-                    onPanStart={handlePanStart}
-                    onPanEnd={handlePanEnd}
-                    feature_offset_x={feature_offset_x}
-                    feature_offset_y={feature_offset_y}
-                />
-            );
+            return <ClockFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'rimuru':
-            return (
-                <RimuruFace
-                    expression={expression}
-                    color={emoji_color}
-                    setColor={setEmojiColor}
-                    show_sunglasses={show_sunglasses}
-                    show_mustache={show_mustache}
-                    shape={shape}
-                    eye_style={eye_style}
-                    mouth_style={mouth_style}
-                    eyebrow_style={eyebrow_style}
-                    animation_type={animation_type}
-                    isDragging={isDragging}
-                    isInteractive={true}
-                    onPan={handlePan}
-                    onPanStart={handlePanStart}
-                    onPanEnd={handlePanEnd}
-                    feature_offset_x={feature_offset_x}
-                    feature_offset_y={feature_offset_y}
-                />
-            );
+            return <RimuruFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
     }
   }
 
@@ -745,18 +708,6 @@ const DesignPageContent = () => {
                       </Button>
                   </TooltipTrigger>
                   <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
-              </Tooltip>
-               <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Button
-                          size="icon"
-                          variant={model === 'creator' ? 'secondary' : 'ghost'}
-                          onClick={() => handleModelChange('creator')}
-                      >
-                          <Wand2 className="h-5 w-5" />
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p>Creator Model</p></TooltipContent>
               </Tooltip>
           </div>
           <div className="absolute top-4 right-4 z-20">
