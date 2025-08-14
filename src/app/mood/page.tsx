@@ -317,35 +317,40 @@ export default function MoodPage() {
         }
     }, [user]);
 
-    const fetchPosts = useCallback(async (pageNum: number, limit = 5) => {
+    const fetchPosts = useCallback(async (pageNum: number) => {
         if (isFetchingMore) return;
         setIsFetchingMore(true);
+
         try {
+            const limit = 5;
             const newPosts = await getFeedPosts({ page: pageNum, limit });
             
             if (newPosts.length < limit) {
                 setHasMore(false);
                 moodPageCache.hasMore = false;
+            } else {
+                const nextPage = pageNum + 1;
+                setPage(nextPage);
+                moodPageCache.page = nextPage;
             }
 
-            setFeedPosts(prev => {
-                const existingIds = new Set(prev.map(p => p.id));
-                const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-                const updatedPosts = [...prev, ...uniqueNewPosts];
-                moodPageCache.feedPosts = updatedPosts;
-                return updatedPosts;
-            });
-            
-            const nextPage = pageNum + 1;
-            setPage(nextPage);
-            moodPageCache.page = nextPage;
+            if (newPosts.length > 0) {
+                setFeedPosts(prev => {
+                    const existingIds = new Set(prev.map(p => p.id));
+                    const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
+                    const updatedPosts = [...prev, ...uniqueNewPosts];
+                    moodPageCache.feedPosts = updatedPosts;
+                    return updatedPosts;
+                });
+            }
+
         } catch (error: any) {
             console.error("Failed to fetch posts:", error);
             toast({ title: "Failed to load more posts", description: error.message, variant: "destructive" });
         } finally {
             setIsFetchingMore(false);
         }
-    }, [toast, isFetchingMore]);
+    }, [isFetchingMore, toast]);
 
     const loadInitialData = useCallback(async (forceRefresh = false) => {
         if (!user) {
