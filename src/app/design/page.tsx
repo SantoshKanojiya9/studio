@@ -7,7 +7,7 @@ import { motion, useMotionValue } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet, Ban } from 'lucide-react';
+import { RotateCcw, Sparkles, Glasses, Palette, Wand2, ArrowLeft, Smile, Frown, Heart, Ghost, Paintbrush, Pipette, Camera, ArrowRight, ArrowUp, ArrowDown, ArrowUpRight, ArrowUpLeft, Square, User as UserIcon, Eye, Meh, ChevronsRight, Save, Users, Clock, Loader2, Captions, Droplet, Ban, Plus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -36,7 +36,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki' | 'rimuru';
+type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
 
 export type EmojiState = {
@@ -64,6 +64,22 @@ export type EmojiState = {
       picture: string;
     }
 };
+
+const CreatorBall = (props: Parameters<typeof Face>[0]) => {
+    return (
+        <motion.div 
+            className="relative w-80 h-96 flex flex-col items-center justify-center"
+        >
+            <motion.div 
+                className="absolute w-full h-64 z-10 flex items-center justify-center"
+            >
+                {/* Re-use the main Face component, but with a different base color */}
+                <Face {...props} color="#333333" /> 
+            </motion.div>
+        </motion.div>
+    );
+};
+
 
 const DesignPageContent = () => {
   const router = useRouter();
@@ -96,6 +112,7 @@ const DesignPageContent = () => {
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
   const defaultRimuruColor = '#3498db';
+  const defaultCreatorColor = '#333333';
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -315,7 +332,10 @@ const DesignPageContent = () => {
         setEmojiColor(defaultLokiColor);
     } else if (newModel === 'rimuru') {
         setEmojiColor(defaultRimuruColor);
-    } else {
+    } else if (newModel === 'creator') {
+        setEmojiColor(defaultCreatorColor);
+    }
+    else {
         setEmojiColor(defaultEmojiColor);
     }
 
@@ -566,11 +586,11 @@ const DesignPageContent = () => {
             { name: 'Save', icon: Save, action: handleSave, menu: null },
             { name: 'Caption', icon: Captions, action: () => setActiveMenu('caption'), menu: 'caption' },
             { name: 'Expressions', icon: Smile, action: () => setActiveMenu('expressions'), menu: 'expressions' },
-            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji'] },
+            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face' },
             { name: 'Animations', icon: Sparkles, action: () => setActiveMenu('animations'), menu: 'animations' },
             { name: 'Shapes', icon: Square, action: () => setActiveMenu('shapes'), menu: 'shapes' },
             { name: 'Colors', icon: Palette, action: () => setActiveMenu('colors'), menu: 'colors' },
-            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru'] },
+            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories' },
             { name: 'Filters', icon: Camera, action: () => setActiveMenu('filters'), menu: 'filters' },
             { name: 'Random', icon: Wand2, action: handleRandomize, menu: null }
         ];
@@ -622,6 +642,8 @@ const DesignPageContent = () => {
             return <ClockFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'rimuru':
             return <RimuruFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+        case 'creator':
+            return <CreatorBall color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
     }
   }
 
@@ -644,7 +666,7 @@ const DesignPageContent = () => {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
-          <div className="absolute top-4 left-4 z-20 bg-background/50 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1">
+            <div className="absolute top-4 left-4 z-20 bg-background/50 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1">
               <Tooltip>
                   <TooltipTrigger asChild>
                       <Button 
@@ -681,8 +703,14 @@ const DesignPageContent = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
               </Tooltip>
-          </div>
-          
+            </div>
+            
+            <div className="absolute top-4 right-4 z-20">
+                <Button onClick={() => handleModelChange('creator')}>
+                    <Plus className="mr-2 h-4 w-4" /> Create
+                </Button>
+            </div>
+
           <motion.div
             className="w-80 h-96 flex items-center justify-center select-none"
             style={{ 
