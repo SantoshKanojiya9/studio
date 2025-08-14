@@ -513,15 +513,69 @@ export async function getFeedMoods() {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     
-    // Pass user ID as text, which the function now expects
-    const { data, error } = await supabase.rpc('get_feed_moods', { p_user_id: user?.id });
+    if (!user) return [];
 
-    if (error) {
-        console.error("Error fetching feed moods via RPC", error);
-        throw error;
+    // Get the IDs of users that the current user supports, plus their own ID
+    const { data: supportedUsers, error: supportedError } = await supabase
+        .from('supports')
+        .select('supported_id')
+        .eq('supporter_id', user.id)
+        .eq('status', 'approved');
+
+    if (supportedError) {
+        console.error("Error fetching supported users for moods:", supportedError);
+        throw supportedError;
+    }
+    const supportedIds = supportedUsers.map(s => s.supported_id);
+    const moodUserIds = [user.id, ...supportedIds];
+    
+    // Fetch moods for these users
+    const { data: moods, error: moodsError } = await supabase
+        .from('moods')
+        .select('*, emoji:emojis!inner(*), mood_user:users!inner(*)')
+        .in('user_id', moodUserIds)
+        .order('created_at', { ascending: false });
+
+    if (moodsError) {
+        console.error("Error fetching feed moods", moodsError);
+        throw moodsError;
     }
 
-    return data as any[] || [];
+    // Check which moods the current user has viewed
+    const moodIds = moods.map(m => m.id);
+    const { data: views, error: viewsError } = await supabase
+        .from('mood_views')
+        .select('mood_id')
+        .eq('viewer_id', user.id)
+        .in('mood_id', moodIds);
+
+    if (viewsError) {
+        console.error("Error fetching mood views:", viewsError);
+        // Continue without view info if it fails
+    }
+    const viewedMoodIds = new Set(views?.map(v => v.mood_id) || []);
+
+    const result = moods.map(mood => {
+        const emojiData = mood.emoji as unknown as EmojiState;
+        return {
+            mood_id: mood.id,
+            mood_created_at: mood.created_at,
+            mood_user_id: mood.user_id,
+            is_viewed: viewedMoodIds.has(mood.id),
+            mood_user: mood.mood_user,
+            // Spread the rest of the emoji data
+            ...emojiData,
+        };
+    });
+    
+    // Sort to show own mood first
+    result.sort((a, b) => {
+        if (a.mood_user_id === user.id) return -1;
+        if (b.mood_user_id === user.id) return 1;
+        return 0; // Keep original order for others
+    });
+
+    return result as any[] || [];
 }
 
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
@@ -529,7 +583,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) throw new Error("Not authenticated");
 
-    // 1. Get IDs of users the current user is supporting
+    // 1. Get IDs of users the current user is supporting (including self)
     const { data: supportedUsers, error: supportedError } = await supabase
         .from('supports')
         .select('supported_id')
@@ -541,15 +595,14 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         throw supportedError;
     }
     const supportedIds = supportedUsers.map(s => s.supported_id);
-    if (supportedIds.length === 0) {
-        return []; // No one to get posts from
-    }
+    const feedUserIds = [currentUser.id, ...supportedIds];
+
 
     // 2. Fetch posts from those supported users
     const { data: posts, error: postsError } = await supabase
         .from('emojis')
         .select('*, user:users(id, name, picture, moods(user_id))')
-        .in('user_id', supportedIds)
+        .in('user_id', feedUserIds)
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
 
@@ -701,7 +754,7 @@ export async function searchUsers(query: string) {
 
     // Pass user ID as text, which the function now expects
     const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query, p_user_id: user?.id });
+        .rpc('search_users', { p_search_term: query, p_user_id: user?.id ?? null });
 
     if (error) {
         console.error("Failed to search users via RPC", error);
