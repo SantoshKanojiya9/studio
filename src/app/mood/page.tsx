@@ -299,6 +299,7 @@ export default function MoodPage() {
         if (!user) return [];
         try {
             const moodsData = await getFeedMoods();
+            if (!moodsData) return [];
             // Ensure moods have the properties required by the Mood type
             const formattedMoods = moodsData.map(m => ({
                 ...m,
@@ -491,6 +492,10 @@ export default function MoodPage() {
         // Find all moods from the same user to show in sequence
         const userMoods = moods.filter(m => m.mood_user_id === selectedMood.mood_user_id);
         const initialMoodIndex = userMoods.findIndex(m => m.mood_id === selectedMood.mood_id);
+        if (userMoods.length === 0 || initialMoodIndex === -1) {
+            setSelectedMood(null);
+            return null;
+        }
         return (
             <PostView 
                 emojis={userMoods}
