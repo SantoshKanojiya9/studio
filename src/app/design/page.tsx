@@ -264,16 +264,16 @@ const DesignPageContent = () => {
   };
   
   const filters = [
-    { name: 'None', style: {} },
-    { name: 'Sepia', style: { background: 'linear-gradient(to right, #704214, #EAE0C8)' } },
-    { name: 'Grayscale', style: { background: 'linear-gradient(to right, #333, #ccc)' } },
-    { name: 'Invert', style: { background: 'linear-gradient(to right, #f00, #0ff)' } },
-    { name: 'Hue-Rotate', style: { background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' } },
-    { name: 'Contrast', style: { background: 'linear-gradient(to right, #000, #fff)' } },
-    { name: 'Saturate', style: { background: 'linear-gradient(to right, gray, red)' } },
-    { name: 'Vintage', style: { background: 'linear-gradient(to right, #6d5a4c, #d5c8b8)' } },
-    { name: 'Cool', style: { background: 'linear-gradient(to right, #3a7bd5, #00d2ff)' } },
-    { name: 'Warm', style: { background: 'linear-gradient(to right, #f7b733, #fc4a1a)' } },
+    { name: 'None', style: {}, css: 'none' },
+    { name: 'Sepia', style: { background: 'linear-gradient(to right, #704214, #EAE0C8)' }, css: 'sepia(1)' },
+    { name: 'Grayscale', style: { background: 'linear-gradient(to right, #333, #ccc)' }, css: 'grayscale(1)' },
+    { name: 'Invert', style: { background: 'linear-gradient(to right, #f00, #0ff)' }, css: 'invert(1)' },
+    { name: 'Hue-Rotate', style: { background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)' }, css: 'hue-rotate(90deg)' },
+    { name: 'Contrast', style: { background: 'linear-gradient(to right, #000, #fff)' }, css: 'contrast(1.5)' },
+    { name: 'Saturate', style: { background: 'linear-gradient(to right, gray, red)' }, css: 'saturate(2)' },
+    { name: 'Vintage', style: { background: 'linear-gradient(to right, #6d5a4c, #d5c8b8)' }, css: 'sepia(0.5) saturate(1.5) contrast(0.9)' },
+    { name: 'Cool', style: { background: 'linear-gradient(to right, #3a7bd5, #00d2ff)' }, css: 'contrast(1.1) brightness(1.1) hue-rotate(-15deg)' },
+    { name: 'Warm', style: { background: 'linear-gradient(to right, #f7b733, #fc4a1a)' }, css: 'sepia(0.3) saturate(1.2) brightness(1.1)' },
   ];
 
   const handleFilterSelect = (filterName: string) => {
@@ -649,6 +649,8 @@ const DesignPageContent = () => {
     }
   }
 
+  const activeFilterCss = filters.find(f => f.name === selected_filter)?.css || 'none';
+
   return (
     <TooltipProvider>
       <div 
@@ -717,7 +719,7 @@ const DesignPageContent = () => {
             className="w-80 h-96 flex items-center justify-center select-none"
             style={{ 
               transformStyle: 'preserve-3d',
-              filter: selected_filter && selected_filter !== 'None' ? `${selected_filter.toLowerCase().replace('-', '')}(1)` : 'none',
+              filter: activeFilterCss,
             }}
           >
             {renderModel()}
