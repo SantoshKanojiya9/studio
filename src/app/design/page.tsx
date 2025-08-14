@@ -319,7 +319,7 @@ const DesignPageContent = () => {
   };
 
   const handleModelChange = (newModel: ModelType) => {
-    if (model === newModel) return;
+    if (model === newModel && newModel !== 'creator') return;
 
     // Reset all common properties to their defaults for a clean slate
     setExpression('neutral');
@@ -333,6 +333,7 @@ const DesignPageContent = () => {
     feature_offset_y.set(0);
     setSelectedFilter(null);
     setAnimationType('random');
+    setCaption('');
     
     // Set model-specific defaults
     if (newModel === 'loki') {
@@ -603,7 +604,7 @@ const DesignPageContent = () => {
 
         return (
             <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
-                {mainTools.map((tool, index) => {
+                {mainTools.map((tool) => {
                     if (tool.models && !tool.models.includes(model)) {
                         return null;
                     }
