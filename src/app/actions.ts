@@ -564,7 +564,9 @@ export async function getFeedMoods() {
     const supportedIds = supportedUsers.map(s => s.supported_id);
     const moodFeedUserIds = [user.id, ...supportedIds];
 
-    // 2. Fetch moods from those users
+    // 2. Fetch moods from those users created within the last 24 hours
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data, error } = await supabase
         .from('moods')
         .select(`
@@ -579,6 +581,7 @@ export async function getFeedMoods() {
             )
         `)
         .in('user_id', moodFeedUserIds)
+        .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false });
 
     if (error) {
