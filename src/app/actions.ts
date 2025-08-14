@@ -719,23 +719,16 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
     if (!query.trim()) {
         return [];
     }
 
-    let queryBuilder = supabase
+    const { data, error } = await supabase
         .from('users')
         .select('id, name, picture, is_private')
         .ilike('name', `${query}%`)
         .limit(10);
-
-    if (user) {
-        queryBuilder = queryBuilder.not('id', 'eq', user.id);
-    }
-        
-    const { data, error } = await queryBuilder;
 
     if (error) {
         console.error("Failed to search users", error);
