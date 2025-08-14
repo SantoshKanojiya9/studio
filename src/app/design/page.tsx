@@ -707,7 +707,7 @@ const DesignPageContent = () => {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0 relative">
-          <div className="absolute top-4 right-4 z-20 bg-background/50 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1">
+          <div className="absolute top-4 left-4 z-20 bg-background/50 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1">
               <Tooltip>
                   <TooltipTrigger asChild>
                       <Button 
@@ -744,6 +744,9 @@ const DesignPageContent = () => {
                   </TooltipTrigger>
                   <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
               </Tooltip>
+          </div>
+          <div className="absolute top-4 right-4 z-20">
+            <Button onClick={handleSave}>Create</Button>
           </div>
           
           <motion.div
