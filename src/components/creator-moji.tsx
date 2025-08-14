@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { motion, MotionValue } from 'framer-motion';
+import { motion, MotionValue, useMotionValue } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
@@ -121,7 +121,11 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
         scared: { d: "M 35 50 Q 50 65 65 50 A 15 15 0 0 1 35 50", fill: "transparent" },
         love: { d: "M 30 50 Q 50 75 70 50", fill: "transparent" },
     };
-
+    
+    // Fix: Use the useMotionValue hook to create motion values
+    const pupilX = useMotionValue(0);
+    const pupilY = useMotionValue(0);
+    const pupilScale = useMotionValue(1);
 
     return (
         <motion.div 
@@ -162,11 +166,11 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
                                         style={{ transform: 'translateZ(20px)' }}
                                     >
                                         <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                            {renderEye(props.eye_style, new motion.Value(), new motion.Value(), new motion.Value(), props.expression)}
+                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, props.expression)}
                                             {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants)}
                                         </motion.div>
                                         <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                            {renderEye(props.eye_style, new motion.Value(), new motion.Value(), new motion.Value(), props.expression)}
+                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, props.expression)}
                                             {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants, true)}
                                         </motion.div>
                                     </motion.div>
