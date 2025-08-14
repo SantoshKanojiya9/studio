@@ -505,7 +505,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
             emoji:emojis(
                 id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
                 selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
-                feature_offset_y, caption, clay_width, clay_height
+                feature_offset_y, caption
             )
         `)
         .eq('recipient_id', user.id)
@@ -579,7 +579,7 @@ export async function getFeedMoods() {
             emojis (
                 id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
                 selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
-                feature_offset_y, caption, clay_width, clay_height
+                feature_offset_y, caption
             )
         `)
         .in('user_id', moodFeedUserIds)
