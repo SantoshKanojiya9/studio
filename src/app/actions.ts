@@ -132,7 +132,7 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
     const { data, error } = await supabase
         .rpc('get_supporters_with_status', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id ?? null,
+            p_current_user_id: currentUser?.id,
             p_limit: limit,
             p_offset: (page - 1) * limit
         });
@@ -151,7 +151,7 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
     const { data, error } = await supabase
         .rpc('get_supporting_with_status', {
             p_user_id: userId,
-            p_current_user_id: currentUser?.id ?? null,
+            p_current_user_id: currentUser?.id,
             p_limit: limit,
             p_offset: (page - 1) * limit
         });
@@ -457,7 +457,7 @@ export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: st
     const { data, error } = await supabase
         .rpc('get_paginated_likers', {
             p_emoji_id: emojiId,
-            p_current_user_id: currentUser?.id ?? null,
+            p_current_user_id: currentUser?.id,
             p_limit: limit,
             p_offset: (page - 1) * limit
         });
@@ -549,23 +549,47 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const { data: posts, error: postsError } = await supabase
-        .rpc('get_gallery_posts', {
-            p_user_id: userId,
-            p_current_user_id: currentUser?.id ?? null,
-            p_limit: limit,
-            p_offset: (page - 1) * limit
-        });
+    // Direct query for simplicity and correctness
+    let query = supabase
+        .from('emojis')
+        .select(`
+            *,
+            user:users (id, name, picture),
+            likes(count)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .range((page - 1) * limit, page * limit -1);
 
-    if (postsError) {
-        console.error('Error fetching gallery posts:', postsError);
-        throw postsError;
+    const { data: posts, error } = await query;
+
+    if (error) {
+        console.error('Error fetching gallery posts:', error);
+        throw error;
     }
-     if (!posts || posts.length === 0) {
-        return [];
+    if (!posts) return [];
+    
+    // Manually add is_liked and format the response
+    const emojiIds = posts.map(p => p.id);
+    const likedSet = new Set<string>();
+
+    if (currentUser && emojiIds.length > 0) {
+        const { data: likedPosts, error: likedError } = await supabase
+            .from('likes')
+            .select('emoji_id')
+            .eq('user_id', currentUser.id)
+            .in('emoji_id', emojiIds);
+        
+        if (likedError) console.error("Error checking likes:", likedError);
+        else likedPosts.forEach(l => likedSet.add(l.emoji_id));
     }
 
-    return posts as (EmojiState & { like_count: number; is_liked: boolean })[];
+    return posts.map(post => ({
+        ...(post as unknown as EmojiState),
+        user: post.user as any,
+        like_count: (post.likes[0] as any)?.count ?? 0,
+        is_liked: likedSet.has(post.id)
+    }));
 }
 
 
@@ -575,7 +599,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
     const { data, error } = await supabase
         .rpc('get_explore_posts', {
-            p_current_user_id: currentUser?.id ?? null,
+            p_current_user_id: currentUser?.id,
             p_limit: limit,
             p_offset: (page - 1) * limit
         });
@@ -597,7 +621,7 @@ export async function searchUsers(query: string) {
     }
 
     const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query, p_user_id: user?.id ?? null });
+        .rpc('search_users', { p_search_term: query, p_user_id: user?.id });
 
     if (error) {
         console.error("Failed to search users via RPC", error);
