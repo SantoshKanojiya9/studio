@@ -660,7 +660,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     if (emojiIds.length === 0) {
         return posts.map(post => ({
             ...(post as unknown as EmojiState),
-            user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
+            user: { ...post.user, has_mood: post.user?.moods?.length > 0 } as any,
             like_count: 0,
             is_liked: false,
         }));
@@ -677,7 +677,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
 
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
-        user: { ...post.user, has_mood: post.user?.moods.length > 0 } as any,
+        user: { ...post.user, has_mood: post.user?.moods?.length > 0 } as any,
         like_count: likeCountsMap.get(post.id) || 0,
         is_liked: likedSet.has(post.id),
     }));
@@ -775,7 +775,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
         is_liked: likedSet.has(post.id),
         user: {
             ...post.user,
-            has_mood: post.user ? post.user.moods.length > 0 : false
+            has_mood: post.user && post.user.moods ? post.user.moods.length > 0 : false
         } as any,
     }));
 }
