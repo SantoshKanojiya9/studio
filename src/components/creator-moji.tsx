@@ -1,8 +1,8 @@
 
 'use client';
 
-import React from 'react';
-import { motion, MotionValue, useMotionValue } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, MotionValue, useMotionValue, animate } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
@@ -88,8 +88,87 @@ type CreatorMojiProps = {
 
 export const CreatorMoji = (props: CreatorMojiProps) => {
 
-    const color = props.color;
-    const { shape } = props;
+    const { expression: initialExpression, isDragging, animation_type, feature_offset_x, feature_offset_y, shape, color } = props;
+    
+    const [expression, setExpression] = useState<Expression>(initialExpression);
+    const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
+    const animationControlsY = useRef<ReturnType<typeof animate> | null>(null);
+    const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
+
+    useEffect(() => {
+        setExpression(initialExpression);
+    }, [initialExpression]);
+
+    // Animation effect
+    useEffect(() => {
+        const stopAnimations = () => {
+            if (animationControlsX.current) animationControlsX.current.stop();
+            if (animationControlsY.current) animationControlsY.current.stop();
+            if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
+        };
+
+        if (isDragging || animation_type === 'none') {
+            stopAnimations();
+            return;
+        }
+
+        const animationOptions = {
+            duration: 2,
+            repeat: Infinity,
+            repeatType: "mirror" as const,
+            ease: "easeInOut" as const,
+        };
+
+        const randomAnimation = () => {
+            const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
+            setExpression(newExpression);
+
+            const boundaryX = 80;
+            const boundaryY = 60;
+            let newX, newY;
+            do {
+                newX = Math.random() * (2 * boundaryX) - boundaryX;
+                newY = Math.random() * (2 * boundaryY) - boundaryY;
+            } while ((newX ** 2 / boundaryX ** 2) + (newY ** 2 / boundaryY ** 2) > 1);
+
+            animate(feature_offset_x, newX, { type: 'spring', stiffness: 50, damping: 20 });
+            animate(feature_offset_y, newY, { type: 'spring', stiffness: 50, damping: 20 });
+        };
+
+        stopAnimations();
+
+        switch (animation_type) {
+            case 'left-right':
+                animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
+                break;
+            case 'right-left':
+                animationControlsX.current = animate(feature_offset_x, [60, -60], animationOptions);
+                break;
+            case 'up-down':
+                animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
+                break;
+            case 'down-up':
+                animationControlsY.current = animate(feature_offset_y, [50, -50], animationOptions);
+                break;
+            case 'diag-left-right':
+                animationControlsX.current = animate(feature_offset_x, [-60, 60], animationOptions);
+                animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
+                break;
+            case 'diag-right-left':
+                animationControlsX.current = animate(feature_offset_x, [60, -60], animationOptions);
+                animationControlsY.current = animate(feature_offset_y, [-50, 50], animationOptions);
+                break;
+            case 'random':
+                randomAnimation();
+                animationIntervalRef.current = setInterval(randomAnimation, 3000);
+                break;
+            default:
+        }
+
+        return stopAnimations;
+    }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
+
 
     // Simplified variants for CreatorMoji.
     const eyeVariants = {
@@ -189,13 +268,13 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
                                         className="flex gap-20 absolute top-28" 
                                         style={{ transform: 'translateZ(20px)' }}
                                     >
-                                        <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, props.expression)}
-                                            {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants)}
+                                        <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, expression)}
+                                            {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, expression, eyebrowVariants)}
                                         </motion.div>
-                                        <motion.div className="relative" variants={eyeVariants} animate={props.expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
-                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, props.expression)}
-                                            {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, props.expression, eyebrowVariants, true)}
+                                        <motion.div className="relative" variants={eyeVariants} animate={expression} transition={{duration: 0.3, type: "spring", stiffness: 300, damping: 15 }}>
+                                            {renderEye(props.eye_style, pupilX, pupilY, pupilScale, expression)}
+                                            {props.eyebrow_style !== 'default' && renderEyebrow(props.eyebrow_style, expression, eyebrowVariants, true)}
                                         </motion.div>
                                     </motion.div>
                                 )}
@@ -210,7 +289,7 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
                                                 strokeWidth={5}
                                                 strokeLinecap="round"
                                                 variants={expressionMouthVariants}
-                                                animate={props.expression}
+                                                animate={expression}
                                                 transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 20 }}
                                             />
                                         </svg>
