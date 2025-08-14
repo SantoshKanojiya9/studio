@@ -587,11 +587,11 @@ const DesignPageContent = () => {
             { name: 'Save', icon: Save, action: handleSave, menu: null },
             { name: 'Caption', icon: Captions, action: () => setActiveMenu('caption'), menu: 'caption' },
             { name: 'Expressions', icon: Smile, action: () => setActiveMenu('expressions'), menu: 'expressions' },
-            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji'] },
+            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji', 'creator'] },
             { name: 'Animations', icon: Sparkles, action: () => setActiveMenu('animations'), menu: 'animations' },
             { name: 'Shapes', icon: Square, action: () => setActiveMenu('shapes'), menu: 'shapes' },
             { name: 'Colors', icon: Palette, action: () => setActiveMenu('colors'), menu: 'colors' },
-            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru'] },
+            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru', 'creator'] },
             { name: 'Filters', icon: Camera, action: () => setActiveMenu('filters'), menu: 'filters' },
             { name: 'Random', icon: Wand2, action: handleRandomize, menu: null }
         ];
@@ -600,9 +600,6 @@ const DesignPageContent = () => {
             <div className="flex items-center justify-center space-x-1 md:space-x-0 md:flex-col md:space-y-1">
                 {mainTools.map((tool, index) => {
                     if (tool.models && !tool.models.includes(model)) {
-                        return null;
-                    }
-                    if (model === 'creator' && tool.name !== 'New' && tool.name !== 'Save' && tool.name !== 'Colors') {
                         return null;
                     }
                     return (
@@ -763,7 +760,7 @@ const DesignPageContent = () => {
               </Tooltip>
           </div>
           <div className="absolute top-4 right-4 z-20">
-            <Button onClick={handleSave}>Create</Button>
+            <Button onClick={() => handleModelChange('creator')}>Create</Button>
           </div>
           
           <motion.div
