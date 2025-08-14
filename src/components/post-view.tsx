@@ -40,8 +40,9 @@ import { setMood, removeMood, recordMoodView, getMoodViewers, likePost } from '@
 import { LikeButton } from './like-button';
 import { TimeRemaining } from './time-remaining';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 
-const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
+const LikerListSheet = dynamic(() => import('@/components/liker-list-sheet'), { ssr: false });
 
 export interface Mood extends EmojiState {
     mood_id: number;
@@ -237,9 +238,11 @@ const PostContent = memo(({
                     </p>
                 )}
             </div>
-            <Suspense fallback={null}>
-             {showLikers && <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />}
-            </Suspense>
+             {showLikers && (
+                <Suspense fallback={null}>
+                    <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
+                </Suspense>
+            )}
         </div>
     );
 });

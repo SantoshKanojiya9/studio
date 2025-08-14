@@ -32,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { getGalleryPosts, getSupportStatus, getSupporterCount, getSupportingCount, deleteUserAccount } from '@/app/actions';
 import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserListSheet } from '@/components/user-list-sheet';
 import { useSupport } from '@/hooks/use-support';
 import Image from 'next/image';
 
@@ -42,6 +41,11 @@ const PostView = dynamic(() =>
     loading: () => <div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>,
     ssr: false 
   }
+);
+
+const UserListSheet = dynamic(() =>
+  import('@/components/user-list-sheet').then(mod => mod.UserListSheet),
+  { ssr: false }
 );
 
 
@@ -560,12 +564,16 @@ function GalleryPageContent() {
             )}
             </div>
             
-            <UserListSheet
-                open={!!sheetContent}
-                onOpenChange={(isOpen) => !isOpen && setSheetContent(null)}
-                type={sheetContent}
-                userId={viewingUserId}
-            />
+            {sheetContent && (
+                <Suspense fallback={null}>
+                    <UserListSheet
+                        open={!!sheetContent}
+                        onOpenChange={(isOpen) => !isOpen && setSheetContent(null)}
+                        type={sheetContent}
+                        userId={viewingUserId}
+                    />
+                </Suspense>
+            )}
 
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                 <AlertDialogContent>

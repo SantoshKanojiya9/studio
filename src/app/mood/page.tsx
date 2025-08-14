@@ -39,7 +39,7 @@ import type { Mood, PostViewEmoji } from '@/components/post-view';
 import { TimeRemaining } from '@/components/time-remaining';
 import Image from 'next/image';
 
-const LikerListSheet = lazy(() => import('@/components/liker-list-sheet'));
+const LikerListSheet = dynamic(() => import('@/components/liker-list-sheet'), { ssr: false });
 
 
 const PostView = dynamic(() => 
@@ -266,9 +266,11 @@ const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { e
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <Suspense fallback={null}>
-                {showLikers && <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />}
-            </Suspense>
+            {showLikers && (
+                <Suspense fallback={null}>
+                    <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
+                </Suspense>
+            )}
         </>
     );
 });
