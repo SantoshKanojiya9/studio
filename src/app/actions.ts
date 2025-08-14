@@ -454,7 +454,7 @@ export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: st
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const { data, error } = await supabase
+     const { data, error } = await supabase
         .rpc('get_paginated_likers', {
             p_emoji_id: emojiId,
             p_current_user_id: currentUser?.id,
@@ -466,7 +466,7 @@ export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: st
         console.error('Error getting likers:', error);
         return [];
     }
-
+    
     return data as UserWithSupportStatus[];
 }
 
@@ -493,18 +493,52 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     if (!user) return [];
 
     const { data, error } = await supabase
-        .rpc('get_user_notifications', {
-            p_user_id: user.id,
-            p_limit: limit,
-            p_offset: (page - 1) * limit
-        });
+        .from('notifications')
+        .select(`
+            id,
+            type,
+            created_at,
+            emoji_id,
+            actor:users!notifications_actor_id_fkey(id, name, picture, is_private),
+            emoji:emojis(
+                id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
+                selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
+                feature_offset_y, caption
+            )
+        `)
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false })
+        .range((page - 1) * limit, page * limit - 1);
 
     if (error) {
-        console.error('Error fetching notifications via RPC:', error);
+        console.error('Error fetching notifications:', error);
         throw error;
     }
+    if (!data) return [];
+    
+    // Get support status for all actors in one go
+    const actorIds = [...new Set(data.map(n => (n.actor as any)?.id).filter(Boolean))];
+    if (actorIds.length === 0) {
+        return data.map(n => ({ ...n, actor_support_status: null }));
+    }
 
-    return data || [];
+    const { data: supports, error: supportsError } = await supabase
+        .from('supports')
+        .select('supported_id, status')
+        .eq('supporter_id', user.id)
+        .in('supported_id', actorIds);
+        
+    if (supportsError) {
+        console.error('Error fetching support statuses for notifications', supportsError);
+        // Continue without support status if it fails
+    }
+
+    const supportStatusMap = new Map(supports?.map(s => [s.supported_id, s.status]) || []);
+
+    return data.map(notification => ({
+        ...notification,
+        actor_support_status: supportStatusMap.get((notification.actor as any).id) || null
+    }));
 }
 
 // --- Feed & Gallery & Explore Actions ---
@@ -515,67 +549,14 @@ export async function getFeedMoods() {
     
     if (!user) return [];
 
-    // Get the IDs of users that the current user supports, plus their own ID
-    const { data: supportedUsers, error: supportedError } = await supabase
-        .from('supports')
-        .select('supported_id')
-        .eq('supporter_id', user.id)
-        .eq('status', 'approved');
+    const { data, error } = await supabase.rpc('get_feed_moods', { p_user_id: user.id });
 
-    if (supportedError) {
-        console.error("Error fetching supported users for moods:", supportedError);
-        throw supportedError;
-    }
-    const supportedIds = supportedUsers.map(s => s.supported_id);
-    const moodUserIds = [user.id, ...supportedIds];
-    
-    // Fetch moods for these users
-    const { data: moods, error: moodsError } = await supabase
-        .from('moods')
-        .select('*, emoji:emojis!inner(*), mood_user:users!inner(*)')
-        .in('user_id', moodUserIds)
-        .order('created_at', { ascending: false });
-
-    if (moodsError) {
-        console.error("Error fetching feed moods", moodsError);
-        throw moodsError;
+    if (error) {
+        console.error("Failed to fetch moods via RPC", error);
+        throw error;
     }
 
-    // Check which moods the current user has viewed
-    const moodIds = moods.map(m => m.id);
-    const { data: views, error: viewsError } = await supabase
-        .from('mood_views')
-        .select('mood_id')
-        .eq('viewer_id', user.id)
-        .in('mood_id', moodIds);
-
-    if (viewsError) {
-        console.error("Error fetching mood views:", viewsError);
-        // Continue without view info if it fails
-    }
-    const viewedMoodIds = new Set(views?.map(v => v.mood_id) || []);
-
-    const result = moods.map(mood => {
-        const emojiData = mood.emoji as unknown as EmojiState;
-        return {
-            mood_id: mood.id,
-            mood_created_at: mood.created_at,
-            mood_user_id: mood.user_id,
-            is_viewed: viewedMoodIds.has(mood.id),
-            mood_user: mood.mood_user,
-            // Spread the rest of the emoji data
-            ...emojiData,
-        };
-    });
-    
-    // Sort to show own mood first
-    result.sort((a, b) => {
-        if (a.mood_user_id === user.id) return -1;
-        if (b.mood_user_id === user.id) return 1;
-        return 0; // Keep original order for others
-    });
-
-    return result as any[] || [];
+    return (data as any[]) || [];
 }
 
 export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limit: number }) {
