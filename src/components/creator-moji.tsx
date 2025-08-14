@@ -89,6 +89,7 @@ type CreatorMojiProps = {
 export const CreatorMoji = (props: CreatorMojiProps) => {
 
     const color = props.color;
+    const { shape } = props;
 
     // Simplified variants for CreatorMoji.
     const eyeVariants = {
@@ -135,6 +136,18 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
     const pupilY = useMotionValue(0);
     const pupilScale = useMotionValue(1);
 
+    const getShapeClipPath = (s: ShapeType) => {
+        const paths: Record<ShapeType, string> = {
+            default: '50%',
+            sphere: '50%',
+            square: '10%',
+            squircle: '30%',
+            tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
+            clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
+        };
+        return paths[s] || paths.default;
+    };
+
     return (
         <motion.div 
             className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
@@ -151,18 +164,21 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
             >
                 <motion.div 
                     className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
-                    style={{ borderRadius: '50%' }}
+                    animate={{ borderRadius: getShapeClipPath(shape) }}
+                    transition={{ duration: 0.3 }}
                 >
                     <motion.div 
                         className="w-full h-full bg-gradient-to-br from-white/30 to-transparent flex items-center justify-center relative overflow-hidden"
-                        style={{ backgroundColor: color, borderRadius: '50%' }}
+                        style={{ backgroundColor: color }}
+                        animate={{ borderRadius: getShapeClipPath(shape) }}
+                        transition={{ duration: 0.2 }}
                     >
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20200%20200%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cfilter%20id%3D%22noiseFilter%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%220.65%22%20numOctaves%3D%223%22%20stitchTiles%3D%22stitch%22/%3E%3C/filter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-10"></div>
                          <motion.div
                             className="absolute top-4 left-4 w-2/3 h-1/3 bg-white/20 rounded-full"
                             style={{ filter: 'blur(20px)', transform: 'rotate(-30deg)' }}
                          />
-                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: '50%' }}>
+                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: getShapeClipPath(shape) }}>
                             <motion.div
                                 className="absolute inset-0 flex items-center justify-center"
                                 style={{ x: props.feature_offset_x, y: props.feature_offset_y }}
