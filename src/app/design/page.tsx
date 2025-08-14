@@ -36,7 +36,7 @@ type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
+type ModelType = 'emoji' | 'loki' | 'rimuru';
 
 
 export type EmojiState = {
@@ -64,33 +64,6 @@ export type EmojiState = {
       picture: string;
     }
 };
-
-const CreatorBall = (props: React.ComponentProps<typeof Face>) => (
-    <div className="relative w-80 h-96">
-        {/* Base dark grey sphere */}
-        <motion.div
-            className="w-full h-64 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style={{
-                background: 'radial-gradient(circle at 50% 40%, #555, #222)',
-                boxShadow: 'inset 0 10px 20px rgba(0,0,0,0.5), 0 10px 15px rgba(0,0,0,0.3)'
-            }}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-        >
-            <div 
-                className="absolute top-8 left-8 w-24 h-12 bg-white/10 rounded-full"
-                style={{ filter: 'blur(15px)', transform: 'rotate(-30deg)'}}
-            />
-        </motion.div>
-        
-        {/* The editable face features on top */}
-        <div className="absolute inset-0">
-             <Face {...props} color="transparent" setColor={() => {}} />
-        </div>
-    </div>
-);
-
 
 const DesignPageContent = () => {
   const router = useRouter();
@@ -123,7 +96,6 @@ const DesignPageContent = () => {
   const defaultEmojiColor = '#ffb300';
   const defaultLokiColor = 'orangered';
   const defaultRimuruColor = '#3498db';
-  const defaultCreatorColor = '#333333';
   
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -343,8 +315,6 @@ const DesignPageContent = () => {
         setEmojiColor(defaultLokiColor);
     } else if (newModel === 'rimuru') {
         setEmojiColor(defaultRimuruColor);
-    } else if (newModel === 'creator') {
-        setEmojiColor(defaultCreatorColor);
     } else {
         setEmojiColor(defaultEmojiColor);
     }
@@ -449,7 +419,7 @@ const DesignPageContent = () => {
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={(model === 'loki' || model === 'rimuru' || model === 'creator') && name === 'blob'}
+                            disabled={(model === 'loki' || model === 'rimuru') && name === 'blob'}
                             className="md:w-full"
                         >
                             {label}
@@ -596,11 +566,11 @@ const DesignPageContent = () => {
             { name: 'Save', icon: Save, action: handleSave, menu: null },
             { name: 'Caption', icon: Captions, action: () => setActiveMenu('caption'), menu: 'caption' },
             { name: 'Expressions', icon: Smile, action: () => setActiveMenu('expressions'), menu: 'expressions' },
-            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji', 'creator'] },
+            { name: 'Face', icon: UserIcon, action: () => setActiveMenu('face'), menu: 'face', models: ['emoji'] },
             { name: 'Animations', icon: Sparkles, action: () => setActiveMenu('animations'), menu: 'animations' },
             { name: 'Shapes', icon: Square, action: () => setActiveMenu('shapes'), menu: 'shapes' },
             { name: 'Colors', icon: Palette, action: () => setActiveMenu('colors'), menu: 'colors' },
-            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru', 'creator'] },
+            { name: 'Accessories', icon: Glasses, action: () => setActiveMenu('accessories'), menu: 'accessories', models: ['emoji', 'rimuru'] },
             { name: 'Filters', icon: Camera, action: () => setActiveMenu('filters'), menu: 'filters' },
             { name: 'Random', icon: Wand2, action: handleRandomize, menu: null }
         ];
@@ -646,8 +616,6 @@ const DesignPageContent = () => {
     };
 
     switch(model) {
-        case 'creator':
-            return <CreatorBall {...faceProps} color={emoji_color} setColor={setEmojiColor} />;
         case 'emoji':
             return <Face color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
         case 'loki':
@@ -714,9 +682,6 @@ const DesignPageContent = () => {
                   <TooltipContent><p>Rimuru Slime Model</p></TooltipContent>
               </Tooltip>
           </div>
-          <div className="absolute top-4 right-4 z-20">
-            <Button onClick={() => handleModelChange('creator')}>Create</Button>
-          </div>
           
           <motion.div
             className="w-80 h-96 flex items-center justify-center select-none"
@@ -759,5 +724,3 @@ export default function DesignPage() {
       </React.Suspense>
     );
 }
-
-    
