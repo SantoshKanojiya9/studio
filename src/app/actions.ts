@@ -512,10 +512,9 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
 export async function getFeedMoods() {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-        .rpc('get_feed_moods', { p_user_id: user.id });
+    
+    // Pass user ID as text, which the function now expects
+    const { data, error } = await supabase.rpc('get_feed_moods', { p_user_id: user?.id });
 
     if (error) {
         console.error("Error fetching feed moods via RPC", error);
@@ -700,6 +699,7 @@ export async function searchUsers(query: string) {
         return [];
     }
 
+    // Pass user ID as text, which the function now expects
     const { data, error } = await supabase
         .rpc('search_users', { p_search_term: query, p_user_id: user?.id });
 
