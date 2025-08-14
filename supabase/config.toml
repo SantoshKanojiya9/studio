@@ -37,6 +37,10 @@ sql = "select public.purge_deleted_users();"
 schedule = "0 * * * *" # Every hour at the start of the hour
 sql = "select public.purge_old_notifications();"
 
+[db.cron.purge_moods_job]
+schedule = "0 * * * *" # Every hour at the start of the hour
+sql = "select public.purge_old_moods();"
+
 
 [db.pooler]
 enabled = false
@@ -252,4 +256,3 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
-
