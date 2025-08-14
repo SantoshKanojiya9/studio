@@ -603,6 +603,7 @@ export async function getExplorePosts({ page = 1, limit = 12 }: { page: number, 
 
 export async function searchUsers(query: string) {
     const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
     
     if (!query.trim()) {
         return [];
@@ -610,7 +611,7 @@ export async function searchUsers(query: string) {
 
     // Using the search_users RPC function
     const { data, error } = await supabase
-        .rpc('search_users', { p_search_term: query });
+        .rpc('search_users', { p_search_term: query, p_user_id: user?.id || '' });
 
     if (error) {
         console.error("Failed to search users via RPC", error);
