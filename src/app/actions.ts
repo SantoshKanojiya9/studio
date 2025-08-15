@@ -142,23 +142,7 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
 
-    const users = (data || []) as any[];
-    if (users.length > 0) {
-        const userIds = users.map(u => u.id);
-        const { data: moods, error: moodsError } = await supabase
-            .from('moods')
-            .select('user_id')
-            .in('user_id', userIds);
-        
-        if(moodsError) {
-            console.error('Error fetching moods for supporters list:', moodsError);
-        }
-        
-        const userIdsWithMoods = new Set(moods?.map(m => m.user_id) || []);
-        return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
-    }
-
-    return users as UserWithSupportStatus[];
+    return (data || []) as UserWithSupportStatus[];
 }
 
 export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
@@ -178,23 +162,7 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
     
-    const users = (data || []) as any[];
-    if (users.length > 0) {
-        const userIds = users.map(u => u.id);
-        const { data: moods, error: moodsError } = await supabase
-            .from('moods')
-            .select('user_id')
-            .in('user_id', userIds);
-
-        if(moodsError) {
-            console.error('Error fetching moods for supporting list:', moodsError);
-        }
-
-        const userIdsWithMoods = new Set(moods?.map(m => m.user_id) || []);
-        return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
-    }
-    
-    return users as UserWithSupportStatus[];
+    return (data || []) as UserWithSupportStatus[];
 }
 
 
@@ -377,17 +345,20 @@ export async function recordMoodView(moodId: number) {
     }
 }
 
-export async function getMoodViewers(moodId: number): Promise<{ id: string; name: string; picture: string; }[]> {
+export async function getMoodViewers(moodId: number): Promise<UserWithSupportStatus[]> {
     const supabase = createSupabaseServerClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) return [];
+    
     const { data, error } = await supabase
-        .rpc('get_mood_viewers', { p_mood_id: moodId });
+        .rpc('get_mood_viewers', { p_mood_id: moodId, p_current_user_id: currentUser.id });
 
     if (error) {
         console.error('Error getting mood viewers:', error);
         return [];
     }
     
-    return data as { id: string; name: string; picture: string; }[];
+    return (data || []) as UserWithSupportStatus[];
 }
 
 // --- Like Actions ---
@@ -501,7 +472,7 @@ export async function getLikers({ emojiId, page = 1, limit = 15 }: { emojiId: st
         return [];
     }
     
-    return data as UserWithSupportStatus[];
+    return (data || []) as UserWithSupportStatus[];
 }
 
 

@@ -42,6 +42,7 @@ import { LikeButton } from './like-button';
 import { TimeRemaining } from './time-remaining';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { UserListItem } from './user-list-item';
 
 const LikerListSheet = dynamic(() => import('@/components/liker-list-sheet'), { ssr: false });
 
@@ -71,6 +72,9 @@ interface Viewer {
   id: string;
   name: string;
   picture: string;
+  is_private: boolean;
+  support_status: 'approved' | 'pending' | null;
+  has_mood: boolean;
 }
 
 export interface PostViewEmoji extends EmojiState {
@@ -387,7 +391,7 @@ export function PostView({
       setIsViewersSheetOpen(true);
       try {
           const fetchedViewers = await getMoodViewers(currentEmojiState.mood_id);
-          setViewers(fetchedViewers);
+          setViewers(fetchedViewers as Viewer[]);
       } catch (error) {
           console.error("Failed to fetch viewers", error);
           toast({ title: "Error", description: "Could not load viewers.", variant: "destructive" });
@@ -603,22 +607,22 @@ export function PostView({
                 <SheetHeader>
                   <SheetTitle>Viewers</SheetTitle>
                 </SheetHeader>
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto no-scrollbar">
                   {isFetchingViewers ? (
                     <div className="flex justify-center items-center h-full">
                       <Loader2 className="h-6 w-6 animate-spin" />
                     </div>
                   ) : viewers.length > 0 ? (
-                    <div className="flex flex-col gap-4 py-4">
-                      {viewers.map((viewer) => (
-                        <Link href={`/gallery?userId=${viewer.id}`} key={viewer.id} className="flex items-center gap-3">
-                          <Avatar>
-                            <Image src={viewer.picture} alt={viewer.name} data-ai-hint="profile picture" width={40} height={40} className="rounded-full" />
-                            <AvatarFallback>{viewer.name ? viewer.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-semibold">{viewer.name}</span>
-                        </Link>
-                      ))}
+                    <div className="flex flex-col gap-1 p-2">
+                        {viewers.map((viewer) => (
+                           <UserListItem 
+                                key={viewer.id} 
+                                itemUser={viewer} 
+                                onSupportChange={(changedUserId, newStatus) => {
+                                    setViewers(prev => prev.map(v => v.id === changedUserId ? {...v, support_status: newStatus} : v));
+                                }}
+                            />
+                        ))}
                     </div>
                   ) : (
                     <div className="text-center text-muted-foreground py-10">
