@@ -289,7 +289,7 @@ export default function MoodPage() {
             user={user}
             moods={moods}
             isLoading={isLoading}
-            onSelectMood={(index) => handleSelectMood(moods[index])}
+            onSelectMood={(index) => handleSelectMood(moods[moods.findIndex(m => m.mood_user_id === user?.id) === index ? 0 : index])}
         />
       
         <div className="flex-1 relative">
