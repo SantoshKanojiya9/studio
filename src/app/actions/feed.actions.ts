@@ -123,14 +123,16 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
 
     const emojiIds = posts.map(p => p.id);
     
-    const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
-    const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
+    const [likeCountsData, likedStatuses] = await Promise.all([
+        supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds }),
+        supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds)
+    ]);
+    
+    if (likeCountsData.error) console.error("Error getting like counts:", likeCountsData.error);
+    if (likedStatuses.error) console.error("Error getting liked status:", likedStatuses.error);
 
-    if (likeCountsError) console.error("Error getting like counts:", likeCountsError);
-    if (likedError) console.error("Error getting liked status:", likedError);
-
-    const likeCountsMap = new Map(likeCountsData?.map((l: any) => [l.emoji_id, l.like_count]) || []);
-    const likedSet = new Set(likedStatuses?.map(l => l.emoji_id) || []);
+    const likeCountsMap = new Map(likeCountsData.data?.map((l: any) => [l.emoji_id, l.like_count]) || []);
+    const likedSet = new Set(likedStatuses.data?.map(l => l.emoji_id) || []);
 
     return posts.map(post => ({
         ...(post as unknown as EmojiState),

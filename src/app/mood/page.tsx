@@ -105,10 +105,10 @@ export default function MoodPage() {
                     moodPageCache.feedPosts = updatedPosts;
                     return updatedPosts;
                 });
-                const nextPage = page + 1;
-                setPage(nextPage);
-                moodPageCache.page = nextPage;
             }
+             const nextPage = page + 1;
+             setPage(nextPage);
+             moodPageCache.page = nextPage;
 
         } catch (error: any) {
             console.error("Failed to fetch posts:", error);
