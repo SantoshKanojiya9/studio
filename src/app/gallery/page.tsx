@@ -61,15 +61,6 @@ interface GalleryEmoji extends EmojiState {
     is_liked: boolean;
 }
 
-const galleryCache: {
-    [userId: string]: {
-        posts: GalleryEmoji[],
-        page: number,
-        hasMore: boolean,
-        scrollPosition: number
-    }
-} = {};
-
 const MemoizedThumbnail = React.memo(GalleryThumbnail);
 
 function GalleryPageContent() {
@@ -83,7 +74,7 @@ function GalleryPageContent() {
     const viewingUserId = isOwnProfile ? authUser?.id : userId;
 
     const [profileUser, setProfileUser] = React.useState<ProfileUser | null>(null);
-    const [savedEmojis, setSavedEmojis] = useState<GalleryEmoji[]>(viewingUserId ? galleryCache[viewingUserId]?.posts || [] : []);
+    const [savedEmojis, setSavedEmojis] = useState<GalleryEmoji[]>([]);
     const [selectedEmojiId, setSelectedEmojiId] = React.useState<string | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
@@ -91,7 +82,7 @@ function GalleryPageContent() {
     const [supportingCount, setSupportingCount] = React.useState(0);
     const [postCount, setPostCount] = React.useState(0);
     
-    const [canViewContent, setCanViewContent] = useState(true); // Default to true, server will validate
+    const [canViewContent, setCanViewContent] = useState(true);
 
     const onSupportStatusChange = useCallback((newStatus: 'approved' | 'pending' | null, oldStatus: 'approved' | 'pending' | null) => {
         // Optimistically update supporter count
@@ -106,7 +97,7 @@ function GalleryPageContent() {
 
         // If user is approved, reload content to show posts.
         if (newStatus === 'approved') {
-            fetchPosts(1, true); 
+            fetchPosts(true); 
         } else if (oldStatus === 'approved') {
             // If user unsupports, clear posts for private profiles.
             if(profileUser?.is_private) {
@@ -119,65 +110,42 @@ function GalleryPageContent() {
     const [initialSupportStatus, setInitialSupportStatus] = React.useState<'approved' | 'pending' | null>(null);
     const { supportStatus, isLoading: isSupportLoading, handleSupportToggle } = useSupport(viewingUserId, initialSupportStatus, profileUser?.is_private, undefined, onSupportStatusChange);
     
-    const [page, setPage] = useState(viewingUserId ? galleryCache[viewingUserId]?.page || 1 : 1);
-    const [hasMore, setHasMore] = useState(viewingUserId ? galleryCache[viewingUserId]?.hasMore ?? true : true);
-    const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [isInitialPostsLoading, setIsInitialPostsLoading] = useState(true);
 
     const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
     const [sheetContent, setSheetContent] = React.useState<'supporters' | 'supporting' | null>(null);
     
-    const loaderRef = useRef(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    const fetchPosts = useCallback(async (pageNum: number, isInitial = false) => {
-        if (!viewingUserId || isFetchingMore) return;
+    const fetchPosts = useCallback(async (isInitial = false) => {
+        if (!viewingUserId) return;
         
         if (isInitial) {
             setIsInitialPostsLoading(true);
         }
-        setIsFetchingMore(true);
 
         try {
-            const newPosts = await getGalleryPosts({ userId: viewingUserId, page: pageNum, limit: 9 });
+            const newPosts = await getGalleryPosts({ userId: viewingUserId });
 
-            // If it's the first page load for a private profile and no posts are returned,
-            // it means the user doesn't have access.
-            if (pageNum === 1 && newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
+            if (newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
                 setCanViewContent(false);
             } else {
                 setCanViewContent(true);
             }
 
-            if (newPosts.length < 9) {
-                setHasMore(false);
-                if (galleryCache[viewingUserId]) galleryCache[viewingUserId].hasMore = false;
-            }
-
-            setSavedEmojis(prev => {
-                const existingIds = new Set(prev.map(p => p.id));
-                const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id));
-                const updatedPosts = pageNum === 1 ? newPosts : [...prev, ...uniqueNewPosts] as GalleryEmoji[];
-                if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedPosts;
-                return updatedPosts;
-            });
+            setSavedEmojis(newPosts as GalleryEmoji[]);
             
-            const nextPage = pageNum + 1;
-            setPage(nextPage);
-            if (galleryCache[viewingUserId]) galleryCache[viewingUserId].page = nextPage;
-
         } catch (error: any) {
             console.error("Failed to load posts:", error);
             toast({ title: "Failed to load posts", description: error.message, variant: 'destructive' });
         } finally {
-            setIsFetchingMore(false);
             if (isInitial) {
                 setIsInitialPostsLoading(false);
             }
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [viewingUserId, toast, isFetchingMore, isOwnProfile, profileUser, supportStatus]);
+    }, [viewingUserId, toast, isOwnProfile, profileUser, supportStatus]);
 
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
@@ -211,12 +179,11 @@ function GalleryPageContent() {
                 setInitialSupportStatus(status);
             }
             
-            // Now that we have profile info, we can determine access for the first post fetch
             const canViewInitial = !userProfile.is_private || isOwnProfile || status === 'approved';
             setCanViewContent(canViewInitial);
             
             if (canViewInitial) {
-                await fetchPosts(1, true);
+                await fetchPosts(true);
             } else {
                 setIsInitialPostsLoading(false);
             }
@@ -236,64 +203,11 @@ function GalleryPageContent() {
             setIsInitialPostsLoading(false);
             return;
         }
-
-        if (!galleryCache[viewingUserId]) {
-             galleryCache[viewingUserId] = {
-                posts: [],
-                page: 1,
-                hasMore: true,
-                scrollPosition: 0
-            };
-        }
-        
         fetchProfileInfo();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewingUserId]);
     
-     // Infinite scroll observer
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            const target = entries[0];
-            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading && canViewContent) {
-               fetchPosts(page);
-            }
-        }, { root: scrollContainerRef.current, rootMargin: '400px', threshold: 0 });
-
-        const currentLoader = loaderRef.current;
-        if (currentLoader) {
-            observer.observe(currentLoader);
-        }
-        
-        return () => {
-            if(currentLoader) {
-                observer.unobserve(currentLoader);
-            }
-        }
-    }, [fetchPosts, hasMore, isFetchingMore, isLoading, page, canViewContent]);
-
-    // Save and restore scroll position
-    useEffect(() => {
-        const scrollable = scrollContainerRef.current;
-        if (!scrollable || !viewingUserId) return;
-
-        const handleScroll = () => {
-            if (galleryCache[viewingUserId]) {
-                galleryCache[viewingUserId].scrollPosition = scrollable.scrollTop;
-            }
-        };
-
-        if (galleryCache[viewingUserId] && galleryCache[viewingUserId].scrollPosition > 0) {
-            scrollable.scrollTop = galleryCache[viewingUserId].scrollPosition;
-        }
-
-        scrollable.addEventListener('scroll', handleScroll, { passive: true });
-        return () => {
-            scrollable.removeEventListener('scroll', handleScroll);
-        };
-    }, [viewingUserId]);
-
-
     const handleDelete = async (emojiId: string) => {
         if (!supabase || !viewingUserId) return;
         try {
@@ -302,7 +216,6 @@ function GalleryPageContent() {
 
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
-            if (galleryCache[viewingUserId]) galleryCache[viewingUserId].posts = updatedEmojis;
 
             setSelectedEmojiId(null);
             toast({ title: 'Post deleted', variant: 'success' })
@@ -315,7 +228,6 @@ function GalleryPageContent() {
     const handleSignOut = async () => {
         setShowSignOutConfirm(false);
         if (!supabase) return;
-        Object.keys(galleryCache).forEach(key => delete galleryCache[key]); // Clear all cache on sign out
         await supabase.auth.signOut();
         router.push('/');
     };
@@ -446,7 +358,6 @@ function GalleryPageContent() {
     
     const showLoadingScreen = isLoading || isInitialPostsLoading;
 
-    // Prepare data for PostView, ensuring the user object is correctly structured
     const postsForView = savedEmojis.map(emoji => ({
         ...emoji,
         user: {
@@ -538,7 +449,6 @@ function GalleryPageContent() {
                                                 <MemoizedThumbnail key={emoji.id} emoji={emoji} onSelect={() => setSelectedEmojiId(emoji.id)} />
                                             ))}
                                         </motion.div>
-                                        {hasMore && <div ref={loaderRef} className="flex justify-center p-4"><Loader2 className="h-6 w-6 animate-spin"/></div>}
                                     </>
                                 ) : (
                                     <div className="flex flex-col h-full items-center justify-center text-center p-8 gap-4 text-muted-foreground">

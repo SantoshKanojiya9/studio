@@ -693,7 +693,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     }));
 }
 
-export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId: string, page: number, limit: number }) {
+export async function getGalleryPosts({ userId }: { userId: string }) {
     const supabase = createSupabaseServerClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
@@ -701,8 +701,7 @@ export async function getGalleryPosts({ userId, page = 1, limit = 9 }: { userId:
         .from('emojis')
         .select('*, user:users!inner(id, name, picture)')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+        .order('created_at', { ascending: false });
     
     if (postsError) {
         console.error('Error fetching gallery posts:', postsError);
