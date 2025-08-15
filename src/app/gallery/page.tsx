@@ -135,6 +135,7 @@ function GalleryPageContent() {
             }
 
             setSavedEmojis(newPosts as GalleryEmoji[]);
+            setPostCount(newPosts.length); // Also update post count from the fresh fetch
             
         } catch (error: any) {
             console.error("Failed to load posts:", error);
@@ -159,9 +160,11 @@ function GalleryPageContent() {
             
             setProfileUser(userProfile);
 
+            // Fetch counts, but post count will be quickly updated by cached posts
             const [supporters, following, postCountResult] = await Promise.all([
                 getSupporterCount(viewingUserId),
                 getSupportingCount(viewingUserId),
+                // We still fetch this to have a background update, but the cached post length is shown first
                 supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId),
             ]);
 
@@ -204,6 +207,7 @@ function GalleryPageContent() {
         const cachedPosts = getPostsByUserFromCache(viewingUserId);
         if (cachedPosts.length > 0) {
             setSavedEmojis(cachedPosts as GalleryEmoji[]);
+            setPostCount(cachedPosts.length); // Instantly set post count from cache
             setIsLoading(false); // Stop the main loader
             setIsInitialPostsLoading(false); // Stop the post loader
         } else {
@@ -225,6 +229,7 @@ function GalleryPageContent() {
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
             updatePostCache(updatedEmojis);
+            setPostCount(updatedEmojis.length); // Update count after deletion
 
             setSelectedEmojiId(null);
             toast({ title: 'Post deleted', variant: 'success' })
