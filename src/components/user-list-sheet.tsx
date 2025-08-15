@@ -90,7 +90,7 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
     }, [type, userId, isFetchingMore, toast, cacheKey]);
 
     useEffect(() => {
-        if (open && userId) {
+        if (open && userId && type) {
             if (!userListCache[cacheKey]) {
                  userListCache[cacheKey] = {
                     items: [],
@@ -111,7 +111,8 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
                 }, 0);
             }
         }
-    }, [open, userId, fetchUsers, cacheKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, userId, type]);
 
     useEffect(() => {
         const scrollable = scrollContainerRef.current;
@@ -191,3 +192,5 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
         </Sheet>
     )
 }
+
+    

@@ -142,14 +142,19 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
 
-    // Manually add has_mood if it's not in the RPC response
     const users = data as any[];
-    if (users.length > 0 && users[0].has_mood === undefined) {
+    if (users.length > 0) {
         const userIds = users.map(u => u.id);
-        const { data: moods } = await supabase
+        const { data: moods, error: moodsError } = await supabase
             .from('moods')
             .select('user_id')
             .in('user_id', userIds);
+        
+        if(moodsError) {
+            console.error('Error fetching moods for supporters list:', moodsError);
+            return users.map(u => ({ ...u, has_mood: false }));
+        }
+        
         const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
         return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
     }
@@ -174,14 +179,19 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
     
-    // Manually add has_mood if it's not in the RPC response
     const users = data as any[];
-    if (users.length > 0 && users[0].has_mood === undefined) {
+    if (users.length > 0) {
         const userIds = users.map(u => u.id);
-        const { data: moods } = await supabase
+        const { data: moods, error: moodsError } = await supabase
             .from('moods')
             .select('user_id')
             .in('user_id', userIds);
+
+        if(moodsError) {
+            console.error('Error fetching moods for supporting list:', moodsError);
+            return users.map(u => ({ ...u, has_mood: false }));
+        }
+
         const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
         return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
     }
@@ -835,3 +845,5 @@ export async function searchUsers(query: string) {
 }
 
   
+
+    
