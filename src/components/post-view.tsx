@@ -290,7 +290,8 @@ export function PostView({
   
   const { user } = useAuth();
   const { toast } = useToast();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const loaderRef = useRef<HTMLDivElement | null>(null);
   
   const progressWidth = useMotionValue('0%');
   const animationControlsRef = useRef<ReturnType<typeof animate> | null>(null);
@@ -372,32 +373,29 @@ export function PostView({
     }
   }, [isViewersSheetOpen, isMoodView]);
 
-
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !fetchMore) return;
+    if (!fetchMore || isMoodView) return;
 
-    const handleScroll = () => {
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100 && hasMore) {
-           fetchMore();
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting && hasMore) {
+                fetchMore();
+            }
+        },
+        { threshold: 1.0 }
+    );
+
+    const currentLoader = loaderRef.current;
+    if (currentLoader) {
+        observer.observe(currentLoader);
+    }
+
+    return () => {
+        if (currentLoader) {
+            observer.unobserve(currentLoader);
         }
     };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [fetchMore, hasMore]);
-  
-  useEffect(() => {
-    if (isMoodView) return;
-
-    const container = scrollContainerRef.current;
-    if (container) {
-      const postElement = container.children[initialIndex] as HTMLElement;
-      if (postElement) {
-        container.scrollTop = postElement.offsetTop;
-      }
-    }
-  }, [initialIndex, isMoodView]);
+  }, [fetchMore, hasMore, isMoodView]);
 
 
   const handleDeleteClick = (id: string) => {
@@ -679,7 +677,6 @@ export function PostView({
           }
 
           <div 
-              ref={scrollContainerRef}
               className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
           >
               {localEmojis.map((emoji) => {
@@ -695,7 +692,7 @@ export function PostView({
                   )
               })}
               {hasMore && (
-                  <div className="flex justify-center items-center p-4">
+                  <div ref={loaderRef} className="flex justify-center items-center p-4">
                       <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
                   </div>
               )}
