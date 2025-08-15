@@ -33,7 +33,7 @@ export default function RootLayout({
         <title>Edengram</title>
         <meta name="description" content="AI Chat and Image Generation" />
       </head>
-      <body className={cn("font-body antialiased bg-background")}>
+      <body className={cn("font-body antialiased bg-background overflow-x-hidden")}>
         <AuthProvider>
           <React.Suspense fallback={<TopLoader />}>
             <TopLoader />
