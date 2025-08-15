@@ -73,6 +73,7 @@ const DesignPageContent = () => {
   const [id, setId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [model, setModel] = useState<ModelType>('emoji');
   const [expression, setExpression] = useState<Expression>('neutral');
@@ -102,14 +103,67 @@ const DesignPageContent = () => {
   const feature_offset_x = useMotionValue(0);
   const feature_offset_y = useMotionValue(0);
 
+  const applyEmojiState = (emoji: EmojiState) => {
+    setId(emoji.id);
+    setModel(emoji.model);
+    setExpression(emoji.expression);
+    setBackgroundColor(emoji.background_color);
+    setEmojiColor(emoji.emoji_color);
+    setShowSunglasses(emoji.show_sunglasses);
+    setShowMustache(emoji.show_mustache);
+    setSelectedFilter(emoji.selected_filter);
+    setAnimationType(emoji.animation_type);
+    setShape(emoji.shape);
+    setEyeStyle(emoji.eye_style);
+    setMouthStyle(emoji.mouth_style);
+    setEyebrowStyle(emoji.eyebrow_style);
+    feature_offset_x.set(emoji.feature_offset_x);
+    feature_offset_y.set(emoji.feature_offset_y);
+    setCaption(emoji.caption || '');
+  }
+
   useEffect(() => {
-    handleReset();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const emojiId = searchParams.get('emojiId');
+
+    const fetchAndApplyEmoji = async () => {
+        if (!emojiId || !supabase) {
+            handleReset(false); // Reset but don't navigate
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from('emojis')
+                .select('*')
+                .eq('id', emojiId)
+                .single();
+
+            if (error) {
+                toast({ title: 'Error loading creation', description: "Could not find the specified creation.", variant: 'destructive'});
+                router.replace('/design', undefined);
+                handleReset();
+            } else if (data) {
+                applyEmojiState(data as EmojiState);
+            }
+        } catch (err: any) {
+            toast({ title: 'Error', description: err.message, variant: 'destructive'});
+            router.replace('/design', undefined);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchAndApplyEmoji();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [searchParams, supabase, router]);
 
   
-  const handleReset = () => {
-    router.replace('/design', undefined);
+  const handleReset = (navigate = true) => {
+    if (navigate) {
+        router.replace('/design', undefined);
+    }
     setId(null);
     setModel('emoji');
     setExpression('neutral');
@@ -329,6 +383,14 @@ const DesignPageContent = () => {
   ];
   const activeFilterCss = filters.find(f => f.name === selected_filter)?.css || 'none';
 
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div 
@@ -364,7 +426,7 @@ const DesignPageContent = () => {
           setEyebrowStyle={setEyebrowStyle}
           caption={caption}
           setCaption={setCaption}
-          handleReset={handleReset}
+          handleReset={() => handleReset(true)}
           handleSave={handleSave}
           handleRandomize={handleRandomize}
         />
