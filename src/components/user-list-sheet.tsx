@@ -76,11 +76,11 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
     
     // Reset state and fetch data when the sheet is opened
     useEffect(() => {
-        if (open) {
+        if (open && userId) {
             setUserList([]);
             setPage(1);
             setHasMore(true);
-            setIsLoading(true);
+            setIsLoading(false);
             setIsFetchingMore(false);
             fetchUsers(1);
         }
