@@ -98,7 +98,7 @@ function GalleryPageContent() {
 
         // If user is approved, reload content to show posts.
         if (newStatus === 'approved') {
-            fetchPosts(true); 
+            fetchPosts(); 
         } else if (oldStatus === 'approved') {
             // If user unsupports, clear posts for private profiles.
             if(profileUser?.is_private) {
@@ -119,13 +119,9 @@ function GalleryPageContent() {
     
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    const fetchPosts = useCallback(async (isInitial = false) => {
+    const fetchPosts = useCallback(async () => {
         if (!viewingUserId) return;
         
-        if (isInitial) {
-            setIsInitialPostsLoading(true);
-        }
-
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId });
             
@@ -144,25 +140,15 @@ function GalleryPageContent() {
             console.error("Failed to load posts:", error);
             toast({ title: "Failed to load posts", description: error.message, variant: 'destructive' });
         } finally {
-            if (isInitial) {
-                setIsInitialPostsLoading(false);
-            }
+            setIsInitialPostsLoading(false);
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [viewingUserId, toast, isOwnProfile, profileUser, supportStatus]);
 
     const fetchProfileInfo = useCallback(async () => {
         if (!viewingUserId) return;
-        
-        setIsLoading(true);
 
         try {
-            // Check for cached posts first
-            const cachedPosts = getPostsByUserFromCache(viewingUserId);
-            if (cachedPosts.length > 0) {
-                 setSavedEmojis(cachedPosts as GalleryEmoji[]);
-            }
-
             const { data: userProfile, error: userError } = await supabase
                 .from('users')
                 .select('id, name, picture, is_private')
@@ -192,10 +178,8 @@ function GalleryPageContent() {
             const canViewInitial = !userProfile.is_private || isOwnProfile || status === 'approved';
             setCanViewContent(canViewInitial);
             
-            // Fetch posts from server regardless of cache to get latest data.
-            // The UI will have already rendered with cached data if available.
             if (canViewInitial) {
-                await fetchPosts(true);
+                await fetchPosts();
             } else {
                 setIsInitialPostsLoading(false);
             }
@@ -215,6 +199,18 @@ function GalleryPageContent() {
             setIsInitialPostsLoading(false);
             return;
         }
+
+        // Instantly load from cache if available
+        const cachedPosts = getPostsByUserFromCache(viewingUserId);
+        if (cachedPosts.length > 0) {
+            setSavedEmojis(cachedPosts as GalleryEmoji[]);
+            setIsLoading(false); // Stop the main loader
+            setIsInitialPostsLoading(false); // Stop the post loader
+        } else {
+            setIsLoading(true);
+        }
+        
+        // Fetch fresh data in the background
         fetchProfileInfo();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -369,7 +365,7 @@ function GalleryPageContent() {
         );
     }
     
-    const showLoadingScreen = isLoading || (isInitialPostsLoading && savedEmojis.length === 0);
+    const showLoadingScreen = isLoading;
 
     const postsForView = savedEmojis.map(emoji => ({
         ...emoji,
@@ -405,7 +401,7 @@ function GalleryPageContent() {
                              <div className="flex items-center gap-4 md:gap-8">
                                 <div>
                                     <Avatar className="w-20 h-20 md:w-28 md:h-28">
-                                        {profileUser?.picture && <Image src={profileUser.picture} alt={profileUser.name} data-ai-hint="profile picture" width={112} height={112} className="rounded-full" />}
+                                        {profileUser?.picture && <Image src={profileUser.picture} alt={profileUser.name || ''} data-ai-hint="profile picture" width={112} height={112} className="rounded-full" />}
                                         <AvatarFallback>{profileUser?.name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                 </div>
@@ -452,7 +448,9 @@ function GalleryPageContent() {
 
                         <div className="p-1 md:p-4">
                             {canViewContent ? (
-                                savedEmojis.length > 0 ? (
+                                isInitialPostsLoading && savedEmojis.length === 0 ? (
+                                    <div className="flex justify-center items-center h-48"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                                ) : savedEmojis.length > 0 ? (
                                     <>
                                         <motion.div 
                                             layout
