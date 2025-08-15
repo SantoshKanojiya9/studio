@@ -142,7 +142,7 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
 
-    const users = data as any[];
+    const users = (data || []) as any[];
     if (users.length > 0) {
         const userIds = users.map(u => u.id);
         const { data: moods, error: moodsError } = await supabase
@@ -152,14 +152,13 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
         
         if(moodsError) {
             console.error('Error fetching moods for supporters list:', moodsError);
-            return users.map(u => ({ ...u, has_mood: false }));
         }
         
-        const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
+        const userIdsWithMoods = new Set(moods?.map(m => m.user_id) || []);
         return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
     }
 
-    return data as UserWithSupportStatus[];
+    return users as UserWithSupportStatus[];
 }
 
 export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: string, page: number, limit: number }): Promise<UserWithSupportStatus[]> {
@@ -179,7 +178,7 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
         return [];
     }
     
-    const users = data as any[];
+    const users = (data || []) as any[];
     if (users.length > 0) {
         const userIds = users.map(u => u.id);
         const { data: moods, error: moodsError } = await supabase
@@ -189,14 +188,13 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
 
         if(moodsError) {
             console.error('Error fetching moods for supporting list:', moodsError);
-            return users.map(u => ({ ...u, has_mood: false }));
         }
 
-        const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
+        const userIdsWithMoods = new Set(moods?.map(m => m.user_id) || []);
         return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
     }
     
-    return data as UserWithSupportStatus[];
+    return users as UserWithSupportStatus[];
 }
 
 
