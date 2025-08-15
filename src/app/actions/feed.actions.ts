@@ -119,12 +119,9 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
         console.error('Error fetching feed posts:', postsError);
         throw postsError;
     }
-    if (!posts) return [];
+    if (!posts || posts.length === 0) return [];
 
     const emojiIds = posts.map(p => p.id);
-    if (emojiIds.length === 0) {
-        return [];
-    }
     
     const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
     const { data: likedStatuses, error: likedError } = await supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds);
