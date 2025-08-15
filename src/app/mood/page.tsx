@@ -80,13 +80,13 @@ export default function MoodPage() {
         }
     }, [user]);
 
-    const fetchPosts = useCallback(async (pageNum: number) => {
+    const fetchPosts = useCallback(async () => {
         if (isFetchingMore || !hasMore) return;
         setIsFetchingMore(true);
 
         try {
             const limit = 5;
-            const newPosts = await getFeedPosts({ page: pageNum, limit });
+            const newPosts = await getFeedPosts({ page, limit });
             
             if (newPosts.length < limit) {
                 setHasMore(false);
@@ -101,7 +101,7 @@ export default function MoodPage() {
                     moodPageCache.feedPosts = updatedPosts;
                     return updatedPosts;
                 });
-                const nextPage = pageNum + 1;
+                const nextPage = page + 1;
                 setPage(nextPage);
                 moodPageCache.page = nextPage;
             }
@@ -112,7 +112,7 @@ export default function MoodPage() {
         } finally {
             setIsFetchingMore(false);
         }
-    }, [isFetchingMore, toast, hasMore]);
+    }, [isFetchingMore, toast, hasMore, page]);
     
     const loadInitialData = useCallback(async (forceRefresh = false) => {
         if (!user) {
@@ -173,21 +173,6 @@ export default function MoodPage() {
         loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
-
-    // Infinite scroll for PostView
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        const handleScroll = () => {
-            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
-                fetchPosts(page);
-            }
-        };
-
-        container.addEventListener('scroll', handleScroll);
-        return () => container.removeEventListener('scroll', handleScroll);
-    }, [fetchPosts, page]);
 
     const handleRefresh = useCallback(async () => {
         moodPageCache.feedPosts = null; 
@@ -275,6 +260,8 @@ export default function MoodPage() {
                     setFeedPosts(newPosts);
                     moodPageCache.feedPosts = newPosts;
                 }}
+                fetchMore={fetchPosts}
+                hasMore={hasMore}
             />
           );
       }

@@ -94,6 +94,8 @@ interface PostViewProps {
   onDelete?: (id: string) => void;
   isMoodView?: boolean;
   showNav?: boolean;
+  fetchMore?: () => void;
+  hasMore?: boolean;
 }
 
 const filters = [
@@ -272,7 +274,9 @@ export function PostView({
     onClose, 
     onDelete, 
     isMoodView = false,
-    showNav = true
+    showNav = true,
+    fetchMore,
+    hasMore,
 }: PostViewProps) {
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -292,6 +296,10 @@ export function PostView({
   const animationControlsRef = useRef<ReturnType<typeof animate> | null>(null);
   
   const currentEmojiState = localEmojis[currentIndex];
+
+  useEffect(() => {
+    setLocalEmojis(emojis);
+  }, [emojis]);
 
   useEffect(() => {
     if (!currentEmojiState) {
@@ -365,6 +373,20 @@ export function PostView({
   }, [isViewersSheetOpen, isMoodView]);
 
 
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !fetchMore) return;
+
+    const handleScroll = () => {
+        if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100 && hasMore) {
+           fetchMore();
+        }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [fetchMore, hasMore]);
+  
   useEffect(() => {
     if (isMoodView) return;
 
