@@ -277,7 +277,7 @@ export default function MoodPage() {
   }
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden">
+    <div className="flex h-full w-full flex-col overflow-x-hidden">
       <MoodHeader>
           <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={isLoading}>
               <RefreshCw className={isLoading ? "animate-spin" : ""} />
