@@ -694,6 +694,11 @@ export function PostView({
                     </div>
                   )
               })}
+              {hasMore && (
+                  <div className="flex justify-center items-center p-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  </div>
+              )}
           </div>
       </div>
       <AlertDialog open={!!emojiToSetMood} onOpenChange={(isOpen) => !isOpen && setEmojiToSetMood(null)}>
