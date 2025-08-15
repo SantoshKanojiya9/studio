@@ -158,7 +158,7 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'clay_width' | 'clay_height'> & { clay_width?: number, clay_height?: number } = {
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'clay_width' | 'clay_height'> = {
         user_id: user.id,
         model,
         expression,
@@ -166,7 +166,7 @@ const DesignPageContent = () => {
         emoji_color,
         show_sunglasses,
         show_mustache,
-        selected_filter,
+        selected_filter: selected_filter === 'None' ? null : selected_filter,
         animation_type,
         shape,
         eye_style,
@@ -177,11 +177,6 @@ const DesignPageContent = () => {
         caption,
     };
     
-    if (model === 'creator' && shape === 'clay') {
-        emojiData.clay_width = clayWidth;
-        emojiData.clay_height = clayHeight;
-    }
-
     try {
         let result;
         if (id) {
@@ -227,38 +222,27 @@ const DesignPageContent = () => {
       clearTimeout(dragTimeoutRef.current);
     }
     setIsDragging(true);
-    if (shape === 'clay') {
-        dragOrigin.current = { x: clayWidth, y: clayHeight };
-    } else {
-        dragOrigin.current = { x: feature_offset_x.get(), y: feature_offset_y.get() };
-    }
+    dragOrigin.current = { x: feature_offset_x.get(), y: feature_offset_y.get() };
   };
 
   const handlePan = (_: any, info: any) => {
     if (dragOrigin.current) {
-        if (shape === 'clay') {
-            const newWidth = dragOrigin.current.x + info.offset.x;
-            const newHeight = dragOrigin.current.y + info.offset.y;
-            setClayWidth(Math.max(-100, Math.min(100, newWidth)));
-            setClayHeight(Math.max(-100, Math.min(100, newHeight)));
-        } else {
-            const boundaryX = model === 'emoji' ? 80 : 40; 
-            const boundaryY = model === 'emoji' ? 60 : 30;
-            
-            let newX = dragOrigin.current.x + info.offset.x;
-            let newY = dragOrigin.current.y + info.offset.y;
+        const boundaryX = model === 'emoji' ? 80 : 40; 
+        const boundaryY = model === 'emoji' ? 60 : 30;
+        
+        let newX = dragOrigin.current.x + info.offset.x;
+        let newY = dragOrigin.current.y + info.offset.y;
 
-            if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
-                const angle = Math.atan2(newY, newX);
-                const a = boundaryX;
-                const b = boundaryY;
-                newX = a * b / Math.sqrt(b**2 + a**2 * Math.tan(angle)**2) * (newX > 0 ? 1 : -1);
-                newY = newX * Math.tan(angle);
-            }
-
-            feature_offset_x.set(newX);
-            feature_offset_y.set(newY);
+        if ((newX**2 / boundaryX**2) + (newY**2 / boundaryY**2) > 1) {
+            const angle = Math.atan2(newY, newX);
+            const a = boundaryX;
+            const b = boundaryY;
+            newX = a * b / Math.sqrt(b**2 + a**2 * Math.tan(angle)**2) * (newX > 0 ? 1 : -1);
+            newY = newX * Math.tan(angle);
         }
+
+        feature_offset_x.set(newX);
+        feature_offset_y.set(newY);
     }
   };
 
@@ -441,9 +425,6 @@ const DesignPageContent = () => {
           { name: 'tear', icon: Droplet, label: 'Tear' },
           { name: 'blob', icon: Droplet, label: 'Blob' },
         ];
-        if (model === 'creator') {
-            shapes.push({ name: 'clay', icon: Hand, label: 'Clay' });
-        }
         return (
           <div className="flex items-center md:flex-col md:gap-1">
             <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>

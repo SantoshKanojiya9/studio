@@ -277,8 +277,8 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
                 <motion.div 
                     className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
                     style={{
-                        width: `${256 + props.clay_width}px`,
-                        height: `${256 + props.clay_height}px`,
+                        width: `${256}px`,
+                        height: `${256}px`,
                     }}
                     animate={{ borderRadius: getShapeClipPath(shape) }}
                     transition={{ duration: 0.3 }}
