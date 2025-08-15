@@ -6,13 +6,7 @@ import { cookies } from 'next/headers'
 // The `bypassRls` parameter should be used with caution.
 
 export function createSupabaseServerClient(bypassRls = false) {
-  let cookieStore: ReturnType<typeof cookies> | undefined;
-  try {
-    cookieStore = cookies();
-  } catch (error) {
-    // This can happen if cookies() is called outside of a request context.
-    // We'll proceed without a cookie store, which is fine for some operations.
-  }
+  const cookieStore = cookies();
   
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,11 +15,11 @@ export function createSupabaseServerClient(bypassRls = false) {
     {
       cookies: {
         get(name: string) {
-          return cookieStore?.get(name)?.value
+          return cookieStore.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore?.set({ name, value, ...options })
+            cookieStore.set({ name, value, ...options })
           } catch (error) {
             // The `set` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
@@ -34,7 +28,7 @@ export function createSupabaseServerClient(bypassRls = false) {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore?.set({ name, value: '', ...options })
+            cookieStore.set({ name, value: '', ...options })
           } catch (error) {
             // The `delete` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
