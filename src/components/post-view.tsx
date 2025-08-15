@@ -597,7 +597,7 @@ export function PostView({
                 </div>
             </div>
 
-             <div className="absolute inset-0 z-10 flex">
+            <div className="absolute inset-0 z-10 flex">
                 <div className="flex-1" onClick={goToPrev}></div>
                 <div className="flex-1" onClick={goToNext}></div>
             </div>
