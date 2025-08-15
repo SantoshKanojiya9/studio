@@ -1,4 +1,3 @@
-'use server';
 
 export * from './actions/user.actions';
 export * from './actions/support.actions';
