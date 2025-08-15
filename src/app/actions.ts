@@ -668,12 +668,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
 
     const emojiIds = posts.map(p => p.id);
     if (emojiIds.length === 0) {
-        return posts.map(post => ({
-            ...(post as unknown as EmojiState),
-            user: { ...post.user, has_mood: post.user?.moods?.length > 0 } as any,
-            like_count: 0,
-            is_liked: false,
-        }));
+        return [];
     }
     
     const { data: likeCountsData, error: likeCountsError } = await supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds });
