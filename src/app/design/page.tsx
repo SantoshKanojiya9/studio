@@ -35,7 +35,7 @@ import {
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'caption';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay' | 'sphere';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay' | 'sphere' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
 type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
@@ -177,7 +177,7 @@ const DesignPageContent = () => {
         caption,
     };
 
-    if (shape === 'clay') {
+    if (shape === 'clay' && model === 'creator') {
         emojiData.clay_width = clayWidth;
         emojiData.clay_height = clayHeight;
     } else {
@@ -443,8 +443,11 @@ const DesignPageContent = () => {
           { name: 'square', icon: Square, label: 'Square' },
           { name: 'squircle', icon: Square, label: 'Squircle' },
           { name: 'tear', icon: Droplet, label: 'Tear' },
-          { name: 'clay', icon: Hand, label: 'Clay' },
+          { name: 'blob', icon: Droplet, label: 'Blob' },
         ];
+        if (model === 'creator') {
+            shapes.push({ name: 'clay', icon: Hand, label: 'Clay' });
+        }
         return (
           <div className="flex items-center md:flex-col md:gap-1">
             <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>
@@ -456,7 +459,7 @@ const DesignPageContent = () => {
                         <Button 
                             variant={shape === name ? 'secondary' : 'ghost'} 
                             onClick={() => handleShapeToggle(name)}
-                            disabled={(model === 'loki')}
+                            disabled={(model === 'loki' && name === 'blob')}
                             className="md:w-full"
                         >
                             <Icon className="mr-2 h-4 w-4 md:mr-0"/>

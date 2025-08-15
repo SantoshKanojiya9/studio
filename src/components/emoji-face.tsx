@@ -252,6 +252,7 @@ export const Face = ({
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
         clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
         sphere: '50%',
+        blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };

@@ -225,6 +225,7 @@ export const ClockFace = ({
       tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
       clay: '50%', // clay not supported for loki, will default
       sphere: '50%',
+      blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
     return paths[s] || paths.default;
   };
