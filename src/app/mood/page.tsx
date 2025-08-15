@@ -269,6 +269,7 @@ export default function MoodPage() {
              <PostView 
                 emojis={feedPosts}
                 onClose={() => {}}
+                showNav={false}
                 onDelete={(deletedId) => {
                     const newPosts = feedPosts.filter(p => p.id !== deletedId);
                     setFeedPosts(newPosts);

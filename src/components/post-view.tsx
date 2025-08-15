@@ -93,6 +93,7 @@ interface PostViewProps {
   onClose: (emojis?: any[]) => void;
   onDelete?: (id: string) => void;
   isMoodView?: boolean;
+  showNav?: boolean;
 }
 
 const filters = [
@@ -270,7 +271,8 @@ export function PostView({
     initialIndex = 0, 
     onClose, 
     onDelete, 
-    isMoodView = false
+    isMoodView = false,
+    showNav = true
 }: PostViewProps) {
   
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -644,13 +646,15 @@ export function PostView({
   return (
     <>
       <div className="h-full w-full flex flex-col bg-background">
-          <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10 md:hidden">
-              <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
-              <ArrowLeft />
-              </Button>
-              <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
-              <div className="w-10"></div>
-          </header>
+          {showNav &&
+            <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10 md:hidden">
+                <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
+                <ArrowLeft />
+                </Button>
+                <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
+                <div className="w-10"></div>
+            </header>
+          }
 
           <div 
               ref={scrollContainerRef}
