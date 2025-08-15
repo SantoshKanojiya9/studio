@@ -252,21 +252,17 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
         pointerY.set(0.5);
     };
 
-    // Determine if manual interaction should be enabled
-    const isManualInteraction = props.isInteractive && animation_type === 'none';
-
     return (
         <motion.div 
-            className="relative w-80 h-96 flex flex-col items-center justify-center"
+            className="relative w-80 h-96 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing"
             style={{ 
-                cursor: isManualInteraction ? 'grab' : 'default',
                 transformStyle: 'preserve-3d' 
             }}
             onPointerMove={handlePointerMove}
             onPointerLeave={handlePointerLeave}
-            onPan={isManualInteraction ? props.onPan : undefined}
-            onPanStart={isManualInteraction ? props.onPanStart : undefined}
-            onPanEnd={isManualInteraction ? props.onPanEnd : undefined}
+            onPan={props.isInteractive ? props.onPan : undefined}
+            onPanStart={props.isInteractive ? props.onPanStart : undefined}
+            onPanEnd={props.isInteractive ? props.onPanEnd : undefined}
         >
             <motion.div 
                 className="absolute w-64 h-64 z-10 flex items-center justify-center"
