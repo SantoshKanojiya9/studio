@@ -86,7 +86,7 @@ export default function MoodPage() {
         setIsFetchingMore(true);
 
         try {
-            const limit = 5;
+            const limit = 9;
             const newPosts = await getFeedPosts({ page, limit });
 
             // Update the global cache
@@ -134,7 +134,7 @@ export default function MoodPage() {
         try {
             const postsPromise = useCache
                 ? Promise.resolve(moodPageCache.feedPosts)
-                : getFeedPosts({ page: 1, limit: 5 });
+                : getFeedPosts({ page: 1, limit: 9 });
             
             const moodsPromise = (useCache && moodPageCache.moods)
                 ? Promise.resolve(moodPageCache.moods)
@@ -160,7 +160,7 @@ export default function MoodPage() {
                     moodPageCache.page = newPage;
                 }
 
-                if (postsData.length < 5) {
+                if (postsData.length < 9) {
                     setHasMore(false);
                     moodPageCache.hasMore = false;
                 } else {
