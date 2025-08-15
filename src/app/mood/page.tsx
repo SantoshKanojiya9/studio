@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { getFeedPosts, getFeedMoods } from '@/app/actions';
 import MoodStories from '@/components/mood-stories';
 import type { Mood, PostViewEmoji } from '@/components/post-view';
+import { updatePostCache } from '@/lib/post-cache';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -87,6 +88,9 @@ export default function MoodPage() {
         try {
             const limit = 5;
             const newPosts = await getFeedPosts({ page, limit });
+
+            // Update the global cache
+            updatePostCache(newPosts);
             
             if (newPosts.length < limit) {
                 setHasMore(false);
@@ -145,6 +149,9 @@ export default function MoodPage() {
             moodPageCache.moods = moodsData;
             
             if (postsData) {
+                // Update the global cache with initial posts
+                updatePostCache(postsData);
+
                 if (forceRefresh || !useCache) {
                     setFeedPosts(postsData);
                     moodPageCache.feedPosts = postsData;
@@ -299,3 +306,5 @@ export default function MoodPage() {
     </div>
   );
 }
+
+    

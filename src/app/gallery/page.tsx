@@ -34,6 +34,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSupport } from '@/hooks/use-support';
 import Image from 'next/image';
+import { getPostsByUserFromCache, updatePostCache } from '@/lib/post-cache';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -127,6 +128,9 @@ function GalleryPageContent() {
 
         try {
             const newPosts = await getGalleryPosts({ userId: viewingUserId });
+            
+            // Update global cache
+            updatePostCache(newPosts);
 
             if (newPosts.length === 0 && profileUser?.is_private && !isOwnProfile && supportStatus !== 'approved') {
                 setCanViewContent(false);
@@ -153,6 +157,12 @@ function GalleryPageContent() {
         setIsLoading(true);
 
         try {
+            // Check for cached posts first
+            const cachedPosts = getPostsByUserFromCache(viewingUserId);
+            if (cachedPosts.length > 0) {
+                 setSavedEmojis(cachedPosts as GalleryEmoji[]);
+            }
+
             const { data: userProfile, error: userError } = await supabase
                 .from('users')
                 .select('id, name, picture, is_private')
@@ -182,6 +192,8 @@ function GalleryPageContent() {
             const canViewInitial = !userProfile.is_private || isOwnProfile || status === 'approved';
             setCanViewContent(canViewInitial);
             
+            // Fetch posts from server regardless of cache to get latest data.
+            // The UI will have already rendered with cached data if available.
             if (canViewInitial) {
                 await fetchPosts(true);
             } else {
@@ -216,6 +228,7 @@ function GalleryPageContent() {
 
             const updatedEmojis = savedEmojis.filter(emoji => emoji.id !== emojiId);
             setSavedEmojis(updatedEmojis);
+            updatePostCache(updatedEmojis);
 
             setSelectedEmojiId(null);
             toast({ title: 'Post deleted', variant: 'success' })
@@ -356,7 +369,7 @@ function GalleryPageContent() {
         );
     }
     
-    const showLoadingScreen = isLoading || isInitialPostsLoading;
+    const showLoadingScreen = isLoading || (isInitialPostsLoading && savedEmojis.length === 0);
 
     const postsForView = savedEmojis.map(emoji => ({
         ...emoji,
@@ -525,3 +538,5 @@ export default function GalleryPage() {
         </Suspense>
     );
 }
+
+    

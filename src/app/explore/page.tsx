@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { getExplorePosts, searchUsers as searchUsersAction } from '../actions';
 import Image from 'next/image';
+import { updatePostCache } from '@/lib/post-cache';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -92,6 +93,9 @@ export default function ExplorePage() {
           const newPosts: ExploreEmoji[] = newPostsData.map(post => ({
               ...(post as ExploreEmoji)
           }));
+
+          // Update the global cache
+          updatePostCache(newPosts);
 
           if (newPosts.length < limit) {
               setHasMore(false);
@@ -289,3 +293,5 @@ export default function ExplorePage() {
     </div>
   );
 }
+
+    
