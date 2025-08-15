@@ -34,7 +34,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSupport } from '@/hooks/use-support';
 import Image from 'next/image';
-import { getPostsByUserFromCache, updatePostCache, getProfileStatsFromCache, updateProfileStatsCache } from '@/lib/post-cache';
+import { getPostsByUserFromCache, updatePostCache, getProfileStatsFromCache, updateProfileStatsCache, getUserFromCache } from '@/lib/post-cache';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -150,6 +150,12 @@ function GalleryPageContent() {
         if (!viewingUserId) return;
 
         try {
+            // Fetch user from DB, but check cache for picture/name first for instant display
+            const cachedUser = getUserFromCache(viewingUserId);
+            if (cachedUser) {
+                setProfileUser(prev => ({ ...(prev || {} as ProfileUser), id: viewingUserId, ...cachedUser }));
+            }
+
             const { data: userProfile, error: userError } = await supabase
                 .from('users')
                 .select('id, name, picture, is_private')
@@ -203,8 +209,12 @@ function GalleryPageContent() {
         // Instantly load from cache if available
         const cachedPosts = getPostsByUserFromCache(viewingUserId);
         const cachedStats = getProfileStatsFromCache(viewingUserId);
+        const cachedUser = getUserFromCache(viewingUserId);
 
-        if (cachedPosts.length > 0 || cachedStats) {
+        if (cachedPosts.length > 0 || cachedStats || cachedUser) {
+             if (cachedUser) {
+                setProfileUser(prev => ({ ...(prev || {} as ProfileUser), id: viewingUserId, ...cachedUser }));
+            }
             if(cachedPosts.length > 0) {
                 setSavedEmojis(cachedPosts as GalleryEmoji[]);
                 setPostCount(cachedPosts.length);

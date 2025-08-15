@@ -15,6 +15,7 @@ import { updateUserProfile } from '@/app/actions';
 import { Separator } from '@/components/ui/separator';
 import imageCompression from 'browser-image-compression';
 import Image from 'next/image';
+import { updateUserInCache } from '@/lib/post-cache';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -92,6 +93,9 @@ export default function EditProfilePage() {
             }
 
             await updateUserProfile(formData);
+
+            // Manually update the global user cache after a successful profile update
+            updateUserInCache(user.id, { name, picture: avatarPreview || user.picture });
             
             toast({
                 title: "Profile updated!",
