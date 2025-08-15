@@ -232,6 +232,7 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
             squircle: '30%',
             tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
             clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
+            blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
         };
         return paths[s] || paths.default;
     };
