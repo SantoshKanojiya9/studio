@@ -23,15 +23,6 @@ interface User {
   has_mood: boolean;
 }
 
-const userListCache: {
-    [key: string]: {
-        items: User[],
-        page: number,
-        hasMore: boolean,
-        scrollPosition: number
-    }
-} = {};
-
 interface UserListSheetProps {
     open: boolean;
     onOpenChange: (isOpen: boolean) => void;
@@ -42,10 +33,9 @@ interface UserListSheetProps {
 export function UserListSheet({ open, onOpenChange, type, userId }: UserListSheetProps) {
     const { toast } = useToast();
     
-    const cacheKey = `${type}-${userId}`;
-    const [userList, setUserList] = useState<User[]>(userListCache[cacheKey]?.items || []);
-    const [page, setPage] = useState(userListCache[cacheKey]?.page || 1);
-    const [hasMore, setHasMore] = useState(userListCache[cacheKey]?.hasMore ?? true);
+    const [userList, setUserList] = useState<User[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
     
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -65,20 +55,15 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
 
             if (newUsers.length < 15) {
                 setHasMore(false);
-                if (userListCache[cacheKey]) userListCache[cacheKey].hasMore = false;
             }
 
             setUserList(prev => {
                 const existingIds = new Set(prev.map(u => u.id));
                 const uniqueNew = newUsers.filter(u => !existingIds.has(u.id));
-                const updatedList = pageNum === 1 ? newUsers : [...prev, ...uniqueNew];
-                if (userListCache[cacheKey]) userListCache[cacheKey].items = updatedList as User[];
-                return updatedList as User[];
+                return pageNum === 1 ? newUsers : [...prev, ...uniqueNew];
             });
             
-            const nextPage = pageNum + 1;
-            setPage(nextPage);
-            if (userListCache[cacheKey]) userListCache[cacheKey].page = nextPage;
+            setPage(pageNum + 1);
 
         } catch (error) {
             console.error(`Failed to fetch ${type}:`, error);
@@ -87,47 +72,22 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
             if (pageNum === 1) setIsLoading(false);
             setIsFetchingMore(false);
         }
-    }, [type, userId, isFetchingMore, toast, cacheKey]);
-
+    }, [type, userId, isFetchingMore, toast]);
+    
+    // Reset state and fetch data when the sheet is opened
     useEffect(() => {
-        if (open && userId && type) {
-            if (!userListCache[cacheKey]) {
-                 userListCache[cacheKey] = {
-                    items: [],
-                    page: 1,
-                    hasMore: true,
-                    scrollPosition: 0,
-                 };
-                fetchUsers(1);
-            } else {
-                setUserList(userListCache[cacheKey].items);
-                setPage(userListCache[cacheKey].page);
-                setHasMore(userListCache[cacheKey].hasMore);
-                 // Restore scroll position
-                setTimeout(() => {
-                    if (scrollContainerRef.current) {
-                        scrollContainerRef.current.scrollTop = userListCache[cacheKey].scrollPosition;
-                    }
-                }, 0);
-            }
+        if (open) {
+            setUserList([]);
+            setPage(1);
+            setHasMore(true);
+            setIsLoading(true);
+            setIsFetchingMore(false);
+            fetchUsers(1);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, userId, type]);
+    }, [open, type, userId, fetchUsers]);
 
-    useEffect(() => {
-        const scrollable = scrollContainerRef.current;
-        if (!scrollable || !cacheKey) return;
-    
-        const handleScroll = () => {
-            if (userListCache[cacheKey]) {
-                userListCache[cacheKey].scrollPosition = scrollable.scrollTop;
-            }
-        };
-    
-        scrollable.addEventListener('scroll', handleScroll, { passive: true });
-        return () => scrollable.removeEventListener('scroll', handleScroll);
-    }, [cacheKey]);
 
+    // Infinite scroll observer
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             const target = entries[0];
@@ -145,15 +105,13 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
     }, [fetchUsers, hasMore, isFetchingMore, isLoading, page]);
 
     const handleSupportChange = (changedUserId: string, newStatus: 'approved' | 'pending' | null) => {
-        const updateList = (list: User[]) => list.map(user => 
-            user.id === changedUserId 
-            ? { ...user, support_status: newStatus } 
-            : user
+        setUserList(prevList => 
+            prevList.map(user => 
+                user.id === changedUserId 
+                ? { ...user, support_status: newStatus } 
+                : user
+            )
         );
-        setUserList(updateList);
-        if (userListCache[cacheKey]) {
-            userListCache[cacheKey].items = updateList(userListCache[cacheKey].items);
-        }
     }
 
     const title = type === 'supporters' ? 'Supporters' : 'Supporting';
@@ -192,5 +150,3 @@ export function UserListSheet({ open, onOpenChange, type, userId }: UserListShee
         </Sheet>
     )
 }
-
-    
