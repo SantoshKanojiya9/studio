@@ -141,6 +141,19 @@ export async function getSupporters({ userId, page = 1, limit = 15 }: { userId: 
         console.error('Error getting supporters:', error);
         return [];
     }
+
+    // Manually add has_mood if it's not in the RPC response
+    const users = data as any[];
+    if (users.length > 0 && users[0].has_mood === undefined) {
+        const userIds = users.map(u => u.id);
+        const { data: moods } = await supabase
+            .from('moods')
+            .select('user_id')
+            .in('user_id', userIds);
+        const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
+        return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
+    }
+
     return data as UserWithSupportStatus[];
 }
 
@@ -160,6 +173,19 @@ export async function getSupporting({ userId, page = 1, limit = 15 }: { userId: 
         console.error('Error getting supporting list:', error);
         return [];
     }
+    
+    // Manually add has_mood if it's not in the RPC response
+    const users = data as any[];
+    if (users.length > 0 && users[0].has_mood === undefined) {
+        const userIds = users.map(u => u.id);
+        const { data: moods } = await supabase
+            .from('moods')
+            .select('user_id')
+            .in('user_id', userIds);
+        const userIdsWithMoods = new Set(moods?.map(m => m.user_id));
+        return users.map(u => ({ ...u, has_mood: userIdsWithMoods.has(u.id) }));
+    }
+    
     return data as UserWithSupportStatus[];
 }
 
