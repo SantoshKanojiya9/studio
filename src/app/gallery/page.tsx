@@ -34,7 +34,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSupport } from '@/hooks/use-support';
 import Image from 'next/image';
-import { getPostsByUserFromCache, updatePostCache } from '@/lib/post-cache';
+import { getPostsByUserFromCache, updatePostCache, getProfileStatsFromCache, updateProfileStatsCache } from '@/lib/post-cache';
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -160,17 +160,14 @@ function GalleryPageContent() {
             
             setProfileUser(userProfile);
 
-            // Fetch counts, but post count will be quickly updated by cached posts
-            const [supporters, following, postCountResult] = await Promise.all([
+            const [supporters, following] = await Promise.all([
                 getSupporterCount(viewingUserId),
                 getSupportingCount(viewingUserId),
-                // We still fetch this to have a background update, but the cached post length is shown first
-                supabase.from('emojis').select('*', { count: 'exact', head: true }).eq('user_id', viewingUserId),
             ]);
 
             setSupporterCount(supporters);
             setSupportingCount(following);
-            setPostCount(postCountResult.count ?? 0);
+            updateProfileStatsCache(viewingUserId, { supporterCount: supporters, supportingCount: following });
             
             let status: 'approved' | 'pending' | null = null;
             if (!isOwnProfile && authUser) {
@@ -205,13 +202,21 @@ function GalleryPageContent() {
 
         // Instantly load from cache if available
         const cachedPosts = getPostsByUserFromCache(viewingUserId);
-        if (cachedPosts.length > 0) {
-            setSavedEmojis(cachedPosts as GalleryEmoji[]);
-            setPostCount(cachedPosts.length); // Instantly set post count from cache
-            setIsLoading(false); // Stop the main loader
-            setIsInitialPostsLoading(false); // Stop the post loader
+        const cachedStats = getProfileStatsFromCache(viewingUserId);
+
+        if (cachedPosts.length > 0 || cachedStats) {
+            if(cachedPosts.length > 0) {
+                setSavedEmojis(cachedPosts as GalleryEmoji[]);
+                setPostCount(cachedPosts.length);
+                setIsInitialPostsLoading(false); // Stop the post loader specifically
+            }
+            if(cachedStats) {
+                setSupporterCount(cachedStats.supporterCount);
+                setSupportingCount(cachedStats.supportingCount);
+            }
+            setIsLoading(false); // Stop the main page loader
         } else {
-            setIsLoading(true);
+            setIsLoading(true); // Only show main loader if nothing is cached
         }
         
         // Fetch fresh data in the background
