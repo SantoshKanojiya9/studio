@@ -158,7 +158,7 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> & { clay_width?: number, clay_height?: number } = {
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'clay_width' | 'clay_height'> & { clay_width?: number, clay_height?: number } = {
         user_id: user.id,
         model,
         expression,
@@ -176,15 +176,11 @@ const DesignPageContent = () => {
         feature_offset_y: feature_offset_y.get(),
         caption,
     };
-
-    if (shape === 'clay' && model === 'creator') {
+    
+    if (model === 'creator' && shape === 'clay') {
         emojiData.clay_width = clayWidth;
         emojiData.clay_height = clayHeight;
-    } else {
-        delete emojiData.clay_width;
-        delete emojiData.clay_height;
     }
-
 
     try {
         let result;
