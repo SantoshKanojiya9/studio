@@ -158,8 +158,8 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> = {
-        user_id: user.id, // Explicitly set the user_id
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> & { clay_width?: number, clay_height?: number } = {
+        user_id: user.id,
         model,
         expression,
         background_color,
@@ -174,10 +174,17 @@ const DesignPageContent = () => {
         eyebrow_style,
         feature_offset_x: feature_offset_x.get(),
         feature_offset_y: feature_offset_y.get(),
-        clay_width: clayWidth,
-        clay_height: clayHeight,
         caption,
     };
+
+    if (shape === 'clay') {
+        emojiData.clay_width = clayWidth;
+        emojiData.clay_height = clayHeight;
+    } else {
+        delete emojiData.clay_width;
+        delete emojiData.clay_height;
+    }
+
 
     try {
         let result;
