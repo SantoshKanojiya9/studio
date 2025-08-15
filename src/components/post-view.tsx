@@ -57,7 +57,6 @@ export interface Mood extends EmojiState {
       picture: string;
       has_mood: boolean;
     };
-    // Add PostViewEmoji properties for compatibility
     like_count: number;
     is_liked: boolean;
     user: {
@@ -151,8 +150,6 @@ const PostContent = memo(({
     const handleLike = useCallback(async () => {
         if (!user || isLikedState) return;
         
-        // This function is just for the double-tap, so we only handle the "like" case.
-        // The LikeButton component handles both liking and unliking.
         setIsLikedState(true);
         setLocalLikeCount(prev => prev + 1);
         setShowHeart(true);
@@ -163,7 +160,7 @@ const PostContent = memo(({
 
     return (
         <div
-            className="w-full h-full flex-shrink-0 flex flex-col"
+            className="w-full flex-shrink-0 flex flex-col border-b border-border/40"
         >
             <div className="flex items-center px-4 py-2">
                 <Avatar className="h-8 w-8">
@@ -211,7 +208,7 @@ const PostContent = memo(({
             </div>
 
             <div 
-                className="flex-1 flex items-center justify-center min-h-0 relative"
+                className="aspect-square flex items-center justify-center min-h-0 relative"
                 style={{ 
                     backgroundColor: emoji.background_color,
                     filter: activeFilterCss,
@@ -327,12 +324,8 @@ export function PostView({
             const currentMood = localEmojis[currentIndex];
             const nextMood = localEmojis[currentIndex + 1];
 
-            // Only auto-advance if the next story is from the same user
             if (isCurrentEmojiMood(currentMood) && nextMood && isCurrentEmojiMood(nextMood) && nextMood.mood_user_id === currentMood.mood_user_id) {
                 goToNext();
-            } else {
-                // If it's the last story for this user, just stop.
-                // The user will have to tap to go to the next person.
             }
         }
     });
@@ -343,7 +336,6 @@ export function PostView({
     if (isMoodView && currentEmojiState && isCurrentEmojiMood(currentEmojiState)) {
         if (!currentEmojiState.is_viewed) {
              recordMoodView(currentEmojiState.mood_id);
-             // Also update the local state immediately
              setLocalEmojis(prevEmojis => {
                  const updatedEmojis = [...prevEmojis];
                  const moodToUpdate = updatedEmojis[currentIndex] as Mood;
@@ -371,7 +363,6 @@ export function PostView({
   }, [isViewersSheetOpen, isMoodView]);
 
 
-  // Effect to scroll to the initial post
   useEffect(() => {
     if (isMoodView) return;
 
@@ -382,7 +373,6 @@ export function PostView({
         container.scrollTop = postElement.offsetTop;
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialIndex, isMoodView]);
 
 
@@ -408,7 +398,7 @@ export function PostView({
       } catch (error) {
           console.error("Failed to fetch viewers", error);
           toast({ title: "Error", description: "Could not load viewers.", variant: "destructive" });
-          setIsViewersSheetOpen(false); // Close sheet on error
+          setIsViewersSheetOpen(false);
       } finally {
           setIsFetchingViewers(false);
       }
@@ -527,7 +517,6 @@ export function PostView({
     }
   };
   
-  // MOOD / STORY VIEW
   if (isMoodView) {
       return (
         <motion.div 
@@ -655,27 +644,28 @@ export function PostView({
   return (
     <>
       <div className="h-full w-full flex flex-col bg-background">
-          <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10">
+          <header className="flex-shrink-0 flex h-16 items-center justify-between border-b border-border/40 bg-background px-4 z-10 md:hidden">
               <Button variant="ghost" size="icon" onClick={() => onClose(localEmojis)}>
               <ArrowLeft />
               </Button>
               <h2 className="font-semibold">{isMoodView ? "Mood" : "Posts"}</h2>
-              <div className="w-10"></div> {/* Spacer */}
+              <div className="w-10"></div>
           </header>
 
           <div 
               ref={scrollContainerRef}
-              className="flex-1 flex flex-col overflow-y-auto no-scrollbar"
+              className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
           >
               {localEmojis.map((emoji) => {
-                  if (isCurrentEmojiMood(emoji)) return null; // Should not happen in this view
+                  if (isCurrentEmojiMood(emoji)) return null;
                   return (
+                    <div key={emoji.id} className="h-full w-full snap-start flex-shrink-0">
                       <PostContent 
-                          key={emoji.id} 
                           emoji={emoji as PostViewEmoji} 
                           onDelete={handleDeleteClick} 
                           onSetMood={handleSetMoodClick}
                       />
+                    </div>
                   )
               })}
           </div>

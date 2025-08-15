@@ -3,45 +3,16 @@
 
 import React, { useState, useEffect, useCallback, lazy, Suspense, useRef, memo } from 'react';
 import { MoodHeader } from '@/components/mood-header';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Smile, Send, MoreHorizontal, Edit, RefreshCw } from 'lucide-react';
+import { Loader2, Smile, RefreshCw } from 'lucide-react';
 import type { EmojiState } from '@/app/design/page';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Face } from '@/components/emoji-face';
-import { ClockFace } from '@/components/loki-face';
-import { RimuruFace } from '@/components/rimuru-face';
-import { CreatorMoji } from '@/components/creator-moji';
-import { motion, useMotionValue, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { getFeedPosts, setMood, getFeedMoods, likePost } from '@/app/actions';
-import { LikeButton } from '@/components/like-button';
+import { getFeedPosts, getFeedMoods } from '@/app/actions';
 import MoodStories from '@/components/mood-stories';
 import type { Mood, PostViewEmoji } from '@/components/post-view';
-import { TimeRemaining } from '@/components/time-remaining';
-import Image from 'next/image';
-
-const LikerListSheet = dynamic(() => import('@/components/liker-list-sheet'), { ssr: false });
-
 
 const PostView = dynamic(() => 
   import('@/components/post-view').then(mod => mod.PostView),
@@ -57,7 +28,6 @@ interface FeedPostType extends EmojiState {
     user: EmojiState['user'] & { has_mood?: boolean };
 }
 
-// Store cache in a simple object. This will persist for the session.
 const moodPageCache: {
     moods: Mood[] | null;
     feedPosts: FeedPostType[] | null;
@@ -72,215 +42,9 @@ const moodPageCache: {
     scrollPosition: 0,
 };
 
-const FeedPost = memo(({ emoji, onSelect, onMoodUpdate, onSelectUserStory }: { emoji: FeedPostType; onSelect: () => void; onMoodUpdate: () => void; onSelectUserStory: (userId: string) => void; }) => {
-    const { user } = useAuth();
-    const { toast } = useToast();
-    const [showSetMoodConfirm, setShowSetMoodConfirm] = useState(false);
-    const [currentLikeCount, setCurrentLikeCount] = useState(emoji.like_count);
-    const [isLikedState, setIsLikedState] = useState(emoji.is_liked);
-    const [showLikers, setShowLikers] = useState(false);
-    const [showHeart, setShowHeart] = useState(false);
-    
-    const featureOffsetX = useMotionValue(emoji.feature_offset_x || 0);
-    const featureOffsetY = useMotionValue(emoji.feature_offset_y || 0);
-    let finalEmoji: EmojiState = { ...emoji };
-    if (finalEmoji.model === 'loki' && finalEmoji.shape === 'clay') {
-        finalEmoji.shape = 'default';
-    }
-
-    const renderEmojiFace = (emoji: EmojiState) => {
-        const props = {
-          ...emoji,
-          animation_type: emoji.animation_type,
-          color: emoji.emoji_color,
-          isDragging: false,
-          isInteractive: false,
-          feature_offset_x: featureOffsetX,
-          feature_offset_y: featureOffsetY,
-          setColor: () => {},
-        };
-        switch(emoji.model) {
-            case 'creator': return <CreatorMoji {...props} />;
-            case 'loki': return <ClockFace {...props} />;
-            case 'rimuru': return <RimuruFace {...props} />;
-            case 'emoji':
-            default: return <Face {...props} />;
-        }
-    };
-
-    const handleSetMood = async () => {
-        setShowSetMoodConfirm(false);
-        try {
-            await setMood(emoji.id);
-            toast({
-                title: "Mood Updated!",
-                description: "Your new mood has been set.",
-                variant: "success",
-            });
-            onMoodUpdate();
-        } catch (error: any) {
-            toast({
-                title: "Error setting mood",
-                description: error.message,
-                variant: "destructive",
-            });
-        }
-    };
-
-    const handleLike = useCallback(async () => {
-        if (!user || isLikedState) return;
-        
-        setIsLikedState(true);
-        setCurrentLikeCount(prev => prev + 1);
-        setShowHeart(true);
-        setTimeout(() => setShowHeart(false), 800);
-        await likePost(emoji.id);
-
-    }, [isLikedState, user, emoji.id]);
-    
-    const onSendClick = () => {
-        if (user) {
-            setShowSetMoodConfirm(true);
-        }
-    }
-    
-    const onAvatarClick = () => {
-        if (emoji.user?.has_mood && emoji.user.id) {
-            onSelectUserStory(emoji.user.id);
-        }
-    }
-
-    return (
-        <>
-            <div className="flex flex-col border-b border-border/40">
-                <div className="flex items-center px-4 py-2">
-                    <button onClick={onAvatarClick} disabled={!emoji.user?.has_mood} className="cursor-pointer disabled:cursor-default">
-                        <Avatar className="h-8 w-8">
-                            {emoji.user?.picture && <Image src={emoji.user.picture} alt={emoji.user.name} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
-                            <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                        </Avatar>
-                    </button>
-                    <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name}</Link>
-                    {emoji.created_at && (
-                        <TimeRemaining createdAt={emoji.created_at} className="text-xs text-muted-foreground ml-2" />
-                    )}
-                    {user && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="ml-auto h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                           <DropdownMenuItem onClick={() => setShowSetMoodConfirm(true)}>
-                            <Smile className="mr-2 h-4 w-4" />
-                            <span>Set as Mood</span>
-                          </DropdownMenuItem>
-                          {user.id === emoji.user?.id && (
-                          <DropdownMenuItem asChild>
-                           <Link href={`/design?emojiId=${emoji.id}`} className="flex items-center w-full">
-                             <Edit className="mr-2 h-4 w-4" />
-                             <span>Edit</span>
-                           </Link>
-                          </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                </div>
-                <div 
-                    className="relative aspect-square w-full"
-                    style={{ 
-                      backgroundColor: emoji.background_color,
-                      filter: emoji.selected_filter,
-                    }}
-                    onDoubleClick={handleLike}
-                >
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-full h-full flex items-center justify-center">
-                            <motion.div className="origin-center" style={{ scale: 0.9 }} animate={{ scale: 0.9 }} transition={{ duration: 0 }}>
-                                {renderEmojiFace(finalEmoji)}
-                            </motion.div>
-                        </div>
-                    </div>
-                     <AnimatePresence>
-                        {showHeart && (
-                            <motion.div
-                                className="absolute inset-0 flex items-center justify-center"
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 1.2, opacity: 0 }}
-                                transition={{ duration: 0.4, ease: 'easeIn' }}
-                            >
-                                <motion.svg
-                                    width="96"
-                                    height="96"
-                                    viewBox="0 0 24 24"
-                                    className="text-white/90"
-                                >
-                                    <path
-                                        fill="currentColor"
-                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                                    />
-                                </motion.svg>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-                <div className="px-4 pt-3 pb-4">
-                    <div className="flex items-center gap-4">
-                        <LikeButton 
-                            postId={emoji.id} 
-                            initialLikes={emoji.like_count} 
-                            isInitiallyLiked={emoji.is_liked}
-                            onLikeCountChange={setCurrentLikeCount}
-                            onIsLikedChange={setIsLikedState}
-                        />
-                        <Send className="h-6 w-6 cursor-pointer" onClick={onSendClick} />
-                    </div>
-                     {currentLikeCount > 0 && (
-                        <button className="text-sm font-semibold mt-2" onClick={() => setShowLikers(true)}>
-                            {currentLikeCount} {currentLikeCount === 1 ? 'like' : 'likes'}
-                        </button>
-                     )}
-                     {emoji.caption && (
-                        <p className="text-sm mt-1 whitespace-pre-wrap">
-                            <span className="font-semibold">{emoji.user?.name || 'User'}</span>
-                            {' '}{emoji.caption}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            <AlertDialog open={showSetMoodConfirm} onOpenChange={setShowSetMoodConfirm}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Set as your Mood?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will replace your current mood. Are you sure you want to set this post as your mood?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleSetMood}>
-                            Yes, Set Mood
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            {showLikers && (
-                <Suspense fallback={null}>
-                    <LikerListSheet open={showLikers} onOpenChange={setShowLikers} emojiId={emoji.id} />
-                </Suspense>
-            )}
-        </>
-    );
-});
-FeedPost.displayName = 'FeedPost';
-
 
 export default function MoodPage() {
-    const { user, supabase } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [moods, setMoods] = useState<Mood[]>(moodPageCache.moods || []);
     const [feedPosts, setFeedPosts] = useState<FeedPostType[]>(moodPageCache.feedPosts || []);
@@ -292,9 +56,7 @@ export default function MoodPage() {
 
     const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
     const [viewingStoryFromFeed, setViewingStoryFromFeed] = useState<Mood[] | null>(null);
-    const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-    const loaderRef = useRef(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     
     const fetchMoods = useCallback(async () => {
@@ -302,14 +64,13 @@ export default function MoodPage() {
         try {
             const moodsData = await getFeedMoods();
             if (!moodsData) return [];
-            // Ensure moods have the properties required by the Mood type
             const formattedMoods = moodsData.map(m => ({
                 ...m,
                 like_count: 0,
                 is_liked: false,
                 mood_user: {
                     ...m.mood_user,
-                    has_mood: true // Since these are moods, has_mood is true
+                    has_mood: true 
                 }
             }));
             return formattedMoods as Mood[];
@@ -320,7 +81,7 @@ export default function MoodPage() {
     }, [user]);
 
     const fetchPosts = useCallback(async (pageNum: number) => {
-        if (isFetchingMore) return;
+        if (isFetchingMore || !hasMore) return;
         setIsFetchingMore(true);
 
         try {
@@ -330,10 +91,6 @@ export default function MoodPage() {
             if (newPosts.length < limit) {
                 setHasMore(false);
                 moodPageCache.hasMore = false;
-            } else {
-                const nextPage = pageNum + 1;
-                setPage(nextPage);
-                moodPageCache.page = nextPage;
             }
 
             if (newPosts.length > 0) {
@@ -344,6 +101,9 @@ export default function MoodPage() {
                     moodPageCache.feedPosts = updatedPosts;
                     return updatedPosts;
                 });
+                const nextPage = pageNum + 1;
+                setPage(nextPage);
+                moodPageCache.page = nextPage;
             }
 
         } catch (error: any) {
@@ -352,15 +112,15 @@ export default function MoodPage() {
         } finally {
             setIsFetchingMore(false);
         }
-    }, [isFetchingMore, toast]);
-
+    }, [isFetchingMore, toast, hasMore]);
+    
     const loadInitialData = useCallback(async (forceRefresh = false) => {
         if (!user) {
             setIsLoading(false);
             return;
         }
         
-        const useCache = !forceRefresh && !!moodPageCache.feedPosts;
+        const useCache = !forceRefresh && !!moodPageCache.feedPosts && moodPageCache.feedPosts.length > 0;
         if (useCache) {
             setIsLoading(false);
         } else {
@@ -385,12 +145,13 @@ export default function MoodPage() {
             moodPageCache.moods = moodsData;
             
             if (postsData) {
-                if (forceRefresh || !moodPageCache.feedPosts) {
+                if (forceRefresh || !useCache) {
                     setFeedPosts(postsData);
-                    setPage(2);
-                    moodPageCache.page = 2;
+                    moodPageCache.feedPosts = postsData;
+                    const newPage = postsData.length > 0 ? 2 : 1;
+                    setPage(newPage);
+                    moodPageCache.page = newPage;
                 }
-                moodPageCache.feedPosts = postsData;
 
                 if (postsData.length < 5) {
                     setHasMore(false);
@@ -402,63 +163,31 @@ export default function MoodPage() {
             }
         } catch(error: any) {
             toast({ title: "Could not load your feed", description: error.message, variant: 'destructive'});
-            setHasMore(false); // Stop trying to load more on error
+            setHasMore(false);
         } finally {
             setIsLoading(false);
         }
     }, [fetchMoods, toast, user]);
     
-    // Initial load from cache or server
     useEffect(() => {
         loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
-    
-    // Save scroll position
+
+    // Infinite scroll for PostView
     useEffect(() => {
-        const scrollable = scrollContainerRef.current;
-        if (!scrollable) return;
+        const container = scrollContainerRef.current;
+        if (!container) return;
 
         const handleScroll = () => {
-            moodPageCache.scrollPosition = scrollable.scrollTop;
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
+                fetchPosts(page);
+            }
         };
 
-        scrollable.addEventListener('scroll', handleScroll, { passive: true });
-        
-        // Restore scroll position
-        if (moodPageCache.scrollPosition > 0) {
-            scrollable.scrollTop = moodPageCache.scrollPosition;
-        }
-
-        return () => {
-            scrollable.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
-
-    // Infinite scroll observer
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            const target = entries[0];
-            if (target.isIntersecting && hasMore && !isFetchingMore && !isLoading) {
-               fetchPosts(page);
-            }
-        }, { 
-            root: scrollContainerRef.current, 
-            rootMargin: '400px', 
-            threshold: 0 
-        });
-
-        const currentLoader = loaderRef.current;
-        if (currentLoader) {
-            observer.observe(currentLoader);
-        }
-        
-        return () => {
-            if(currentLoader) {
-                observer.unobserve(currentLoader);
-            }
-        }
-    }, [hasMore, isFetchingMore, isLoading, page, fetchPosts]);
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [fetchPosts, page]);
 
     const handleRefresh = useCallback(async () => {
         moodPageCache.feedPosts = null; 
@@ -475,10 +204,6 @@ export default function MoodPage() {
     const handleSelectMood = (mood: Mood) => {
         setSelectedMood(mood);
     };
-    
-    const handleSelectPost = useCallback((postId: string) => {
-        setSelectedPostId(postId);
-    }, []);
 
     const handleSelectUserStoryFromFeed = (userId: string) => {
         const userMoods = moods.filter(m => m.mood_user_id === userId);
@@ -496,7 +221,6 @@ export default function MoodPage() {
     }
     
     if (selectedMood) {
-        // Find all moods from the same user to show in sequence
         const userMoods = moods.filter(m => m.mood_user_id === selectedMood.mood_user_id);
         const initialMoodIndex = userMoods.findIndex(m => m.mood_id === selectedMood.mood_id);
         if (userMoods.length === 0 || initialMoodIndex === -1) {
@@ -507,7 +231,7 @@ export default function MoodPage() {
             <PostView 
                 emojis={userMoods}
                 initialIndex={initialMoodIndex}
-                onClose={() => handleOnCloseMood(moods)} // pass original full list
+                onClose={() => handleOnCloseMood(moods)}
                 isMoodView={true}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
@@ -531,22 +255,6 @@ export default function MoodPage() {
             />
         )
     }
-
-    if (selectedPostId !== null) {
-        const postIndex = feedPosts.findIndex(p => p.id === selectedPostId);
-        return (
-             <PostView 
-                emojis={feedPosts}
-                initialIndex={postIndex}
-                onClose={() => setSelectedPostId(null)}
-                onDelete={(deletedId) => {
-                    const newPosts = feedPosts.filter(p => p.id !== deletedId);
-                    setFeedPosts(newPosts);
-                    moodPageCache.feedPosts = newPosts;
-                }}
-            />
-        )
-    }
   
   const renderContent = () => {
       if (isLoading && feedPosts.length === 0) {
@@ -558,28 +266,18 @@ export default function MoodPage() {
       }
       if (feedPosts.length > 0) {
           return (
-              <>
-                  <div className="flex flex-col">
-                      {feedPosts.map((post) => (
-                          <FeedPost 
-                            key={post.id} 
-                            emoji={post} 
-                            onSelect={() => handleSelectPost(post.id)} 
-                            onMoodUpdate={handleRefresh}
-                            onSelectUserStory={handleSelectUserStoryFromFeed}
-                          />
-                      ))}
-                  </div>
-                  {hasMore && (
-                      <div ref={loaderRef} className="flex justify-center items-center p-4">
-                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                      </div>
-                  )}
-              </>
+             <PostView 
+                emojis={feedPosts}
+                onClose={() => {}}
+                onDelete={(deletedId) => {
+                    const newPosts = feedPosts.filter(p => p.id !== deletedId);
+                    setFeedPosts(newPosts);
+                    moodPageCache.feedPosts = newPosts;
+                }}
+            />
           );
       }
       
-      // This part only renders after loading is false and feedPosts is still empty
       return (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 text-muted-foreground">
               <Smile className="h-16 w-16" />
@@ -606,7 +304,7 @@ export default function MoodPage() {
             onSelectMood={(index) => handleSelectMood(moods[index])}
         />
       
-        <div className="flex-1">
+        <div className="flex-1 relative">
             {renderContent()}
         </div>
       </div>
