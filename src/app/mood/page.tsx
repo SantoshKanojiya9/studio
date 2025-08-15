@@ -225,6 +225,7 @@ export default function MoodPage() {
                 initialIndex={initialMoodIndex}
                 onClose={() => handleOnCloseMood(moods)}
                 isMoodView={true}
+                onMoodChange={handleRefresh}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
                     loadInitialData();
@@ -240,6 +241,7 @@ export default function MoodPage() {
                 initialIndex={0}
                 onClose={() => handleOnCloseMood(moods)}
                 isMoodView={true}
+                onMoodChange={handleRefresh}
                 onDelete={(moodId) => {
                     setMoods(moods.filter(m => m.mood_id !== parseInt(moodId)));
                     loadInitialData();
@@ -262,6 +264,7 @@ export default function MoodPage() {
                 emojis={feedPosts}
                 onClose={() => {}}
                 showNav={false}
+                onMoodChange={handleRefresh}
                 onDelete={(deletedId) => {
                     const newPosts = feedPosts.filter(p => p.id !== deletedId);
                     setFeedPosts(newPosts);
@@ -306,5 +309,3 @@ export default function MoodPage() {
     </div>
   );
 }
-
-    

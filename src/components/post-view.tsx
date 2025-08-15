@@ -92,6 +92,7 @@ interface PostViewProps {
   initialIndex?: number;
   onClose: (emojis?: any[]) => void;
   onDelete?: (id: string) => void;
+  onMoodChange?: () => void;
   isMoodView?: boolean;
   showNav?: boolean;
   fetchMore?: () => void;
@@ -273,6 +274,7 @@ export function PostView({
     initialIndex = 0, 
     onClose, 
     onDelete, 
+    onMoodChange,
     isMoodView = false,
     showNav = true,
     fetchMore,
@@ -431,6 +433,7 @@ export function PostView({
     try {
         await removeMood();
         toast({ title: "Mood Removed", variant: 'success' });
+        if (onMoodChange) onMoodChange();
         if (onDelete) {
             onDelete(currentEmojiState.mood_id.toString());
         }
@@ -455,6 +458,7 @@ export function PostView({
             description: "Your new mood has been set.",
             variant: "success",
         });
+        if (onMoodChange) onMoodChange();
     } catch (error: any) {
         toast({
             title: "Error setting mood",
