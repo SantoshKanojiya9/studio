@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2, UserPlus, Heart, Check } from 'lucide-react';
-import { getNotifications, respondToSupportRequest } from '../actions';
+import { getNotifications, respondToSupportRequest, markNotificationsAsRead } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
@@ -37,18 +37,6 @@ interface Notification {
   emoji: EmojiState | null;
   actor_support_status: 'approved' | 'pending' | null;
 }
-
-const notificationsCache: {
-    items: Notification[],
-    page: number,
-    hasMore: boolean,
-    scrollPosition: number
-} = {
-    items: [],
-    page: 1,
-    hasMore: true,
-    scrollPosition: 0
-};
 
 const timeSince = (date: Date) => {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -197,12 +185,12 @@ export default function NotificationsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [notifications, setNotifications] = useState<Notification[]>(notificationsCache.items);
-  const [isLoading, setIsLoading] = useState(notificationsCache.items.length === 0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   
-  const [page, setPage] = useState(notificationsCache.page);
-  const [hasMore, setHasMore] = useState(notificationsCache.hasMore);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   const loaderRef = useRef(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -222,24 +210,22 @@ export default function NotificationsPage() {
 
         if (newNotifications.length < limit) {
             setHasMore(false);
-            notificationsCache.hasMore = false;
         }
 
         setNotifications(prev => {
             if (pageNum === 1) {
-                 notificationsCache.items = newNotifications;
                  return newNotifications;
             }
             const existingIds = new Set(prev.map((n: Notification) => n.id));
             const uniqueNew = newNotifications.filter((n: Notification) => !existingIds.has(n.id));
-            const updated = [...prev, ...uniqueNew];
-            notificationsCache.items = updated;
-            return updated;
+            return [...prev, ...uniqueNew];
         });
 
-        const nextPage = pageNum + 1;
-        setPage(nextPage);
-        notificationsCache.page = nextPage;
+        if (pageNum === 1 && newNotifications.length > 0) {
+            await markNotificationsAsRead();
+        }
+
+        setPage(pageNum + 1);
 
     } catch (error: any) {
         console.error("Failed to fetch notifications", error);
@@ -250,17 +236,11 @@ export default function NotificationsPage() {
     }
   }, [user, toast, isFetchingMore]);
 
-  // Initial load effect
   useEffect(() => {
-    if (user && notificationsCache.items.length === 0) {
+    if (user) {
         fetchNotifications(1);
-    } else if (user) {
-        setNotifications(notificationsCache.items);
-        setPage(notificationsCache.page);
-        setHasMore(notificationsCache.hasMore);
-        setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Infinite scroll observer
@@ -279,29 +259,10 @@ export default function NotificationsPage() {
         if (currentLoader) observer.unobserve(currentLoader);
     }
   }, [fetchNotifications, hasMore, isFetchingMore, isLoading, page]);
-
-  // Save and restore scroll position
-  useEffect(() => {
-      const scrollable = scrollContainerRef.current;
-      if (!scrollable) return;
-
-      const handleScroll = () => {
-          notificationsCache.scrollPosition = scrollable.scrollTop;
-      };
-
-      // Restore scroll position only if not loading initial data
-      if (!isLoading && notificationsCache.scrollPosition > 0) {
-          scrollable.scrollTop = scrollable.scrollTop;
-      }
-
-      scrollable.addEventListener('scroll', handleScroll, { passive: true });
-      return () => scrollable.removeEventListener('scroll', handleScroll);
-  }, [isLoading]);
   
   const handleRequestResponded = (notificationId: number) => {
     const updatedNotifications = notifications.filter((n: Notification) => n.id !== notificationId);
     setNotifications(updatedNotifications);
-    notificationsCache.items = updatedNotifications;
   }
   
   const renderNotification = (notification: Notification) => {
@@ -366,7 +327,6 @@ export default function NotificationsPage() {
   return (
     <div className="flex h-full w-full flex-col">
       <NotificationHeader />
-      <p className="text-sm text-muted-foreground px-4 md:px-6 pt-2">Notifications disappear after 24 hours.</p>
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         {isLoading ? (
             <div className="flex h-full w-full flex-col items-center justify-center">
