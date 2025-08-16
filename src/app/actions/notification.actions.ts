@@ -43,18 +43,20 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         .eq('recipient_id', user.id)
         .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+        .range((page - 1) * limit, page * limit - 1)
+        .single(); // Add .single() here if you expect one result, or handle array below
 
     if (error) {
         console.error('Error fetching notifications:', error);
         throw error;
     }
-    if (!data) return [];
+    const dataArray = Array.isArray(data) ? data : (data ? [data] : []);
+    if (!dataArray || dataArray.length === 0) return [];
     
     // Get support status for all actors in one go
-    const actorIds = [...new Set(data.map(n => (n.actor as any)?.id).filter(Boolean))];
+    const actorIds = [...new Set(dataArray.map(n => (n.actor as any)?.id).filter(Boolean))];
     if (actorIds.length === 0) {
-        return data.map(n => ({ ...n, actor_support_status: null }));
+        return dataArray.map(n => ({ ...n, actor_support_status: null }));
     }
 
     const { data: supports, error: supportsError } = await supabase
@@ -70,7 +72,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
 
     const supportStatusMap = new Map(supports?.map(s => [s.supported_id, s.status]) || []);
 
-    return data.map(notification => ({
+    return dataArray.map(notification => ({
         ...notification,
         actor_support_status: supportStatusMap.get((notification.actor as any).id) || null
     }));
