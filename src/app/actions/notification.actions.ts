@@ -41,12 +41,12 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     
     if (!data) return [];
     
+    // The RPC returns `actor` and `emoji` as fully-formed objects.
+    // No need to parse them again.
     return data.map(n => ({
         ...n,
-        // The RPC returns actor and emoji as JSON objects, so we parse them here.
-        // It's safer as it won't crash if the underlying records are null.
-        actor: n.actor ? JSON.parse(n.actor) : null,
-        emoji: n.emoji ? JSON.parse(n.emoji) : null,
+        actor: n.actor,
+        emoji: n.emoji?.id ? n.emoji : null, // Ensure emoji is not just an object with a null id
     }));
 }
 
