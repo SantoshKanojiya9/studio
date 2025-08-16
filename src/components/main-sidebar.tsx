@@ -23,6 +23,10 @@ export function MainSidebar() {
     if (segment !== pendingSegment) {
       setPendingSegment(null);
     }
+     // If we navigate to the notifications page, clear the indicator immediately
+    if (segment === 'notifications') {
+      setHasNewNotifications(false);
+    }
   }, [segment, pendingSegment]);
 
 
@@ -61,12 +65,6 @@ export function MainSidebar() {
     }
   }, [user, supabase]);
 
-  useEffect(() => {
-    if (segment === 'notifications') {
-        setHasNewNotifications(false);
-    }
-  }, [segment]);
-
   const navItems = [
     { href: '/mood', segment: 'mood', label: 'Home', icon: Home },
     { href: '/explore', segment: 'explore', label: 'Search', icon: Search },
@@ -74,6 +72,13 @@ export function MainSidebar() {
     { href: '/notifications', segment: 'notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
     { href: '/gallery', segment: 'gallery', label: 'Profile', icon: User, isProfile: true },
   ];
+  
+  const handleNavClick = (itemSegment: string) => {
+    setPendingSegment(itemSegment);
+    if (itemSegment === 'notifications') {
+      setHasNewNotifications(false);
+    }
+  }
 
   return (
     <aside className="hidden md:flex md:flex-col md:w-20 md:border-r md:border-border/40 md:py-4">
@@ -91,7 +96,7 @@ export function MainSidebar() {
                 <TooltipTrigger asChild>
                   <Link
                     href={item.href}
-                    onClick={() => setPendingSegment(item.segment)}
+                    onClick={() => handleNavClick(item.segment)}
                     className={cn(
                       'relative flex items-center justify-center rounded-lg transition-colors w-12 h-12',
                       isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50'

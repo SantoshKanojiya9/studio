@@ -21,6 +21,10 @@ export function BottomBar() {
     if (segment !== pendingSegment) {
       setPendingSegment(null);
     }
+    // If we navigate to the notifications page, clear the indicator immediately
+    if (segment === 'notifications') {
+      setHasNewNotifications(false);
+    }
   }, [segment, pendingSegment]);
 
   useEffect(() => {
@@ -60,12 +64,6 @@ export function BottomBar() {
     };
   }, [user, supabase]);
 
-  useEffect(() => {
-    if (segment === 'notifications') {
-      setHasNewNotifications(false);
-    }
-  }, [segment]);
-
   const navItems = [
     { href: '/mood', segment: 'mood', label: 'Home', icon: Home },
     { href: '/explore', segment: 'explore', label: 'Search', icon: Search },
@@ -73,6 +71,13 @@ export function BottomBar() {
     { href: '/notifications', segment: 'notifications', label: 'Notifications', icon: Bell, hasIndicator: hasNewNotifications },
     { href: '/gallery', segment: 'gallery', label: 'Profile', icon: User, isProfile: true },
   ];
+  
+  const handleNavClick = (itemSegment: string) => {
+    setPendingSegment(itemSegment);
+    if (itemSegment === 'notifications') {
+      setHasNewNotifications(false);
+    }
+  }
 
   return (
     <footer className="fixed bottom-0 left-0 z-50 w-full border-t border-border/40 bg-background backdrop-blur md:hidden">
@@ -86,7 +91,7 @@ export function BottomBar() {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setPendingSegment(item.segment)}
+                onClick={() => handleNavClick(item.segment)}
                 className={cn(
                   'flex items-center justify-center rounded-full transition-colors w-9 h-9',
                   isActive && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
@@ -104,7 +109,7 @@ export function BottomBar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setPendingSegment(item.segment)}
+              onClick={() => handleNavClick(item.segment)}
               className="relative flex items-center justify-center rounded-md transition-colors w-12 h-12 text-muted-foreground"
             >
               <Icon className={cn('h-7 w-7', isActive && 'text-primary')} />
