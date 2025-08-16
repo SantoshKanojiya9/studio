@@ -28,12 +28,6 @@ shadow_port = 54320
 # server_version;` on the remote database to check.
 major_version = 15
 
-# Schedule a function to run on a cron schedule.
-[db.cron.purge_moods_job]
-schedule = "0 * * * *" # Every hour at the start of the hour
-sql = "select public.purge_old_moods();"
-
-
 [db.pooler]
 enabled = false
 # Port to use for the local connection pooler.
