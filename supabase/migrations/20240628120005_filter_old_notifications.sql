@@ -1,6 +1,4 @@
 
--- Update the function to only return notifications created within the last 24 hours.
--- This provides an immediate effect in the UI, while the cron job handles the actual deletion.
 create or replace function get_notifications_for_user(
     p_recipient_id uuid,
     p_current_user_id uuid,
@@ -69,8 +67,7 @@ begin
         left join public.supports s on s.supporter_id = p_current_user_id and s.supported_id = n.actor_id
     where
         n.recipient_id = p_recipient_id
-        -- Only fetch notifications from the last 24 hours
-        and n.created_at >= now() - interval '24 hours'
+        and n.created_at >= now() - interval '24 hours' -- Filter for notifications within the last 24 hours
     order by
         n.created_at desc
     limit p_limit
