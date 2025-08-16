@@ -12,6 +12,24 @@ type NotificationPayload = {
     emoji_id?: string;
 }
 
+interface Actor {
+    id: string;
+    name: string;
+    picture: string;
+    is_private: boolean;
+}
+
+interface FullNotification {
+    id: number;
+    type: 'new_supporter' | 'new_like' | 'new_support_request' | 'support_request_approved';
+    created_at: string;
+    emoji_id: string | null;
+    actor: Actor;
+    emoji: EmojiState | null;
+    actor_support_status: 'approved' | 'pending' | null;
+}
+
+
 export async function createNotification(payload: NotificationPayload) {
     const supabase = createSupabaseServerClient(); 
     const { error } = await supabase.from('notifications').insert(payload);
@@ -43,7 +61,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     
     // The RPC returns `actor` and `emoji` as fully-formed objects.
     // No need to parse them again.
-    return data.map(n => ({
+    return data.map((n: FullNotification) => ({
         ...n,
         actor: n.actor,
         // Ensure emoji is a valid object with an ID before passing it to the client.
