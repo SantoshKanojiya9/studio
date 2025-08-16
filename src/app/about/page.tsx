@@ -1,13 +1,15 @@
 
-import React from 'react';
+'use client';
+
+import React, { Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
-export default function AboutPage() {
+function AboutPageContent() {
     return (
         <div className="flex flex-col min-h-screen bg-background">
              <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border/40 bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -47,5 +49,13 @@ export default function AboutPage() {
                 </Card>
             </main>
         </div>
+    );
+}
+
+export default function AboutPage() {
+    return (
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <AboutPageContent />
+        </Suspense>
     );
 }
