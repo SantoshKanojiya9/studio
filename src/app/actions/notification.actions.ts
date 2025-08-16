@@ -20,53 +20,34 @@ export async function createNotification(payload: NotificationPayload) {
     }
 }
 
+
 export async function getNotifications({ page = 1, limit = 15 }: { page: number, limit: number }) {
     const supabase = createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
     const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-            id,
-            created_at,
-            type,
-            is_read,
-            actor:actor_id (
-                id,
-                name,
-                picture,
-                is_private
-            ),
-            emoji:emoji_id (
-                id, user_id, model, expression, background_color, emoji_color, show_sunglasses, 
-                show_mustache, selected_filter, animation_type, shape, eye_style, mouth_style, 
-                eyebrow_style, feature_offset_x, feature_offset_y, caption
-            ),
-            support:supports(supporter_id, supported_id, status)
-        `)
-        .eq('recipient_id', user.id)
-        .eq('support.supporter_id', user.id) // Filter supports to the current user
-        .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+        .rpc('get_notifications_for_user', {
+            p_recipient_id: user.id,
+            p_current_user_id: user.id,
+            p_limit: limit,
+            p_offset: (page - 1) * limit,
+        });
 
     if (error) {
-        console.error('Error fetching notifications:', error);
+        console.error('Error fetching notifications via RPC:', error);
         throw error;
     }
     
     if (!data) return [];
     
-    // The query now includes the support status directly, making the mapping much simpler and safer.
-    return data.map(n => {
-        // Supabase returns an array for the joined `support` table. We extract the first element if it exists.
-        const supportStatus = n.support && Array.isArray(n.support) && n.support.length > 0 ? n.support[0].status : null;
-        
-        return {
-            ...n,
-            actor_support_status: supportStatus,
-        };
-    });
+    return data.map(n => ({
+        ...n,
+        // The RPC returns actor and emoji as JSON objects, so we parse them here.
+        // It's safer as it won't crash if the underlying records are null.
+        actor: n.actor ? JSON.parse(n.actor) : null,
+        emoji: n.emoji ? JSON.parse(n.emoji) : null,
+    }));
 }
 
 
