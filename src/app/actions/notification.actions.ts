@@ -56,7 +56,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     if (!data) return [];
     
     // Asynchronously get all support statuses for the actors in the notifications
-    const actorIds = data.map(n => n.actor?.id).filter(Boolean) as string[];
+    const actorIds = data.map(n => n.actor && !Array.isArray(n.actor) ? n.actor.id : null).filter(Boolean) as string[];
     if (actorIds.length === 0) {
         return data.map(n => ({...n, actor_support_status: null}));
     }
@@ -77,7 +77,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     // Combine data
     return data.map(n => ({
         ...n,
-        actor_support_status: n.actor ? supportStatusMap.get(n.actor.id) || null : null,
+        actor_support_status: n.actor && !Array.isArray(n.actor) ? supportStatusMap.get(n.actor.id) || null : null,
     }));
 }
 
