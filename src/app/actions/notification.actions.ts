@@ -44,13 +44,20 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         .eq('recipient_id', user.id)
         .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1);
+        .range((page - 1) * limit, page * limit - 1)
+        .single(); // This was missing, causing actor/emoji to be arrays
 
     if (error) {
+        // If the error is 'PGRST116', it just means no rows were found, which is not a real error.
+        if (error.code === 'PGRST116') {
+            return [];
+        }
         console.error('Error fetching notifications:', error);
         throw error;
     }
-    const dataArray = Array.isArray(data) ? data : (data ? [data] : []);
+    
+    // The query now returns an object or null, so we wrap it in an array if it's not null.
+    const dataArray = data ? [data] : [];
     if (!dataArray || dataArray.length === 0) return [];
     
     // Get support status for all actors in one go
