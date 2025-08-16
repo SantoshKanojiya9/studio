@@ -2,7 +2,6 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
-import type { EmojiState } from '@/app/design/page';
 
 // --- Notification Actions ---
 type NotificationPayload = {
@@ -13,7 +12,7 @@ type NotificationPayload = {
 }
 
 export async function createNotification(payload: NotificationPayload) {
-    const supabase = createSupabaseServerClient(); // Use non-admin client to trigger realtime
+    const supabase = createSupabaseServerClient(); 
     const { error } = await supabase.from('notifications').insert(payload);
     if (error) {
         console.error('Error creating notification:', error);
@@ -25,28 +24,63 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
+    // This is the corrected query. It uses .from().select() instead of a faulty RPC.
     const { data, error } = await supabase
-        .rpc('get_notifications_for_user', { 
-            p_recipient_id: user.id, 
-            p_current_user_id: user.id,
-            p_limit: limit, 
-            p_offset: (page - 1) * limit
-        });
+        .from('notifications')
+        .select(`
+            id,
+            created_at,
+            type,
+            is_read,
+            actor:actor_id (
+                id,
+                name,
+                picture,
+                is_private
+            ),
+            emoji:emoji_id (
+                id, user_id, model, expression, background_color, emoji_color, show_sunglasses, 
+                show_mustache, selected_filter, animation_type, shape, eye_style, mouth_style, 
+                eyebrow_style, feature_offset_x, feature_offset_y, caption
+            )
+        `)
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false })
+        .range((page - 1) * limit, page * limit - 1);
 
     if (error) {
         console.error('Error fetching notifications:', error);
         throw error;
     }
+    
+    if (!data) return [];
+    
+    // Asynchronously get all support statuses for the actors in the notifications
+    const actorIds = data.map(n => n.actor?.id).filter(Boolean) as string[];
+    if (actorIds.length === 0) {
+        return data.map(n => ({...n, actor_support_status: null}));
+    }
 
-    // The RPC function now returns actor_support_status directly.
-    // The data is already in the correct shape.
-    return (data || []).map(n => ({
+    const { data: supports, error: supportsError } = await supabase
+        .from('supports')
+        .select('supported_id, status')
+        .eq('supporter_id', user.id)
+        .in('supported_id', actorIds);
+
+    if (supportsError) {
+        console.error('Error fetching support statuses:', supportsError);
+        // Continue without support status if this fails
+    }
+
+    const supportStatusMap = new Map(supports?.map(s => [s.supported_id, s.status]));
+
+    // Combine data
+    return data.map(n => ({
         ...n,
-        // The rpc returns actor/emoji as JSON, which is what we want.
-        actor: n.actor,
-        emoji: n.emoji,
+        actor_support_status: n.actor ? supportStatusMap.get(n.actor.id) || null : null,
     }));
 }
+
 
 export async function markNotificationsAsRead() {
     const supabase = createSupabaseServerClient();
