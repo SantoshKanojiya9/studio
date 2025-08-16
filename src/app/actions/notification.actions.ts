@@ -35,7 +35,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
             created_at,
             emoji_id,
             actor:users!notifications_actor_id_fkey(id, name, picture, is_private),
-            emoji:emojis(
+            emoji:emojis!left(
                 id, created_at, user_id, model, expression, background_color, emoji_color, show_sunglasses, show_mustache,
                 selected_filter, animation_type, shape, eye_style, mouth_style, eyebrow_style, feature_offset_x,
                 feature_offset_y, caption
