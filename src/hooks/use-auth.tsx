@@ -33,7 +33,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
   
   const client = useMemo(() => supabase, []);
 
@@ -47,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(currentSession);
         
         if (currentSession?.user) {
-            // Fetch the latest profile data from the 'users' table
             const { data: profile, error } = await client
                 .from('users')
                 .select('*')
@@ -56,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (error) {
                 console.error("Error fetching user profile:", error);
-                // Fallback to metadata if profile doesn't exist yet
                  const authUser = currentSession.user;
                  const newUser = {
                     id: authUser.id,
@@ -66,8 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     is_private: false,
                 };
                  setUser(newUser);
-                 localStorage.setItem('userProfile', JSON.stringify(newUser));
-
             } else if (profile) {
                 const userProfile = {
                     id: profile.id,
@@ -78,11 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     deleted_at: profile.deleted_at,
                 };
                 setUser(userProfile);
-                localStorage.setItem('userProfile', JSON.stringify(userProfile));
             }
         } else {
             setUser(null);
-            localStorage.removeItem('userProfile');
         }
         
         if (isMounted) {
@@ -90,18 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
     
-    // Restore session from localStorage on initial load
-    const storedUser = localStorage.getItem('userProfile');
-    if (storedUser) {
-        try {
-            setUser(JSON.parse(storedUser));
-        } catch (e) {
-            console.error("Failed to parse stored user profile", e);
-            localStorage.removeItem('userProfile');
-        }
-    }
-    
-    // Check initial session state from Supabase
     client.auth.getSession().then(({ data: { session } }) => {
         handleAuthChange(session);
     }).finally(() => {
@@ -112,13 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
       (_event, newSession) => {
-        if (_event === "TOKEN_REFRESHED" || _event === "SIGNED_IN") {
-            handleAuthChange(newSession);
-        } else if (_event === "SIGNED_OUT") {
-            setUser(null);
-            setSession(null);
-            localStorage.removeItem('userProfile');
-        }
+        handleAuthChange(newSession);
       }
     );
 
@@ -136,14 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAuthPage = publicPaths.includes(pathname);
     const isAuthCallback = pathname.startsWith('/auth/callback');
 
-    if (user && pathname === '/') {
+    if (user && isAuthPage) {
         router.push('/mood');
     } else if (!user && !isAuthPage && !isAuthCallback) {
         router.push('/');
     }
   }, [user, loading, pathname, router]);
   
-  if (loading && pathname !== '/') {
+  if (loading && !user && !['/', '/terms', '/about'].includes(pathname)) {
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
