@@ -342,6 +342,7 @@ export default function NotificationsPage() {
               <Heart className="w-16 h-16 mb-4"/>
               <h2 className="text-xl font-semibold text-foreground">Activity On Your Posts</h2>
               <p>When someone likes or supports you, you'll see it here.</p>
+              <p className="text-xs mt-2">Notifications disappear after 24 hours.</p>
           </div>
         )}
       </div>
