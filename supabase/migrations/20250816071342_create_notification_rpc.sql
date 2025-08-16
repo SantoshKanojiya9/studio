@@ -1,0 +1,2 @@
+-- This migration is intentionally left blank because it is being replaced.
+-- A new migration file `20250816080000_create_helper_functions.sql` will contain the correct schema.

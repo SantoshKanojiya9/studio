@@ -127,9 +127,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     
     // 3. Get like counts and liked statuses in parallel for efficiency
     const [likeCountsResult, likedStatusesResult] = await Promise.all([
-        supabase.from('likes').select('emoji_id', { count: 'exact' }).in('emoji_id', emojiIds).then(res => 
-            supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds })
-        ),
+        supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds }),
         supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds)
     ]);
     
