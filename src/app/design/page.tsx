@@ -473,7 +473,7 @@ const DesignPageContent = () => {
             
             <div className="absolute top-4 right-4 z-20">
                  <Button variant="outline" size="sm" onClick={() => handleModelChange('creator')} className="bg-white text-black hover:bg-white/90">
-                    <Plus className="mr-2 h-4 w-4" /> Create
+                    Create
                 </Button>
             </div>
 
