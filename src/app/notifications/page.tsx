@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Loader2, UserPlus, Heart, Check } from 'lucide-react';
-import { getNotifications, markNotificationsAsRead } from '../actions';
+import { getNotifications, markNotificationsAsRead, respondToSupportRequest } from '../actions';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { GalleryThumbnail } from '@/components/gallery-thumbnail';
 import type { EmojiState } from '@/app/design/page';
