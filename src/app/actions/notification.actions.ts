@@ -28,6 +28,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data, error } = await supabase
         .rpc('get_notifications_for_user', {
             p_recipient_id: user.id,
+            p_current_user_id: user.id, // Pass current user ID for support status check
             p_limit: limit,
             p_offset: (page - 1) * limit
         });
