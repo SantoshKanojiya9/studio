@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         subscription?.unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  }, []);
 
   useEffect(() => {
     if (loading) return; 
