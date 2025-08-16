@@ -58,26 +58,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.error("Error fetching user profile:", error);
                 // Fallback to metadata if profile doesn't exist yet
                  const authUser = currentSession.user;
-                 setUser({
+                 const newUser = {
                     id: authUser.id,
                     email: authUser.email || '',
                     name: authUser.user_metadata.name || authUser.email?.split('@')[0] || 'User',
                     picture: authUser.user_metadata.picture || `https://placehold.co/64x64.png?text=${(authUser.email || 'U').charAt(0).toUpperCase()}`,
                     is_private: false,
-                });
+                };
+                 setUser(newUser);
+                 localStorage.setItem('userProfile', JSON.stringify(newUser));
 
             } else if (profile) {
-                setUser({
+                const userProfile = {
                     id: profile.id,
                     name: profile.name,
                     email: profile.email,
                     picture: profile.picture,
                     is_private: profile.is_private,
                     deleted_at: profile.deleted_at,
-                });
+                };
+                setUser(userProfile);
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
             }
         } else {
             setUser(null);
+            localStorage.removeItem('userProfile');
         }
         
         if (isMounted) {
@@ -85,9 +90,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
     
-    // Check initial session
+    // Restore session from localStorage on initial load
+    const storedUser = localStorage.getItem('userProfile');
+    if (storedUser) {
+        try {
+            setUser(JSON.parse(storedUser));
+        } catch (e) {
+            console.error("Failed to parse stored user profile", e);
+            localStorage.removeItem('userProfile');
+        }
+    }
+    
+    // Check initial session state from Supabase
     client.auth.getSession().then(({ data: { session } }) => {
         handleAuthChange(session);
+    }).finally(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
     });
 
     const { data: { subscription } } = client.auth.onAuthStateChange(
@@ -97,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (_event === "SIGNED_OUT") {
             setUser(null);
             setSession(null);
+            localStorage.removeItem('userProfile');
         }
       }
     );

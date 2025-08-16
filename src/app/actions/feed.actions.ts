@@ -95,6 +95,7 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) throw new Error("Not authenticated");
 
+    // 1. Get the IDs of the current user and the users they follow
     const { data: supportedUsers, error: supportedError } = await supabase
         .from('supports')
         .select('supported_id')
@@ -108,13 +109,14 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
     const supportedIds = supportedUsers.map(s => s.supported_id);
     const feedUserIds = [currentUser.id, ...supportedIds];
 
+    // 2. Fetch the posts from those users
     const { data: posts, error: postsError } = await supabase
         .from('emojis')
         .select('*, user:users(id, name, picture, moods(user_id))')
         .in('user_id', feedUserIds)
         .order('created_at', { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
-
+        
     if (postsError) {
         console.error('Error fetching feed posts:', postsError);
         throw postsError;
@@ -123,24 +125,33 @@ export async function getFeedPosts({ page = 1, limit = 5 }: { page: number, limi
 
     const emojiIds = posts.map(p => p.id);
     
-    const [likeCountsData, likedStatuses] = await Promise.all([
-        supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds }),
+    // 3. Get like counts and liked statuses in parallel for efficiency
+    const [likeCountsResult, likedStatusesResult] = await Promise.all([
+        supabase.from('likes').select('emoji_id', { count: 'exact' }).in('emoji_id', emojiIds).then(res => 
+            supabase.rpc('get_like_counts_for_emojis', { p_emoji_ids: emojiIds })
+        ),
         supabase.from('likes').select('emoji_id').eq('user_id', currentUser.id).in('emoji_id', emojiIds)
     ]);
     
-    if (likeCountsData.error) console.error("Error getting like counts:", likeCountsData.error);
-    if (likedStatuses.error) console.error("Error getting liked status:", likedStatuses.error);
+    if (likeCountsResult.error) console.error("Error getting like counts:", likeCountsResult.error);
+    if (likedStatusesResult.error) console.error("Error getting liked status:", likedStatusesResult.error);
 
-    const likeCountsMap = new Map(likeCountsData.data?.map((l: any) => [l.emoji_id, l.like_count]) || []);
-    const likedSet = new Set(likedStatuses.data?.map(l => l.emoji_id) || []);
+    // 4. Create maps for quick lookups
+    const likeCountsMap = new Map(likeCountsResult.data?.map((l: any) => [l.emoji_id, l.like_count]) || []);
+    const likedSet = new Set(likedStatusesResult.data?.map(l => l.emoji_id) || []);
 
+    // 5. Combine all data, ensuring correct types
     return posts.map(post => ({
         ...(post as unknown as EmojiState),
-        user: { ...post.user, has_mood: post.user?.moods?.length > 0 } as any,
-        like_count: likeCountsMap.get(post.id) || 0,
-        is_liked: likedSet.has(post.id),
+        user: { 
+            ...post.user, 
+            has_mood: post.user?.moods?.length > 0 
+        } as any,
+        like_count: Number(likeCountsMap.get(post.id) || 0), // Ensure this is a number
+        is_liked: likedSet.has(post.id), // Ensure this is a boolean
     }));
 }
+
 
 export async function getGalleryPosts({ userId }: { userId: string }) {
     const supabase = createSupabaseServerClient();
