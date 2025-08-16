@@ -71,7 +71,7 @@ export default function LoginPage() {
         return;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router, authLoading, isClient]);
+  }, [user, authLoading, isClient]);
 
 
   const containerVariants = {
