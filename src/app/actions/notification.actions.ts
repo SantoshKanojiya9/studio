@@ -1,3 +1,4 @@
+
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
@@ -43,8 +44,7 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         .eq('recipient_id', user.id)
         .gte('created_at', twentyFourHoursAgo)
         .order('created_at', { ascending: false })
-        .range((page - 1) * limit, page * limit - 1)
-        .single(); // Add .single() here if you expect one result, or handle array below
+        .range((page - 1) * limit, page * limit - 1);
 
     if (error) {
         console.error('Error fetching notifications:', error);
