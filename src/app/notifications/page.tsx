@@ -217,7 +217,9 @@ export default function NotificationsPage() {
     }
 
     try {
-        const newNotifications = await getNotifications({ page: pageNum, limit });
+        const newNotificationsData = await getNotifications({ page: pageNum, limit });
+        const newNotifications = newNotificationsData as Notification[];
+
         if (newNotifications.length < limit) {
             setHasMore(false);
             notificationsCache.hasMore = false;
