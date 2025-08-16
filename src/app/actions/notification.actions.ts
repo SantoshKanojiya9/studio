@@ -56,7 +56,10 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     if (!data) return [];
     
     // Asynchronously get all support statuses for the actors in the notifications
-    const actorIds = data.map(n => n.actor && !Array.isArray(n.actor) ? n.actor.id : null).filter(Boolean) as string[];
+    const actorIds = data
+        .map(n => n.actor && !Array.isArray(n.actor) ? n.actor.id : null)
+        .filter(Boolean) as string[];
+
     if (actorIds.length === 0) {
         return data.map(n => ({...n, actor_support_status: null}));
     }
