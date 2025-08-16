@@ -16,17 +16,25 @@ export function MainSidebar() {
   const segment = useSelectedLayoutSegment();
   const { user, supabase } = useAuth();
   const [hasNewNotifications, setHasNewNotifications] = useState(false);
+  const [pendingSegment, setPendingSegment] = useState<string | null>(null);
+
+  useEffect(() => {
+    // When the actual segment changes (page loads), clear the pending state.
+    if (segment !== pendingSegment) {
+      setPendingSegment(null);
+    }
+  }, [segment, pendingSegment]);
+
 
   useEffect(() => {
     if (!user) return;
 
     const checkInitialNotifications = async () => {
-        const lastChecked = localStorage.getItem('last_notification_check');
         const { count, error } = await supabase
             .from('notifications')
             .select('*', { count: 'exact', head: true })
             .eq('recipient_id', user.id)
-            .gt('created_at', lastChecked || new Date(0).toISOString());
+            .eq('is_read', false);
         
         if (!error && (count ?? 0) > 0) {
             setHasNewNotifications(true);
@@ -56,7 +64,6 @@ export function MainSidebar() {
   useEffect(() => {
     if (segment === 'notifications') {
         setHasNewNotifications(false);
-        localStorage.setItem('last_notification_check', new Date().toISOString());
     }
   }, [segment]);
 
@@ -77,13 +84,14 @@ export function MainSidebar() {
           </Link>
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.segment === segment;
+            const isActive = (pendingSegment || segment) === item.segment;
             
             return (
               <Tooltip key={item.label}>
                 <TooltipTrigger asChild>
                   <Link
                     href={item.href}
+                    onClick={() => setPendingSegment(item.segment)}
                     className={cn(
                       'relative flex items-center justify-center rounded-lg transition-colors w-12 h-12',
                       isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50'
