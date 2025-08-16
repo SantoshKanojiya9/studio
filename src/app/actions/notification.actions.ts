@@ -38,10 +38,11 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
         throw error;
     }
 
+    // The RPC function now returns actor_support_status directly.
+    // The data is already in the correct shape.
     return (data || []).map(n => ({
         ...n,
-        // The rpc returns actor/emoji as JSON, so we parse it.
-        // It also returns support status directly.
+        // The rpc returns actor/emoji as JSON, which is what we want.
         actor: n.actor,
         emoji: n.emoji,
     }));
