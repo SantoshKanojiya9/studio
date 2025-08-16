@@ -24,7 +24,6 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    // This is the corrected query. It uses .from().select() instead of a faulty RPC.
     const { data, error } = await supabase
         .from('notifications')
         .select(`
@@ -55,33 +54,43 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     
     if (!data) return [];
     
-    // Asynchronously get all support statuses for the actors in the notifications
+    // Get all support statuses for the actors in the notifications in one go
     const actorIds = data
-        .map(n => n.actor && !Array.isArray(n.actor) ? n.actor.id : null)
-        .filter(Boolean) as string[];
+        .map(n => n.actor && typeof n.actor === 'object' && !Array.isArray(n.actor) ? n.actor.id : null)
+        .filter((id): id is string => id !== null);
 
-    if (actorIds.length === 0) {
-        return data.map(n => ({...n, actor_support_status: null}));
+    const supportStatusMap = new Map<string, 'approved' | 'pending'>();
+
+    if (actorIds.length > 0) {
+        const { data: supports, error: supportsError } = await supabase
+            .from('supports')
+            .select('supported_id, status')
+            .eq('supporter_id', user.id)
+            .in('supported_id', actorIds);
+
+        if (supportsError) {
+            console.error('Error fetching support statuses:', supportsError);
+        } else if (supports) {
+            supports.forEach(s => {
+                if(s.status === 'approved' || s.status === 'pending') {
+                    supportStatusMap.set(s.supported_id, s.status);
+                }
+            });
+        }
     }
 
-    const { data: supports, error: supportsError } = await supabase
-        .from('supports')
-        .select('supported_id, status')
-        .eq('supporter_id', user.id)
-        .in('supported_id', actorIds);
-
-    if (supportsError) {
-        console.error('Error fetching support statuses:', supportsError);
-        // Continue without support status if this fails
-    }
-
-    const supportStatusMap = new Map(supports?.map(s => [s.supported_id, s.status]));
-
-    // Combine data
-    return data.map(n => ({
-        ...n,
-        actor_support_status: n.actor && !Array.isArray(n.actor) ? supportStatusMap.get(n.actor.id) || null : null,
-    }));
+    // Combine data safely
+    return data.map(n => {
+        let actorSupportStatus: 'approved' | 'pending' | null = null;
+        if (n.actor && typeof n.actor === 'object' && !Array.isArray(n.actor) && n.actor.id) {
+            actorSupportStatus = supportStatusMap.get(n.actor.id) || null;
+        }
+        
+        return {
+            ...n,
+            actor_support_status: actorSupportStatus,
+        };
+    });
 }
 
 
