@@ -46,7 +46,8 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     return data.map(n => ({
         ...n,
         actor: n.actor,
-        emoji: n.emoji?.id ? n.emoji : null, // Ensure emoji is not just an object with a null id
+        // Ensure emoji is a valid object with an ID before passing it to the client.
+        emoji: n.emoji && n.emoji.id ? n.emoji : null,
     }));
 }
 
