@@ -497,9 +497,9 @@ export function PostView({
     feature_offset_y: 0,
   };
 
-  let finalEmoji: EmojiState = { ...defaultEmoji, ...currentEmojiState };
+  const finalEmoji: EmojiState = { ...defaultEmoji, ...currentEmojiState };
 
-  if (finalEmoji.model === 'loki' && finalEmoji.shape === 'clay') {
+  if (finalEmoji.model === 'loki' && finalEmoji.shape === 'blob') {
     finalEmoji.shape = 'default';
   }
 
