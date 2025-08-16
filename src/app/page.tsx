@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
@@ -15,7 +15,7 @@ import { EdengramLogo } from '@/components/edengram-logo';
 import Link from 'next/link';
 
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const { user, supabase, loading: authLoading, setLoading: setAuthLoading } = useAuth();
   const { toast } = useToast();
@@ -161,4 +161,12 @@ export default function LoginPage() {
       </motion.div>
     </div>
   );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            <LoginPageContent />
+        </Suspense>
+    )
 }
