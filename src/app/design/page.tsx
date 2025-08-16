@@ -32,7 +32,7 @@ export type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filt
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
 export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay' | 'sphere' | 'blob';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
-type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
+export type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
 
 export type EmojiState = {
