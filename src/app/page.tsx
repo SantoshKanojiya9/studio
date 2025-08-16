@@ -152,12 +152,6 @@ function LoginPageContent() {
             </Tabs>
         </motion.div>
         
-        <motion.footer variants={itemVariants} className="text-xs text-muted-foreground space-x-4">
-            <Link href="/terms" className="hover:text-primary">Terms & Conditions</Link>
-            <span>&bull;</span>
-            <Link href="/about" className="hover:text-primary">About Us</Link>
-        </motion.footer>
-
       </motion.div>
     </div>
   );
