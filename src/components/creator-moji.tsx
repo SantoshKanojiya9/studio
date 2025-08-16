@@ -82,8 +82,6 @@ type CreatorMojiProps = {
     feature_offset_y: MotionValue<number>;
     color: string;
     setColor: (color: string) => void;
-    clay_width: number;
-    clay_height: number;
 };
 
 export const CreatorMoji = (props: CreatorMojiProps) => {
@@ -231,7 +229,6 @@ export const CreatorMoji = (props: CreatorMojiProps) => {
             square: '10%',
             squircle: '30%',
             tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-            clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
             blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
         };
         return paths[s] || paths.default;

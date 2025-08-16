@@ -25,8 +25,6 @@ export const Face = ({
     feature_offset_x,
     feature_offset_y,
     showPlatform = true, // New prop to control the platform visibility
-    clay_width,
-    clay_height,
 }: { 
     expression: Expression, 
     color: string, 
@@ -46,8 +44,6 @@ export const Face = ({
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
     showPlatform?: boolean;
-    clay_width?: number;
-    clay_height?: number;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [isAngryMode, setIsAngryMode] = useState(false);
@@ -250,7 +246,6 @@ export const Face = ({
         square: '10%',
         squircle: '30%',
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-        clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
         sphere: '50%',
         blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
@@ -310,7 +305,7 @@ export const Face = ({
     }
   };
 
-  const isClayMode = shape === 'clay';
+  const isClayMode = false; // shape === 'clay';
   const claySkewX = useTransform(smoothPointerX, [0, 1], isClayMode ? [-10, 10] : [0, 0]);
   const claySkewY = useTransform(smoothPointerY, [0, 1], isClayMode ? [-10, 10] : [0, 0]);
 
@@ -339,8 +334,8 @@ export const Face = ({
         <motion.div 
           className="w-full h-full shadow-[inset_0_-20px_30px_rgba(0,0,0,0.2),_0_10px_20px_rgba(0,0,0,0.3)] relative"
           style={{
-            width: isClayMode ? `${320 + (clay_width || 0)}px` : '320px',
-            height: isClayMode ? `${256 + (clay_height || 0)}px` : '256px',
+            width: '320px',
+            height: '256px',
           }}
           animate={{ borderRadius: getShapeClipPath(shape) }}
           transition={{ duration: 0.3 }}

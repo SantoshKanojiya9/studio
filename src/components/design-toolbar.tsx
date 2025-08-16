@@ -175,12 +175,8 @@ export const DesignToolbar = (props: DesignToolbarProps) => {
                 { name: 'square', icon: Square, label: 'Square' },
                 { name: 'squircle', icon: Square, label: 'Squircle' },
                 { name: 'tear', icon: Droplet, label: 'Tear' },
+                { name: 'blob', icon: Droplet, label: 'Blob' },
             ];
-            if (model === 'creator') {
-                shapes.push({ name: 'clay', icon: Hand, label: 'Clay' });
-            } else {
-                shapes.push({ name: 'blob', icon: Droplet, label: 'Blob' });
-            }
             return (
               <div className="flex items-center md:flex-col md:gap-1">
                 <Button variant="ghost" size="icon" onClick={() => setActiveMenu('main')}><ArrowLeft className="h-4 w-4 md:hidden" /><ArrowUp className="h-4 w-4 hidden md:block" /></Button>

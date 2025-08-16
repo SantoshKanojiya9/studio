@@ -25,8 +25,6 @@ export const ClockFace = ({
     onPanEnd,
     feature_offset_x,
     feature_offset_y,
-    clay_width,
-    clay_height,
 }: { 
     expression: Expression, 
     color: string, 
@@ -45,8 +43,6 @@ export const ClockFace = ({
     onPanEnd?: (event: any, info: any) => void;
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
-    clay_width?: number;
-    clay_height?: number;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
   const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
@@ -223,7 +219,6 @@ export const ClockFace = ({
       square: '10%',
       squircle: '30%',
       tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-      clay: '50%', // clay not supported for loki, will default
       sphere: '50%',
       blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
@@ -231,7 +226,7 @@ export const ClockFace = ({
   };
   
   // Ensure blob shape is not used for loki
-  const currentShape = shape === 'clay' ? 'default' : shape;
+  const currentShape = shape === 'blob' ? 'default' : shape;
 
   const tickMarks = Array.from({ length: 12 }, (_, i) => {
     const angle = i * 30;

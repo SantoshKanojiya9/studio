@@ -24,8 +24,6 @@ export const RimuruFace = ({
     onPanEnd,
     feature_offset_x,
     feature_offset_y,
-    clay_width,
-    clay_height,
 }: { 
     expression: Expression, 
     color: string, 
@@ -44,8 +42,6 @@ export const RimuruFace = ({
     onPanEnd?: (event: any, info: any) => void;
     feature_offset_x: MotionValue<number>;
     feature_offset_y: MotionValue<number>;
-    clay_width?: number;
-    clay_height?: number;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
 
@@ -177,7 +173,6 @@ export const RimuruFace = ({
         square: '10%',
         squircle: '30%',
         tear: '50% 50% 50% 50% / 60% 60% 40% 40%',
-        clay: '40% 60% 40% 60% / 60% 40% 60% 40%',
         sphere: '50%',
         blob: '40% 60% 40% 60% / 60% 40% 60% 40%',
     };
@@ -200,10 +195,6 @@ export const RimuruFace = ({
       >
         <motion.div 
           className="w-full h-full relative"
-          style={{
-            width: shape === 'clay' ? `${320 + (clay_width || 0)}px` : '320px',
-            height: shape === 'clay' ? `${256 + (clay_height || 0)}px` : '256px',
-          }}
           animate={{ borderRadius: getShapeClipPath(shape) }}
           transition={{ duration: 0.3 }}
         >

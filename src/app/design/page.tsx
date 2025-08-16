@@ -30,7 +30,7 @@ import { Droplet, Users, Clock } from 'lucide-react';
 export type Expression = 'neutral' | 'happy' | 'angry' | 'sad' | 'surprised' | 'scared' | 'love';
 export type MenuType = 'main' | 'expressions' | 'colors' | 'accessories' | 'filters' | 'animations' | 'shapes' | 'face' | 'eyes' | 'mouth' | 'eyebrows' | 'caption';
 export type AnimationType = 'left-right' | 'right-left' | 'up-down' | 'down-up' | 'diag-left-right' | 'diag-right-left' | 'random' | 'none';
-export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'clay' | 'sphere' | 'blob';
+export type ShapeType = 'default' | 'square' | 'squircle' | 'tear' | 'blob' | 'sphere';
 export type FeatureStyle = 'default' | 'male-1' | 'male-2' | 'male-3' | 'female-1' | 'female-2' | 'female-3';
 export type ModelType = 'emoji' | 'loki' | 'rimuru' | 'creator';
 
@@ -53,8 +53,6 @@ export type EmojiState = {
     eyebrow_style: FeatureStyle;
     feature_offset_x: number;
     feature_offset_y: number;
-    clay_width?: number;
-    clay_height?: number;
     caption?: string;
     user?: {
       id: string;
@@ -203,7 +201,7 @@ const DesignPageContent = () => {
     setIsSaving(true);
     setShowSaveConfirm(false);
 
-    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user' | 'clay_width' | 'clay_height'> = {
+    const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> = {
         user_id: user.id,
         model,
         expression,
@@ -353,8 +351,6 @@ const DesignPageContent = () => {
         onPanEnd: handlePanEnd,
         feature_offset_x: feature_offset_x,
         feature_offset_y: feature_offset_y,
-        clay_width: 0,
-        clay_height: 0,
     };
 
     switch(model) {
