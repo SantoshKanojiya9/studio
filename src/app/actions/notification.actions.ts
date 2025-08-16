@@ -40,3 +40,19 @@ export async function getNotifications({ page = 1, limit = 15 }: { page: number,
     
     return data || [];
 }
+
+export async function markNotificationsAsRead() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('recipient_id', user.id)
+        .eq('is_read', false);
+
+    if (error) {
+        console.error('Error marking notifications as read:', error);
+    }
+}
