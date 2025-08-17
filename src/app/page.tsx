@@ -4,6 +4,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -152,6 +153,14 @@ function LoginPageContent() {
         </motion.div>
         
       </motion.div>
+        <footer className="absolute bottom-4 text-xs text-muted-foreground">
+            <div className="flex gap-4 justify-center">
+                <Link href="/about" className="hover:text-foreground">About Us</Link>
+                <Link href="/terms" className="hover:text-foreground">Terms</Link>
+                <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            </div>
+            <p className="mt-2">Contact for any issue: <a href="mailto:risein98@gmail.com" className="hover:text-foreground">risein98@gmail.com</a></p>
+        </footer>
     </div>
   );
 }
