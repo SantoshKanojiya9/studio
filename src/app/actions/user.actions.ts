@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -24,13 +25,13 @@ export async function updateUserProfile(formData: FormData) {
         // Use the user's client to respect RLS policies for storage.
         const supabaseAsUser = createSupabaseServerClient(false);
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
+        const fileName = `avatar.${fileExt}`; // Use a constant name to overwrite
         const filePath = `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabaseAsUser.storage
             .from('avatars')
             .upload(filePath, avatarFile, {
-                upsert: true,
+                upsert: true, // This will now overwrite the existing file
                 cacheControl: '3600',
             });
 
@@ -43,7 +44,8 @@ export async function updateUserProfile(formData: FormData) {
             .from('avatars')
             .getPublicUrl(filePath);
         
-        profileData.picture = publicUrl;
+        // Add a timestamp to the URL to bypass browser cache
+        profileData.picture = `${publicUrl}?t=${new Date().getTime()}`;
     }
 
     // Update user's profile in the users table
