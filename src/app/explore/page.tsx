@@ -217,7 +217,7 @@ export default function ExplorePage() {
 
   const selectedEmojiIndex = selectedEmojiId ? allEmojis.findIndex(e => e.id === selectedEmojiId) : -1;
 
-  if (selectedEmojiId && selectedEmojiIndex !== -1) {
+  if (selectedEmojiIndex !== -1) {
     return (
         <PostView 
             emojis={allEmojis}

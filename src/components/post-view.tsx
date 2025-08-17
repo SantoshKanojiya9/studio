@@ -294,6 +294,7 @@ export function PostView({
   const { toast } = useToast();
   
   const loaderRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const progressWidth = useMotionValue('0%');
   const animationControlsRef = useRef<ReturnType<typeof animate> | null>(null);
@@ -303,6 +304,16 @@ export function PostView({
   useEffect(() => {
     setLocalEmojis(emojis);
   }, [emojis]);
+
+  // Scroll to initial post on mount
+  useEffect(() => {
+    if (containerRef.current && initialIndex > 0) {
+      const element = containerRef.current.children[initialIndex] as HTMLElement;
+      if(element) {
+        element.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }
+    }
+  }, [initialIndex]);
 
   useEffect(() => {
     if (!currentEmojiState) {
@@ -682,6 +693,7 @@ export function PostView({
 
           <div 
               className="flex-1 flex flex-col overflow-y-auto snap-y snap-mandatory no-scrollbar"
+              ref={containerRef}
           >
               {localEmojis.map((emoji) => {
                   if (isCurrentEmojiMood(emoji)) return null;

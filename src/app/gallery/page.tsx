@@ -400,7 +400,7 @@ function GalleryPageContent() {
     return (
         <>
             <div className="flex h-full w-full flex-col overflow-x-hidden">
-            {selectedEmojiId && selectedEmojiIndex > -1 ? (
+            {selectedEmojiIndex > -1 ? (
                     <PostView 
                         emojis={postsForView}
                         initialIndex={selectedEmojiIndex}
