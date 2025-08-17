@@ -32,6 +32,7 @@ export default function RootLayout({
       <head>
         <title>Edengram</title>
         <meta name="description" content="AI Chat and Image Generation" />
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
       </head>
       <body className={cn("font-body antialiased bg-background overflow-x-hidden")}>
         <AuthProvider>
