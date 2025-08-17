@@ -3,7 +3,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
