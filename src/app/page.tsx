@@ -44,11 +44,10 @@ function LoginPageContent() {
     });
     if (error) {
         toast({ title: 'Sign-up Error', description: error.message, variant: 'destructive'});
-        setAuthLoading(false);
     } else {
         toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email address.', variant: 'success'});
-        setAuthLoading(false);
     }
+    setAuthLoading(false);
   }
 
   const handleManualSignIn = async (e: React.FormEvent) => {
@@ -60,9 +59,10 @@ function LoginPageContent() {
     });
      if (error) {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
-        setAuthLoading(false);
-    }
-    // On success the onAuthStateChange listener in useAuth will handle the redirect & loading state.
+     }
+     // On success, the onAuthStateChange listener in useAuth will handle the redirect.
+     // We stop the loader here regardless.
+     setAuthLoading(false);
   }
   
   useEffect(() => {
