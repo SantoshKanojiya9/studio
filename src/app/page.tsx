@@ -3,7 +3,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -12,9 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EdengramLogo } from '@/components/edengram-logo';
-import Link from 'next/link';
 
-
+// This component uses client-side hooks and causes the error.
+// It's equivalent to the `Search` component in the documentation example.
 function LoginPageContent() {
   const router = useRouter();
   const { user, supabase, loading: authLoading, setLoading: setAuthLoading } = useAuth();
@@ -62,7 +62,7 @@ function LoginPageContent() {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
         setAuthLoading(false);
     }
-    // On succes the onAuthStateChange listener in useAuth will handle the redirect & loading state.
+    // On success the onAuthStateChange listener in useAuth will handle the redirect & loading state.
   }
   
   useEffect(() => {
@@ -157,8 +157,11 @@ function LoginPageContent() {
   );
 }
 
+// This is the exported page component.
+// It's equivalent to the `Searchbar` component in the documentation example.
 export default function LoginPage() {
     return (
+        // This Suspense boundary wraps the component that uses client-side hooks.
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
             <LoginPageContent />
         </Suspense>
