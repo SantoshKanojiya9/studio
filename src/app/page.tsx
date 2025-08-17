@@ -13,8 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EdengramLogo } from '@/components/edengram-logo';
 
-// This component uses client-side hooks and causes the error.
-// It's equivalent to the `Search` component in the documentation example.
+// This component uses client-side hooks.
 function LoginPageContent() {
   const router = useRouter();
   const { user, supabase, loading: authLoading, setLoading: setAuthLoading } = useAuth();
@@ -158,10 +157,9 @@ function LoginPageContent() {
 }
 
 // This is the exported page component.
-// It's equivalent to the `Searchbar` component in the documentation example.
+// It wraps the client component in a Suspense boundary.
 export default function LoginPage() {
     return (
-        // This Suspense boundary wraps the component that uses client-side hooks.
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
             <LoginPageContent />
         </Suspense>
