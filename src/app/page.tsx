@@ -62,7 +62,7 @@ function LoginPageContent() {
         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
         setAuthLoading(false);
     }
-    // On succes, the onAuthStateChange listener in useAuth will handle the redirect & loading state.
+    // On succes the onAuthStateChange listener in useAuth will handle the redirect & loading state.
   }
   
   useEffect(() => {
