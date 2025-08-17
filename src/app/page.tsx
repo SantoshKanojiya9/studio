@@ -42,12 +42,12 @@ function LoginPageContent() {
             }
         }
     });
+    setAuthLoading(false);
     if (error) {
         toast({ title: 'Sign-up Error', description: error.message, variant: 'destructive'});
     } else {
         toast({ title: 'Check your email', description: 'A confirmation link has been sent to your email address.', variant: 'success'});
     }
-    setAuthLoading(false);
   }
 
   const handleManualSignIn = async (e: React.FormEvent) => {
