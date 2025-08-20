@@ -270,8 +270,16 @@ const DesignPageContent = () => {
 
   const handlePan = (_: any, info: any) => {
     if (dragOrigin.current) {
-        const boundaryX = model === 'emoji' ? 80 : 40; 
-        const boundaryY = model === 'emoji' ? 60 : 30;
+        let boundaryX = 40;
+        let boundaryY = 30;
+
+        if (model === 'emoji') {
+            boundaryX = 80;
+            boundaryY = 60;
+        } else if (model === 'rimuru') {
+            boundaryX = 70;
+            boundaryY = 50;
+        }
         
         let newX = dragOrigin.current.x + info.offset.x;
         let newY = dragOrigin.current.y + info.offset.y;
