@@ -77,8 +77,13 @@ const DesignPageContent = () => {
   const [expression, setExpression] = useState<Expression>('neutral');
   const [activeMenu, setActiveMenu] = useState<MenuType>('main');
   
+  // Model-specific color states for true isolation
+  const [emojiColor, setEmojiColor] = useState('#ffb300');
+  const [lokiColor, setLokiColor] = useState('orangered');
+  const [rimuruColor, setRimuruColor] = useState('#3498db');
+  const [creatorColor, setCreatorColor] = useState('#333333');
+  
   const [background_color, setBackgroundColor] = useState('#0a0a0a');
-  const [emoji_color, setEmojiColor] = useState('#ffb300');
   const [show_sunglasses, setShowSunglasses] = useState(false);
   const [show_mustache, setShowMustache] = useState(false);
   const [selected_filter, setSelectedFilter] = useState<string | null>(null);
@@ -90,12 +95,6 @@ const DesignPageContent = () => {
   const [eyebrow_style, setEyebrowStyle] = useState<FeatureStyle>('default');
   const [caption, setCaption] = useState('');
   
-  const defaultBackgroundColor = '#0a0a0a';
-  const defaultEmojiColor = '#ffb300';
-  const defaultLokiColor = 'orangered';
-  const defaultRimuruColor = '#3498db';
-  const defaultCreatorColor = '#333333';
-  
   const dragOrigin = useRef<{ x: number, y: number } | null>(null);
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const feature_offset_x = useMotionValue(0);
@@ -106,7 +105,15 @@ const DesignPageContent = () => {
     setModel(emoji.model);
     setExpression(emoji.expression);
     setBackgroundColor(emoji.background_color);
-    setEmojiColor(emoji.emoji_color);
+    
+    // Set the correct color for the loaded model
+    switch(emoji.model) {
+        case 'emoji': setEmojiColor(emoji.emoji_color); break;
+        case 'loki': setLokiColor(emoji.emoji_color); break;
+        case 'rimuru': setRimuruColor(emoji.emoji_color); break;
+        case 'creator': setCreatorColor(emoji.emoji_color); break;
+    }
+
     setShowSunglasses(emoji.show_sunglasses);
     setShowMustache(emoji.show_mustache);
     setSelectedFilter(emoji.selected_filter);
@@ -165,8 +172,11 @@ const DesignPageContent = () => {
     setId(null);
     setModel('emoji');
     setExpression('neutral');
-    setBackgroundColor(defaultBackgroundColor);
-    setEmojiColor(defaultEmojiColor);
+    setBackgroundColor('#0a0a0a');
+    setEmojiColor('#ffb300');
+    setLokiColor('orangered');
+    setRimuruColor('#3498db');
+    setCreatorColor('#333333');
     setShowSunglasses(false);
     setShowMustache(false);
     setSelectedFilter(null);
@@ -200,13 +210,19 @@ const DesignPageContent = () => {
     
     setIsSaving(true);
     setShowSaveConfirm(false);
+    
+    // Determine the correct color to save based on the current model
+    let colorToSave = emojiColor;
+    if (model === 'loki') colorToSave = lokiColor;
+    else if (model === 'rimuru') colorToSave = rimuruColor;
+    else if (model === 'creator') colorToSave = creatorColor;
 
     const emojiData: Omit<EmojiState, 'id' | 'created_at' | 'user'> = {
         user_id: user.id,
         model,
         expression,
         background_color,
-        emoji_color,
+        emoji_color: colorToSave,
         show_sunglasses,
         show_mustache,
         selected_filter: selected_filter === 'None' ? null : selected_filter,
@@ -326,27 +342,33 @@ const DesignPageContent = () => {
     setSelectedFilter(null);
     setAnimationType(newModel === 'creator' ? 'none' : 'random'); // Set animation to none for creator
     setCaption('');
-    
-    // Set model-specific defaults, including color
-    switch (newModel) {
-        case 'loki':
-            setEmojiColor(defaultLokiColor);
-            break;
-        case 'rimuru':
-            setEmojiColor(defaultRimuruColor);
-            break;
-        case 'creator':
-            setEmojiColor(defaultCreatorColor);
-            setExpression('neutral'); // Ensure no expression is shown initially
-            break;
-        case 'emoji':
-        default:
-            setEmojiColor(defaultEmojiColor);
-            break;
-    }
 
     // Finally, set the new model
     setModel(newModel);
+  }
+  
+  // Get the correct color and setter for the current model
+  let currentColor: string;
+  let setCurrentColor: (color: string) => void;
+
+  switch(model) {
+      case 'loki':
+          currentColor = lokiColor;
+          setCurrentColor = setLokiColor;
+          break;
+      case 'rimuru':
+          currentColor = rimuruColor;
+          setCurrentColor = setRimuruColor;
+          break;
+      case 'creator':
+          currentColor = creatorColor;
+          setCurrentColor = setCreatorColor;
+          break;
+      case 'emoji':
+      default:
+          currentColor = emojiColor;
+          setCurrentColor = setEmojiColor;
+          break;
   }
 
   const renderModel = () => {
@@ -370,13 +392,13 @@ const DesignPageContent = () => {
 
     switch(model) {
         case 'emoji':
-            return <Face color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+            return <Face color={emojiColor} setColor={setEmojiColor} {...faceProps} />;
         case 'loki':
-            return <ClockFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+            return <ClockFace color={lokiColor} setColor={setLokiColor} {...faceProps} />;
         case 'rimuru':
-            return <RimuruFace color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+            return <RimuruFace color={rimuruColor} setColor={setRimuruColor} {...faceProps} />;
         case 'creator':
-            return <CreatorMoji color={emoji_color} setColor={setEmojiColor} {...faceProps} />;
+            return <CreatorMoji color={creatorColor} setColor={setCreatorColor} {...faceProps} />;
     }
   }
 
@@ -415,8 +437,8 @@ const DesignPageContent = () => {
           setExpression={setExpression}
           background_color={background_color}
           setBackgroundColor={setBackgroundColor}
-          emoji_color={emoji_color}
-          setEmojiColor={setEmojiColor}
+          emoji_color={currentColor}
+          setEmojiColor={setCurrentColor}
           show_sunglasses={show_sunglasses}
           setShowSunglasses={setShowSunglasses}
           show_mustache={show_mustache}
