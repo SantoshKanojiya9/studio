@@ -6,6 +6,17 @@ import { motion, useMotionValue, useTransform, useSpring, animate, MotionValue }
 import { Heart } from 'lucide-react';
 import type { Expression, ShapeType, FeatureStyle, AnimationType } from '@/app/design/page';
 
+const AnimatedHeart = ({ delay, x, y }: { delay: number; x: number; y: number }) => (
+    <motion.div
+        style={{ position: 'absolute', left: x, top: -20, willChange: 'transform' }}
+        initial={{ y: 0, opacity: 1, scale: Math.random() * 0.5 + 0.5 }}
+        animate={{ y: y + 40, opacity: 0 }}
+        transition={{ duration: 1.5, ease: 'linear', delay }}
+    >
+        <Heart className="h-6 w-6 text-pink-400 fill-current" />
+    </motion.div>
+);
+
 export const RimuruFace = ({ 
     expression: initialExpression, 
     color,
@@ -44,6 +55,9 @@ export const RimuruFace = ({
     feature_offset_y: MotionValue<number>;
 }) => {
   const [expression, setExpression] = useState<Expression>(initialExpression);
+  const [tapTimestamps, setTapTimestamps] = useState<number[]>([]);
+  const [isHappyMode, setIsHappyMode] = useState(false);
+  const [hearts, setHearts] = useState<React.ReactNode[]>([]);
 
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationControlsX = useRef<ReturnType<typeof animate> | null>(null);
@@ -52,8 +66,10 @@ export const RimuruFace = ({
   const allExpressions: Expression[] = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'scared', 'love'];
 
   useEffect(() => {
-    setExpression(initialExpression);
-  }, [initialExpression]);
+    if (!isHappyMode) {
+      setExpression(initialExpression);
+    }
+  }, [initialExpression, isHappyMode]);
 
   // Dedicated effect for animations
   useEffect(() => {
@@ -63,7 +79,7 @@ export const RimuruFace = ({
       if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
     };
 
-    if (isDragging || animation_type === 'none') {
+    if (isDragging || animation_type === 'none' || isHappyMode) {
       stopAnimations();
       return;
     }
@@ -79,8 +95,8 @@ export const RimuruFace = ({
         const newExpression = allExpressions[Math.floor(Math.random() * allExpressions.length)];
         setExpression(newExpression);
         
-        const boundaryX = 80; 
-        const boundaryY = 60;
+        const boundaryX = 70; 
+        const boundaryY = 50;
         
         let newX, newY;
         
@@ -127,7 +143,37 @@ export const RimuruFace = ({
 
     // Cleanup function to stop animations when the component unmounts or dependencies change
     return stopAnimations;
-  }, [animation_type, isDragging, feature_offset_x, feature_offset_y]);
+  }, [animation_type, isDragging, feature_offset_x, feature_offset_y, isHappyMode]);
+  
+  const handleTap = () => {
+    if (isHappyMode || !isInteractive) return;
+  
+    const now = Date.now();
+    const newTimestamps = [...tapTimestamps, now].filter(t => now - t < 2000);
+    setTapTimestamps(newTimestamps);
+  
+    if (newTimestamps.length >= 4) {
+      setIsHappyMode(true);
+      setExpression('love');
+      const originalColor = color;
+      setColor('#FFC0CB'); // Baby pink
+      setTapTimestamps([]);
+  
+      // Heart animation
+      const newHearts = Array.from({ length: 15 }).map((_, i) => (
+          <AnimatedHeart key={Date.now() + i} delay={i * 0.1} x={Math.random() * 320} y={384} />
+      ));
+      setHearts(newHearts);
+
+      setTimeout(() => {
+        setIsHappyMode(false);
+        setColor(originalColor);
+        // The useEffect for initialExpression will reset the expression
+        setExpression(initialExpression);
+        setHearts([]);
+      }, 2000);
+    }
+  };
 
 
   const eyeVariants = {
@@ -185,8 +231,10 @@ export const RimuruFace = ({
       onPan={isInteractive ? onPan : undefined}
       onPanStart={isInteractive ? onPanStart : undefined}
       onPanEnd={isInteractive ? onPanEnd : undefined}
+      onTap={handleTap}
       style={{ transformStyle: 'preserve-3d' }}
     >
+      {isHappyMode && <div className="absolute inset-0 z-20 pointer-events-none">{hearts}</div>}
       <motion.div 
         className="absolute w-full h-64 z-10 flex items-center justify-center"
         initial={{ y: 20, scale: 0.95, opacity: 0 }}
