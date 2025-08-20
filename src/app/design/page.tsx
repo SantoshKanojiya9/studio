@@ -327,7 +327,7 @@ const DesignPageContent = () => {
     setAnimationType(newModel === 'creator' ? 'none' : 'random'); // Set animation to none for creator
     setCaption('');
     
-    // Set model-specific defaults
+    // Set model-specific defaults, including color
     switch (newModel) {
         case 'loki':
             setEmojiColor(defaultLokiColor);
