@@ -279,6 +279,9 @@ const DesignPageContent = () => {
         } else if (model === 'rimuru') {
             boundaryX = 70;
             boundaryY = 50;
+        } else if (model === 'creator') {
+            boundaryX = 80;
+            boundaryY = 60;
         }
         
         let newX = dragOrigin.current.x + info.offset.x;
