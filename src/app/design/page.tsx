@@ -325,17 +325,21 @@ const DesignPageContent = () => {
     setCaption('');
     
     // Set model-specific defaults
-    if (newModel === 'loki') {
-        setEmojiColor(defaultLokiColor);
-    } else if (newModel === 'rimuru') {
-        setEmojiColor(defaultRimuruColor);
-    } else if (newModel === 'creator') {
-        setEmojiColor(defaultCreatorColor);
-        // Ensure no expression is shown initially for the creator model
-        setExpression('neutral');
-    }
-    else {
-        setEmojiColor(defaultEmojiColor);
+    switch (newModel) {
+        case 'loki':
+            setEmojiColor(defaultLokiColor);
+            break;
+        case 'rimuru':
+            setEmojiColor(defaultRimuruColor);
+            break;
+        case 'creator':
+            setEmojiColor(defaultCreatorColor);
+            setExpression('neutral'); // Ensure no expression is shown initially
+            break;
+        case 'emoji':
+        default:
+            setEmojiColor(defaultEmojiColor);
+            break;
     }
 
     // Finally, set the new model
