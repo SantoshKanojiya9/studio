@@ -17,13 +17,20 @@ export default function PrivacyPolicyPage() {
             <p>Last Updated: August 17, 2025</p>
 
             <p>
-              Welcome to Edengram ("we," "our," or "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application.
+              Welcome to Edengram ("we," "our," or "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application. By using Edengram, you agree to the collection and use of information in accordance with this policy.
             </p>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">1. Information We Collect</h3>
             <p>
-              We may collect personal information that you provide to us directly, such as your name, email address, and profile picture when you register for an account. We also collect user-generated content, such as the emojis you create and the posts you make.
+              We may collect the following types of information:
             </p>
+            <ul className="list-disc list-inside space-y-2">
+                <li><strong>Personal Data:</strong> When you register for an account, we ask for your email address and a password. You may also voluntarily provide a name and a profile picture.</li>
+                <li><strong>User-Generated Content:</strong> We collect the content you create on our platform, including the emojis you design, their settings (colors, shapes, etc.), and any captions you add.</li>
+                <li><strong>Usage Data:</strong> We automatically collect information on how you interact with the service, such as your posts, likes, the users you support (follow), and who supports you. This helps us create your feed and provide the core social features of the app.</li>
+                <li><strong>Technical Data:</strong> We may collect technical data such as your IP address, browser type, and device information to ensure the security and functionality of our service.</li>
+            </ul>
+
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">2. How We Use Your Information</h3>
             <p>
@@ -31,25 +38,26 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc list-inside space-y-2">
               <li>Create and manage your account.</li>
-              <li>Provide, operate, and maintain our services.</li>
-              <li>Improve, personalize, and expand our services.</li>
-              <li>Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the app.</li>
-              <li>Process your transactions and manage your orders.</li>
+              <li>Provide, operate, and maintain our services, including social features like feeds, moods, and notifications.</li>
+              <li>Display your profile and creations to other users according to your privacy settings.</li>
+              <li>Improve, personalize, and expand our services based on user activity.</li>
+              <li>Communicate with you for customer service and to provide updates about the application.</li>
+              <li>Protect the security of our platform and users, including moderating content.</li>
             </ul>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">3. Sharing Your Information</h3>
             <p>
-              We do not share your personal information with third parties except as described in this Privacy Policy. We may share your information with third-party vendors and service providers that perform services for us or on our behalf.
+              Your public profile information and public creations are visible to other users of the service. If your account is private, your information is only visible to supporters you approve. We do not sell your personal data. We may share information with third-party service providers (like our database and authentication provider, Supabase) only to the extent necessary to provide and maintain the service.
             </p>
             
-            <h3 className="text-2xl font-semibold text-foreground pt-4">4. Data Security</h3>
+            <h3 className="text-2xl font-semibold text-foreground pt-4">4. Data Security & Retention</h3>
             <p>
-              We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.
+              We use industry-standard security measures to protect your personal information. We retain your data as long as your account is active. If you choose to delete your account, your personal data and creations will be permanently removed from our active databases according to the process described in the app.
             </p>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">5. Your Privacy Rights</h3>
             <p>
-              You may review, change, or terminate your account at any time. If you would like to review or change your information, you can do so in your profile settings. To terminate your account, please use the "Delete Account" option in the menu.
+              You have the right to access, update, or delete your information at any time. You can manage your profile information and privacy settings directly within the app. To permanently delete your account and all associated data, you can use the "Delete Account" option in the menu.
             </p>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">Contact Us</h3>
