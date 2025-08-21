@@ -26,13 +26,17 @@ export default function RootLayout({
   const pathname = usePathname();
   const isLoginPage = pathname === '/';
   const showNav = !isLoginPage;
+  const publicPages = ['/', '/about', '/terms', '/privacy', '/blogs'];
+  const isPublicPage = publicPages.includes(pathname);
 
   return (
     <html lang="en" className={cn("dark", inter.variable, kalam.variable)}>
       <head>
         <title>Edengram</title>
         <meta name="description" content="AI Chat and Image Generation" />
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
+        {isPublicPage && (
+          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
+        )}
       </head>
       <body className={cn("font-body antialiased bg-background overflow-x-hidden")}>
         <AuthProvider>
