@@ -57,7 +57,7 @@ export default function BlogsPage() {
               </div>
             </div>
           </article>
-          
+
           <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
             <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">What Happened After I Shared Edengram With My Friends</h2>
             
@@ -159,6 +159,7 @@ export default function BlogsPage() {
                 <p>So yeah, that’s how Edengram became interactive and (hopefully) a little addictive too.</p>
             </div>
           </article>
+
           <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
             <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">The Future of Edengram 🚀</h2>
             <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
@@ -171,6 +172,7 @@ export default function BlogsPage() {
               <p>At the end of the day, I’m not trying to copy Instagram. My dream is to make Edengram light, storage friendly, a little silly, and honestly just fun to use. If people smile when using it, then I already win. The rest… we’ll figure out together 🚀</p>
             </div>
           </article>
+
           <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
             <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">Why Connections Matter More Than Code</h2>
             <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
@@ -186,6 +188,57 @@ export default function BlogsPage() {
                 <li>Create support options. Patreon, help pages, or even just promoting your own project (like I do with Edengram). If people feel you care about them, they’ll want to support you back.</li>
               </ol>
               <p>In the end, it’s simple: if you take care of your community, they’ll take care of you. And trust me, when your website is new and fragile, that support can mean everything.</p>
+            </div>
+          </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">Creating a Dynamic Free Website is a Myth (Flashback to My Journey)</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>Let me take you back to 2022. I was 19 years old, armed with a half-broken laptop, some HTML/CSS skills, and the overconfidence of a teenager who thought he could beat the internet at its own game.</p>
+                <p>My “genius” plan? Build a website, throw in some Amazon affiliate products, and wait for the money to roll in. I was already imagining myself buying cars, eating pizza every day, maybe even becoming the next Jeff Bezos (minus the bald head).</p>
+                <p>But life… had other plans.</p>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">First Website: The Affiliate Dream That Flopped 💸</h3>
+                <p>My first website was basically a digital billboard for Amazon products. No backend, no real features, just a bunch of links. I thought: <em>If I build it, they will come</em>. Spoiler alert: they didn’t. Not even my friends clicked.</p>
+                <p>Reality check : A website isn’t just HTML, CSS, and dreams.</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Second Website: The Anime Fiasco 🎌</h3>
+                <p>Undeterred, I decided to make an <strong>anime website</strong>. I imagined thousands of anime fans hanging out on my site, debating Naruto vs. Goku. Instead, I created… well… another static site with no backend.</p>
+                <p>It looked pretty, but you couldn’t do anything with it. Imagine watching anime where the subtitles never load. That’s how my site felt. Another failure.</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Third Website: Social Media and the Broken Laptop 💔</h3>
+                <p>Third time’s the charm, right? This time, I wanted to build a social media platform. I finally learned the word backend and started copying tutorials like my life depended on it. For the first time, things were clicking. I understood a little logic, databases, and how things connected.</p>
+                <p>And then… tragedy.</p>
+                <p>My laptop broke. Just like that, my hard work, my half-baked social media site, and a piece of my soul disappeared into the void. Honestly, I was devastated. I didn’t just lose files; I lost motivation.</p>
+                <p>For almost two years, I didn’t touch code. Instead, I trashed programming on social media with my friends. And to be honest? I don’t regret it. Coding <em>is</em> tough. Sometimes it feels like learning an alien language while blindfolded.</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">The Comeback: My First Real Dynamic Website 🚀</h3>
+                <p>But here’s the plot twist: I came back. After years of sulking and swearing I was done with coding forever, I finally built something that actually works a <strong>social media website</strong>. And this time, it’s alive and kicking.</p>
+                <p>The crazy part? I did it all for free using:</p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                    <li>Supabase (free database)</li>
+                    <li>Netlify (free hosting)</li>
+                    <li>A free subdomain</li>
+                    <li><strong>And, most importantly, my raw stubbornness and newly sharpened skills</strong></li>
+                </ul>
+                <p>I added all the good stuff you expect in a social app:</p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                    <li>Signup & login (no more fake “guest access”)</li>
+                    <li>Stories (or moods, because we all have them)</li>
+                    <li>A search function that actually finds things</li>
+                    <li>A feed & explore page (because who doesn’t like endless scrolling?)</li>
+                    <li>Notifications, profile pages, and even a design that doesn’t look like it was built in 2005</li>
+                </ul>
+                <p>This time, I wasn’t just copying code from YouTube tutorials. I was actually <em>building</em> logic, solving problems, and making it my own.</p>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Lessons I Learned (The Hard Way)</h3>
+                <p>Here’s the truth: <strong>creating a dynamic free website is a myth</strong> if you think it means easy or instant. Sure, the tools are free, but the real price is your time, patience, and the occasional mental breakdown at 3 AM.</p>
+                <p>Failures aren’t wasted time — they’re the tuition fee of experience. My affiliate flop, my anime disaster, and my broken-laptop heartbreak? They all prepared me for the website I have today.</p>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Final Thoughts</h3>
+                <p>If you’re starting your journey, don’t be fooled by the myth that you can throw together a free website and get rich overnight. What you <em>can</em> do is start small, fail often, cry a little, laugh at yourself, and keep learning.</p>
+                <p>Because one day, you’ll finally build something that works — and trust me, that feeling is worth every failure, every broken laptop, and every late-night coffee.</p>
+                <p>And for me? After all these years, I’m just happy my new website isn’t another static page pretending to be dynamic.</p>
             </div>
           </article>
         </div>
