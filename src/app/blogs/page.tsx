@@ -334,10 +334,32 @@ export default function BlogsPage() {
                 <p>And maybe one day, someone will look at an Indian app and say, “Wow, this one beat the American giants.” And I’ll just laugh and say, “Told you so.” 😎</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">Edengram: Not Just a Website, But a Hope</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>You know, most people think social media websites are only about likes, comments, followers and endless doom scrolling. But for me, Edengram is something else. It’s not just a website. It’s my hope. My proof that if I, some random Indian guy with no investors, no Silicon Valley hoodie, not even a MacBook, can build this… then literally anyone can.</p>
+                <blockquote className="border-l-4 border-primary pl-4 italic">
+                    “Accept that because we were born with nothing, we can become anything.”
+                </blockquote>
+                <p>There’s this one line from an anime I really love, *No Game No Life*. When I first heard it, I felt like someone punched me in the chest, but in a good way. Because that’s me. I literally started with nothing. No big budget, no mentor, just my tiny brain, my old laptop, and free internet tutorials at 3AM. And now look, Edengram is alive.</p>
+                <p>I already built the core stuff. You can sign up, sign in, post things, see feeds, get notifications, view profiles. It’s a real thing, not just sketches in my notebook. Right now it can handle more than fifty thousand users and all this on free services. Free database, free hosting, free domain. That’s how far jugaad can take you. But the truth is, money power decides how far you go next. You can’t feed a million people with a packet of Maggi. Servers also get hungry.</p>
+                <p>This is why money is the silent superhero in tech. Free things let you dream, but money lets you scale. And luckily, we live in 2025, not 1995. I don’t need to open my own data center or beg for giant servers. I’ve got AWS, Supabase, Vercel, Netlify services that take care of the heavy lifting at prices even cheaper than my Zomato orders.</p>
+                <p>But still, let’s be honest. I’m Indian. Most of us grew up counting every rupee. Some of us still don’t even have 5k in our bank account. That’s why we understand money’s true value. We know how to stretch one Parle-G packet among three friends. So believe me, when we get even a little bit of money, we know how to use it to create something huge. That’s the spirit I want to bring into Edengram.</p>
+                <p>Of course, it’s not just about money. Design matters too. I laugh now, but my first websites honestly looked like they were made in 2005, with a mix of MS Paint and broken CSS. Still, I’ve learned. Good design makes people stay. Smooth animations, clean layout, fewer headaches.</p>
+                <p>And then comes community. Without community, a website is just an empty playground. I don’t want Edengram to be another endless scroll machine where people just waste time. I want it to feel like home. A place where creators, students, anime nerds, startup dreamers, all of us can hang out and share something real.</p>
+                <p>I also promise myself one thing: stay independent. I don’t want Edengram to become just another greedy copy of American apps. No soulless clones. I want this platform to actually feel human.</p>
+                <p>I failed so many times before. My Amazon affiliate site failed. My anime site failed. My first social media site didn’t even die because of code, it died because my poor laptop broke and took my dreams with it. I was depressed for two years. I even said bad things about coding to my friends. But guess what? I came back. And this time, I’m not quitting.</p>
+                <p>Because Edengram is not just my project. It’s my mission. It’s my way of telling every Indian youth: you don’t need to be rich, you don’t need to be in America, you don’t need fancy resources. If one stubborn guy like me can build this from scratch using free tools and sleepless nights, then you can build your dream too.</p>
+                <p>One day, when people list out tech giants, they won’t just say Google, Meta, Amazon. They’ll also say Edengram. Built in India. Built with hope. And I’ll keep reminding myself of that anime line: “Accept that because we were born with nothing, we can become anything.”</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
   );
 }
+
+    
 
     
