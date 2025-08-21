@@ -61,13 +61,14 @@ export async function middleware(request: NextRequest) {
 
   const url = request.nextUrl
   const publicPaths = ['/', '/auth/callback', '/terms', '/about', '/privacy', '/blogs', '/contact'];
+  const isPublicPath = publicPaths.includes(url.pathname);
 
   // Redirect to login if user is not signed in and trying to access a protected route
-  if (!user && !publicPaths.includes(url.pathname)) {
+  if (!user && !isPublicPath) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Redirect to mood page if user is signed in and trying to access the login page
+  // Redirect to mood page if user is signed in and on the login page
   if (user && url.pathname === '/') {
     return NextResponse.redirect(new URL('/mood', request.url))
   }
