@@ -1,5 +1,6 @@
 
 import Image from "next/image";
+import { EdengramLogo } from "@/components/edengram-logo";
 
 export default function BlogsPage() {
   return (
@@ -109,8 +110,22 @@ export default function BlogsPage() {
               <p>But still this incident teach me one thing. Without even realising I had acquired a new skill. A full stack developer skill. Something that currently no one in my friend circle has. And honestly this feels powerful because whenever someone talks about website ideas, I know I can actually build it myself.</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">Making Edengram Faster Like Instagram</h2>
+            <p className="text-center text-muted-foreground -mt-4 mb-6 italic">How I fix speed issue in my social media site</p>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+              <p>After few days of website launch I see a common but very important problem, problem of site loading and page loading speed. It was good but still not good enough to match current social platforms like Instagram, Facebook, Snapchat etc. So I start research how to make social media fast, what things reduce page loading, and I notice some technical error in my website which naturally was reducing speed.</p>
+              <p>For example in Edengram you can create emoji models and save it in gallery. So it was showing in gallery, but after completing site I realise there is three places where I am calling same models separately from database — in feed page, in explore page and in gallery page. All with different tables and different functions. This was causing unnecessary waterfall requests.</p>
+              <p>So I got a brilliant idia: why not show same gallery thumbnail post in both feed and explore, but filter it differently. In <strong>explore → user + everyone gallery posts. In feed → user + following gallery posts.</strong> This way I reduce database request by a lot.</p>
+              <p>And for infinite scroll I use pagination. For not loading whole pages again and again I use catching (I created global cache system). Everything still updates in realtime in background so user doesn’t feel delay.</p>
+              <p>After doing all this my website speed improve a lot. Honestly now I feel Edengram can go toe to toe against professional costly websites also.</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
   );
 }
+
+    
