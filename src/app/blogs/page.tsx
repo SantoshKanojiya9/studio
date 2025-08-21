@@ -145,10 +145,22 @@ export default function BlogsPage() {
                 <p>Overall I feel proud. With safe domain, strong hosting and trusted database, Edengram is built on solid base. I know security is never “done” but at least I’m confident users can feel safe while using my platform 🙂.</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">How I Made Edengram Interactive & Addictive</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>At first honestly, I had no idea 😂 I just wanted to make a “cool website” and maybe earn billion dollars with it (ambitious, I know). But once I started tackling authentication, storage, design, database problems etc, I realized people will not come if I can’t provide them <strong>real value</strong>.</p>
+                <p>So first thing I did was signup system. I made it super simple: just email and password. And I don’t even care what password you put because only email matters for confirmation. One small issue tho, I forgot to build <strong>forgot password</strong> option 😅 so please remember your password until I add that feature.</p>
+                <p>Next, I added <strong>Mood page</strong>. In Instagram there is “story,” but in Edengram we have “Mood.” It’s storage friendly because each user can add only one mood. You can set, update, remove, and also see who viewed your mood. Just like Insta, tapping moves to next mood, and after you view, it becomes grey.</p>
+                <p>Below moods, you get the <strong>feed</strong>, which shows posts from your gallery and following users. Then comes <strong>Explore</strong>, where you can see gallery posts from everyone + yourself. (Later I will add algorithm like trending posts, but for now it works fine).</p>
+                <p>On top, there is <strong>search</strong>, where you can find any registered user by username. Then comes <strong>design page</strong>, where I give 3 free pre-built emoji models. Users can edit them with tools, or create brand new models. Fun part: by tapping 4 times you can switch emoji to happy, sad, angry, and you can even drag face parts with your finger—the face literally follows your touch 😎.</p>
+                <p>Of course, I also added <strong>notifications</strong> (which was a big headache to build). But honestly, without notifications, social media is just dead, right?</p>
+                <p>Finally, there’s <strong>profile page</strong>, where you can update picture, username, and switch between public/private. Below that, you can see all your saved emoji models (no, they are not your “career on the line” 😂 just kidding). In the side nav, I also added logout and delete account option.</p>
+                <p>So yeah, that’s how Edengram became interactive and (hopefully) a little addictive too.</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
   );
 }
-
-    
