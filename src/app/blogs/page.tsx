@@ -298,8 +298,46 @@ export default function BlogsPage() {
                 <p>All we need is focus. Because the next big tech giant doesn’t have to come from Silicon Valley. It could come from a hostel room in India. Maybe even yours.</p>
             </div>
           </article>
+          
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">The Role of Money Power in Building a Website</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>Ok so here is the truth, when you build a website, first thing you need is skills. Like HTML, CSS, backend blah blah. Second thing is connection (friends, people, network). But the 3rd thing, the most ignored but the most painful is… <strong>money power 💸</strong>.</p>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Free Can Take You Only So Far</h3>
+                <p>I know because I did it. I built my whole social media website on <strong>free services</strong>. Supabase free database, Netlify free hosting, free subdomain. Even my brain was free 😅.</p>
+                <p>And it worked! I scaled it to <strong>50k+ users</strong>. Felt like I was Mark Zuckerberg’s long lost cousin. But then reality slap — free services are like those free trial chocolates… they finish too soon. You can grow to maybe 50k, 1 lakh users max, then boom 💥 limits hit you.</p>
+                <p>That’s when you realize money is not evil… money is fuel.</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Why Money Matters</h3>
+                <p>Websites don’t run on dreams. They run on <strong>servers, bandwidth, storage, and coffee</strong> (ok coffee is for developers but still important).</p>
+                <p>Now lucky for us, we live in the <strong>AWS era</strong>. No need to open some shady datacenter in your basement. You just click a button, scale your backend, and AWS takes care of it. It’s cheap compared to old times but still, not free.</p>
+                <p>So yeah, money power is what keeps your website running <strong>forever and ever</strong>, instead of dying like my 3rd project when my laptop died 😭.</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Why India Actually Has an Edge</h3>
+                <p>Here is my favorite part. India is famous for <strong>jugaad</strong>. We know how to do big things in small budget. Ask any Indian student who survived college on Maggi noodles for 4 years. We literally master cost-cutting from childhood.</p>
+                <p>Most Indian youth don’t even have ₹5000 in their bank. So they already know the real value of money. They know how to stretch 1 rupee into 10. Imagine that mindset applied to tech startups — dangerous combo.</p>
+                <p>Brains + Jugaad + Little Money = Explosion 💥</p>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">My Own Example</h3>
+                <p>I’m a live example (not proud but still). I’ve done projects with zero funding, just stubborn willpower and free tiers. And yeah, earning money in India is tough. Add 18% GST, random taxes, and feels like the govt wants us to be broke forever 😂.</p>
+                <p>But here’s the twist: <strong>2025 is full of earning chances.</strong></p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                    <li>Start a blog → get <strong>AdSense</strong> → slow but steady income.</li>
+                    <li>Build an app → add <strong>subscription plans</strong> → boom, money flow.</li>
+                    <li>Make free tools → later monetize with ads.</li>
+                </ul>
+
+                <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Final Thoughts</h3>
+                <p>So role of money in website? Simple. Without money you can <strong>start</strong>. With money you can <strong>last</strong>.</p>
+                <p>India youth is already talented, already struggling, already dreaming. If we mix our skills + jugaad + money power, we can build not just websites, but <strong>empires</strong>.</p>
+                <p>And maybe one day, someone will look at an Indian app and say, “Wow, this one beat the American giants.” And I’ll just laugh and say, “Told you so.” 😎</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
   );
 }
+
+    
