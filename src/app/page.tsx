@@ -161,7 +161,6 @@ function LoginPageContent() {
                 <Link href="/blogs" className="hover:text-foreground">Blogs</Link>
                 <Link href="/contact" className="hover:text-foreground">Contact</Link>
             </div>
-            <p className="mt-2">Contact for any issue: <a href="mailto:risein98@gmail.com" className="hover:text-foreground">risein98@gmail.com</a></p>
         </footer>
     </div>
   );
