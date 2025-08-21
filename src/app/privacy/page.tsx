@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
             <p>Last Updated: August 17, 2025</p>
 
             <p>
-              Welcome to Edengram ("we," "our," or "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application. By using Edengram, you agree to the collection and use of information in accordance with this policy.
+              Welcome to Edengram ("we," "our," or "us"). We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application, including our social media platform and blog. By using Edengram, you agree to the collection and use of information in accordance with this policy.
             </p>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">1. Information We Collect</h3>
@@ -24,8 +24,9 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className="list-disc list-inside space-y-2">
                 <li><strong>Personal Data:</strong> When you register for an account, we ask for your email address and a password. You may also voluntarily provide a name and a profile picture.</li>
-                <li><strong>User-Generated Content:</strong> We collect the content you create on our platform, including the emojis you design, their settings (colors, shapes, etc.), and any captions you add.</li>
-                <li><strong>Usage Data:</strong> We automatically collect information on how you interact with the service, such as your posts, likes, the users you support (follow), and who supports you. This helps us create your feed and provide the core social features of the app.</li>
+                <li><strong>User-Generated Content:</strong> We collect the content you create, including the emojis you design, their settings (colors, shapes, etc.), captions, and any content you post as a "mood" (story).</li>
+                <li><strong>Usage and Social Data:</strong> We automatically collect information on how you interact with the service, such as your posts, likes, the users you support (follow), and who supports you. This helps us create your feed and provide the core social features of the app.</li>
+                <li><strong>Blog Interaction:</strong> We do not require personal information to read our blog. We may use analytics to understand which posts are popular, but this data is aggregated and does not identify individual readers.</li>
                 <li><strong>Technical Data:</strong> We may collect technical data such as your IP address, browser type, and device information to ensure the security and functionality of our service.</li>
             </ul>
 
@@ -40,7 +41,7 @@ export default function PrivacyPolicyPage() {
               <li>Display your profile and creations to other users according to your privacy settings.</li>
               <li>Improve, personalize, and expand our services based on user activity.</li>
               <li>Communicate with you for customer service and to provide updates about the application.</li>
-              <li>Protect the security of our platform and users, including moderating content.</li>
+              <li>Protect the security of our platform and users.</li>
             </ul>
 
             <h3 className="text-2xl font-semibold text-foreground pt-4">3. Sharing Your Information</h3>

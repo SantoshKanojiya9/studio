@@ -26,7 +26,7 @@ export default function RootLayout({
   const pathname = usePathname();
   const isLoginPage = pathname === '/';
   const showNav = !isLoginPage;
-  const publicPages = ['/', '/about', '/terms', '/privacy', '/blogs'];
+  const publicPages = ['/', '/about', '/terms', '/privacy', '/blogs', '/contact'];
   const isPublicPage = publicPages.includes(pathname);
 
   return (
