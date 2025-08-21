@@ -159,6 +159,18 @@ export default function BlogsPage() {
                 <p>So yeah, that’s how Edengram became interactive and (hopefully) a little addictive too.</p>
             </div>
           </article>
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">The Future of Edengram 🚀</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+              <p>So here we are, ten blogs later, and I’m still alive somehow 😂 Building Edengram till this point already felt like climbing Everest with slippers, but honestly it’s just the beginning.</p>
+              <p>Let me tell you what’s cooking in my head for the future. First, the famous “forgot password” feature. Right now if you forget your password… well… just don’t forget it 😅 But yeah, I know that’s not fair, so soon you’ll be able to reset it properly with email. No more keeping sticky notes on your monitor.</p>
+              <p>Then comes explore. At the moment it just shows posts from everyone plus you, kind of like a giant salad with no dressing. In future I’ll make it smarter with trending moods, most liked emojis, and maybe even “best emoji face from Mars.” Okay maybe not Mars… yet.</p>
+              <p>AI is also on my mind. Imagine typing “make me an angry cat emoji” and instantly getting a hilarious angry cat model. That’s the kind of fun I want Edengram to have. Right now you have to drag eyes and mouths yourself but soon AI will help you make weird stuff faster.</p>
+              <p>Another idea is voice moods. Why stop at text captions when you can literally say what’s on your mind? Share a short voice clip with your mood and let your friends hear the vibe in your tone. It’s like Instagram story but more alive.</p>
+              <p>And yes, I’m also planning gamification. Small challenges like funniest emoji of the week, or maybe badges for most creative moods. These little things make the app more fun without turning it into a boring scoreboard.</p>
+              <p>At the end of the day, I’m not trying to copy Instagram. My dream is to make Edengram light, storage friendly, a little silly, and honestly just fun to use. If people smile when using it, then I already win. The rest… we’ll figure out together 🚀</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
