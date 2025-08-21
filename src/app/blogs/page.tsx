@@ -98,6 +98,17 @@ export default function BlogsPage() {
                 <p>When I made this decision I felt a little peace inside. Because now I know people inside Edengram will enjoy the platform freely and at the same time the project has some chance to survive long term.</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">How I Accidently Acquired a Full Stack Developer Skill</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+              <p>So after sharing my site with everyone something interesting happen. Out of nowhere my very very old school friend called me and said “bro are you free?” But that time I was busy writing my legal pages for feedback (like I already mentioned in my 3rd blog post). So I told him no, I cannot meet now.</p>
+              <p>Then again in evening he called me and said “bro just listen to me.” This time I picked. He said he saw my website and he was impressed with it already. He also told me he has an idea and he also want to create a website.</p>
+              <p>He did not explain fully but what he said sound big. He said he found a loophole in export business and there is no solution for this internationally. Hearing him talk like that was little shocking to me because I never thought he was into such ideas.</p>
+              <p>So after his request I agreed to listen carefully. He gave me time, 10 o’clock. But that night his call never came. Maybe he was just motivated for few hours after seeing my project. Maybe he is not a real business planner yet.</p>
+              <p>But still this incident teach me one thing. Without even realising I had acquired a new skill. A full stack developer skill. Something that currently no one in my friend circle has. And honestly this feels powerful because whenever someone talks about website ideas, I know I can actually build it myself.</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
