@@ -90,7 +90,7 @@ export default function BlogsPage() {
             
             <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
                 <p>After I created Edengram another problem started running in my mind. How do I keep this alive in future? Hosting, domain, database, all this cost money every month. At first I tried to ignore it but deep inside I was getting frustrated.</p>
-                <p>There was even one night where I thought maybe I cannot run this website for long. Maybe it will die without money. That feeling honestly hurt because I already put so much of my time into it.</p>
+                <p>There was even one night where I thought maybe I cannot run this website for long. Maybe it will die one day. That feeling honestly hurt because I already put so much of my time into it.</p>
                 <p>Then I remembered the movie The Social Network. In one scene Mark said to his CFO, adding ads in a social media website is wrong. We don’t want people to quit using this awesome website just because of pop up ads.</p>
                 <p>That line stuck in my head for days. I told myself, yes he is right. If I put pop up ads everywhere people will stop using it. Then what is the point of creating a social media platform if people hate using it.</p>
                 <p>So finally I made a decision. No ads after signin. Inside Edengram user experience must stay clean and distraction free.</p>
@@ -120,6 +120,18 @@ export default function BlogsPage() {
               <p>So I got a brilliant idia: why not show same gallery thumbnail post in both feed and explore, but filter it differently. In <strong>explore → user + everyone gallery posts. In feed → user + following gallery posts.</strong> This way I reduce database request by a lot.</p>
               <p>And for infinite scroll I use pagination. For not loading whole pages again and again I use catching (I created global cache system). Everything still updates in realtime in background so user doesn’t feel delay.</p>
               <p>After doing all this my website speed improve a lot. Honestly now I feel Edengram can go toe to toe against professional costly websites also.</p>
+            </div>
+          </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">Solving Storage Problem in Edengram</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>When I was building Edengram one thing always stuck in my head… storage issue. This is like the biggest boss fight for every founder of social media. Many new sites look good at start but the moment people start uploading reels and big images, boom server cries and website fails. I really did not want to become that meme founder who say “site crashed because users uploaded too many dog photos.”</p>
+                <p>So from beginning I decided I will not allow heavy reels or 4k selfies. My site is small but smart. Instead I created interactive emoji models with html and svg. These little models are virtual and very light, they don’t eat my storage like reels. Data also goes directly in database which is cheap. So first monster was killed.</p>
+                <p>But wait, another monster came. Profile picture. A social media without dp is like maggi without masala, totally boring. People need dp to find friends and stalk their crush also 😅. So I had to allow profile photo upload. My trick was simple, I use Supabase free storage, compress every image to 20 kb only, and overwrite the old one. If user upload 100 selfies, sorry bro only last one stays 😆. Unless I reach 50k users, I don’t need to panic.</p>
+                <p>For text writing I also kept things short. People can only write 30 letters caption in their post, enough to say “good morning” or “mood off today” but not enough to write full sad shayari 😜. When they post story it also show their caption, so interaction is still alive.</p>
+                <p>I even added delete profile option. If user delete their account, my cron job become angry and remove everything from storage and database. Clean clean, no dust remain.</p>
+                <p>Honestly I feel very happy about this solution. Storage problem is where many startups cry and stop, but I feel I already jump that hurdle. Now I can proudly say Edengram is small, light and fast… and storage won’t eat me alive.</p>
             </div>
           </article>
         </div>
