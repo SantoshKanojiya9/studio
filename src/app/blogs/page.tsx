@@ -134,6 +134,17 @@ export default function BlogsPage() {
                 <p>Honestly I feel very happy about this solution. Storage problem is where many startups cry and stop, but I feel I already jump that hurdle. Now I can proudly say Edengram is small, light and fast… and storage won’t eat me alive.</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">How I Protect Security and Privacy in Edengram</h2>
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>So I already made legal pages of privacy and security, but let’s be honest… just writing them is not enough 😅. If people really want to trust Edengram then I need to actually make sure their password and data is safe, and no chance of random leaks happening.</p>
+                <p>First step was <strong>domain and hosting</strong>. Before buying my domain I checked its history because sometimes domains are used for spam before and that’s risky. Luckily this one was clean (only used once in 2013) so I feel safe. For hosting, at first all AI tools and YouTube videos was saying “Vercel is best”. But later I found that free plan of Vercel is not for commercial use. That was almost end of my dream 😅 but then I discover <strong>Netlify</strong>, which is direct competitor and give free commercial hosting. That was like a lifesaver moment. Deploying Next.js there was still big headache, but that story is for another day.</p>
+                <p>Next big thing was <strong>database</strong>. Honestly I tried MySQL but I never liked it. Too complex and boring. I needed something modern and developer friendly. After lot of search I found <strong>Supabase</strong>. And wow, it’s perfect. Secure, reputed and easy to use. The best part? It never shows user password even to me, the developer. It just hides the whole column so there is no chance of mistake. That’s the kind of safety I want.</p>
+                <p>For user privacy, I also keep it simple. I only ask for <strong>email</strong> for confirmation, nothing else. No extra data, no personal info. So even in worst case, people don’t have to worry much.</p>
+                <p>Overall I feel proud. With safe domain, strong hosting and trusted database, Edengram is built on solid base. I know security is never “done” but at least I’m confident users can feel safe while using my platform 🙂.</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
