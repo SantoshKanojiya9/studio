@@ -105,21 +105,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (loading) return; 
+    if (loading) return;
   
-    const publicPaths = ['/', '/terms', '/about', '/privacy', '/blogs'];
-    const isLoginPage = pathname === '/';
-    const isAuthPage = publicPaths.includes(pathname);
-    const isAuthCallback = pathname.startsWith('/auth/callback');
-
-    if (user && isLoginPage) {
+    const publicPaths = ['/', '/auth/callback', '/terms', '/about', '/privacy', '/blogs', '/contact'];
+    const isPublicPath = publicPaths.includes(pathname);
+    
+    // If the user is logged in and on the main sign-in page, redirect to /mood
+    if (user && pathname === '/') {
         router.push('/mood');
-    } else if (!user && !isAuthPage && !isAuthCallback) {
+    } 
+    // If the user is not logged in and not on a public path, redirect to the sign-in page
+    else if (!user && !isPublicPath) {
         router.push('/');
     }
   }, [user, loading, pathname, router]);
   
-  if (loading && !user && !['/', '/terms', '/about', '/privacy', '/blogs'].includes(pathname)) {
+  if (loading && !user && !['/', '/terms', '/about', '/privacy', '/blogs', '/contact'].includes(pathname)) {
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
