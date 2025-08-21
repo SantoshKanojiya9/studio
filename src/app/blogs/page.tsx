@@ -10,7 +10,7 @@ export default function BlogsPage() {
         </div>
       </header>
       <main className="container mx-auto py-12 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-12">
           <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
             <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">My Journey of Creating Edengram</h2>
             
@@ -54,6 +54,21 @@ export default function BlogsPage() {
                 <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">Final Thoughts</h3>
                 <p>I'm a great fan of anime and I just keep working hard on this website just like anime character like Naruto and asta work to achive their goals and If you reading this and you also have one idea, don’t wait for “perfect time.” Just start with whatever you know. You will fail, you will get errors, but you will also learn. That’s exactly how Edengram happen.</p>
               </div>
+            </div>
+          </article>
+          
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">What Happened After I Shared Edengram With My Friends</h2>
+            
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>After I completed my project Edengram (Social Media Website) the first thing in my mind was simple – I should share it. I spent so many nights coding, fixing bugs, making design better, so I was very excited to show it to people.</p>
+                <p>I started with my close circle. I sent the website link to my friends on Facebook, Instagram, WhatsApp. I thought maybe they will be impressed or at least curious. Honestly, I expected a lot.</p>
+                <p>I even shared it on my professional accounts, where I already have 95k subscribers on YouTube and 50k followers on Instagram. In my head I was like, “Okay this time it will blow up, people will come and try it out.”</p>
+                <p>But reality was a bit different. From my friends I didn’t get much great response. Some just ignored it, some said one word like “nice” but didn’t really check it. That hurt me a little, because when you put your effort into something, you expect your circle to support you.</p>
+                <p>Surprisingly, the strangers were the ones who showed more interest. People I didn’t even know asked questions, tried to sign up, gave me feedback. That made me realize something important: support doesn’t always come from people you know, sometimes it comes from outside.</p>
+                <p>Yes, it was a bit disappointing in start, but also a lesson. Friends may not see your work as serious, but strangers look at it with fresh eyes. And if your work has value, they will connect.</p>
+                <p>So, after sharing Edengram, I didn’t get the big bang response I imagined, but I got something better – the truth. That if I want this project to grow, I should not depend only on friends or family, I should focus on real audience outside my circle.</p>
+                <p>This experience gave me more motivation. Because if even strangers care, then maybe Edengram has a future.</p>
             </div>
           </article>
         </div>
