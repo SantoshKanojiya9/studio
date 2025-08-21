@@ -83,6 +83,21 @@ export default function BlogsPage() {
                 <p>That nervous day teach me that it’s okay to feel unsure, but once you put your work out, people will respond in their own way. And even if the start is small, it’s still a start.</p>
             </div>
           </article>
+
+          <article className="bg-card p-6 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary mb-6 text-center">My Thoughts on Monetizing Edengram</h2>
+            
+            <div className="space-y-6 text-muted-foreground text-base sm:text-lg">
+                <p>After I created Edengram another problem started running in my mind. How do I keep this alive in future? Hosting, domain, database, all this cost money every month. At first I tried to ignore it but deep inside I was getting frustrated.</p>
+                <p>There was even one night where I thought maybe I cannot run this website for long. Maybe it will die without money. That feeling honestly hurt because I already put so much of my time into it.</p>
+                <p>Then I remembered the movie The Social Network. In one scene Mark said to his CFO, adding ads in a social media website is wrong. We don’t want people to quit using this awesome website just because of pop up ads.</p>
+                <p>That line stuck in my head for days. I told myself, yes he is right. If I put pop up ads everywhere people will stop using it. Then what is the point of creating a social media platform if people hate using it.</p>
+                <p>So finally I made a decision. No ads after signin. Inside Edengram user experience must stay clean and distraction free.</p>
+                <p>But still I need consistent revenue otherwise this project will die one day. That is when I got the idea. I will add a Blog section before signin. In that section I can share my journey, updates, tips or even random thoughts. And only there I will place one or two ads. Not too much, just enough to cover hosting and keep the website alive for future.</p>
+                <p>Also instead of filling my platform with ads I decided to add a small subscription option. Just like Instagram gives blue tick, on Edengram I will give Gold Tick. And I do not want to make it too expensive like other platforms. I will keep it cheap maybe 99 rupees per month so anyone can afford.</p>
+                <p>When I made this decision I felt a little peace inside. Because now I know people inside Edengram will enjoy the platform freely and at the same time the project has some chance to survive long term.</p>
+            </div>
+          </article>
         </div>
       </main>
     </div>
