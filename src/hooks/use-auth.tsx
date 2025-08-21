@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (loading) return; 
   
-    const publicPaths = ['/', '/terms', '/about', '/privacy'];
+    const publicPaths = ['/', '/terms', '/about', '/privacy', '/blogs'];
     const isLoginPage = pathname === '/';
     const isAuthPage = publicPaths.includes(pathname);
     const isAuthCallback = pathname.startsWith('/auth/callback');
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
   
-  if (loading && !user && !['/', '/terms', '/about', '/privacy'].includes(pathname)) {
+  if (loading && !user && !['/', '/terms', '/about', '/privacy', '/blogs'].includes(pathname)) {
     return (
         <div className="flex items-center justify-center h-screen">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
