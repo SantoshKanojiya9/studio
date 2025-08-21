@@ -1,12 +1,10 @@
 
-import { EdengramLogo } from "@/components/edengram-logo";
 
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="py-6 px-4 md:px-8 border-b border-border">
-        <div className="container mx-auto flex items-center gap-4">
-            <EdengramLogo className="h-10 w-10" />
+        <div className="container mx-auto">
             <h1 className="text-3xl font-logo font-bold">Edengram</h1>
         </div>
       </header>
