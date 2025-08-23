@@ -70,6 +70,42 @@ export async function updateUserProfile(formData: FormData) {
     revalidatePath('/profile/edit');
 }
 
+export async function removeUserProfilePicture() {
+    const supabase = createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated.");
+
+    const defaultPicture = `https://placehold.co/64x64.png?text=${(user.email || 'U').charAt(0).toUpperCase()}`;
+
+    // Update the user's profile to the default picture
+    const { error: updateError } = await supabase
+        .from('users')
+        .update({ picture: defaultPicture })
+        .eq('id', user.id);
+
+    if (updateError) {
+        console.error('Error removing profile picture:', updateError);
+        throw new Error('Failed to remove profile picture.');
+    }
+    
+    // Attempt to remove the old avatar file, but don't block if it fails
+    // This is a best-effort cleanup.
+    const { data: files, error: listError } = await supabase.storage.from('avatars').list(user.id);
+    if (!listError && files && files.length > 0) {
+        const fileToRemove = files.find(f => f.name.startsWith('avatar.'));
+        if (fileToRemove) {
+            await supabase.storage.from('avatars').remove([`${user.id}/${fileToRemove.name}`]);
+        }
+    }
+
+    // Update cache and revalidate paths
+    updateUserInCache(user.id, { picture: defaultPicture });
+    revalidatePath('/gallery');
+    revalidatePath('/profile/edit');
+
+    return { newPicture: defaultPicture };
+}
+
 
 export async function deleteUserAccount() {
     const supabase = createSupabaseServerClient();

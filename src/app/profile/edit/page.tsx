@@ -9,13 +9,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, ArrowLeft, Camera, Lock } from 'lucide-react';
+import { Loader2, ArrowLeft, Camera, Lock, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { updateUserProfile } from '@/app/actions';
+import { updateUserProfile, removeUserProfilePicture } from '@/app/actions';
 import { Separator } from '@/components/ui/separator';
 import imageCompression from 'browser-image-compression';
 import Image from 'next/image';
-import { updateUserInCache } from '@/lib/post-cache';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function EditProfilePage() {
     const { user, loading: authLoading, supabase } = useAuth();
@@ -27,6 +36,8 @@ export default function EditProfilePage() {
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,6 +126,28 @@ export default function EditProfilePage() {
         }
     };
     
+    const handleRemovePicture = async () => {
+        setShowRemoveConfirm(false);
+        setIsRemoving(true);
+        try {
+            const { newPicture } = await removeUserProfilePicture();
+            setAvatarPreview(newPicture);
+            setAvatarFile(null); // Clear any staged file
+            toast({
+                title: "Profile picture removed",
+                variant: 'success'
+            });
+        } catch (error: any) {
+            toast({
+                title: "Error removing picture",
+                description: error.message,
+                variant: 'destructive'
+            });
+        } finally {
+            setIsRemoving(false);
+        }
+    }
+    
     if (authLoading || !user) {
         return (
             <div className="flex h-full w-full items-center justify-center">
@@ -123,78 +156,115 @@ export default function EditProfilePage() {
         );
     }
     
+    const isDefaultAvatar = avatarPreview?.includes('placehold.co');
+
     return (
-        <div className="flex h-full w-full flex-col">
-            <header className="flex h-16 flex-shrink-0 items-center border-b px-4">
-                <Button variant="ghost" size="icon" className="mr-2" onClick={() => router.back()}>
-                    <ArrowLeft />
-                </Button>
-                <h1 className="text-lg font-semibold">Edit Profile</h1>
-            </header>
-            <div className="flex-1 overflow-y-auto p-6">
-                <form onSubmit={handleFormSubmit} className="space-y-8">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24">
-                                {avatarPreview && <Image src={avatarPreview} alt="Profile preview" data-ai-hint="profile picture" width={96} height={96} className="rounded-full" />}
-                                <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <Button 
-                                type="button"
-                                variant="outline" 
-                                size="icon"
-                                className="absolute bottom-0 right-0 rounded-full"
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                <Camera className="h-4 w-4"/>
-                            </Button>
-                            <Input 
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/png, image/jpeg, image/gif"
-                                onChange={handleAvatarChange}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input 
-                            id="name" 
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <Separator />
-                    
-                     <div className="space-y-4">
-                        <Label className="text-base font-semibold">Account Privacy</Label>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="flex items-center gap-3">
-                                <Lock className="h-5 w-5"/>
-                                <div className="space-y-0.5">
-                                    <Label htmlFor="private-account">Private Account</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        When your account is private, only people you approve can see your photos and videos.
-                                    </p>
-                                </div>
-                            </div>
-                            <Switch
-                                id="private-account"
-                                checked={isPrivate}
-                                onCheckedChange={setIsPrivate}
-                            />
-                        </div>
-                    </div>
-                    
-                    <Button type="submit" className="w-full" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="animate-spin" /> : 'Save Changes'}
+        <>
+            <div className="flex h-full w-full flex-col">
+                <header className="flex h-16 flex-shrink-0 items-center border-b px-4">
+                    <Button variant="ghost" size="icon" className="mr-2" onClick={() => router.back()}>
+                        <ArrowLeft />
                     </Button>
-                </form>
+                    <h1 className="text-lg font-semibold">Edit Profile</h1>
+                </header>
+                <div className="flex-1 overflow-y-auto p-6">
+                    <form onSubmit={handleFormSubmit} className="space-y-8">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative">
+                                <Avatar className="h-24 w-24">
+                                    {avatarPreview && <Image src={avatarPreview} alt="Profile preview" data-ai-hint="profile picture" width={96} height={96} className="rounded-full" />}
+                                    <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div className="absolute bottom-0 right-0 flex gap-1">
+                                    <Button 
+                                        type="button"
+                                        variant="outline" 
+                                        size="icon"
+                                        className="rounded-full w-8 h-8"
+                                        onClick={() => fileInputRef.current?.click()}
+                                    >
+                                        <Camera className="h-4 w-4"/>
+                                    </Button>
+                                    {!isDefaultAvatar && (
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="rounded-full w-8 h-8"
+                                            onClick={() => setShowRemoveConfirm(true)}
+                                            disabled={isRemoving}
+                                        >
+                                            {isRemoving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                        </Button>
+                                    )}
+                                </div>
+                                <Input 
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    accept="image/png, image/jpeg, image/gif"
+                                    onChange={handleAvatarChange}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Name</Label>
+                            <Input 
+                                id="name" 
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <Separator />
+                        
+                         <div className="space-y-4">
+                            <Label className="text-base font-semibold">Account Privacy</Label>
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div className="flex items-center gap-3">
+                                    <Lock className="h-5 w-5"/>
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="private-account">Private Account</Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            When your account is private, only people you approve can see your photos and videos.
+                                        </p>
+                                    </div>
+                                </div>
+                                <Switch
+                                    id="private-account"
+                                    checked={isPrivate}
+                                    onCheckedChange={setIsPrivate}
+                                />
+                            </div>
+                        </div>
+                        
+                        <Button type="submit" className="w-full" disabled={isSaving}>
+                            {isSaving ? <Loader2 className="animate-spin" /> : 'Save Changes'}
+                        </Button>
+                    </form>
+                </div>
             </div>
-        </div>
+            <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remove Profile Picture?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to remove your profile picture? This will revert to the default avatar.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleRemovePicture}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Yes, Remove It
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
