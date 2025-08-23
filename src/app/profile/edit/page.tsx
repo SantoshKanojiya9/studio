@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -171,8 +172,9 @@ export default function EditProfilePage() {
                         <div className="flex flex-col items-center gap-4">
                             <div className="relative">
                                 <Avatar className="h-24 w-24">
-                                    {avatarPreview && <AvatarImage src={avatarPreview} alt="Profile preview" data-ai-hint="profile picture" className="rounded-full" />}
-                                    <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+                                    {avatarPreview && <AvatarImage src={avatarPreview} alt="Profile preview" data-ai-hint="profile picture" className="rounded-full object-cover" />}
+                                    {/* Conditionally render fallback only if there is no new avatar file selected for preview */}
+                                    {!avatarFile && <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>}
                                 </Avatar>
                                 <div className="absolute bottom-0 right-0 flex gap-1">
                                     <Button 
