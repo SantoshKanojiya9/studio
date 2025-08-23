@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EdengramLogo } from '@/components/edengram-logo';
+import Head from 'next/head';
 
 // This component uses client-side hooks.
 function LoginPageContent() {
@@ -103,70 +104,75 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
-      <motion.div 
-        className="flex flex-col items-center justify-center gap-6 w-full max-w-sm"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <motion.div variants={itemVariants} className="flex items-center justify-center gap-2">
-          <EdengramLogo className="h-12 w-12" />
-          <h1 className="text-4xl font-logo font-normal">
-            Edengram
-          </h1>
-        </motion.div>
+    <>
+      <Head>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
+      </Head>
+      <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
+        <motion.div 
+          className="flex flex-col items-center justify-center gap-6 w-full max-w-sm"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          <motion.div variants={itemVariants} className="flex items-center justify-center gap-2">
+            <EdengramLogo className="h-12 w-12" />
+            <h1 className="text-4xl font-logo font-normal">
+              Edengram
+            </h1>
+          </motion.div>
 
-        <motion.div variants={itemVariants} className="w-full">
-            <Tabs defaultValue="signin" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="signin">Sign In</TabsTrigger>
-                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
-                <TabsContent value="signin">
-                    <form onSubmit={handleManualSignIn} className="space-y-4 pt-4">
-                        <div className="space-y-2 text-left">
-                            <Label htmlFor="email-in">Email</Label>
-                            <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
-                        </div>
-                         <div className="space-y-2 text-left">
-                            <Label htmlFor="password-in">Password</Label>
-                            <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
-                            {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
-                        </Button>
-                    </form>
-                </TabsContent>
-                <TabsContent value="signup">
-                    <form onSubmit={handleManualSignUp} className="space-y-4 pt-4">
-                        <div className="space-y-2 text-left">
-                            <Label htmlFor="email-up">Email</Label>
-                            <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
-                        </div>
-                         <div className="space-y-2 text-left">
-                            <Label htmlFor="password-up">Password</Label>
-                            <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
-                            {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
-                        </Button>
-                    </form>
-                </TabsContent>
-            </Tabs>
+          <motion.div variants={itemVariants} className="w-full">
+              <Tabs defaultValue="signin" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="signin">Sign In</TabsTrigger>
+                      <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="signin">
+                      <form onSubmit={handleManualSignIn} className="space-y-4 pt-4">
+                          <div className="space-y-2 text-left">
+                              <Label htmlFor="email-in">Email</Label>
+                              <Input id="email-in" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
+                          </div>
+                           <div className="space-y-2 text-left">
+                              <Label htmlFor="password-in">Password</Label>
+                              <Input id="password-in" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
+                              {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign In'}
+                          </Button>
+                      </form>
+                  </TabsContent>
+                  <TabsContent value="signup">
+                      <form onSubmit={handleManualSignUp} className="space-y-4 pt-4">
+                          <div className="space-y-2 text-left">
+                              <Label htmlFor="email-up">Email</Label>
+                              <Input id="email-up" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} disabled={!isClient || authLoading} />
+                          </div>
+                           <div className="space-y-2 text-left">
+                              <Label htmlFor="password-up">Password</Label>
+                              <Input id="password-up" type="password" required value={password} onChange={e => setPassword(e.target.value)} disabled={!isClient || authLoading} />
+                          </div>
+                          <Button type="submit" className="w-full" disabled={!isClient || authLoading}>
+                              {isClient && authLoading ? <Loader2 className="animate-spin" /> : 'Sign Up'}
+                          </Button>
+                      </form>
+                  </TabsContent>
+              </Tabs>
+          </motion.div>
+          
         </motion.div>
-        
-      </motion.div>
-        <footer className="absolute bottom-4 text-xs text-muted-foreground">
-            <div className="flex gap-4 justify-center">
-                <Link href="/about" className="hover:text-foreground">About Us</Link>
-                <Link href="/terms" className="hover:text-foreground">Terms</Link>
-                <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
-                <Link href="/blogs" className="hover:text-foreground">Blogs</Link>
-                <Link href="/contact" className="hover:text-foreground">Contact</Link>
-            </div>
-        </footer>
-    </div>
+          <footer className="absolute bottom-4 text-xs text-muted-foreground">
+              <div className="flex gap-4 justify-center">
+                  <Link href="/about" className="hover:text-foreground">About Us</Link>
+                  <Link href="/terms" className="hover:text-foreground">Terms</Link>
+                  <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+                  <Link href="/blogs" className="hover:text-foreground">Blogs</Link>
+                  <Link href="/contact" className="hover:text-foreground">Contact</Link>
+              </div>
+          </footer>
+      </div>
+    </>
   );
 }
 
