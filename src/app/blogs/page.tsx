@@ -1,14 +1,10 @@
 
 import Image from "next/image";
 import { EdengramLogo } from "@/components/edengram-logo";
-import Head from "next/head";
 
 export default function BlogsPage() {
   return (
     <>
-      <Head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
-      </Head>
       <div className="min-h-screen bg-background text-foreground">
         <header className="py-6 px-4 md:px-8 border-b border-border">
           <div className="container mx-auto">
@@ -220,7 +216,7 @@ export default function BlogsPage() {
                   <h3 className="text-xl sm:text-2xl font-semibold text-foreground pt-4 mb-2">The Comeback: My First Real Dynamic Website 🚀</h3>
                   <p>But here’s the plot twist: I came back. After years of sulking and swearing I was done with coding forever, I finally built something that actually works a <strong>social media website</strong>. And this time, it’s alive and kicking.</p>
                   <p>The crazy part? I did it all for free using:</p>
-                  <ul className="list-disc list-inside space-y-1 pl-2">
+                   <ul className="list-disc list-inside space-y-1 pl-2">
                       <li>Supabase (free database)</li>
                       <li>Netlify (free hosting)</li>
                       <li>A free subdomain</li>

@@ -1,13 +1,8 @@
 
 
-import Head from "next/head";
-
 export default function TermsOfServicePage() {
   return (
     <>
-      <Head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
-      </Head>
       <div className="min-h-screen bg-background text-foreground">
         <header className="py-6 px-4 md:px-8 border-b border-border">
           <div className="container mx-auto">

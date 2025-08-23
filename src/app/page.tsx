@@ -105,9 +105,6 @@ function LoginPageContent() {
 
   return (
     <>
-      <Head>
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
-      </Head>
       <div className="flex flex-col items-center justify-center h-full text-center p-4 overflow-y-auto">
         <motion.div 
           className="flex flex-col items-center justify-center gap-6 w-full max-w-sm"
