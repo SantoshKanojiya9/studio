@@ -53,16 +53,20 @@ function LoginPageContent() {
   const handleManualSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    });
-     if (error) {
-        toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
-     }
-     // On success, the onAuthStateChange listener in useAuth will handle the redirect.
-     // We stop the loader here regardless.
-     setAuthLoading(false);
+    try {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) {
+            toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
+        }
+        // On success, the onAuthStateChange listener in useAuth will handle the redirect.
+    } catch (error: any) {
+         toast({ title: 'Sign-in Error', description: error.message, variant: 'destructive'});
+    } finally {
+        setAuthLoading(false);
+    }
   }
   
   useEffect(() => {
