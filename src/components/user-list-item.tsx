@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -39,7 +38,7 @@ export const UserListItem = React.memo(({ itemUser, onSupportChange }: UserListI
         <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted">
             <Link href={`/gallery?userId=${itemUser.id}`}>
                 <Avatar className="h-12 w-12">
-                    <Image src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" width={48} height={48} className="rounded-full" />
+                    <AvatarImage src={itemUser.picture} alt={itemUser.name} data-ai-hint="profile picture" className="rounded-full" />
                     <AvatarFallback>{itemUser.name ? itemUser.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
             </Link>

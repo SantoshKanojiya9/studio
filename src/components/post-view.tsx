@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, memo, lazy, Suspense } from 'react';
@@ -168,7 +167,7 @@ const PostContent = memo(({
         >
             <div className="flex items-center px-4 py-2">
                 <Avatar className="h-8 w-8">
-                    {emoji.user?.picture && <Image src={emoji.user.picture} alt={emoji.user.name || 'User'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
+                    {emoji.user?.picture && <AvatarImage src={emoji.user.picture} alt={emoji.user.name || 'User'} data-ai-hint="profile picture" className="rounded-full" />}
                     <AvatarFallback>{emoji.user?.name ? emoji.user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
                 <Link href={`/gallery?userId=${emoji.user?.id}`} className="ml-3 font-semibold text-sm">{emoji.user?.name || 'User'}</Link>
@@ -575,7 +574,7 @@ export function PostView({
                 </div>
                 <div className="flex items-center mt-3 gap-2">
                     <Avatar className="h-8 w-8">
-                        {postAuthor?.picture && <Image src={postAuthor.picture} alt={postAuthor.name || 'User'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
+                        {postAuthor?.picture && <AvatarImage src={postAuthor.picture} alt={postAuthor.name || 'User'} data-ai-hint="profile picture" className="rounded-full" />}
                         <AvatarFallback>{postAuthor?.name ? postAuthor.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                     </Avatar>
                     <span className="font-semibold text-sm text-white">{postAuthor?.name}</span>

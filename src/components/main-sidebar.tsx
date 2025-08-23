@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -104,7 +103,7 @@ export function MainSidebar() {
                   >
                     {item.isProfile ? (
                       <Avatar className="h-8 w-8">
-                        {user?.picture && <Image src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" width={32} height={32} className="rounded-full" />}
+                        {user?.picture && <AvatarImage src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" className="rounded-full" />}
                         <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                       </Avatar>
                     ) : (

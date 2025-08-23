@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { memo } from 'react';
@@ -37,7 +36,7 @@ const MoodStories = memo(({ user, moods, isLoading, onSelectMood }: MoodStoriesP
                     <Link href={userHasMood ? "#" : "/gallery"} className="flex flex-col items-center gap-2 cursor-pointer" onClick={userHasMood ? (e) => { e.preventDefault(); onSelectMood(moods.findIndex(m => m.mood_user_id === user?.id)) } : undefined}>
                         <StoryRing hasStory={userHasMood} isViewed={ownMood?.is_viewed}>
                              <Avatar className="h-16 w-16 border-2 border-background">
-                                <Image src={user.picture} alt={"Your Mood"} data-ai-hint="profile picture" width={64} height={64} className="rounded-full" />
+                                <AvatarImage src={user.picture} alt={"Your Mood"} data-ai-hint="profile picture" className="rounded-full" />
                                 <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                             </Avatar>
                         </StoryRing>
@@ -57,7 +56,7 @@ const MoodStories = memo(({ user, moods, isLoading, onSelectMood }: MoodStoriesP
                     <div key={mood.mood_id} className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => onSelectMood(moods.findIndex(m => m.mood_id === mood.mood_id))}>
                         <StoryRing hasStory={true} isViewed={mood.is_viewed}>
                         <Avatar className="h-16 w-16 border-2 border-background">
-                            {mood.mood_user?.picture && <Image src={mood.mood_user.picture} alt={mood.mood_user.name} data-ai-hint="profile picture" width={64} height={64} className="rounded-full" />}
+                            {mood.mood_user?.picture && <AvatarImage src={mood.mood_user.picture} alt={mood.mood_user.name} data-ai-hint="profile picture" className="rounded-full" />}
                             <AvatarFallback>{mood.mood_user?.name ? mood.mood_user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                         </Avatar>
                         </StoryRing>

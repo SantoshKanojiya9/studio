@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -255,7 +254,7 @@ export default function ExplorePage() {
                  searchedUsers.map(user => (
                     <Link key={user.id} href={`/gallery?userId=${user.id}`} className="flex items-center gap-4 px-4 py-2 hover:bg-muted/50">
                        <Avatar className="h-12 w-12 border-2 border-background">
-                            <Image src={user.picture} alt={user.name} data-ai-hint="profile picture" width={48} height={48} className="rounded-full" />
+                            <AvatarImage src={user.picture} alt={user.name} data-ai-hint="profile picture" className="rounded-full" />
                             <AvatarFallback>{user.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                        </Avatar>
                         <span className="font-semibold flex-1">{user.name}</span>
@@ -293,5 +292,3 @@ export default function ExplorePage() {
     </div>
   );
 }
-
-    

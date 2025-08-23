@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -98,7 +97,7 @@ export function BottomBar() {
                 )}
               >
                 <Avatar className="h-7 w-7">
-                  {user?.picture && <Image src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" width={28} height={28} className="rounded-full" />}
+                  {user?.picture && <AvatarImage src={user.picture} alt={user.name || 'profile'} data-ai-hint="profile picture" className="rounded-full" />}
                   <AvatarFallback>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
                 </Avatar>
               </Link>
