@@ -3,6 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createSupabaseServerClient } from '@/lib/supabaseServer';
+import { updateUserInCache } from '@/lib/post-cache';
 
 // --- User Profile Actions ---
 
@@ -22,16 +23,15 @@ export async function updateUserProfile(formData: FormData) {
 
     // Handle avatar upload if a new file is provided
     if (avatarFile && avatarFile.size > 0) {
-        // Use the user's client to respect RLS policies for storage.
         const supabaseAsUser = createSupabaseServerClient(false);
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `avatar.${fileExt}`; // Use a constant name to overwrite
+        const fileName = `avatar.${fileExt}`;
         const filePath = `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabaseAsUser.storage
             .from('avatars')
             .upload(filePath, avatarFile, {
-                upsert: true, // This will now overwrite the existing file
+                upsert: true,
                 cacheControl: '3600',
             });
 
@@ -59,13 +59,20 @@ export async function updateUserProfile(formData: FormData) {
         throw new Error('Failed to update profile.');
     }
     
+    // Also update the user cache to reflect changes immediately on the client
+    if (profileData.picture) {
+        updateUserInCache(user.id, { name: profileData.name, picture: profileData.picture });
+    } else {
+        updateUserInCache(user.id, { name: profileData.name });
+    }
+
     revalidatePath('/gallery');
     revalidatePath('/profile/edit');
 }
 
 
 export async function deleteUserAccount() {
-    const supabase = createSupabaseServerClient(); // Does not bypass RLS
+    const supabase = createSupabaseServerClient();
     const { error } = await supabase.rpc('handle_delete_user');
     if (error) {
         console.error('Error scheduling user deletion:', error);

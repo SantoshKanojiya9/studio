@@ -93,9 +93,6 @@ export default function EditProfilePage() {
             }
 
             await updateUserProfile(formData);
-
-            // Manually update the global user cache after a successful profile update
-            updateUserInCache(user.id, { name, picture: avatarPreview || user.picture });
             
             toast({
                 title: "Profile updated!",
