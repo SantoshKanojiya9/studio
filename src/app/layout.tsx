@@ -11,9 +11,8 @@ import { Inter, Kalam } from 'next/font/google'
 import { AuthProvider } from '@/hooks/use-auth';
 import React from 'react';
 import { TopLoader } from '@/components/top-loader';
-import { Loader2 } from 'lucide-react';
 import { MainSidebar } from '@/components/main-sidebar';
-import Head from 'next/head';
+import { AutoAds } from '@/components/AutoAds';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-kalam' })
@@ -33,12 +32,12 @@ export default function RootLayout({
       <head>
         <title>Edengram</title>
         <meta name="description" content="AI Chat and Image Generation" />
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882939249270622" crossOrigin="anonymous"></script>
       </head>
       <body className={cn("font-body antialiased bg-background overflow-x-hidden")}>
         <AuthProvider>
           <React.Suspense fallback={<TopLoader />}>
             <TopLoader />
+            <AutoAds />
             <div className="md:flex">
               {showNav && <MainSidebar />}
               <main className={cn(
