@@ -32,12 +32,13 @@ export default function RootLayout({
       <head>
         <title>Edengram</title>
         <meta name="description" content="AI Chat and Image Generation" />
-        <AutoAds />
+        <meta name="google-adsense-account" content="ca-pub-2882939249270622" />
       </head>
       <body className={cn("font-body antialiased bg-background overflow-x-hidden")}>
         <AuthProvider>
           <React.Suspense fallback={<TopLoader />}>
             <TopLoader />
+            <AutoAds />
             <div className="md:flex">
               {showNav && <MainSidebar />}
               <main className={cn(
