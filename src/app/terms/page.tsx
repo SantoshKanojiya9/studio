@@ -62,7 +62,7 @@ export default function TermsOfServicePage() {
 
               <h3 className="text-2xl font-semibold text-foreground pt-4">Contact Us</h3>
               <p>
-                If you have any questions about these Terms, please contact us at: risein98@gmail.com
+                If you have any questions about these Terms, please contact us at: contact@edengram.com
               </p>
             </div>
           </div>

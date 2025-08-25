@@ -62,7 +62,7 @@ export default function PrivacyPolicyPage() {
 
               <h3 className="text-2xl font-semibold text-foreground pt-4">Contact Us</h3>
               <p>
-                If you have questions or comments about this Privacy Policy, please contact us at: risein98@gmail.com
+                If you have questions or comments about this Privacy Policy, please contact us at: contact@edengram.com
               </p>
             </div>
           </div>

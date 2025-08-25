@@ -27,7 +27,7 @@ export default function ContactPage() {
             <div className="space-y-4 text-left inline-block">
               <div className="flex items-center gap-4">
                   <Mail className="h-6 w-6 text-primary" />
-                  <a href="mailto:risein98@gmail.com" className="text-lg hover:underline">risein98@gmail.com</a>
+                  <a href="mailto:contact@edengram.com" className="text-lg hover:underline">contact@edengram.com</a>
               </div>
               <div className="flex items-center gap-4">
                   <MapPin className="h-6 w-6 text-primary" />
